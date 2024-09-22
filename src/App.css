@@ -1,0 +1,272 @@
+#root {
+
+  max-width: 2800px;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+/* .page {
+  display: grid;
+  background-color: rgba(255, 255, 255, 0.8);
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  grid-template-columns: 1fr;
+  grid-template-rows: 160px 1250px 30px;
+  grid-template-areas: "header body footer";
+  grid-gap: 0em;
+}
+
+.page>header-layout {
+  grid-area:header;
+  display: grid;
+  grid-template-areas:
+    "icon title title title title title msg msg msg msg msg msg "
+    "menu menu menu menu menu menu menu menu menu menu menu menu "
+    "control control control control control control control control control control control control "
+    "control control control control control control control control control control control control "
+    "body body body body body body body body body body body body "
+    "footer footer footer footer footer footer footer footer footer "
+  ;
+  grid-template-rows: 40px 40px 40px 40px 40px 1250px 40px;
+  grid-template-columns: 200px repeat(11, 1fr);
+}
+
+.header-audio>header-icon {
+  display: grid;
+  grid-area: icon;
+}
+
+.header-layout>header-title {
+  display: grid;
+  grid-area: title;
+}
+
+.header-layout>header-message {
+  display: grid;
+  grid-area: msg;
+}
+
+.header-layout>header-menu {
+  display: grid;
+  grid-area: menu;
+}
+
+.header-layout>header-control {
+  grid-area:control;
+  display:grid;
+  grid-template-areas:
+  "sffile sffile sffile sffile play play play play play play play play"
+  "timelinec timeline timeline timeline timeline timeline timeline timeline timeline timeline timeline timeline";
+  grid-template-rows: 40px 40px;
+  grid-template-columns: 200px repeat(11, 1fr);
+}
+.header-control>control-sffile {
+  display: grid;
+  grid-area: sffile;
+}
+
+.header-layout>control-play {
+  display: grid;
+  grid-area: play;
+}
+
+.header-layout>control-time {
+  display: grid;
+  grid-area: timelinec;
+}
+
+.header-layout>control-timeline {
+  display: grid;
+  grid-area: timeline;
+}
+
+.page>body-layout {
+  display: grid;
+  grid-area: body;
+}
+.page>footer-layout {
+  display: grid;
+  grid-area: footer;
+  position: fixed;
+  bottom: 0;
+  top: auto;
+}
+
+.body-layout>track-layout {
+  display: grid;
+  width: 100%;
+  grid-template-rows: 200px;
+  grid-template-areas:
+  "timec time time time time time time time time time time time";
+  grid-template-columns: 200px repeat(11, 1fr);
+}
+.track-layout>track-control {
+  display: grid;
+  grid-area: timec;
+  border: #000 1px solid;
+}
+
+.track-layout>track-timeline {
+  display: grid;
+  grid-area: time;
+  border: #000 1px solid;
+} */
+
+.track-button {
+  padding: 1px;
+  width: 60px;
+  height: 30px;
+  font-size: 8pt;
+}
+
+.track-name-button {
+  padding: 1px;
+  width: 150px;
+  height: 30px;
+  text-align: left;
+  font-size: 8pt;
+}
+
+.slidercontainer {
+  width: 100%;
+}
+
+.slider {
+  appearance: none;
+  width: 100%;
+  height: 25px;
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity 0.2s;
+}
+
+.slide:hover {
+  opacity: 1;
+}
+
+.modal-header {
+  padding: 2px 16px;
+  background-color: #5cb85c;
+  color: white;
+}
+
+/* Modal Body */
+.modal-body {
+  padding: 2px 16px;
+}
+
+/* Modal Footer */
+.modal-footer {
+  padding: 2px 16px;
+  background-color: #5cb85c;
+  color: white;
+}
+
+/* Modal Content */
+.modal-content {
+  position: relative;
+  background-color: #fefefe;
+  margin: auto;
+  padding: 0;
+  border: 1px solid #888;
+  width: 80%;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  animation-name: animatetop;
+  animation-duration: 0.4s
+}
+
+.generator-header {
+  padding: 2px 16px;
+  background-color: #5c75b8;
+  color: white;
+}
+
+.generator-body {
+  padding: 2px 16px;
+}
+
+.generator-footer {
+  padding: 2px 16px;
+  background-color: #5c75b8;
+  color: white;
+}
+
+.generator-content {
+  position: relative;
+  background-color: #fefefe;
+  margin: auto;
+  padding: 0;
+  border: 1px solid #888;
+  width: 50%;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  animation-name: animateleft;
+  animation-duration: 0.4s
+}
+
+@keyframes animatetop {
+  from {
+    top: -300px;
+    opacity: 0
+  }
+
+  to {
+    top: 0;
+    opacity: 1
+  }
+}
+@keyframes animateleft {
+  from {
+    left: -300px;
+    opacity: 0
+  }
+
+  to {
+    top: 0;
+    opacity: 1
+  }
+}
