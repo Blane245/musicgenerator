@@ -1,20 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import './App.css';
-import "./new.css"
+import CMGFile from './classes/cmgfile';
+import TimeLine from './classes/timeline';
+import { AudioPlayerProvider } from './components/panels/audioplayercontext';
 import Body from './layouts/body';
 import Footer from './layouts/footer';
 import Header from './layouts/header';
 import { Message } from './types/types';
-import CGMFile from './classes/cgmfile';
-import TimeLine from './classes/timeline';
-import { AudioPlayerProvider } from './components/panels/audioplayercontext';
 
-function App() {
+export default function App() {
 
   const [message, setMessage] = useState<Message>({ error: false, text: 'startup' })
   const [status, setStatus] = useState<string>('')
-  const [fileContents, setFileContents] = useState<CGMFile | null>(null);
+  const [fileContents, setFileContents] = useState<CMGFile>(new CMGFile());
   const [timeLine, setTimeLine] = useState<TimeLine>(new TimeLine(0, 0));
 
   return (
@@ -54,5 +53,3 @@ function App() {
     </>
   )
 }
-
-export default App

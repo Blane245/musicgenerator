@@ -62,3 +62,56 @@ export default tseslint.config({
   },
 })
 ```
+# XML File Structure
+```xml
+<?xml verson="1.0"?>
+  <fileContents
+    name = 'string'
+    timeLineStyle = 'int'
+    tempo = 'int'
+    <timeSignature
+      beatsPerMinute = 'int'
+      measureUnit = 'int'
+    /> 
+    snap = 'boolean'
+    measureSnapUnit = 'int'
+    secondSnapUnit = 'int'
+    SFFileName = 'string'
+  >
+    <tracks>
+      <track 
+        name = 'string'
+        order =  'int'
+        mute = 'boolean'
+        solo = 'boolean'
+        volume = 'float'
+        pan = 'float'
+      >
+        <generators>
+          <generator
+            name = 'string'
+            startTime = 'float'
+            stopTime = 'float'
+            type = 'string'
+            presetNumber = 'int'
+            midi = 'int'
+            FMType = 'int'
+            FMAmplitude = 'float'
+            FMFrequency = 'float'
+            FMPhase = 'float'
+            VMCenter = 'int'
+            VMType = 'int'
+            VMAmplitude = 'float'
+            VMFrequency = 'float'
+            VMPhase = 'float'
+            PMCenter = 'int'
+            PMType = 'int'
+            PMAmplitude = 'float'
+            PMFrequency = 'float'
+            PMPhase = 'float'
+          />
+        <generators/>
+      <track/>
+    <tracks/>
+  <fileContents/>
+```

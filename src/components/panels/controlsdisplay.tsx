@@ -1,4 +1,4 @@
-import CGMFile from '../../classes/cgmfile'
+import CMGFile from '../../classes/cmgfile'
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 import { SoundFont2 } from "soundfont2";
 import { loadSoundFont } from "../../utils/loadsoundfont";
@@ -9,7 +9,7 @@ import { ProgressBar } from './audioplayerdisplay/progressbar';
 import TimeLine from '../../classes/timeline';
 import TimeLineDisplay from './timelinedisplay';
 export interface ControlsDisplayProps {
-    fileContents: CGMFile | null,
+    fileContents: CMGFile,
     setFileContents: Function,
     timeLine: TimeLine,
     setTimeLine: Function,
@@ -41,8 +41,8 @@ export default function ControlsDisplay(props: ControlsDisplayProps) {
     function handleFileNameChange(event: ChangeEvent<HTMLSelectElement>): void {
         const fileName: string = event.target.value;
         function setSF(SF: SoundFont2): void {
-            setFileContents((c: CGMFile) => {
-                const newC: CGMFile = c.copy();
+            setFileContents((c: CMGFile) => {
+                const newC: CMGFile = c.copy();
                 newC.SFFileName = fileName;
                 newC.SoundFont = SF;
                 newC.dirty = true;
@@ -153,14 +153,12 @@ export default function ControlsDisplay(props: ControlsDisplayProps) {
                     id="SFfile-select"
                     value={SFFileName}
                     onChange={(event) => handleFileNameChange(event)}
-                    disabled={fileContents == null}
                 >
                     {SFfiles.map((f) => (
                         <option key={"SF-" + f} value={f}>{f}</option>
                     ))}
                 </select>
                 <button
-                    disabled={fileContents != null}
                     onClick={generate}>
                     Generate
                 </button>
@@ -169,12 +167,10 @@ export default function ControlsDisplay(props: ControlsDisplayProps) {
                     ref={audioRef}
                     onLoadedMetadata={onLoadedMetadata} />
                 <button onClick={skipBackward}
-                    disabled={fileContents != null}
                 >
                     <BsFillRewindFill size={20} />
                 </button>
                 <button onClick={() => setIsPlaying((prev) => !prev)}
-                    disabled={fileContents != null}
                 >
                     {isPlaying ? (
                         <BsFillPauseFill size={20} />
@@ -183,7 +179,6 @@ export default function ControlsDisplay(props: ControlsDisplayProps) {
                     )}
                 </button>
                 <button onClick={skipForward}
-                    disabled={fileContents != null && fileContents.tracks.length == 0}
                 >
                     <BsFillFastForwardFill size={20} />
                 </button>
@@ -194,7 +189,8 @@ export default function ControlsDisplay(props: ControlsDisplayProps) {
                 setMessage={setMessage}
                 setStatus={setStatus}
                 setTimeLine={setTimeLine}
-                timeLine={timeLine} />
+                timeLine={timeLine}
+            />
         </>
     )
 }

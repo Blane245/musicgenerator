@@ -6,9 +6,9 @@ import {
   IoMdVolumeLow,
 } from 'react-icons/io';
 import { useAudioPlayerContext } from '../audioplayercontext';
-import CGMFile from '../../../classes/cgmfile';
+import CMGFile from '../../../classes/cmgfile';
 export interface VolumeControlProps {
-  fileContents: CGMFile | null,
+  fileContents: CMGFile,
 }
 
 export const VolumeControl = (props: VolumeControlProps) => {
@@ -32,7 +32,6 @@ export const VolumeControl = (props: VolumeControlProps) => {
     <>
         <button 
         onClick={() => setMuteVolume((prev) => !prev)}
-        disabled={fileContents != null && fileContents.tracks.length == 0}
                 >
           {muteVolume || volume < 5 ? (
             <IoMdVolumeOff size={25} />
@@ -52,7 +51,6 @@ export const VolumeControl = (props: VolumeControlProps) => {
           style={{
             background: `linear-gradient(to right, #f50 ${volume}%, #ccc ${volume}%)`,
           }}
-          disabled={fileContents != null && fileContents.tracks.length == 0}
           />
     </>
   );

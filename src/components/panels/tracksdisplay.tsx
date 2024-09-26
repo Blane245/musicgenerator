@@ -1,23 +1,19 @@
 // TODO add display of generator 'icons'
-import CGMFile from '../../classes/cgmfile'
-import '../../App.css';
-import { ChangeEvent, MouseEvent, useEffect, useState } from "react";
-import { AiOutlineClose } from 'react-icons/ai'
-import { AiOutlineMuted } from "react-icons/ai";
-import { AiFillMuted } from "react-icons/ai";
-import { IoPersonOutline } from "react-icons/io5";
-import { IoPerson } from "react-icons/io5";
+import { ChangeEvent, MouseEvent, useEffect, useRef, useState } from "react";
+import { AiFillMuted, AiOutlineClose, AiOutlineMuted } from 'react-icons/ai';
 import { CgRename } from "react-icons/cg";
+import { IoPerson, IoPersonOutline } from "react-icons/io5";
 import { RiAiGenerate } from "react-icons/ri";
-import Track from "../../classes/track";
+import '../../App.css';
+import CMGFile from '../../classes/cmgfile';
 import TimeLine from '../../classes/timeline';
-import { useRef } from 'react';
+import Track from "../../classes/track";
+import { Preset } from '../../types/soundfonttypes';
 import GeneratorDialog from '../dialogs/generatordialog';
 import GeneratorIcons from './generatoricons';
-import { SoundFont2 } from 'soundfont2';
-import { Preset } from '../../types/soundfonttypes';
+
 export interface TracksDisplayProps {
-    fileContents: CGMFile,
+    fileContents: CMGFile,
     setFileContents: Function,
     timeLine: TimeLine,
     presets: Preset[],
@@ -25,11 +21,6 @@ export interface TracksDisplayProps {
     setStatus: Function
 }
 
-
-
-// for each track
-// name, rename, mute, solo, volume, pan, generator timeline
-// TODO generators will come next
 export default function TracksDisplay(props: TracksDisplayProps) {
     const { fileContents, setFileContents, setMessage, setStatus, timeLine, presets } = props;
     const [tracks, setTracks] = useState<Track[]>([]);
@@ -39,14 +30,12 @@ export default function TracksDisplay(props: TracksDisplayProps) {
     const [enableGenerator, setEnableGenerator] = useState<boolean>(false);
     const trackRef = useRef<HTMLDivElement[]>([]);
     useEffect(() => {
-        if (fileContents.tracks) {
-            setTracks(fileContents.tracks);
-            setStatus(`displayed ${fileContents.tracks.length} tracks`)
-        }
-    }, [tracks]);
-    useEffect(() => {
-        trackRef.current = trackRef.current.slice(0, tracks.length);
-    }, [tracks]);
+        setTracks(fileContents.tracks);
+        setStatus(`displayed ${fileContents.tracks.length} tracks`)
+    }, [fileContents.tracks]);
+    // useEffect(() => {
+    //     trackRef.current = trackRef.current.slice(0, tracks.length);
+    // }, [tracks, trackRef.current]);
 
     function handleDeleteTrack(event: MouseEvent<HTMLElement>): void {
         console.log(event.currentTarget.id);
@@ -59,9 +48,10 @@ export default function TracksDisplay(props: TracksDisplayProps) {
         const trackName = event.currentTarget.id.split(':')[1];
         const thisIndex = fileContents.tracks.findIndex((t) => (t.name == trackName));
         if (thisIndex < 0) return;
-        setFileContents((c: CGMFile) => {
-            const newC: CGMFile = c.copy();
+        setFileContents((c: CMGFile) => {
+            const newC: CMGFile = c.copy();
             newC.tracks.splice(thisIndex, 1);
+            newC.dirty = true;
             return newC;
         });
         setDeleteModal(false);
@@ -83,7 +73,7 @@ export default function TracksDisplay(props: TracksDisplayProps) {
         const trackName: string = event.currentTarget.id.split(':')[1];
         const renameElement: HTMLElement | null = document.getElementById("track-rename");
         if (!renameElement) return;
-        const newName: string | null = renameElement.value;
+        const newName: string | null = renameElement.getAttribute("value");
         if (!newName) return;
         if (!validateNewName(newName)) {
             setMessage({ error: true, text: `'${newName}' is already being used or it is blank.` });
@@ -91,13 +81,13 @@ export default function TracksDisplay(props: TracksDisplayProps) {
         }
         const thisIndex = fileContents.tracks.findIndex((t) => (t.name == trackName));
         if (thisIndex < 0) return;
-        setFileContents((c: CGMFile) => {
-            const newC: CGMFile = c.copy();
+        setFileContents((c: CMGFile) => {
+            const newC: CMGFile = c.copy();
             newC.tracks[thisIndex].name = newName;
+            newC.dirty = true;
             return newC;
         });
         setRenameModal(false);
-
     }
 
     function handleRenameCancel(): void {
@@ -115,9 +105,10 @@ export default function TracksDisplay(props: TracksDisplayProps) {
         const trackName = event.currentTarget.id.split(':')[1];
         const thisIndex = fileContents.tracks.findIndex((t) => (t.name == trackName));
         if (thisIndex >= 0) {
-            setFileContents((c: CGMFile) => {
-                const newC: CGMFile = c.copy();
+            setFileContents((c: CMGFile) => {
+                const newC: CMGFile = c.copy();
                 newC.tracks[thisIndex].mute = !newC.tracks[thisIndex].mute;
+                newC.dirty = true;
                 return newC;
             })
         }
@@ -129,9 +120,10 @@ export default function TracksDisplay(props: TracksDisplayProps) {
         const trackName = event.currentTarget.id.split(':')[1];
         const thisIndex = fileContents.tracks.findIndex((t) => (t.name == trackName));
         if (thisIndex >= 0) {
-            setFileContents((c: CGMFile) => {
-                const newC: CGMFile = c.copy();
+            setFileContents((c: CMGFile) => {
+                const newC: CMGFile = c.copy();
                 newC.tracks[thisIndex].solo = !newC.tracks[thisIndex].solo;
+                newC.dirty = true;
                 return newC;
             })
         }
@@ -237,11 +229,12 @@ export default function TracksDisplay(props: TracksDisplayProps) {
                         </div>
                     </div>
                     <div className='page-track-display'
-                                            key={'track-display:' + t.name}
+                        key={'track-display:' + t.name}
 
                         ref={(el: HTMLDivElement) => trackRef.current[i] = el}>
                         {enableGenerator ?
                             <GeneratorDialog
+                                setFileContents={setFileContents}
                                 track={t}
                                 setTracks={setTracks}
                                 presets={presets}
@@ -251,15 +244,17 @@ export default function TracksDisplay(props: TracksDisplayProps) {
                                 setEnableGenerator={setEnableGenerator}
                                 setOpen={() => { }} />
                             : null}
-                        <GeneratorIcons
-                            track={t}
-                            setTracks={setTracks}
-                            presets={presets}
-                            setEnableGenerator={setEnableGenerator}
-                            timeLine={timeLine}
-                            element={trackRef.current[i]}
-                            setMessage={setMessage}
-                            setStatus={setStatus} />
+                        {trackRef.current[i] ?
+                            <GeneratorIcons
+                                setFileContents={setFileContents}
+                                track={t}
+                                setTracks={setTracks}
+                                presets={presets}
+                                timeLine={timeLine}
+                                element={trackRef.current[i]}
+                                setMessage={setMessage}
+                                setStatus={setStatus} />
+                            : null}
 
                     </div>
                 </>

@@ -45,115 +45,86 @@
   color: #888;
 }
 
-/* .page {
-  display: grid;
+.page {
+  padding: 0;
+  margin:0;
   background-color: rgba(255, 255, 255, 0.8);
   width: 100%;
   height: 100%;
-  margin: 0;
-  padding: 0;
   text-align: left;
-  grid-template-columns: 1fr;
-  grid-template-rows: 160px 1250px 30px;
-  grid-template-areas: "header body footer";
-  grid-gap: 0em;
 }
-
-.page>header-layout {
-  grid-area:header;
+.page-grid {
   display: grid;
-  grid-template-areas:
-    "icon title title title title title msg msg msg msg msg msg "
-    "menu menu menu menu menu menu menu menu menu menu menu menu "
-    "control control control control control control control control control control control control "
-    "control control control control control control control control control control control control "
-    "body body body body body body body body body body body body "
-    "footer footer footer footer footer footer footer footer footer "
-  ;
-  grid-template-rows: 40px 40px 40px 40px 40px 1250px 40px;
   grid-template-columns: 200px repeat(11, 1fr);
+  grid-template-rows: 40px 40px 40px 40px 2000fr 40px;
+  gap: 0;
+}
+.page-icon {
+  display: block;
+  grid-template-columns: subgrid;
 }
 
-.header-audio>header-icon {
+.page-title {
+  display: block;
+  grid-template-columns: subgrid;
+  grid-column: span 5;
+
+}
+.page-message {
+  display: block;
+  grid-template-columns: subgrid;
+  grid-column: span 6;
+}
+
+.page-menus {
+  display: block;
+  grid-template-columns: subgrid;
+  grid-column: span 12;
+}
+
+.page-control {
+  display: block;
+  grid-template-columns: subgrid;
+  grid-column: span 12;
+}
+
+.page-time-control {
+  grid-template-columns: subgrid;
+  display: block;
+}
+.page-time-timeline {
+  grid-template-columns: subgrid;
+  display: block;
+  grid-column: span 11;
+}
+.page-body {
+  grid-template-columns: subgrid;
   display: grid;
-  grid-area: icon;
-}
-
-.header-layout>header-title {
-  display: grid;
-  grid-area: title;
-}
-
-.header-layout>header-message {
-  display: grid;
-  grid-area: msg;
-}
-
-.header-layout>header-menu {
-  display: grid;
-  grid-area: menu;
-}
-
-.header-layout>header-control {
-  grid-area:control;
-  display:grid;
-  grid-template-areas:
-  "sffile sffile sffile sffile play play play play play play play play"
-  "timelinec timeline timeline timeline timeline timeline timeline timeline timeline timeline timeline timeline";
-  grid-template-rows: 40px 40px;
+  grid-column: span 12;
   grid-template-columns: 200px repeat(11, 1fr);
-}
-.header-control>control-sffile {
-  display: grid;
-  grid-area: sffile;
-}
+  grid-template-rows: 150px;
+  gap: 0;
 
-.header-layout>control-play {
-  display: grid;
-  grid-area: play;
 }
-
-.header-layout>control-time {
-  display: grid;
-  grid-area: timelinec;
+.page-track-control {
+  grid-template-columns: subgrid;
+  display:block;
+  border: 1px black solid;
 }
-
-.header-layout>control-timeline {
-  display: grid;
-  grid-area: timeline;
+.page-track-display {
+  grid-template-columns: subgrid;
+  display:block;
+  grid-column: span 11;
+  border: 1px black solid;
 }
-
-.page>body-layout {
-  display: grid;
-  grid-area: body;
-}
-.page>footer-layout {
-  display: grid;
-  grid-area: footer;
+.page-footer {
+  grid-template-columns: subgrid;
+  display: block;
+  grid-column: span 12;
   position: fixed;
-  bottom: 0;
   top: auto;
+  bottom: 0;
 }
-
-.body-layout>track-layout {
-  display: grid;
-  width: 100%;
-  grid-template-rows: 200px;
-  grid-template-areas:
-  "timec time time time time time time time time time time time";
-  grid-template-columns: 200px repeat(11, 1fr);
-}
-.track-layout>track-control {
-  display: grid;
-  grid-area: timec;
-  border: #000 1px solid;
-}
-
-.track-layout>track-timeline {
-  display: grid;
-  grid-area: time;
-  border: #000 1px solid;
-} */
 
 .track-button {
   padding: 1px;
@@ -210,11 +181,13 @@
 /* Modal Content */
 .modal-content {
   position: relative;
+  top: -100px;
+  left: 200px;
+  width: 50em;
   background-color: #fefefe;
-  margin: auto;
+  margin: 0;
   padding: 0;
   border: 1px solid #888;
-  width: 80%;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   animation-name: animatetop;
   animation-duration: 0.4s
@@ -238,6 +211,8 @@
 
 .generator-content {
   position: relative;
+  top: -150px;
+  left: 0px;
   background-color: #fefefe;
   margin: auto;
   padding: 0;

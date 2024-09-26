@@ -1,7 +1,7 @@
-import CGMFile from '../../../classes/cgmfile';
+import CMGFile from '../../../classes/cmgfile';
 import { useAudioPlayerContext } from '../audioplayercontext';
 export interface ProgressBarProps {
-  fileContents: CGMFile | null,
+  fileContents: CMGFile,
 }
 export const ProgressBar = (props: ProgressBarProps) => {
   const { fileContents } = props;
@@ -51,8 +51,6 @@ export const ProgressBar = (props: ProgressBarProps) => {
         type="range"
         defaultValue="0"
         onChange={handleProgressChange}
-        disabled={fileContents != null && fileContents.tracks.length == 0}
-
       />
       <span>{formatTime(duration)}</span>
     </>

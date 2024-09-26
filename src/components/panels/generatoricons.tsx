@@ -5,21 +5,19 @@
 //     with text Generator name: type draw centered in the box
 //     when this svg is click, it invoked the modify RUD action on the generator
 
-import { useState } from "react";
+import { MouseEvent, useEffect, useState } from "react";
 import CMGenerator from "../../classes/cmg";
 import TimeLine from "../../classes/timeline";
 import Track from "../../classes/track";
-import { useEffect } from "react";
+import { Preset } from "../../types/soundfonttypes";
 import { TimeLineScales } from "../../types/types";
 import GeneratorDialog from "../dialogs/generatordialog";
-import { MouseEvent } from "react";
-import { Preset } from "../../types/soundfonttypes";
 
 export interface GeneratorIconProps {
+    setFileContents: Function,
     track: Track,
     setTracks: Function,
     presets: Preset[],
-    setEnableGenerator: Function,
     timeLine: TimeLine,
     element: HTMLDivElement,
     setMessage: Function,
@@ -29,7 +27,7 @@ type GeneratorBox = {
     generator: CMGenerator, position: { x: number, y: number }, width: number, height: number
 }
 export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
-    const { track, setTracks, presets, setEnableGenerator, timeLine, element, setMessage, setStatus } = props;
+    const { setFileContents, track, setTracks, presets, timeLine, element, setMessage, setStatus } = props;
     const [generatorIndex, setGeneratorIndex] = useState<number>(-1);
 
     const [generatorBoxes, setGeneratorBoxes] =
@@ -72,14 +70,14 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
             setGeneratorBoxes(boxes);
 
         });
-    }, [track, timeLine, element])
+    }, [track.generators, timeLine, element])
     function openGeneratorDialog(event: MouseEvent<HTMLOrSVGElement>, generator: CMGenerator): void {
         console.log('generator icon click '.concat(track.name).concat(':').concat(generator.name));
         const boxIndex = generatorBoxes.findIndex((b) => b.generator.name == generator.name);
         const gIndex = track.generators.findIndex((g) => (g.name == generatorBoxes[boxIndex].generator.name))
 
         setGeneratorIndex(gIndex);
-        setOpen(true)
+        setOpen(true);
     }
     return (
         <>
@@ -122,13 +120,14 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
                 : null}
             {open ?
                 <GeneratorDialog
+                    setFileContents={setFileContents}
                     track={track}
                     setTracks={setTracks}
                     presets={presets}
                     generatorIndex={generatorIndex}
                     setMessage={setMessage}
                     setStatus={setStatus}
-                    setEnableGenerator={setEnableGenerator}
+                    setEnableGenerator={setOpen}
                     setOpen={setOpen}
                 />
                 : null}

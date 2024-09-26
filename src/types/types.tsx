@@ -92,10 +92,10 @@ export enum SECONDSNAPUNIT {
 }
 
 export enum MODULATOR {
-    SINE = 0,
-    SQUARE,
-    TRIANGLE,
-    SAWTOOTH,
+    'SINE',
+    'SQUARE',
+    'TRIANGLE',
+    'SAWTOOTH',
 }
 export enum MODULATORCLASS {
     Frequency,
@@ -167,13 +167,6 @@ export const TimeLineScales:TimeLineScale[] = [
     {extent: 604000., majorDivisions: 7, minorDivisions: 4, format: 10},
     {extent: 1209600., majorDivisions: 2, minorDivisions: 7, format: 10},
  ]
-
-//  export interface TimelineElement extends SVGSVGElement {
-//     zoom: string,
-//     setZoom: Function,
-//     timeLine: TimeLine,
-//     setTimeLine: Function,
-//  }
 
 export enum GENERATORTYPES  {
     "CMG",

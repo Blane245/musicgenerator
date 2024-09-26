@@ -13,7 +13,7 @@ export interface TimeLineDisplayProps {
 // render the timeline
 export default function TimeLineDisplay(props: TimeLineDisplayProps) {
     const { timeLine, setTimeLine, setMessage, setStatus } = props;
-    const timeLineRef = useRef(null);
+    const timeLineRef = useRef<HTMLDivElement>(null);
     const [ticks, setTicks] = useState<{
         majorTickCount: number,
         scaleExtent: number,
@@ -41,7 +41,7 @@ export default function TimeLineDisplay(props: TimeLineDisplayProps) {
 
     // capture the tick parameters when the zoom level changes
     useEffect(() => {
-        if (timeLine && (timeLine.currentZoomLevel >= 0 && timeLine.currentZoomLevel < TimeLineScales.length)) {
+        if (timeLine.currentZoomLevel >= 0 && timeLine.currentZoomLevel < TimeLineScales.length) {
             const scale: TimeLineScale = TimeLineScales[timeLine.currentZoomLevel];
             setTicks({
                 majorTickCount: scale.majorDivisions,
@@ -54,7 +54,7 @@ export default function TimeLineDisplay(props: TimeLineDisplayProps) {
                 labelFormat: TIMEFORMATS[scale.format].value,
             })
         }
-    }, [timeLine, timeLine?.currentZoomLevel])
+    }, [timeLine])
 
     // build the tick marks
     function getTickLines
@@ -76,83 +76,74 @@ export default function TimeLineDisplay(props: TimeLineDisplayProps) {
     function getTickLabels(
         count: number, size: number, spacing: number, extent: number, format: string) {
         const result = [];
-        if (timeLine) {
-            const sizepx: string = size.toString().concat('px');
-            for (let i = 0; i <= count; i++) {
-                const tValue: number =
-                    timeLine.startTime + i * (extent / count);
-                const tText = numeral(tValue).format(format);
-                result.push(
-                    <text key={'ticktext-' + i}
-                        x={i * spacing}
-                        y={size}
-                        fontSize={sizepx}
-                        textAnchor='middle'>
-                        {tText}
-                    </text>
-                )
-            }
+        const sizepx: string = size.toString().concat('px');
+        for (let i = 0; i <= count; i++) {
+            const tValue: number =
+                timeLine.startTime + i * (extent / count);
+            const tText = numeral(tValue).format(format);
+            let tAnchor: string = 'middle';
+            if (i == 0) tAnchor = 'start';
+            if (i == count) tAnchor = 'end';
+            result.push(
+                <text key={'ticktext-' + i}
+                    x={i * spacing}
+                    y={size}
+                    fontSize={sizepx}
+                    textAnchor={tAnchor}>
+                    {tText}
+                </text>
+            )
         }
         return result;
     }
 
 
     const handleZoomIn = (): void => {
-        if (timeLine) {
-            setTimeLine((c: TimeLine) => {
-                if (!c) return null;
-                const newC = new TimeLine(timeLine.width, timeLine.height);
-                newC.currentZoomLevel = c.currentZoomLevel;
-                newC.startTime = c.startTime;
-                newC.zoomIn();
-                return newC;
-            });
-
-        }
+        setTimeLine((c: TimeLine) => {
+            const newC = new TimeLine(timeLine.width, timeLine.height);
+            newC.currentZoomLevel = c.currentZoomLevel;
+            newC.startTime = c.startTime;
+            newC.zoomIn();
+            return newC;
+        });
     }
     const handleZoomOut = (): void => {
-        if (timeLine) {
-            setTimeLine((c: TimeLine) => {
-                if (!c) return null;
-                const newC = new TimeLine(timeLine.width, timeLine.height);
-                newC.currentZoomLevel = c.currentZoomLevel;
-                newC.startTime = c.startTime;
-                newC.zoomOut();
-                return newC;
-            });
-        }
+        setTimeLine((c: TimeLine) => {
+            const newC = new TimeLine(timeLine.width, timeLine.height);
+            newC.currentZoomLevel = c.currentZoomLevel;
+            newC.startTime = c.startTime;
+            newC.zoomOut();
+            return newC;
+        });
     }
 
     return (
         <>
             <div className='page-time-control'>
                 <button
-                    disabled={timeLine ? timeLine.currentZoomLevel == 0 : true}
+                    disabled={timeLine.currentZoomLevel == 0}
                     onClick={handleZoomIn}
                 >
                     <CiZoomIn />
                 </button>
                 <button
-                    disabled={timeLine ? timeLine.currentZoomLevel == TimeLineScales.length - 1 : true}
+                    disabled={timeLine.currentZoomLevel == TimeLineScales.length - 1}
                     onClick={handleZoomOut}
                 >
                     <CiZoomOut />
                 </button>
             </div>
             <div ref={timeLineRef} className='page-time-timeline'>
-                {timeLine ?
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width={timeLine.width}
-                        height={timeLine.height}
-                        viewBox={`0 0 ${timeLine.width} ${timeLine.height}`}
-                    >
-                        <path stroke="black" d={`m 0 ${timeLine.height} H ${timeLine.width}`} />
-                        {getTickLines(ticks?.tickCount, ticks?.tickHeight, ticks?.tickSpacing)}
-                        {getTickLabels(ticks.majorTickCount, ticks.labelSize, ticks.labelSpacing, ticks.scaleExtent, ticks.labelFormat)}
-                    </svg>
-
-                    : null}
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width={timeLine.width}
+                    height={timeLine.height}
+                    viewBox={`0 0 ${timeLine.width} ${timeLine.height}`}
+                >
+                    <path stroke="black" d={`m 0 ${timeLine.height} H ${timeLine.width}`} />
+                    {getTickLines(ticks?.tickCount, ticks?.tickHeight, ticks?.tickSpacing)}
+                    {getTickLabels(ticks.majorTickCount, ticks.labelSize, ticks.labelSpacing, ticks.scaleExtent, ticks.labelFormat)}
+                </svg>
             </div>
         </>
     )

@@ -9,10 +9,8 @@ import { TimeLineScales } from "../types/types";
 export default class TimeLine {
     startTime: number; // 
     currentZoomLevel: number; // index into the timeline constant
-    timeLineElement: string;
     width: number; // px
     height: number; //px
-    // ref: RefObject<TimelineElement>;
     constructor(width: number, height: number) {
         this.width = width;
         this.height = height;
@@ -20,21 +18,18 @@ export default class TimeLine {
         // this.ref = ref;
         this.currentZoomLevel = // default is 50 seconds as the extent
             TimeLineScales.findIndex((t) => t.extent == 50.0);
-            this.timeLineElement = '';
     }
 
-    zoomIn():string {
+    zoomIn(): void {
         if (this.currentZoomLevel > 0) {
             this.currentZoomLevel--;
-}
-            return this.timeLineElement;
+        }
 
     }
-    zoomOut():string {
+    zoomOut(): void {
         if (this.currentZoomLevel < TimeLineScales.length - 1) {
             this.currentZoomLevel++;
-}
-            return this.timeLineElement;
+        }
 
     }
 

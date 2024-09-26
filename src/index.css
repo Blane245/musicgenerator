@@ -37,15 +37,15 @@ p {
 
 button {
   border-radius: 8px;
-  border: 1px solid transparent;
+  border: 1px solid black;
   padding-top: 0em;
   padding-left: 1em;
   padding-bottom: 0em;
-  padding-right: 0em;
+  padding-right: 1em;
   font-size: 18px;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: white;
   cursor: pointer;
   transition: border-color 0.25s;
 }
@@ -65,7 +65,8 @@ button:focus-visible {
   a:hover {
     color: #747bff;
   }
-  button {
-    background-color: #f9f9f9;
+  button:hover {
+    background-color: cyan;
+    
   }
 }
