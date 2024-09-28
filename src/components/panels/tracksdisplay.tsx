@@ -1,4 +1,3 @@
-// TODO add display of generator 'icons'
 import { ChangeEvent, MouseEvent, useEffect, useRef, useState } from "react";
 import { AiFillMuted, AiOutlineClose, AiOutlineMuted } from 'react-icons/ai';
 import { CgRename } from "react-icons/cg";

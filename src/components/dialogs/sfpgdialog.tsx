@@ -1,6 +1,6 @@
 import { ChangeEvent } from "react";
 import SFPG from "../../classes/sfpg";
-import { Preset } from "../../types/soundfonttypes";
+import { Preset, PresetZone } from "../../types/soundfonttypes";
 import { MODULATOR } from "../../types/types";
 
 // provides the form fields and validators for the sfperiodic generator
@@ -15,10 +15,10 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
     // we are in the middle of the generator dialog form
     return (
         <>
-            <label htmlFor="preset">Preset:</label>
-            <select name="preset"
+            <label htmlFor="presetName">Preset:</label>
+            <select name="presetName"
                 onChange={handleChange}
-                value={formData.preset ? formData.preset.header.name : ''}
+                value={formData.presetName}
             >
                 {presets.map((p) => (
                     <option key={'preset-'.concat(p.header.name)}
@@ -160,7 +160,7 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
     )
 }
 
-export function validateSFPGValues(values: SFPG): string[] {
+export function validateSFPGValues(values: SFPG, presets: Preset[]): string[] {
     const result: string[] = [];
 
     if (values.midi < 0 || values.midi > 255)
@@ -187,6 +187,9 @@ export function validateSFPGValues(values: SFPG): string[] {
         result.push('PMFrequency must be greater than zero');
     if (values.PMPhase < -360 || values.PMPhase > 360)
         result.push('PMPhase must be greater than -360 and less than 360');
+    if (values.presetName != '') {
+        values.preset = presets.find((p:Preset) => (p.header.name == values.presetName ))
+    }
     return result;
 
 }

@@ -6,7 +6,7 @@ import SFPG from "../../classes/sfpg";
 import Track from "../../classes/track";
 import { Preset } from "../../types/soundfonttypes";
 import { GENERATORTYPES } from "../../types/types";
-import setFileDirty from "../../utils/setFileDirty";
+import setFileDirty from '../../utils/setfiledirty';
 import GeneratorTypeForm from "./generatortypeform";
 import { validateSFPGValues } from "./sfpgdialog";
 import SFRG from "classes/sfrg";
@@ -136,7 +136,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
             case "SFPG": {
                 let newMessages = validateCMGValues(formData);
                 msgs = msgs.concat(newMessages);
-                newMessages = validateSFPGValues(formData as SFPG);
+                newMessages = validateSFPGValues(formData as SFPG, presets);
                 msgs = msgs.concat(newMessages);
                 if (msgs.length > 0) {
                     setErrorMessages(msgs);

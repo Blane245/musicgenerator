@@ -89,9 +89,3 @@ export interface GeneratorOptions {
   releaseVolEnv: number,
   pan: number,
 }
-
-export interface Envelop {
-  velocity?: number,
-  attackVolEnv?: number,
-  decayVolEnv?: number,
-}

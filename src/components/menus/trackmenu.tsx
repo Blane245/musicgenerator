@@ -16,6 +16,7 @@ export default function TrackMenu(props: TrackMenuProps) {
     e.preventDefault();
     const next = fileContents.tracks.length + 1;
     const newTrack = new Track(next);
+    // https://github.com/Blane245/musicgenerator/issues/3
     setFileContents((c: CMGFile) => {
       const newC: CMGFile = c.copy();
       newC.tracks.push(newTrack);

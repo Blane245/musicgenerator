@@ -8,6 +8,7 @@ import { BsFillFastForwardFill, BsFillPauseFill, BsFillPlayFill, BsFillRewindFil
 import { ProgressBar } from './audioplayerdisplay/progressbar';
 import TimeLine from '../../classes/timeline';
 import TimeLineDisplay from './timelinedisplay';
+import { Generate } from '../generation/generate';
 export interface ControlsDisplayProps {
     fileContents: CMGFile,
     setFileContents: Function,
@@ -27,6 +28,8 @@ export default function ControlsDisplay(props: ControlsDisplayProps) {
 
     const [SFfiles, setSFFiles] = useState<string[]>([]);
     const [SFFileName, setSFFileName] = useState<string>('');
+    const [errors, setErrors] = useState<string[]>([]);
+    const [showError, setShowError] = useState<boolean>(false);
 
     // load the soundfont file list at start up
     useEffect(() => {
@@ -140,8 +143,18 @@ export default function ControlsDisplay(props: ControlsDisplayProps) {
     };
 
     //TODO this will convert the current tracks into a mpg file
-    const generate = () => {
+    const handleGenerate = () => {
+        const newErrors:string[] = Generate(fileContents);
+
+        if (newErrors.length != 0) {
+            setErrors(newErrors);
+            setShowError(true);
+        }
         setStatus('audio file generated');
+    }
+
+    const handleErrorsClose = () => {
+        setShowError(false);
     }
 
     return (
@@ -159,7 +172,7 @@ export default function ControlsDisplay(props: ControlsDisplayProps) {
                     ))}
                 </select>
                 <button
-                    onClick={generate}>
+                    onClick={handleGenerate}>
                     Generate
                 </button>
                 <audio
@@ -191,6 +204,27 @@ export default function ControlsDisplay(props: ControlsDisplayProps) {
                 setTimeLine={setTimeLine}
                 timeLine={timeLine}
             />
+            <div
+                style={{ display: showError ? "block" : "none" }}
+                className="modal-content"
+            >
+                <div className='modal-header'>
+                    <span className='close' onClick={handleErrorsClose}>&times;</span>
+                    <h2>Errors occurred during audio generation</h2>
+                </div>
+                <div className="modal-body">
+                    {errors.map((e) => (
+                        <p>{e}</p>
+                    ))}
+                </div>
+                <div className='modal-footer'>
+                    <button
+                        id={'generator-error'}
+                        onClick={handleErrorsClose}
+                    >OK</button>
+                </div>
+            </div>
+            
         </>
     )
 }
