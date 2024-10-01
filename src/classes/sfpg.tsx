@@ -1,34 +1,26 @@
-import { sineModulator } from "modulators/sinemodulator";
-import { Preset } from "../types/soundfonttypes";
-import { MODULATOR } from "../types/types";
+import { sineModulator } from '../modulators/sinemodulator';
 import CMG from "./cmg";
-import { sawtoothModulator } from "modulators/sawtoothmodulator";
-import { squareModulator } from "modulators/squaremodulator";
-import { triangleModulator } from "modulators/trianglemodulator";
+import { sawtoothModulator } from "../modulators/sawtoothmodulator";
+import { squareModulator } from "../modulators/squaremodulator";
+import { triangleModulator } from "../modulators/trianglemodulator";
 export default class SFPG extends CMG {
-    presetName: string;
-    preset: Preset | undefined;
-    midi: number;
     FMType: string;
     FMAmplitude: number; // cents
     FMFrequency: number; // hz
     FMPhase: number; // degrees
-    VMType: string;
-    VMCenter: number; // %
+    VMType: string; 
+    VMCenter: number; // 0 100
     VMFrequency: number; // hz
-    VMAmplitude: number; // %
+    VMAmplitude: number; // 0 - 100
     VMPhase: number; // degrees
     PMType: string;
-    PMCenter: number; // -1, 1
+    PMCenter: number; // -50, 50
     PMFrequency: number; // hz
-    PMAmplitude: number; // -1, 1 (center applied, center +- amplitude cannot be outside -1, 1)
+    PMAmplitude: number; // -50 50 (center applied, center +- amplitude cannot be outside -1, 1)
     PMPhase: number; // degrees
     constructor(nextGenerator: number) {
         super(nextGenerator);
         this.type = 'SFPG';
-        this.presetName = '';
-        this.preset = undefined;
-        this.midi = 60;
         this.FMType = "SINE";
         this.FMAmplitude = 0;
         this.FMFrequency = 0;
@@ -48,18 +40,20 @@ export default class SFPG extends CMG {
         elem.setAttribute('name', this.name);
         elem.setAttribute('startTime', this.startTime.toString());
         elem.setAttribute('stopTime', this.stopTime.toString());
-        elem.setAttribute('type', 'SFPG');
         elem.setAttribute('presetName', this.presetName);
         elem.setAttribute('midi', this.midi.toString());
+        elem.setAttribute('type', 'SFPG');
         elem.setAttribute('FMType', this.FMType.toString());
         elem.setAttribute('FMAmplitude', this.FMAmplitude.toString());
         elem.setAttribute('FMFrequency', this.FMFrequency.toString());
+        elem.setAttribute('FMPhase', this.FMPhase.toString());
         elem.setAttribute('VMType', this.VMType.toString());
         elem.setAttribute('VMCenter', this.VMCenter.toString());
         elem.setAttribute('VMFrequency', this.VMFrequency.toString());
         elem.setAttribute('VMAmplitude', this.VMAmplitude.toString());
         elem.setAttribute('VMPhase', this.VMPhase.toString());
         elem.setAttribute('PMType', this.PMType.toString());
+        elem.setAttribute('PMCenter', this.PMCenter.toString());
         elem.setAttribute('PMFrequency', this.PMFrequency.toString());
         elem.setAttribute('PMAmplitude', this.PMAmplitude.toString());
         elem.setAttribute('PMPhase', this.PMPhase.toString());
@@ -159,7 +153,7 @@ export default class SFPG extends CMG {
         }
 
     }
-
+ 
     getCurrentValues(time: number): { pitch: number, volume: number, pan: number } {
         let pitch: number = this.midi;
         switch (this.FMType) {

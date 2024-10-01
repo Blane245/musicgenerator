@@ -1,7 +1,6 @@
 import CMGFile from '../../classes/cmgfile'
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
-import { SoundFont2 } from "soundfont2";
-import { loadSoundFont } from "../../utils/loadsoundfont";
+import { loadSoundFont } from '../../utils/loadsoundfont';
 import { useAudioPlayerContext } from "./audioplayercontext";
 import { VolumeControl } from "./audioplayerdisplay/volumecontrol";
 import { BsFillFastForwardFill, BsFillPauseFill, BsFillPlayFill, BsFillRewindFill } from "react-icons/bs";
@@ -30,6 +29,7 @@ export default function ControlsDisplay(props: ControlsDisplayProps) {
     const [SFFileName, setSFFileName] = useState<string>('');
     const [errors, setErrors] = useState<string[]>([]);
     const [showError, setShowError] = useState<boolean>(false);
+    const [readyGenerate, setReadyGenerate] = useState<boolean>(true);
 
     // load the soundfont file list at start up
     useEffect(() => {
@@ -37,24 +37,57 @@ export default function ControlsDisplay(props: ControlsDisplayProps) {
         const fileList: string[] = Object.keys(SFFiles);
         fileList.unshift('select a file'); // add select a file to the start of the list
         setSFFiles(fileList);
-
     }, []);
 
+    useEffect(() => {
+        if (fileContents)
+            setSFFileName(fileContents.SFFileName);
+    },[fileContents]);
+
+    // control the generate button
+    // only enabled when a soundfont file is defined and all generators have presets and midi numbers assigned
+    // useEffect(() => {
+    //     if (!fileContents) {
+    //         setReadyGenerate(false);
+    //         return;
+    //     }
+    //     fileContents.tracks.forEach((t:Track) => {
+    //         t.generators.forEach((g: CMG) => {
+    //             if (g.presetName == '' || !g.preset || g.midi < 0 || g.midi > 255) {
+    //                 setReadyGenerate(false);
+    //                 return;
+    //             }
+    //         })
+    //     })
+    //     setReadyGenerate(true);
+
+    // }, [fileContents, SFFileName])
+
     // load the SF when one is selected
-    function handleFileNameChange(event: ChangeEvent<HTMLSelectElement>): void {
+    // TODO - any generators that have been selected from a previous soundfont file will be violated. This will have to be handled
+    async function handleFileNameChange(event: ChangeEvent<HTMLSelectElement>): void {
         const fileName: string = event.target.value;
-        function setSF(SF: SoundFont2): void {
-            setFileContents((c: CMGFile) => {
-                const newC: CMGFile = c.copy();
-                newC.SFFileName = fileName;
-                newC.SoundFont = SF;
-                newC.dirty = true;
-                return newC;
-            })
-        }
+        // function setSF(SF: SoundFont2): void {
+        //     setFileContents((c: CMGFile) => {
+        //         const newC: CMGFile = c.copy();
+        //         newC.SFFileName = fileName;
+        //         newC.SoundFont = SF;
+        //         newC.dirty = true;
+        //         return newC;
+        //     })
+        // }
         if (fileName !== '' && fileName !== 'select a file') {
             setSFFileName(fileName);
-            loadSoundFont(fileName, setSF);
+            const sf = await loadSoundFont(fileName);
+            setFileContents((prev: CMGFile) => {
+                const newC: CMGFile = prev.copy();
+                newC.SFFileName = fileName;
+                newC.SoundFont = sf;
+                newC.dirty = false;
+                return newC;
+            })
+            // loadSoundFont(fileName, setSF);
+
             setStatus(`file ${fileName} loaded`);
         }
     }
@@ -142,7 +175,7 @@ export default function ControlsDisplay(props: ControlsDisplayProps) {
         }
     };
 
-    //TODO this will convert the current tracks into a mpg file
+    //TODO this will convert the current tracks into a mpg file (for now only playback)
     const handleGenerate = () => {
         const newErrors:string[] = Generate(fileContents);
 
@@ -172,6 +205,7 @@ export default function ControlsDisplay(props: ControlsDisplayProps) {
                     ))}
                 </select>
                 <button
+                disabled={!readyGenerate}
                     onClick={handleGenerate}>
                     Generate
                 </button>

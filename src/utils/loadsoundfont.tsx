@@ -1,7 +1,7 @@
 import { SoundFont2 } from 'soundfont2';
 
-export function loadSoundFont(fileName: string, setSoundFont: Function): void {
-    fetch(fileName,
+export async function loadSoundFont(fileName: string): Promise<SoundFont2> {
+    const response = await fetch(fileName,
         {
             headers:
             {
@@ -9,12 +9,16 @@ export function loadSoundFont(fileName: string, setSoundFont: Function): void {
                 'Accept': 'application/octet-stream'
             }
         })
-        .then((response) => {
-            response.arrayBuffer()
-                .then((data) => {
-                    const array = new Uint8Array(data);
-                    const sf = new SoundFont2(array);
-                    setSoundFont(sf);
-                });
-        });
+    const data = await response.arrayBuffer();
+    const array = new Uint8Array(data);
+    const sf = new SoundFont2 (array);
+    return sf;
+        // .then((response) => {
+        //     response.arrayBuffer()
+        //         .then((data) => {
+        //             const array = new Uint8Array(data);
+        //             const sf = new SoundFont2(array);
+        //             setSoundFont(sf);
+        //         });
+        // });
 }

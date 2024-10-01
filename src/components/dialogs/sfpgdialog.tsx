@@ -1,41 +1,19 @@
 import { ChangeEvent } from "react";
 import SFPG from "../../classes/sfpg";
-import { Preset, PresetZone } from "../../types/soundfonttypes";
+import { Preset } from "../../types/soundfonttypes";
 import { MODULATOR } from "../../types/types";
 
 // provides the form fields and validators for the sfperiodic generator
 export interface SFPGDialogProps {
     formData: SFPG,
-    presets: Preset[],
     handleChange: (event: ChangeEvent<HTMLElement>) => void,
 }
 export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
-    const { formData, presets, handleChange } = props;
+    const { formData, handleChange } = props;
 
     // we are in the middle of the generator dialog form
     return (
         <>
-            <label htmlFor="presetName">Preset:</label>
-            <select name="presetName"
-                onChange={handleChange}
-                value={formData.presetName}
-            >
-                {presets.map((p) => (
-                    <option key={'preset-'.concat(p.header.name)}
-                        value={p.header.name}>
-                        {p.header.name}
-                    </option>
-                ))}
-            </select>
-            <hr />
-            <label htmlFor="midi">Midi Number:</label>
-            <input name="midi"
-                type='number'
-                onChange={handleChange}
-                value={formData.midi}
-            />
-            <br />
-
             <label htmlFor="FMType">FMType:</label>
             <select name="FMType"
                 onChange={handleChange}
@@ -163,8 +141,6 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
 export function validateSFPGValues(values: SFPG, presets: Preset[]): string[] {
     const result: string[] = [];
 
-    if (values.midi < 0 || values.midi > 255)
-        result.push('midi number must be between 0 and 255');
     if (values.FMAmplitude < 0)
         result.push('FMAmplitude must be greater than zero');
     if (values.FMFrequency < 0)
@@ -179,7 +155,7 @@ export function validateSFPGValues(values: SFPG, presets: Preset[]): string[] {
         result.push('VMFrequency must be greater than zero');
     if (values.VMPhase < -360 || values.VMPhase > 360)
         result.push('VMPhase must be greater than -360 and less than 360');
-    if (values.PMCenter < -1.0 || values.PMCenter > 1.0)
+    if (values.PMCenter < -50.0 || values.PMCenter > 50.0)
         result.push('PMCenter must be between -1 and 1');
     if (values.PMAmplitude < 0)
         result.push('PMAmplitude must be greater than zero');
@@ -187,9 +163,6 @@ export function validateSFPGValues(values: SFPG, presets: Preset[]): string[] {
         result.push('PMFrequency must be greater than zero');
     if (values.PMPhase < -360 || values.PMPhase > 360)
         result.push('PMPhase must be greater than -360 and less than 360');
-    if (values.presetName != '') {
-        values.preset = presets.find((p:Preset) => (p.header.name == values.presetName ))
-    }
     return result;
 
 }

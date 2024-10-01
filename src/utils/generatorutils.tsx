@@ -1,9 +1,7 @@
 
 import { InstrumentZone } from 'types/soundfonttypes';
 import SFPG from '../classes/sfpg';
-import { getSFGeneratorValues } from './soundfont2utils';
-import { SoundFont2 } from 'soundfont2';
-import CMG from 'classes/cmg';
+import { getSFGeneratorValues } from '../utils/soundfont2utils';
 
 // 
 // this gets the midi sample from the preset 
@@ -13,9 +11,8 @@ import CMG from 'classes/cmg';
 // chuck based on the time that the generator start until it stops.
 // these chucks are fed to the scheduler as the audiocontext advances 
 // through current time.
-const CHUNKTIME: number = 0.1;
-export function getBufferSourceNodesFromSample(context: AudioContext, CMgenerator: SFPG):
-    AudioBufferSourceNode[] {
+export function getBufferSourceNodesFromSample(context: AudioContext, CMgenerator: SFPG, deltaT: number):
+    {sources: AudioBufferSourceNode[], times: {start: number, stop:number}[]} {
 
     // get the instrument zone for generator's preset
     if (!CMgenerator.preset)
@@ -27,7 +24,7 @@ export function getBufferSourceNodesFromSample(context: AudioContext, CMgenerato
     // the generator has a start and end time
     const { startTime, stopTime } = CMgenerator;
     // A generator will need a number of #chucks = (stoptime-start)/CHUCKSIZE
-    const chunkCount = Math.trunc(stopTime - startTime) / CHUNKTIME;
+    const chunkCount = Math.trunc(stopTime - startTime) / deltaT;
 
     // loop through each time chunks to get the current pitch, volume, and pan
     // for each chunk and apply them to the chunk
@@ -35,10 +32,10 @@ export function getBufferSourceNodesFromSample(context: AudioContext, CMgenerato
     let nextSampleIndex: number = 0;
     const sampleDuration: number = CMgenerator.stopTime - CMgenerator.startTime;
     const sources: AudioBufferSourceNode[] = [];
-    for (let time: number = 0; time < sampleDuration; time += CHUNKTIME) {
+    const times:{start:number, stop:number}[] = [];
+    for (let iChunk: number = 0; iChunk < chunkCount; iChunk += 1) {
+        const time = iChunk * deltaT;
         const { pitch, volume, pan } = CMgenerator.getCurrentValues(time);
-        const iChunk = time / CHUNKTIME; // which chuck we are working on 
-
         // get the samples for the sound to last the 
         // get the instrument's zone from the pitch, with clipping
         let iZone = 0;
@@ -55,8 +52,8 @@ export function getBufferSourceNodesFromSample(context: AudioContext, CMgenerato
         const { sampleRate, start, startLoop, endLoop, pitchCorrection } = zones[iZone].sample.header;
 
         // each chuck a number of samples depending on the sample rate and the Chunk size
-        const chunkSize = sampleRate * CHUNKTIME;
-        nextSampleIndex = time / CHUNKTIME * chunkSize;
+        const chunkSize = sampleRate * deltaT;
+        nextSampleIndex = time / deltaT * chunkSize;
 
         // get the soundfont generator values
         const generatorValues: Map<number, number> =
@@ -72,10 +69,11 @@ export function getBufferSourceNodesFromSample(context: AudioContext, CMgenerato
         const velocity: number | undefined = generatorValues.get(47);
 
         const rootKey = overridingRootKey !== undefined && overridingRootKey !== -1 ? overridingRootKey : currentZone.sample.header.originalPitch;
+        // const rootKey = currentZone.sample.header.originalPitch;
         const baseDetune = 100 * rootKey + pitchCorrection - (fineTune ? fineTune : 0);
         const cents = pitch * 100 - baseDetune;
         const playbackRate = 1.0 * Math.pow(2, cents / 1200);
-        const loopStart = zones[iZone].sample.header.startLoop +
+        const loopStart = startLoop +
             (startloopAddrsOffset ? startloopAddrsOffset : 0) +
             (startloopAddrsCoarseOffset ? startloopAddrsCoarseOffset * 32768 : 0);
         const loopEnd = endLoop +
@@ -102,18 +100,17 @@ export function getBufferSourceNodesFromSample(context: AudioContext, CMgenerato
         panner.pan.value = pan / 1000;
         vol.connect(panner);
         source.connect(vol);
-        source.start(time + CMgenerator.startTime);
-        source.stop(time + CMgenerator.startTime + CHUNKTIME);
+        panner.connect(context.destination);
+        // source.start(time + CMgenerator.startTime);
+        // source.stop(time + CMgenerator.startTime + deltat);
 
         // and add it to the accumulated sources
         sources.push(source);
+        times.push({start:time + CMgenerator.startTime, stop:time + CMgenerator.startTime + deltaT})
 
     }
 
-
-
-
-    return sources;
+    return {sources:sources,times:times};
 }
 
 // while the sfumato solution for playing soundfont files is very elegant
