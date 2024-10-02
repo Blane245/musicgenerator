@@ -1,5 +1,4 @@
 // provides CRUD for all types of generators
-// TODO error handling causing problems
 import { ChangeEvent, FormEvent, MouseEvent, useEffect, useState } from "react";
 import CMG from "../../classes/cmg";
 import SFPG from "../../classes/sfpg";
@@ -10,6 +9,7 @@ import setFileDirty from '../../utils/setfiledirty';
 import GeneratorTypeForm from "./generatortypeform";
 import { validateSFPGValues } from "./sfpgdialog";
 import SFRG from '../../classes/sfpg';
+import { toNote } from '../../utils/util';
 
 // The icon starts at the generator's start time and ends at the generators endtime
 export interface GeneratorDialogProps {
@@ -294,6 +294,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                             onChange={handleChange}
                             value={formData.startTime}
                         />
+                        <span> (seconds)</span>
                         <br />
                         <label htmlFor="stopTime">Stop Time:</label>
                         <input name="stopTime"
@@ -301,6 +302,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                             onChange={handleChange}
                             value={formData.stopTime}
                         />
+                        <span> (seconds)</span>
                         <br />
                         <label htmlFor="presetName">Preset:</label>
                         <select name="presetName"
@@ -315,13 +317,14 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                             ))}
                         </select>
                         <br />
-                        {/* TODO add note name to midi as suffix */}
                         <label htmlFor="midi">Midi Number:</label>
                         <input name="midi"
                             type='number'
+                            step='0.01'
                             onChange={handleChange}
                             value={formData.midi}
                         />
+                        <span> {formData.midi > 0?toNote(formData.midi): null}</span>
                         <br/>
                         <label htmlFor="type">Type:</label>
                         <select name='type'

@@ -104,7 +104,7 @@ export default class SFPG extends CMG {
                 this.presetName = value;
                 break;
             case 'midi':
-                this.midi = parseInt(value);
+                this.midi = parseFloat(value);
                 break;
             case 'FMType':
                 this.FMType = value;

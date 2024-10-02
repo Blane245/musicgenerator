@@ -175,7 +175,6 @@ export default function ControlsDisplay(props: ControlsDisplayProps) {
         }
     };
 
-    //TODO this will convert the current tracks into a mpg file (for now only playback)
     const handleGenerate = () => {
         const newErrors:string[] = Generate(fileContents);
 
