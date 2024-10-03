@@ -1,13 +1,13 @@
 import CMGFile from '../../classes/cmgfile'
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
-import { SoundFont2 } from "soundfont2";
-import { loadSoundFont } from "../../utils/loadsoundfont";
+import { loadSoundFont } from '../../utils/loadsoundfont';
 import { useAudioPlayerContext } from "./audioplayercontext";
 import { VolumeControl } from "./audioplayerdisplay/volumecontrol";
 import { BsFillFastForwardFill, BsFillPauseFill, BsFillPlayFill, BsFillRewindFill } from "react-icons/bs";
 import { ProgressBar } from './audioplayerdisplay/progressbar';
 import TimeLine from '../../classes/timeline';
 import TimeLineDisplay from './timelinedisplay';
+import { Generate } from '../generation/generate';
 export interface ControlsDisplayProps {
     fileContents: CMGFile,
     setFileContents: Function,
@@ -27,6 +27,9 @@ export default function ControlsDisplay(props: ControlsDisplayProps) {
 
     const [SFfiles, setSFFiles] = useState<string[]>([]);
     const [SFFileName, setSFFileName] = useState<string>('');
+    const [errors, setErrors] = useState<string[]>([]);
+    const [showError, setShowError] = useState<boolean>(false);
+    const [readyGenerate, setReadyGenerate] = useState<boolean>(true);
 
     // load the soundfont file list at start up
     useEffect(() => {
@@ -34,24 +37,57 @@ export default function ControlsDisplay(props: ControlsDisplayProps) {
         const fileList: string[] = Object.keys(SFFiles);
         fileList.unshift('select a file'); // add select a file to the start of the list
         setSFFiles(fileList);
-
     }, []);
 
+    useEffect(() => {
+        if (fileContents)
+            setSFFileName(fileContents.SFFileName);
+    },[fileContents]);
+
+    // control the generate button
+    // only enabled when a soundfont file is defined and all generators have presets and midi numbers assigned
+    // useEffect(() => {
+    //     if (!fileContents) {
+    //         setReadyGenerate(false);
+    //         return;
+    //     }
+    //     fileContents.tracks.forEach((t:Track) => {
+    //         t.generators.forEach((g: CMG) => {
+    //             if (g.presetName == '' || !g.preset || g.midi < 0 || g.midi > 255) {
+    //                 setReadyGenerate(false);
+    //                 return;
+    //             }
+    //         })
+    //     })
+    //     setReadyGenerate(true);
+
+    // }, [fileContents, SFFileName])
+
     // load the SF when one is selected
-    function handleFileNameChange(event: ChangeEvent<HTMLSelectElement>): void {
+    // TODO - any generators that have been selected from a previous soundfont file will be violated. This will have to be handled
+    async function handleFileNameChange(event: ChangeEvent<HTMLSelectElement>): void {
         const fileName: string = event.target.value;
-        function setSF(SF: SoundFont2): void {
-            setFileContents((c: CMGFile) => {
-                const newC: CMGFile = c.copy();
-                newC.SFFileName = fileName;
-                newC.SoundFont = SF;
-                newC.dirty = true;
-                return newC;
-            })
-        }
+        // function setSF(SF: SoundFont2): void {
+        //     setFileContents((c: CMGFile) => {
+        //         const newC: CMGFile = c.copy();
+        //         newC.SFFileName = fileName;
+        //         newC.SoundFont = SF;
+        //         newC.dirty = true;
+        //         return newC;
+        //     })
+        // }
         if (fileName !== '' && fileName !== 'select a file') {
             setSFFileName(fileName);
-            loadSoundFont(fileName, setSF);
+            const sf = await loadSoundFont(fileName);
+            setFileContents((prev: CMGFile) => {
+                const newC: CMGFile = prev.copy();
+                newC.SFFileName = fileName;
+                newC.SoundFont = sf;
+                newC.dirty = false;
+                return newC;
+            })
+            // loadSoundFont(fileName, setSF);
+
             setStatus(`file ${fileName} loaded`);
         }
     }
@@ -139,9 +175,18 @@ export default function ControlsDisplay(props: ControlsDisplayProps) {
         }
     };
 
-    //TODO this will convert the current tracks into a mpg file
-    const generate = () => {
+    const handleGenerate = () => {
+        const newErrors:string[] = Generate(fileContents);
+
+        if (newErrors.length != 0) {
+            setErrors(newErrors);
+            setShowError(true);
+        }
         setStatus('audio file generated');
+    }
+
+    const handleErrorsClose = () => {
+        setShowError(false);
     }
 
     return (
@@ -159,7 +204,8 @@ export default function ControlsDisplay(props: ControlsDisplayProps) {
                     ))}
                 </select>
                 <button
-                    onClick={generate}>
+                disabled={!readyGenerate}
+                    onClick={handleGenerate}>
                     Generate
                 </button>
                 <audio
@@ -191,6 +237,27 @@ export default function ControlsDisplay(props: ControlsDisplayProps) {
                 setTimeLine={setTimeLine}
                 timeLine={timeLine}
             />
+            <div
+                style={{ display: showError ? "block" : "none" }}
+                className="modal-content"
+            >
+                <div className='modal-header'>
+                    <span className='close' onClick={handleErrorsClose}>&times;</span>
+                    <h2>Errors occurred during audio generation</h2>
+                </div>
+                <div className="modal-body">
+                    {errors.map((e) => (
+                        <p>{e}</p>
+                    ))}
+                </div>
+                <div className='modal-footer'>
+                    <button
+                        id={'generator-error'}
+                        onClick={handleErrorsClose}
+                    >OK</button>
+                </div>
+            </div>
+            
         </>
     )
 }

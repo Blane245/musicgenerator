@@ -118,18 +118,19 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
 
                 </svg>
                 : null}
+
             {open ?
-                <GeneratorDialog
-                    setFileContents={setFileContents}
-                    track={track}
-                    setTracks={setTracks}
-                    presets={presets}
-                    generatorIndex={generatorIndex}
-                    setMessage={setMessage}
-                    setStatus={setStatus}
-                    setEnableGenerator={setOpen}
-                    setOpen={setOpen}
-                />
+                    <GeneratorDialog
+                        setFileContents={setFileContents}
+                        track={track}
+                        setTracks={setTracks}
+                        presets={presets}
+                        generatorIndex={generatorIndex}
+                        setMessage={setMessage}
+                        setStatus={setStatus}
+                        closeTrackGenerator={setOpen}
+                        setOpen={setOpen}
+                    />
                 : null}
         </>
     )

@@ -173,3 +173,10 @@ export enum GENERATORTYPES  {
     "SFPG",
     "SFRG",
 }
+
+export interface Envelop {
+    velocity?: number,
+    attackVolEnv?: number,
+    decayVolEnv?: number,
+  }
+  

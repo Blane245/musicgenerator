@@ -1,6 +1,5 @@
-// TODO add display of generator 'icons'
-import { ChangeEvent, MouseEvent, useEffect, useRef, useState } from "react";
-import { AiFillMuted, AiOutlineClose, AiOutlineMuted } from 'react-icons/ai';
+import { ChangeEvent, FormEvent, MouseEvent, useEffect, useRef, useState } from "react";
+import { AiFillCaretDown, AiFillCaretUp, AiFillMuted, AiOutlineClose, AiOutlineMuted } from 'react-icons/ai';
 import { CgRename } from "react-icons/cg";
 import { IoPerson, IoPersonOutline } from "react-icons/io5";
 import { RiAiGenerate } from "react-icons/ri";
@@ -27,11 +26,12 @@ export default function TracksDisplay(props: TracksDisplayProps) {
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
     const [renameModal, setRenameModal] = useState<boolean>(false);
     const [trackName, setTrackName] = useState<string>('');
-    const [enableGenerator, setEnableGenerator] = useState<boolean>(false);
+    const [enableGenerator, setEnableGenerator] = useState<number>(-1);
     const trackRef = useRef<HTMLDivElement[]>([]);
     useEffect(() => {
         setTracks(fileContents.tracks);
-        setStatus(`displayed ${fileContents.tracks.length} tracks`)
+        setStatus(`displayed ${fileContents.tracks.length} tracks`);
+        setEnableGenerator(-1);
     }, [fileContents.tracks]);
     // useEffect(() => {
     //     trackRef.current = trackRef.current.slice(0, tracks.length);
@@ -69,11 +69,11 @@ export default function TracksDisplay(props: TracksDisplayProps) {
         setRenameModal(true);
     }
 
-    function handleRenameOK(event: MouseEvent<HTMLElement>): void {
-        const trackName: string = event.currentTarget.id.split(':')[1];
-        const renameElement: HTMLElement | null = document.getElementById("track-rename");
+    function handleRenameOK(event: FormEvent<HTMLElement>): void {
+        event.preventDefault();
+        const renameElement = document.getElementById('track-rename-field');
         if (!renameElement) return;
-        const newName: string | null = renameElement.getAttribute("value");
+        const newName: string | null = renameElement.value;
         if (!newName) return;
         if (!validateNewName(newName)) {
             setMessage({ error: true, text: `'${newName}' is already being used or it is blank.` });
@@ -145,59 +145,122 @@ export default function TracksDisplay(props: TracksDisplayProps) {
     // this is the input business end of this app. Generators will 
     // come in different shapes and sizes. There CRUD will be handled by modals
     // that appear in a different component
-    function handleAddGenerator(event: MouseEvent<HTMLElement>): void {
-        console.log(event.currentTarget.id);
-        setEnableGenerator(true);
+    function handleAddGenerator(index: number): void {
+        console.log('index', index);
+        setEnableGenerator(index);
+    }
+
+    function closeTrackGenerator() {
+        setEnableGenerator(-1);
+    }
+
+    // switch places the the track immediately above the one selected
+    let callCount: number = 0;
+    function handleTrackUpDown (event: MouseEvent<HTMLElement>, direction:string) {
+        const thisTrackName = event.currentTarget.id.split(':')[1];
+
+        // update the track sequence
+        setFileContents((prev:CMGFile) => {
+            callCount++;
+            // if (callCount > 1) return prev;
+
+            console.log('moving', thisTrackName, direction, 'call number', callCount);
+            for (let i = 0; i < prev.tracks.length; i++) {
+                console.log(i, prev.tracks[i].name);
+            }
+            const thisIndex:number = prev.tracks.findIndex((t) => t.name = thisTrackName);
+            if (thisIndex < 0) return prev;
+
+            const dir:number = (direction == 'up'? -1: 1);
+            const thatIndex:number = thisIndex + dir;
+            if (thatIndex < 0 || thatIndex > tracks.length - 1) return prev;
+
+            const newF:CMGFile = prev.copy();
+            const newTracks: Track[] = [];
+            for (let i = 0; i < prev.tracks.length; i++) {
+                if (i == thisIndex)
+                    newTracks.push(prev.tracks[thatIndex]);
+                else if (i == thatIndex)
+                    newTracks.push(prev.tracks[thisIndex]);
+                else
+                    newTracks.push(prev.tracks[i]);
+                console.log('track added', i, newTracks[newTracks.length-1].name)
+            }
+            newF.tracks = newTracks;
+            return newF;
+        })
+
     }
 
     return (
         <>
-            {tracks.map((t, i) => (
-                <>
-                    <div className='page-track-control'
-                        key={'track-control:' + t.name}
+            {tracks
+            // .sort((a, b) => (a.order - b.order))
+                .map((t, i) => (
+                    <>
+                        <div className='page-track-control'
+                            key={'track-control:' + t.name}
 
-                    >
-                        <button className='track-button'
-                            id={'track-delete:' + t.name}
-                            onClick={handleDeleteTrack}
                         >
-                            <AiOutlineClose size={10} />
-                        </button>
-                        {t.name}
-                        <button
-                            style={{ float: 'right' }}
-                            className='track-button'
-                            id={'track-rename:' + t.name}
-                            onClick={handleRenameTrack}
-                        >
-                            <CgRename />
-                        </button>
-                        <br />
-                        <button className='track-button'
-                            id={'track-mute:' + t.name}
-                            onClick={handleMuteTrack}
-                        >
-                            {t.mute ? <AiFillMuted /> : <AiOutlineMuted />}
-                        </button>
+                            <button className='track-button'
+                                id={'track-delete:' + t.name}
+                                onClick={handleDeleteTrack}
+                            >
+                                <AiOutlineClose size={10} />
+                            </button>
+                            {t.name}
+                            <button
+                                style={{ float: 'right' }}
+                                className='track-button'
+                                id={'track-rename:' + t.name}
+                                onClick={handleRenameTrack}
+                            >
+                                <CgRename />
+                            </button>
+                            <br />
+                            <button className='track-button'
+                                id={'track-mute:' + t.name}
+                                onClick={handleMuteTrack}
+                            >
+                                {t.mute ? <AiFillMuted /> : <AiOutlineMuted />}
+                            </button>
 
-                        <button
-                            className='track-button'
-                            id={'track-gen:' + t.name}
-                            onClick={handleAddGenerator}
-                        >
-                            <RiAiGenerate />
-                        </button>
-                        <button
-                            style={{ float: 'right' }}
-                            className='track-button'
-                            id={'track-solo:' + t.name}
-                            onClick={handleSoloTrack}
-                        >
-                            {t.solo ? <IoPerson /> : <IoPersonOutline />}
-                        </button>
-                        <br />
-                        {/* <div className='slidercontainer'>
+                            <button
+                                className='track-button'
+                                disabled={!fileContents.SoundFont}
+                                id={`track-gen:${i}`}
+                                onClick={() => handleAddGenerator(i)}
+                            >
+                                <RiAiGenerate />
+                            </button>
+                            <button
+                                style={{ float: 'right' }}
+                                className='track-button'
+                                id={'track-solo:' + t.name}
+                                onClick={handleSoloTrack}
+                            >
+                                {t.solo ? <IoPerson /> : <IoPersonOutline />}
+                            </button>
+                            <br />
+                            <button
+                                style={{ float: 'left' }}
+                                disabled={i == 0}
+                                className='track-button'
+                                id={'track-up:' + t.name}
+                                onClick={(e) => handleTrackUpDown(e, 'up')}
+                            >
+                                <AiFillCaretUp />
+                            </button>
+                            <button
+                                style={{ float: 'right' }}
+                                disabled={i == tracks.length-1}
+                                className='track-button'
+                                id={'track-down:' + t.name}
+                                onClick={(e) => handleTrackUpDown(e, 'down')}
+                            >
+                                <AiFillCaretDown />
+                            </button>
+                            {/* {/* <div className='slidercontainer'>
                             <label htmlFor={'track-volume:' + t.name}>
                                 Volume
                             </label>
@@ -227,38 +290,39 @@ export default function TracksDisplay(props: TracksDisplayProps) {
                                 id={'track-pan:' + t.name}
                                 name={'track-pan:' + t.name} />
                         </div> */}
-                    </div>
-                    <div className='page-track-display'
-                        key={'track-display:' + t.name}
+                        </div>
+                        <div className='page-track-display'
+                            key={'track-display:' + t.name}
+                            ref={(el: HTMLDivElement) => trackRef.current[i] = el}>
+                            {trackRef.current[i] ?
+                                <GeneratorIcons
+                                    setFileContents={setFileContents}
+                                    track={t}
+                                    setTracks={setTracks}
+                                    presets={presets}
+                                    timeLine={timeLine}
+                                    element={trackRef.current[i]}
+                                    setMessage={setMessage}
+                                    setStatus={setStatus}
+                                />
+                                : null}
 
-                        ref={(el: HTMLDivElement) => trackRef.current[i] = el}>
-                        {enableGenerator ?
-                            <GeneratorDialog
-                                setFileContents={setFileContents}
-                                track={t}
-                                setTracks={setTracks}
-                                presets={presets}
-                                generatorIndex={-1}
-                                setMessage={setMessage}
-                                setStatus={setStatus}
-                                setEnableGenerator={setEnableGenerator}
-                                setOpen={() => { }} />
-                            : null}
-                        {trackRef.current[i] ?
-                            <GeneratorIcons
-                                setFileContents={setFileContents}
-                                track={t}
-                                setTracks={setTracks}
-                                presets={presets}
-                                timeLine={timeLine}
-                                element={trackRef.current[i]}
-                                setMessage={setMessage}
-                                setStatus={setStatus} />
-                            : null}
-
-                    </div>
-                </>
-            ))}
+                        </div>
+                    </>
+                ))}
+            {enableGenerator >= 0 ?
+                <GeneratorDialog
+                    setFileContents={setFileContents}
+                    track={tracks[enableGenerator]}
+                    setTracks={setTracks}
+                    presets={presets}
+                    generatorIndex={-1}
+                    setMessage={setMessage}
+                    setStatus={setStatus}
+                    closeTrackGenerator={closeTrackGenerator}
+                    setOpen={() => { }} />
+                : null
+            }
             <div
                 style={{ display: deleteModal ? "block" : "none" }}
                 className="modal-content"
@@ -286,29 +350,31 @@ export default function TracksDisplay(props: TracksDisplayProps) {
                 style={{ display: renameModal ? "block" : "none" }}
                 className="modal-content"
             >
-                <div className='modal-header'>
-                    <span className='close'>&times;</span>
-                    <h2>Enter new name for Track '{trackName}'</h2>
-                </div>
-                <div className="modal-body">
-                    <label htmlFor='track-rename'>New Name:</label>
-                    <input
-                        name='track-rename'
-                        id='track-rename'
-                        type="text"
-                        defaultValue={trackName}
-                    />
+                <form name='track-rename-form' id='track-rename-form'
+                    onSubmit={handleRenameOK}>
+                    <div className='modal-header'>
+                        <span className='close'>&times;</span>
+                        <h2>Enter new name for Track '{trackName}'</h2>
+                    </div>
+                    <div className="modal-body">
+                        <label htmlFor='track-rename-field'>New Name:</label>
+                        <input
+                            name='track-rename-field'
+                            id='track-rename-field'
+                            type="text"
+                            defaultValue={trackName}
+                        />
 
-                </div>
-                <div className='modal-footer'>
-                    <button
-                        id={"track-delete:" + trackName}
-                        onClick={handleRenameOK}
-                    >OK</button>
-                    <button
-                        onClick={handleRenameCancel}
-                    >Cancel</button>
-                </div>
+                    </div>
+                    <div className='modal-footer'>
+                        <button type='submit'
+                            id={"track-rename-submit"}
+                        >OK</button>
+                        <button
+                            onClick={handleRenameCancel}
+                        >Cancel</button>
+                    </div>
+                </form>
             </div>
         </>
     )
