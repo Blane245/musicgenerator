@@ -21,7 +21,7 @@ export interface FileMenuProps {
 export default function FileMenu(props: FileMenuProps) {
   const { fileContents, setFileContents, setMessage, setStatus, setFileName } = props;
   const [openFileNew, setOpenFileNew] = useState<boolean>(false);
-
+  // https://github.com/Blane245/musicgenerator/issues/3
   function handleFileNew() {
     if (fileContents.dirty)
       setOpenFileNew(true);

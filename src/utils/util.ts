@@ -39,6 +39,7 @@ export const toNote = (midi: number): string => {
   const baseMidi = Math.trunc(midi);
   const octave = Math.trunc(baseMidi / 12) - 1;
   const noteNumber = baseMidi - 12 * (octave + 1);
+  const extra:string = (baseMidi!= midi? '+':'')
   const noteName:string =  (noteNumber >= 0 && noteNumber < 12? noteNames[noteNumber]: '?');
-  return noteName.concat(octave.toString());
+  return noteName.concat(octave.toString().concat(extra));
 }

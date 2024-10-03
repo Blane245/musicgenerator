@@ -40,7 +40,7 @@ export function Generate(fileContents: CMGFile): string[] {
     if (errors.length != 0)
         return errors;
 
-    // console.log('useful SFP generators', SFPGenerators.length)
+    console.log('useful SFP generators', SFPGenerators.length)
 
     // create an audiocontext that has its output as an mpeg file that is stored in the Generate folder.
     // get the length of the file, in seconds. It is the maximum of 
