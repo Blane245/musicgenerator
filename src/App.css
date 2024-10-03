@@ -102,7 +102,7 @@
   display: grid;
   grid-column: span 12;
   grid-template-columns: 200px repeat(11, 1fr);
-  grid-template-rows: 150px;
+  grid-template-rows: 10px;
   gap: 0;
 
 }
@@ -210,9 +210,9 @@
 }
 
 .generator-content {
-  position: relative;
-  top: -150px;
-  left: 0px;
+  position: absolute;
+  top: 200px;
+  left: 300px;
   background-color: #fefefe;
   margin: auto;
   padding: 0;
