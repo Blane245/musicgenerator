@@ -1,36 +1,20 @@
 // provides the form fields and validators for the random generator
-import CMGenerator from "../../classes/cmg";
+//TODO complete
 import SFPeriodicGenerator from "../../classes/sfpg"
 import SFRandomGenerator from "../../classes/sfrg";
 import { MODULATOR } from "../../types/types";
 
 // provides the form fields and validators for the sfperiodic generator
-export type SFRandomDialogProps = {
+export type SFRGDialogDialogProps = {
     values: SFRandomGenerator;
     setValues: Function;
 }
-export default function SFRandomDialog(props: SFRandomDialogProps): JSX.Element {
+export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
     const { values, setValues } = props;
 
     // we are in the middle of the generator dialog form
     return (
         <>
-            <label htmlFor="preset">Preset:</label>
-            <select name="Preset"
-                defaultValue={'select a preset'}
-            >
-                {/* TODO presets from SF file */}
-                <option key={'preset-'.concat('1')}
-                    value={"select a preset"}>
-                    {"select a preset"}
-                </option>
-            </select>
-            <label htmlFor="midi">Midi Number:</label>
-            <input name="midi"
-                type='number'
-                defaultValue={values.midi}
-            />
-            <hr />
             <label htmlFor="FMType">FMType:</label>
             <select name="FMType"
                 defaultValue={values.FMType}

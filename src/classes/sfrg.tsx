@@ -1,7 +1,6 @@
-import { Preset } from "../types/soundfonttypes";
 import CMG from "./cmg";
 
-// trying a markov chain for midi and BPM
+// trying a markov chain for midi and BPM 
 // the model has three states UP, DOWN, and SAME
 // P(UP -> UP) 
 // P(UP-> DOWN)
@@ -12,10 +11,9 @@ import CMG from "./cmg";
 // P(SAME -> UP)
 // P(SAME -> DOWN)
 // P(SAME -> SAME)
+//TODO include pan?
 export default class SFRG extends CMG {
     randomSeed: number;
-    preset: Preset | null;
-    midi: number; // midi number
     midiUPUP: number;
     midiUPDOWN: number;
     midiUPSAME: number;
@@ -48,9 +46,8 @@ export default class SFRG extends CMG {
 
     constructor(nextGenerator: number) {
         super(nextGenerator);
+        this.type = 'SFRG';
         this.randomSeed = 55;
-        this.preset = null;
-        this.midi = 60;
         this.midiUPUP = 0;
         this.midiUPDOWN = 0;
         this.midiUPSAME = 1;
@@ -82,11 +79,25 @@ export default class SFRG extends CMG {
         this.BPMSAMESAME = 1;
     }
 
-    generate(context: AudioContext, startTime: number, endTime: number): AudioBufferSourceNode | null {
-        return null;
+    //TODO implement
+    override copy(): SFRG {
+        const newG = new SFRG(0);
+        return newG;
     }
-    toXML(): string {
-        const xml: string = '';
-        return xml;
+
+    //TODO implement
+    override setAttribute(name: string, value: string): void {
+
+    }  
+
+    //TODO implement
+    // getCurrentValue(time: number): { pitch: number, volume: number, pan: number } {
+    //     let pitch: number = this.midi;
+    //     let value: number = this.initialVolume;
+    //     let pan: 
+    // }
+    
+    //TODO implement
+    override appendXML(doc: XMLDocument, elem: HTMLElement): void {
     }
 }

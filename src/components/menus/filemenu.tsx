@@ -8,7 +8,6 @@ import SFPG from '../../classes/sfpg';
 import Track from '../../classes/track';
 import { getAttributeValue, getDocElement, getElementElement } from '../../utils/xmlfunctions';
 import { loadSoundFont } from '../../utils/loadsoundfont';
-import { SoundFont2 } from 'soundfont2';
 import { Preset } from '../../types/soundfonttypes';
 
 export interface FileMenuProps {
@@ -22,7 +21,7 @@ export interface FileMenuProps {
 export default function FileMenu(props: FileMenuProps) {
   const { fileContents, setFileContents, setMessage, setStatus, setFileName } = props;
   const [openFileNew, setOpenFileNew] = useState<boolean>(false);
-
+  // https://github.com/Blane245/musicgenerator/issues/3
   function handleFileNew() {
     if (fileContents.dirty)
       setOpenFileNew(true);
@@ -169,7 +168,7 @@ export default function FileMenu(props: FileMenuProps) {
             .then((file) => {
               setFileName(file.name)
               file.text()
-                .then((xmlString) => {
+                .then(async (xmlString) => {
                   const parser = new DOMParser();
                   const xmlDoc: XMLDocument = parser.parseFromString(xmlString, 'text/xml');
                   const fc = new CMGFile();
@@ -184,10 +183,14 @@ export default function FileMenu(props: FileMenuProps) {
                   fc.measureSnapUnit = getAttributeValue(fcElem, 'measureSnapUnit', 'int') as number;
                   fc.secondSnapUnit = getAttributeValue(fcElem, 'secondSnapUnit', 'int') as number;
                   fc.SFFileName = getAttributeValue(fcElem, 'SFFileName', 'string') as string;
-                  if (fc.SFFileName != '') {
-                    //load the soundfont file
-                    loadSoundFont(fc.SFFileName, (SF: SoundFont2) => { fc.SoundFont = SF });
-                  }
+                  // function setSoundFont(SF: SoundFont2) {
+                  //   fc.SoundFont = SF;
+                  // }
+                  // if (fc.SFFileName != '') {
+                  //   //load the soundfont file
+                  //   loadSoundFont(fc.SFFileName, setSoundFont);
+                  // }
+                  fc.SoundFont = await loadSoundFont(fc.SFFileName);
                   const tracksChildren: HTMLCollection = tracksElem.children
                   fc.tracks = [];
                   for (let i = 0; i < tracksChildren.length; i++) {
@@ -206,33 +209,44 @@ export default function FileMenu(props: FileMenuProps) {
                       const type = getAttributeValue(gchild, 'type', 'string') as string;
                       let gen = null;
                       switch (type as string) {
-                        case "CMG":
+                        case "CMG": {
                           gen = new CMG(0);
                           gen.name = getAttributeValue(gchild, 'name', 'string') as string;
                           gen.startTime = getAttributeValue(gchild, 'startTime', 'float') as number;
                           gen.stopTime = getAttributeValue(gchild, 'stopTime', 'float') as number;
+                          gen.presetName = getAttributeValue(gchild, 'presetName', 'string') as string;
+                          gen.midi = getAttributeValue(gchild, 'midi', 'int') as number;
                           gen.type = type;
+                          // load the preset if soundfont file and preset is defined
+                          const pn: string = gen.presetName;
+                          if (pn != '' && fc.SoundFont) {
+                            gen.preset = fc.SoundFont.presets.find((p) => (p.header.name == pn)) as Preset;
+                            if (gen == undefined)
+                              throw new Error(`Preset '${pn} not in soundfont file '${fc.SFFileName}'`);
+                          }
+
                           track.generators.push(gen);
                           break;
-                        case 'SFPF':
+                        }
+                        case 'SFPG': {
                           gen = new SFPG(0);
                           gen.name = getAttributeValue(gchild, 'name', 'string') as string;
                           gen.startTime = getAttributeValue(gchild, 'startTime', 'float') as number;
                           gen.stopTime = getAttributeValue(gchild, 'stopTime', 'float') as number;
                           gen.type = type;
-                          gen.presetName = getAttributeValue(gchild, 'preset', 'string') as string;
+                          gen.presetName = getAttributeValue(gchild, 'presetName', 'string') as string;
                           gen.midi = getAttributeValue(gchild, 'midi', 'int') as number;
-                          gen.FMType = getAttributeValue(gchild, 'FMType', 'int') as number;
+                          gen.FMType = getAttributeValue(gchild, 'FMType', 'string') as string;
                           gen.FMAmplitude = getAttributeValue(gchild, 'FMAmplitude', 'float') as number;
                           gen.FMFrequency = getAttributeValue(gchild, 'FMFrequency', 'float') as number;
                           gen.FMPhase = getAttributeValue(gchild, 'FMPhase', 'float') as number;
                           gen.VMCenter = getAttributeValue(gchild, 'VMCenter', 'float') as number;
-                          gen.VMType = getAttributeValue(gchild, 'VMType', 'int') as number;
+                          gen.VMType = getAttributeValue(gchild, 'VMType', 'string') as string;
                           gen.VMAmplitude = getAttributeValue(gchild, 'VMAmplitude', 'float') as number;
                           gen.VMFrequency = getAttributeValue(gchild, 'VMFrequency', 'float') as number;
                           gen.VMPhase = getAttributeValue(gchild, 'VMPhase', 'float') as number;
                           gen.PMCenter = getAttributeValue(gchild, 'PMCenter', 'float') as number;
-                          gen.PMType = getAttributeValue(gchild, 'PMType', 'int') as number;
+                          gen.PMType = getAttributeValue(gchild, 'PMType', 'string') as string;
                           gen.PMAmplitude = getAttributeValue(gchild, 'PMAmplitude', 'float') as number;
                           gen.PMFrequency = getAttributeValue(gchild, 'PMFrequency', 'float') as number;
                           gen.PMPhase = getAttributeValue(gchild, 'PMPhase', 'float') as number;
@@ -246,6 +260,7 @@ export default function FileMenu(props: FileMenuProps) {
                           }
                           track.generators.push(gen);
                           break;
+                        }
                         case 'SFRG':
                           break;
                         default:

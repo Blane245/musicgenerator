@@ -63,29 +63,3 @@ export interface Preset {
   };
   zones: PresetZone[];
 }
-
-export interface GeneratorOptions {
-  midi: number,
-  start: number,
-  velocity: number,
-  startLoop: number,
-  endLoop: number,
-  sampleRate: number,
-  originalPitch: number,
-  pitchCorrection: number,
-  type: number,
-  sampleModes: number,
-  overridingRootKey: number,
-  fineTune: number,
-  startloopAddrsOffset: number,
-  startloopAddrsCoarseOffset: number,
-  endloopAddrsOffset: number,
-  endloopAddrsCoarseOffset: number,
-  delayVolEnv: number,
-  attackVolEnv: number,
-  holdVolEnv: number,
-  decayVolEnv: number,
-  sustainVolEnv: number,
-  releaseVolEnv: number,
-  pan: number,
-}
