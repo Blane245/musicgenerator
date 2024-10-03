@@ -260,7 +260,7 @@ export default function TracksDisplay(props: TracksDisplayProps) {
                             >
                                 <AiFillCaretDown />
                             </button>
-                            {/* <div className='slidercontainer'>
+                            {/* {/* <div className='slidercontainer'>
                             <label htmlFor={'track-volume:' + t.name}>
                                 Volume
                             </label>

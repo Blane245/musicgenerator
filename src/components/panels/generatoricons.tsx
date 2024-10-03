@@ -57,7 +57,7 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
                 const iconTop = 0;
                 const iconLeft = width * (iconStartTime - timeLine.startTime) / (timeLineStopTime - timeLine.startTime);
                 const iconWidth: number = width * (iconStopTime - iconStartTime) / (timeLineStopTime - timeLine.startTime);
-                const iconHeight: number = height;
+                const iconHeight: number = height / 3.0;
                 if (iconWidth > 0 && iconHeight > 0) {
                     boxes.push({
                         generator: generator,
