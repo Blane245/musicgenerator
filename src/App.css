@@ -102,7 +102,7 @@
   display: grid;
   grid-column: span 12;
   grid-template-columns: 200px repeat(11, 1fr);
-  grid-template-rows: 150px;
+  grid-template-rows: 100px;
   gap: 0;
 
 }
@@ -223,6 +223,19 @@
   animation-duration: 0.4s
 }
 
+/* cursors */
+.cursor-default {
+  cursor: auto;
+}
+.cursor-all-scroll {
+  cursor: all-scroll;
+}
+.cursor-col-resize {
+  cursor: col-resize;
+}
+.cursor-context-menu {
+  cursor: context-menu;
+}
 @keyframes animatetop {
   from {
     top: -300px;

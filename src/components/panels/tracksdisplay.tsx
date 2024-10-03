@@ -197,7 +197,7 @@ export default function TracksDisplay(props: TracksDisplayProps) {
                             {t.solo ? <IoPerson /> : <IoPersonOutline />}
                         </button>
                         <br />
-                        <div className='slidercontainer'>
+                        {/* <div className='slidercontainer'>
                             <label htmlFor={'track-volume:' + t.name}>
                                 Volume
                             </label>
@@ -226,10 +226,12 @@ export default function TracksDisplay(props: TracksDisplayProps) {
                                 onChange={handlePanChange}
                                 id={'track-pan:' + t.name}
                                 name={'track-pan:' + t.name} />
-                        </div>
+                        </div> */}
                     </div>
                     <div className='page-track-display'
                         key={'track-display:' + t.name}
+                        id={'track-display:' + t.name}
+                        onClick={handleAddGenerator}
 
                         ref={(el: HTMLDivElement) => trackRef.current[i] = el}>
                         {enableGenerator ?

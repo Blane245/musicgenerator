@@ -115,3 +115,10 @@ export default tseslint.config({
     <tracks/>
   <fileContents/>
 ```
+# Thanx and References
+This is really squashed together from several sources. 
+* Thanx to Ryan Lane, my son, for getting be started with React.
+* The soundfont reference is [here](http://www.synthfont.com/SFSPEC21.PDF)
+* Thanx for [sfumato](https://github.com/felixroos/sfumato) for the extensive signal processing code for soundfont files
+* The [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API) documentation.
+* My favorite non-attributing search engine is [DuckDuckGo](https://duckduckgo.com/). Without a web search engine I wouldn't not have been able to push through the many challenges of this implementation.
