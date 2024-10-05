@@ -18,7 +18,7 @@ export default function TrackMenu(props: TrackMenuProps) {
     const newTrack = new Track(next);
     // https://github.com/Blane245/musicgenerator/issues/3
     setFileContents((c: CMGFile) => {
-      const newC: CMGFile = c.copy();
+      const newC: CMGFile = structuredClone<CMGFile>(c);
       // only do this if there is not already a track in the
       // file with the same name - 
       console.log('new track being added', newTrack.name, 'current track count', c.tracks.length);

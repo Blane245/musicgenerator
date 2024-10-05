@@ -32,6 +32,7 @@ export default function ControlsDisplay(props: ControlsDisplayProps) {
     const [readyGenerate, setReadyGenerate] = useState<boolean>(true);
 
     // load the soundfont file list at start up
+    https://github.com/Blane245/musicgenerator/issues/14    
     useEffect(() => {
         const SFFiles = import.meta.glob("/src/soundfonts/*.(SF@|sf2)");
         const fileList: string[] = Object.keys(SFFiles);
