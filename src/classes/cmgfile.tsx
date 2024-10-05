@@ -1,6 +1,9 @@
 import { MEASURESNAPUNIT, SECONDSNAPUNIT, TIMELINESTYLE, TimeSignature } from "../types/types";
 import { SoundFont2 } from "soundfont2";
 import Track from "./track";
+import CMG from "./cmg";
+import SFPG from "./sfpg";
+import SFRG from "./sfrg";
 export default class CMGFile {
     dirty: boolean; // if the contents of the file has been changed since loaded, it is marked dirty
     name: string; // the name of the file on the disk or null if not saved
@@ -29,11 +32,21 @@ export default class CMGFile {
         }
 
     copy(): CMGFile {
-        const newFile = new CMGFile();
+        const newFile:CMGFile = new CMGFile();
         newFile.name = this.name;
         newFile.timeLineStyle = this.timeLineStyle;
         newFile.dirty = this.dirty;
-        newFile.tracks = this.tracks;
+        const newTracks:Track[] = []
+        this.tracks.forEach((t) => {
+            const newTrack:Track = t.copy();
+            const newGenerators:(CMG | SFPG | SFRG) [] = [];
+            t.generators.forEach((g: CMG | SFPG | SFRG) => {
+                const newGenerator: CMG | SFPG | SFRG = g.copy();
+                newGenerators.push(newGenerator);
+            });
+            newTracks.push(newTrack);
+        })
+        newFile.tracks = newTracks;
         newFile.snap = this.snap;
         newFile.measureSnapUnit = this.measureSnapUnit;
         newFile.tempo = this.tempo;
