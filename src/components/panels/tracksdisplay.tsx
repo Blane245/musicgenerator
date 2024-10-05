@@ -107,7 +107,7 @@ export default function TracksDisplay(props: TracksDisplayProps) {
         const thisIndex = fileContents.tracks.findIndex((t) => (t.name == trackName));
         if (thisIndex >= 0) {
             setFileContents((c: CMGFile) => {
-                const newC: CMGFile = structuredClone<CMGFile>(c);
+                const newC: CMGFile = c.copy();
                 newC.tracks[thisIndex].mute = !newC.tracks[thisIndex].mute;
                 newC.dirty = true;
                 return newC;
@@ -122,7 +122,7 @@ export default function TracksDisplay(props: TracksDisplayProps) {
         const thisIndex = fileContents.tracks.findIndex((t) => (t.name == trackName));
         if (thisIndex >= 0) {
             setFileContents((c: CMGFile) => {
-                const newC: CMGFile = structuredClone<CMGFile>(c);
+                const newC: CMGFile = c.copy();
                 newC.tracks[thisIndex].solo = !newC.tracks[thisIndex].solo;
                 newC.dirty = true;
                 return newC;
@@ -163,14 +163,14 @@ export default function TracksDisplay(props: TracksDisplayProps) {
 
         // update the track sequence
         setFileContents((prev: CMGFile) => {
-            callCount++;
-            console.log('moving', thisTrackName, direction, 'call number', callCount);
-            if (callCount > 1) {
-                callCount = 0;
-                return prev;
-            }
+            // callCount++;
+            // console.log('moving', thisTrackName, direction, 'call number', callCount);
+            // if (callCount > 1) {
+            //     callCount = 0;
+            //     return prev;
+            // }
 
-            const newF: CMGFile = structuredClone<CMGFile>(prev);
+            const newF: CMGFile = prev.copy();
             for (let i = 0; i < newF.tracks.length; i++) {
                 console.log(i, newF.tracks[i].name);
             }

@@ -482,7 +482,7 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
             // setGeneratorBoxes((prev: GeneratorBox[]) => {
             //     const newbs: GeneratorBox[] = [];
             //     prev.forEach((b, i) => {
-            //         const newb = structuredClone<GeneratorBox>(b);
+            //         const newb = b.copy();
             //         if (i == generatorIndex) {
             //             newb.position.y = newTop;
             //             console.log('newTop', newTop);

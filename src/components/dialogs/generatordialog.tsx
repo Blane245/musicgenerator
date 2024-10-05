@@ -9,7 +9,7 @@ import setFileDirty from '../../utils/setfiledirty';
 import GeneratorTypeForm from "./generatortypeform";
 import { validateSFPGValues } from "./sfpgdialog";
 import SFRG from '../../classes/sfpg';
-import { toNote } from '../../utils/util';
+import { bankBagPresettoName, toNote } from '../../utils/util';
 
 // The icon starts at the generator's start time and ends at the generators endtime
 export interface GeneratorDialogProps {
@@ -220,7 +220,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
             if (values.presetName == '') {
                 result.push('preset name must be provided');
             }
-            values.preset = presets.find((p: Preset) => (p.header.name == values.presetName))
+            values.preset = presets.find((p: Preset) => (bankBagPresettoName(p) == values.presetName));
             if (values.preset == undefined)
                 result.push(`preset '${values.presetName}' does not exist in the sondfont file`);
 
@@ -309,12 +309,21 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                             onChange={handleChange}
                             value={formData.presetName}
                         >
-                            {presets.map((p) => (
-                                <option key={'preset-'.concat(p.header.name)}
-                                    value={p.header.name}>
-                                    {p.header.name}
-                                </option>
-                            ))}
+                            {presets
+                                .sort((a, b) => {
+                                    if (a.header.bank < b.header.bank) return -1;
+                                    if (a.header.bank > b.header.bank) return 1;
+                                    return (a.header.bagIndex - b.header.bagIndex)
+                                })
+                                .map((p) => {
+                                    const pName = bankBagPresettoName(p)
+                                    return (
+                                        <option key={`preset-${pName}`}
+                                            value={pName}>
+                                            {pName}
+                                        </option>
+                                    )
+                                })}
                         </select>
                         <br />
                         <label htmlFor="midi">Midi Number:</label>

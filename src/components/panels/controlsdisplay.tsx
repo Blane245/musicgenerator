@@ -80,8 +80,8 @@ export default function ControlsDisplay(props: ControlsDisplayProps) {
         if (fileName !== '' && fileName !== 'select a file') {
             setSFFileName(fileName);
             const sf = await loadSoundFont(fileName);
-            setFileContents((prev: CMGFile) => {
-                const newC: CMGFile = prev.copy();
+            setFileContents((c: CMGFile) => {
+                const newC: CMGFile = c.copy();
                 newC.SFFileName = fileName;
                 newC.SoundFont = sf;
                 newC.dirty = false;

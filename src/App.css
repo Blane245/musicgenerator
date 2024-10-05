@@ -113,13 +113,13 @@
 }
 
 .page-track-control {
-  grid-template-columns: subgrid;
+  /* grid-template-columns: subgrid; */
   display: block;
   border: 1px black solid;
 }
 
 .page-track-display {
-  grid-template-columns: subgrid;
+  /* grid-template-columns: subgrid; */
   display: block;
   grid-column: span 11;
   border: 1px black solid;
