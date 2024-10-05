@@ -10,7 +10,6 @@ import GeneratorTypeForm from "./generatortypeform";
 import { validateSFPGValues } from "./sfpgdialog";
 import SFRG from '../../classes/sfpg';
 import { toNote } from '../../utils/util';
-import CMGFile from "classes/cmgfile";
 
 // The icon starts at the generator's start time and ends at the generators endtime
 export interface GeneratorDialogProps {
@@ -28,7 +27,7 @@ export interface GeneratorDialogProps {
 
 
 export default function GeneratorDialog(props: GeneratorDialogProps) {
-    const { setFileContents, track, trackIndex, setTracks, presets, generatorIndex, closeTrackGenerator, setMessage, setStatus, setOpen } = props;
+    const { setFileContents, track, setTracks, presets, generatorIndex, closeTrackGenerator, setMessage, setStatus, setOpen } = props;
     const [showModal, setShowModal] = useState<boolean>(false);
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
     const [oldName, setOldName] = useState<string>('');

@@ -85,10 +85,10 @@ export enum MEASURESNAPUNIT {
     '1/128 triplets',
 }
 export enum SECONDSNAPUNIT {
-    'Seconds' = 0,
-    'Deciseconds',
-    'Centiseconds',
-    'Milliseconds',
+    'Seconds' = 1.0,
+    'Deciseconds' = 0.1,
+    'Centiseconds' = 0.01,
+    'Milliseconds' = 0.001,
 }
 
 export enum MODULATOR {

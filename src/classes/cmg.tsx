@@ -8,6 +8,8 @@ export default class CMG {
     presetName: string;
     preset: Preset | undefined;
     midi: number;
+    mute: boolean;
+    position: number; // the vertical location of the generator icon
 
     constructor(nextGenerator: number) {
         this.name = "G".concat(nextGenerator.toString());
@@ -17,6 +19,8 @@ export default class CMG {
         this.preset = undefined;
         this.midi = -1;
         this.type = 'CMG';
+        this.mute = false;
+        this.position = 0;
     }
 
     appendXML(doc: XMLDocument, elem: HTMLElement): void {
@@ -26,6 +30,8 @@ export default class CMG {
         elem.setAttribute('presetName', this.presetName);
         elem.setAttribute('midi', this.midi.toString());
         elem.setAttribute('type', this.type);
+        elem.setAttribute('mute', this.mute.toString());
+        elem.setAttribute('position', this.position.toString());
     }
 
     copy(): CMG {
@@ -37,6 +43,8 @@ export default class CMG {
         newCMG.presetName = this.presetName;
         newCMG.preset = this.preset;
         newCMG.midi = this.midi;
+        newCMG.mute = this.mute;
+        newCMG.position = this.position;
         return newCMG;
     }
 

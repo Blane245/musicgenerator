@@ -42,6 +42,8 @@ export default class SFPG extends CMG {
         elem.setAttribute('stopTime', this.stopTime.toString());
         elem.setAttribute('presetName', this.presetName);
         elem.setAttribute('midi', this.midi.toString());
+        elem.setAttribute('mute', this.mute.toString());
+        elem.setAttribute('position', this.position.toString());
         elem.setAttribute('type', 'SFPG');
         elem.setAttribute('FMType', this.FMType.toString());
         elem.setAttribute('FMAmplitude', this.FMAmplitude.toString());
@@ -68,6 +70,8 @@ export default class SFPG extends CMG {
         newG.presetName = this.presetName;
         newG.preset = this.preset;
         newG.midi = this.midi;
+        newG.mute = this.mute;
+        newG.position = this.position;
         newG.FMType = this.FMType;
         newG.FMAmplitude = this.FMAmplitude;
         newG.FMFrequency = this.FMFrequency;

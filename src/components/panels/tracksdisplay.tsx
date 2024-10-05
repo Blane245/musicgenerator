@@ -145,7 +145,8 @@ export default function TracksDisplay(props: TracksDisplayProps) {
     // this is the input business end of this app. Generators will 
     // come in different shapes and sizes. There CRUD will be handled by modals
     // that appear in a different component
-    function handleAddGenerator(index: number): void {
+    function handleAddGenerator(event: MouseEvent<HTMLElement>, index: number): void {
+        event.preventDefault();
         console.log('index', index);
         setEnableGenerator(index);
     }
@@ -229,7 +230,7 @@ export default function TracksDisplay(props: TracksDisplayProps) {
                                 className='track-button'
                                 disabled={!fileContents.SoundFont}
                                 id={`track-gen:${i}`}
-                                onClick={() => handleAddGenerator(i)}
+                                onClick={(event) => handleAddGenerator(event, i)}
                             >
                                 <RiAiGenerate />
                             </button>
@@ -293,9 +294,11 @@ export default function TracksDisplay(props: TracksDisplayProps) {
                         </div>
                         <div className='page-track-display'
                             key={'track-display:' + t.name}
+                            // onClick={(event) => handleAddGenerator(event, i)}
                             ref={(el: HTMLDivElement) => trackRef.current[i] = el}>
                             {trackRef.current[i] ?
                                 <GeneratorIcons
+                                fileContents={fileContents}
                                     setFileContents={setFileContents}
                                     track={t}
                                     setTracks={setTracks}

@@ -1,7 +1,8 @@
+import CMG from "./cmg";
 import CMGenerator from "./cmg";
+import SFPG from "./sfpg";
 export default class Track {
     name: string;
-    order: number;
     mute: boolean; 
     solo: boolean;
     volume: number;
@@ -9,7 +10,6 @@ export default class Track {
     generators: CMGenerator[];
 constructor(nextTrack: number) {
         this.name = 'T'.concat(nextTrack.toString());
-        this.order = nextTrack;
         this.mute = false;
         this.solo = false;
         this.volume = 50;
@@ -17,9 +17,22 @@ constructor(nextTrack: number) {
         this.generators = [];
     }
 
+    copy(): Track {
+        const t = new Track(0);
+        t.name = this.name;
+        t.mute = this.mute;
+        t.solo = this.solo;
+        t.volume = this.volume;
+        t.pan = this.pan;
+        t.generators = [];
+        this.generators.forEach((g) => {
+            const ng = g.copy();
+            t.generators.push(ng);
+        });
+        return t;
+    }
     appendXML(doc: XMLDocument, elem: HTMLElement): void {
         elem.setAttribute('name', this.name);
-        elem.setAttribute('order', this.order.toString());
         elem.setAttribute('mute', this.mute.toString());
         elem.setAttribute('solo', this.solo.toString());
         elem.setAttribute('volume', this.volume.toString());

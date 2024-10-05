@@ -197,7 +197,6 @@ export default function FileMenu(props: FileMenuProps) {
                     const track = new Track(0)
                     const child = tracksChildren[i]
                     track.name = getAttributeValue(child, 'name', 'string') as string;
-                    track.order = getAttributeValue(child, 'order', 'int') as number;
                     track.mute = (getAttributeValue(child, 'mute', 'string') == 'true')
                     track.solo = (getAttributeValue(child, 'solo', 'string') == 'true')
                     track.volume = getAttributeValue(child, 'volume', 'float') as number;
@@ -217,6 +216,8 @@ export default function FileMenu(props: FileMenuProps) {
                           gen.presetName = getAttributeValue(gchild, 'presetName', 'string') as string;
                           gen.midi = getAttributeValue(gchild, 'midi', 'int') as number;
                           gen.type = type;
+                          gen.mute = (getAttributeValue(fcElem, 'mute', 'string') == 'true');
+                          gen.position = getAttributeValue(gchild, 'position', 'int') as number;
                           // load the preset if soundfont file and preset is defined
                           const pn: string = gen.presetName;
                           if (pn != '' && fc.SoundFont) {
@@ -236,6 +237,8 @@ export default function FileMenu(props: FileMenuProps) {
                           gen.type = type;
                           gen.presetName = getAttributeValue(gchild, 'presetName', 'string') as string;
                           gen.midi = getAttributeValue(gchild, 'midi', 'int') as number;
+                          gen.mute = (getAttributeValue(fcElem, 'mute', 'string') == 'true');
+                          gen.position = getAttributeValue(gchild, 'position', 'int') as number;
                           gen.FMType = getAttributeValue(gchild, 'FMType', 'string') as string;
                           gen.FMAmplitude = getAttributeValue(gchild, 'FMAmplitude', 'float') as number;
                           gen.FMFrequency = getAttributeValue(gchild, 'FMFrequency', 'float') as number;

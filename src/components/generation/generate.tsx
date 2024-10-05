@@ -13,8 +13,9 @@ const LOOKAHEAD: number = 25.0; // how frequently to call the schedule function 
 let timerID: number = 0; // the timer used to set the schedule 
 
 // using the defined cm generators for all tracks, create a web audio
+// if a generator is provided
 const CHUNKTIME: number = 0.1;
-export function Generate(fileContents: CMGFile): string[] {
+export function Generate(fileContents: CMGFile, generator: CMG | SFPG | SFRG | null = null): string[] {
 
     const errors: string[] = [];
     let playing: boolean = false;
@@ -23,18 +24,29 @@ export function Generate(fileContents: CMGFile): string[] {
     const SFPGenerators: SFPG[] = [];
     const SFRGenerators: SFRG[] = [];
     let playbackLength = 0;
-    fileContents.tracks.forEach((t) => {
-        t.generators.forEach((g: CMG | SFPG) => {
-            if (g.type == 'SFPG') {
-                if (!(g as SFPG).preset)
-                    errors.push(`Generator '${g.name}' on track '${t.name}' does not have a preset assigned.`)
-                else {
-                    SFPGenerators.push(g as SFPG);
-                    playbackLength = Math.max(playbackLength, g.stopTime);
+    if (generator) {
+        fileContents.tracks.forEach((t) => {
+            t.generators.forEach((g: CMG | SFPG) => {
+                if (g.type == 'SFPG' && !g.mute) {
+                    if (!(g as SFPG).preset)
+                        errors.push(`Generator '${g.name}' on track '${t.name}' does not have a preset assigned.`)
+                    else {
+                        SFPGenerators.push(g as SFPG);
+                        playbackLength = Math.max(playbackLength, g.stopTime);
+                    }
                 }
-            }
+            })
         })
-    })
+    } else {
+        if (generator.type == 'SFPG' && !generator.mute) {
+            if (!(generator as SFPG).preset)
+                errors.push(`Generator '${generator.name}' does not have a preset assigned.`)
+            else {
+                SFPGenerators.push(generator as SFPG);
+                playbackLength = Math.max(playbackLength, generator.stopTime);
+            }
+        }
+    }
     if (SFPGenerators.length == 0 && SFRGenerators.length == 0)
         errors.push('No generators are available to produce any sound');
     if (errors.length != 0)
@@ -108,7 +120,7 @@ export function Generate(fileContents: CMGFile): string[] {
                     if (aheadTime >= generatorTime[i].start && !generatorStarted[i]) {
                         // console.log('source', i, 'start', generatorTime[i].start, 'stop', generatorTime[i].stop, 'aheadtime', aheadTime, 'buffer length', g.buffer?.length);
                         g.start(generatorTime[i].start);
-                        g.stop(generatorTime[i].stop + 2 *LOOKAHEAD / 1000);
+                        g.stop(generatorTime[i].stop + 2 * LOOKAHEAD / 1000);
                         generatorStarted[i] = true;
                         // playSample(aheadTime, generatorSource[i], generatorTime[i]);
                     }
@@ -127,7 +139,7 @@ export function Generate(fileContents: CMGFile): string[] {
             if (g.stopTime > audioContext.currentTime)
                 allStop = false;
         });
-        if (allStop) { 
+        if (allStop) {
             stop();
             // audioContext.close();
         }
@@ -151,9 +163,8 @@ export function Generate(fileContents: CMGFile): string[] {
 // chuck based on the time that the generator start until it stops.
 // these chucks are fed to the scheduler as the audiocontext advances 
 // through current time.
-let currentSampleIndex:number = 0;
-function getBufferSourceNodesFromSample(context: AudioContext, CMgenerator: SFPG, deltaT: number):
-    {sources: AudioBufferSourceNode[], times: {start: number, stop:number}[]} {
+let currentSampleIndex: number = 0;
+function getBufferSourceNodesFromSample(context: AudioContext, CMgenerator: SFPG, deltaT: number): { sources: AudioBufferSourceNode[], times: { start: number, stop: number }[] } {
 
     // get the instrument zone for generator's preset
     if (!CMgenerator.preset)
@@ -174,9 +185,9 @@ function getBufferSourceNodesFromSample(context: AudioContext, CMgenerator: SFPG
     let lastPitch: number = -1;
     // const sampleDuration: number = CMgenerator.stopTime - CMgenerator.startTime;
     const sources: AudioBufferSourceNode[] = [];
-    const times:{start:number, stop:number}[] = [];
+    const times: { start: number, stop: number }[] = [];
     for (let iChunk: number = 0; iChunk < chunkCount; iChunk += 1) {
-        if (iChunk ==0) currentSampleIndex = 0;
+        if (iChunk == 0) currentSampleIndex = 0;
         const time = iChunk * deltaT;
         const { pitch, volume, pan } = CMgenerator.getCurrentValues(time);
         if (lastPitch != pitch) {
@@ -235,39 +246,39 @@ function getBufferSourceNodesFromSample(context: AudioContext, CMgenerator: SFPG
         // get the chunk's sample and update the next sample index
         // nextSampleIndex = Math.ceil(iChunk * chunkSize * playbackRate);
         const floatSample: Float32Array = getNextSample(
-            loopStart, loopEnd, 
-            currentZone.sample.data, 
+            loopStart, loopEnd,
+            currentZone.sample.data,
             chunkSize * playbackRate);
-            // console.log(
-            //     'iChunk', iChunk,
-            //     'time', time,
-            //     'currentzone', currentZone,
-            //     'rootKey', rootKey,
-            //     'pitchCorrection', pitchCorrection,
-            //     'fineTune', fineTune,
-            //     'baseDetune', baseDetune,
-            //     'pitch', pitch,
-            //     'cents', cents,
-            //     'playbackRate', playbackRate,
-            //     'currentSampleIndex',currentSampleIndex,
-            //     'sampleRate', sampleRate,
-            //     'loopStart', loopStart,
-            //     'loopEnd', loopEnd,
-            //     'sample length', floatSample.length,
-            // )
-    
+        // console.log(
+        //     'iChunk', iChunk,
+        //     'time', time,
+        //     'currentzone', currentZone,
+        //     'rootKey', rootKey,
+        //     'pitchCorrection', pitchCorrection,
+        //     'fineTune', fineTune,
+        //     'baseDetune', baseDetune,
+        //     'pitch', pitch,
+        //     'cents', cents,
+        //     'playbackRate', playbackRate,
+        //     'currentSampleIndex',currentSampleIndex,
+        //     'sampleRate', sampleRate,
+        //     'loopStart', loopStart,
+        //     'loopEnd', loopEnd,
+        //     'sample length', floatSample.length,
+        // )
+
 
         // move the chunk into the audio node
         // setting the samples, pan, volume, start time, and stop time
-        const buffer:AudioBuffer = context.createBuffer(1, floatSample.length, sampleRate);
-        const channelData:Float32Array = buffer.getChannelData(0);
+        const buffer: AudioBuffer = context.createBuffer(1, floatSample.length, sampleRate);
+        const channelData: Float32Array = buffer.getChannelData(0);
         channelData.set(floatSample);
-        const source:AudioBufferSourceNode = context.createBufferSource();
+        const source: AudioBufferSourceNode = context.createBufferSource();
         source.buffer = buffer;
         source.playbackRate.value = playbackRate;
-        const vol:GainNode = context.createGain();
+        const vol: GainNode = context.createGain();
         vol.gain.value = volume / 100;
-        const panner:StereoPannerNode = context.createStereoPanner();
+        const panner: StereoPannerNode = context.createStereoPanner();
         panner.pan.value = Math.min(Math.max(pan, -1.0), 1.0);
         vol.connect(panner);
         source.connect(vol);
@@ -277,11 +288,11 @@ function getBufferSourceNodesFromSample(context: AudioContext, CMgenerator: SFPG
 
         // and add it to the accumulated sources
         sources.push(source);
-        times.push({start:time + CMgenerator.startTime, stop:time + CMgenerator.startTime + deltaT})
+        times.push({ start: time + CMgenerator.startTime, stop: time + CMgenerator.startTime + deltaT })
 
     }
 
-    return {sources:sources,times:times};
+    return { sources: sources, times: times };
 }
 
 // while the sfumato solution for playing soundfont files is very elegant
@@ -338,7 +349,7 @@ function getBufferSourceNodesFromSample(context: AudioContext, CMgenerator: SFPG
 // get a full chuckSize set of samples from the instrument's samples
 // taking into account looping
 function getNextSample
-    (startLoop: number, endLoop: number, sampleData: Int16Array, chunkSize: number):Float32Array {
+    (startLoop: number, endLoop: number, sampleData: Int16Array, chunkSize: number): Float32Array {
     // make sure the zone has proper loop values
     // nextsampleindex is the place in teh smaple where the chunk
     // will start
