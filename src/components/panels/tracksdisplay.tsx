@@ -32,6 +32,7 @@ export default function TracksDisplay(props: TracksDisplayProps) {
         setTracks(fileContents.tracks);
         setStatus(`displayed ${fileContents.tracks.length} tracks`);
         setEnableGenerator(-1);
+        console.log('tracks refreshed');
     }, [fileContents.tracks]);
     // useEffect(() => {
     //     trackRef.current = trackRef.current.slice(0, tracks.length);
@@ -106,7 +107,7 @@ export default function TracksDisplay(props: TracksDisplayProps) {
         const thisIndex = fileContents.tracks.findIndex((t) => (t.name == trackName));
         if (thisIndex >= 0) {
             setFileContents((c: CMGFile) => {
-                const newC: CMGFile = c.copy();
+                const newC: CMGFile = structuredClone<CMGFile>(c);
                 newC.tracks[thisIndex].mute = !newC.tracks[thisIndex].mute;
                 newC.dirty = true;
                 return newC;
@@ -121,7 +122,7 @@ export default function TracksDisplay(props: TracksDisplayProps) {
         const thisIndex = fileContents.tracks.findIndex((t) => (t.name == trackName));
         if (thisIndex >= 0) {
             setFileContents((c: CMGFile) => {
-                const newC: CMGFile = c.copy();
+                const newC: CMGFile = structuredClone<CMGFile>(c);
                 newC.tracks[thisIndex].solo = !newC.tracks[thisIndex].solo;
                 newC.dirty = true;
                 return newC;
@@ -157,37 +158,45 @@ export default function TracksDisplay(props: TracksDisplayProps) {
 
     // switch places the the track immediately above the one selected
     let callCount: number = 0;
-    function handleTrackUpDown (event: MouseEvent<HTMLElement>, direction:string) {
+    function handleTrackUpDown(event: MouseEvent<HTMLElement>, direction: string) {
         const thisTrackName = event.currentTarget.id.split(':')[1];
 
         // update the track sequence
-        setFileContents((prev:CMGFile) => {
+        setFileContents((prev: CMGFile) => {
             callCount++;
-            // if (callCount > 1) return prev;
-
             console.log('moving', thisTrackName, direction, 'call number', callCount);
-            for (let i = 0; i < prev.tracks.length; i++) {
-                console.log(i, prev.tracks[i].name);
+            if (callCount > 1) {
+                callCount = 0;
+                return prev;
             }
-            const thisIndex:number = prev.tracks.findIndex((t) => t.name = thisTrackName);
+
+            const newF: CMGFile = structuredClone<CMGFile>(prev);
+            for (let i = 0; i < newF.tracks.length; i++) {
+                console.log(i, newF.tracks[i].name);
+            }
+            const thisIndex: number = newF.tracks.findIndex((t) => (t.name == thisTrackName));
+            console.log('this index of track', thisTrackName, thisIndex);
             if (thisIndex < 0) return prev;
 
-            const dir:number = (direction == 'up'? -1: 1);
-            const thatIndex:number = thisIndex + dir;
+            const dir: number = (direction == 'up' ? -1 : 1);
+
+            const thatIndex: number = thisIndex + dir;
+            console.log('that index', thatIndex);
             if (thatIndex < 0 || thatIndex > tracks.length - 1) return prev;
 
-            const newF:CMGFile = prev.copy();
             const newTracks: Track[] = [];
-            for (let i = 0; i < prev.tracks.length; i++) {
-                if (i == thisIndex)
-                    newTracks.push(prev.tracks[thatIndex]);
-                else if (i == thatIndex)
-                    newTracks.push(prev.tracks[thisIndex]);
-                else
-                    newTracks.push(prev.tracks[i]);
-                console.log('track added', i, newTracks[newTracks.length-1].name)
+            for (let i = 0; i < newF.tracks.length; i++) {
+                if (i == thisIndex) {
+                    newTracks.push(newF.tracks[thatIndex]);
+                } else if (i == thatIndex) {
+                    newTracks.push(newF.tracks[thisIndex]);
+                } else {
+                    newTracks.push(newF.tracks[i]);
+                }
+                console.log('track added', i, newTracks[newTracks.length - 1].name)
             }
             newF.tracks = newTracks;
+            newF.dirty = true;
             return newF;
         })
 
@@ -196,72 +205,73 @@ export default function TracksDisplay(props: TracksDisplayProps) {
     return (
         <>
             {tracks
-            // .sort((a, b) => (a.order - b.order))
-                .map((t, i) => (
-                    <>
-                        <div className='page-track-control'
-                            key={'track-control:' + t.name}
+                // .sort((a, b) => (a.order - b.order))
+                .map((t, i) => {
+                    console.log('track', t.name, 'i', i); return (
+                        <>
+                            <div className='page-track-control'
+                                key={'track-control:' + t.name}
 
-                        >
-                            <button className='track-button'
-                                id={'track-delete:' + t.name}
-                                onClick={handleDeleteTrack}
                             >
-                                <AiOutlineClose size={10} />
-                            </button>
-                            {t.name}
-                            <button
-                                style={{ float: 'right' }}
-                                className='track-button'
-                                id={'track-rename:' + t.name}
-                                onClick={handleRenameTrack}
-                            >
-                                <CgRename />
-                            </button>
-                            <br />
-                            <button className='track-button'
-                                id={'track-mute:' + t.name}
-                                onClick={handleMuteTrack}
-                            >
-                                {t.mute ? <AiFillMuted /> : <AiOutlineMuted />}
-                            </button>
+                                <button className='track-button'
+                                    id={'track-delete:' + t.name}
+                                    onClick={handleDeleteTrack}
+                                >
+                                    <AiOutlineClose size={10} />
+                                </button>
+                                {t.name}
+                                <button
+                                    style={{ float: 'right' }}
+                                    className='track-button'
+                                    id={'track-rename:' + t.name}
+                                    onClick={handleRenameTrack}
+                                >
+                                    <CgRename />
+                                </button>
+                                <br />
+                                <button className='track-button'
+                                    id={'track-mute:' + t.name}
+                                    onClick={handleMuteTrack}
+                                >
+                                    {t.mute ? <AiFillMuted /> : <AiOutlineMuted />}
+                                </button>
 
-                            <button
-                                className='track-button'
-                                disabled={!fileContents.SoundFont}
-                                id={`track-gen:${i}`}
-                                onClick={(event) => handleAddGenerator(event, i)}
-                            >
-                                <RiAiGenerate />
-                            </button>
-                            <button
-                                style={{ float: 'right' }}
-                                className='track-button'
-                                id={'track-solo:' + t.name}
-                                onClick={handleSoloTrack}
-                            >
-                                {t.solo ? <IoPerson /> : <IoPersonOutline />}
-                            </button>
-                            <br />
-                            <button
-                                style={{ float: 'left' }}
-                                disabled={i == 0}
-                                className='track-button'
-                                id={'track-up:' + t.name}
-                                onClick={(e) => handleTrackUpDown(e, 'up')}
-                            >
-                                <AiFillCaretUp />
-                            </button>
-                            <button
-                                style={{ float: 'right' }}
-                                disabled={i == tracks.length-1}
-                                className='track-button'
-                                id={'track-down:' + t.name}
-                                onClick={(e) => handleTrackUpDown(e, 'down')}
-                            >
-                                <AiFillCaretDown />
-                            </button>
-                            {/* {/* <div className='slidercontainer'>
+                                <button
+                                    className='track-button'
+                                    disabled={!fileContents.SoundFont}
+                                    id={`track-gen:${i}`}
+                                    onClick={(event) => handleAddGenerator(event, i)}
+                                >
+                                    <RiAiGenerate />
+                                </button>
+                                <button
+                                    style={{ float: 'right' }}
+                                    className='track-button'
+                                    id={'track-solo:' + t.name}
+                                    onClick={handleSoloTrack}
+                                >
+                                    {t.solo ? <IoPerson /> : <IoPersonOutline />}
+                                </button>
+                                <br />
+                                <button
+                                    style={{ float: 'left' }}
+                                    disabled={i == 0}
+                                    className='track-button'
+                                    id={'track-up:' + t.name}
+                                    onClick={(e) => handleTrackUpDown(e, 'up')}
+                                >
+                                    <AiFillCaretUp />
+                                </button>
+                                <button
+                                    style={{ float: 'right' }}
+                                    disabled={i == tracks.length - 1}
+                                    className='track-button'
+                                    id={'track-down:' + t.name}
+                                    onClick={(e) => handleTrackUpDown(e, 'down')}
+                                >
+                                    <AiFillCaretDown />
+                                </button>
+                                {/* {/* <div className='slidercontainer'>
                             <label htmlFor={'track-volume:' + t.name}>
                                 Volume
                             </label>
@@ -291,28 +301,29 @@ export default function TracksDisplay(props: TracksDisplayProps) {
                                 id={'track-pan:' + t.name}
                                 name={'track-pan:' + t.name} />
                         </div> */}
-                        </div>
-                        <div className='page-track-display'
-                            key={'track-display:' + t.name}
-                            // onClick={(event) => handleAddGenerator(event, i)}
-                            ref={(el: HTMLDivElement) => trackRef.current[i] = el}>
-                            {trackRef.current[i] ?
-                                <GeneratorIcons
-                                fileContents={fileContents}
-                                    setFileContents={setFileContents}
-                                    track={t}
-                                    setTracks={setTracks}
-                                    presets={presets}
-                                    timeLine={timeLine}
-                                    element={trackRef.current[i]}
-                                    setMessage={setMessage}
-                                    setStatus={setStatus}
-                                />
-                                : null}
+                            </div>
+                            <div className='page-track-display'
+                                key={'track-display:' + t.name}
+                                // onClick={(event) => handleAddGenerator(event, i)}
+                                ref={(el: HTMLDivElement) => trackRef.current[i] = el}>
+                                {trackRef.current[i] ?
+                                    <GeneratorIcons
+                                        fileContents={fileContents}
+                                        setFileContents={setFileContents}
+                                        track={t}
+                                        setTracks={setTracks}
+                                        presets={presets}
+                                        timeLine={timeLine}
+                                        element={trackRef.current[i]}
+                                        setMessage={setMessage}
+                                        setStatus={setStatus}
+                                    />
+                                    : null}
 
-                        </div>
-                    </>
-                ))}
+                            </div>
+                        </>
+                    )
+                })}
             {enableGenerator >= 0 ?
                 <GeneratorDialog
                     setFileContents={setFileContents}
