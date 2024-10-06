@@ -1,13 +1,11 @@
-import CMG from "./cmg";
-import CMGenerator from "./cmg";
-import SFPG from "./sfpg";
+import { CMGeneratorType } from "../types/types";
 export default class Track {
     name: string;
     mute: boolean; 
     solo: boolean;
     volume: number;
     pan: number;
-    generators: CMGenerator[];
+    generators: CMGeneratorType[];
 constructor(nextTrack: number) {
         this.name = 'T'.concat(nextTrack.toString());
         this.mute = false;

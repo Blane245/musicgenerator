@@ -10,17 +10,18 @@ import { getAttributeValue, getDocElement, getElementElement } from '../../utils
 import { loadSoundFont } from '../../utils/loadsoundfont';
 import { Preset } from '../../types/soundfonttypes';
 import { useCMGContext } from '../../contexts/cmgcontext';
+import { newFile, setDirty } from '../../utils/cmfiletransactions';
 
 export default function FileMenu() {
   const { fileContents, setFileContents, setMessage, setStatus, setFileName } = useCMGContext();
   const [openFileNew, setOpenFileNew] = useState<boolean>(false);
-
+  
   function handleFileNew() {
     if (fileContents.dirty)
       setOpenFileNew(true);
     else {
       const contents: CMGFile = new CMGFile();
-      setFileContents(contents);
+      newFile (contents, setFileContents);
       setStatus('New file started');
     }
   }
@@ -30,7 +31,7 @@ export default function FileMenu() {
 
   function handleFileNewOK() {
     const contents = new CMGFile();
-    setFileContents(contents);
+    newFile(contents, setFileContents);
     setOpenFileNew(false);
     setStatus('New file started');
   }
@@ -139,7 +140,8 @@ export default function FileMenu() {
               await writeable.close();
             });
           setFileName(handle.name);
-          setStatus(`File '${handle.name} saved`)
+          setDirty(false, fileContents, setFileContents);
+          setStatus(`File '${handle.name}' saved`)
         });
 
       //TODO delete the XML document when finished
@@ -176,7 +178,8 @@ export default function FileMenu() {
                   fc.measureSnapUnit = getAttributeValue(fcElem, 'measureSnapUnit', 'int') as number;
                   fc.secondSnapUnit = getAttributeValue(fcElem, 'secondSnapUnit', 'int') as number;
                   fc.SFFileName = getAttributeValue(fcElem, 'SFFileName', 'string') as string;
-                  fc.SoundFont = await loadSoundFont(fc.SFFileName);
+                  if (fc.SFFileName != '') {
+                    fc.SoundFont = await loadSoundFont(fc.SFFileName);}
                   const tracksChildren: HTMLCollection = tracksElem.children
                   fc.tracks = [];
                   for (let i = 0; i < tracksChildren.length; i++) {
@@ -203,9 +206,9 @@ export default function FileMenu() {
                           gen.midi = getAttributeValue(gchild, 'midi', 'int') as number;
                           gen.type = type;
                           gen.mute = (getAttributeValue(fcElem, 'mute', 'string') == 'true');
-                          gen.position = getAttributeValue(gchild, 'position', 'int') as number;
+                          gen.position = getAttributeValue(fcElem, 'position', 'int') as number;
                           // load the preset if soundfont file and preset is defined
-                          const pn: string = gen.presetName;
+                          const pn: string = gen.presetName.split(":")[2];
                           if (pn != '' && fc.SoundFont) {
                             gen.preset = fc.SoundFont.presets.find((p) => (p.header.name == pn)) as Preset;
                             if (gen == undefined)
@@ -223,7 +226,7 @@ export default function FileMenu() {
                           gen.type = type;
                           gen.presetName = getAttributeValue(gchild, 'presetName', 'string') as string;
                           gen.midi = getAttributeValue(gchild, 'midi', 'int') as number;
-                          gen.mute = (getAttributeValue(fcElem, 'mute', 'string') == 'true');
+                          gen.mute = (getAttributeValue(gchild, 'mute', 'string') == 'true');
                           gen.position = getAttributeValue(gchild, 'position', 'int') as number;
                           gen.FMType = getAttributeValue(gchild, 'FMType', 'string') as string;
                           gen.FMAmplitude = getAttributeValue(gchild, 'FMAmplitude', 'float') as number;
@@ -241,7 +244,7 @@ export default function FileMenu() {
                           gen.PMPhase = getAttributeValue(gchild, 'PMPhase', 'float') as number;
 
                           // load the preset if soundfont file and preset is defined
-                          const pn: string = gen.presetName;
+                          const pn: string = gen.presetName.split(":")[2];
                           if (pn != '' && fc.SoundFont) {
                             gen.preset = fc.SoundFont.presets.find((p) => (p.header.name == pn)) as Preset;
                             if (gen == undefined)
@@ -260,7 +263,7 @@ export default function FileMenu() {
                   }
 
                   fc.dirty = false;
-                  setFileContents(fc);
+                  newFile(fc, setFileContents);
                 });
             });
         });

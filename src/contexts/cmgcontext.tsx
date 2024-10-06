@@ -3,7 +3,6 @@ import TimeLine from "../classes/timeline";
 import { createContext, Dispatch, ReactNode, RefObject, SetStateAction, useContext, useRef, useState } from "react";
 import { Message } from "../types/types";
 import { Preset } from "types/soundfonttypes";
-import Track from "../classes/track";
 
 // the elements of this application that are used at many levels
 interface CMGContextType {
@@ -11,8 +10,6 @@ interface CMGContextType {
     setFileName: Dispatch<SetStateAction<string>>;
     fileContents: CMGFile;
     setFileContents: Dispatch<SetStateAction<CMGFile>>;
-    tracks: Track[];
-    setTracks: Dispatch<SetStateAction<Track[]>>;
     message: Message;
     setMessage: Dispatch<SetStateAction<Message>>;
     status: string;
@@ -40,7 +37,6 @@ const CMGContext = createContext<CMGContextType | undefined>(undefined);
 
 export const CMGProvider = ({ children, }: { children: ReactNode }) => {
     const [fileContents, setFileContents] = useState<CMGFile>(new CMGFile());
-    const [tracks, setTracks] = useState<Track[]> ([]);
     const [message, setMessage] = useState<Message>({ error: false, text: 'Welcome' });
     const [status, setStatus] = useState<string>('')
     const [timeLine, setTimeLine] = useState<TimeLine>(new TimeLine(0, 0));
@@ -60,8 +56,6 @@ export const CMGProvider = ({ children, }: { children: ReactNode }) => {
         setFileName,
         fileContents,
         setFileContents,
-        tracks,
-        setTracks,
         message,
         setMessage,
         status,

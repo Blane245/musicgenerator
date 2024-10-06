@@ -13,12 +13,4 @@ export async function loadSoundFont(fileName: string): Promise<SoundFont2> {
     const array = new Uint8Array(data);
     const sf = new SoundFont2 (array);
     return sf;
-        // .then((response) => {
-        //     response.arrayBuffer()
-        //         .then((data) => {
-        //             const array = new Uint8Array(data);
-        //             const sf = new SoundFont2(array);
-        //             setSoundFont(sf);
-        //         });
-        // });
 }

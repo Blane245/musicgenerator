@@ -4,14 +4,14 @@ import { CgRename } from "react-icons/cg";
 import { IoPerson, IoPersonOutline } from "react-icons/io5";
 import { RiAiGenerate } from "react-icons/ri";
 import '../../App.css';
-import CMGFile from '../../classes/cmgfile';
 import Track from "../../classes/track";
 import GeneratorDialog from '../dialogs/generatordialog';
 import GeneratorIcons from './generatoricons';
 import { useCMGContext } from "../../contexts/cmgcontext";
+import { deleteTrack, flipTrackAttrbute, moveTrack, renameTrack } from "../../utils/cmfiletransactions";
 
 export default function TracksDisplay() {
-    const { fileContents, setFileContents, setMessage, setStatus, timeLine, presets }
+    const { fileContents, setFileContents, setMessage, setStatus}
         = useCMGContext();
     const [tracks, setTracks] = useState<Track[]>([]);
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
@@ -40,12 +40,7 @@ export default function TracksDisplay() {
         const trackName = event.currentTarget.id.split(':')[1];
         const thisIndex = fileContents.tracks.findIndex((t) => (t.name == trackName));
         if (thisIndex < 0) return;
-        setFileContents((c: CMGFile) => {
-            const newC: CMGFile = c.copy();
-            newC.tracks.splice(thisIndex, 1);
-            newC.dirty = true;
-            return newC;
-        });
+        deleteTrack(thisIndex, setFileContents);
         setDeleteModal(false);
 
     }
@@ -73,12 +68,7 @@ export default function TracksDisplay() {
         }
         const thisIndex = fileContents.tracks.findIndex((t) => (t.name == trackName));
         if (thisIndex < 0) return;
-        setFileContents((c: CMGFile) => {
-            const newC: CMGFile = c.copy();
-            newC.tracks[thisIndex].name = newName;
-            newC.dirty = true;
-            return newC;
-        });
+        renameTrack(thisIndex, newName, setFileContents);
         setRenameModal(false);
     }
 
@@ -97,12 +87,7 @@ export default function TracksDisplay() {
         const trackName = event.currentTarget.id.split(':')[1];
         const thisIndex = fileContents.tracks.findIndex((t) => (t.name == trackName));
         if (thisIndex >= 0) {
-            setFileContents((c: CMGFile) => {
-                const newC: CMGFile = c.copy();
-                newC.tracks[thisIndex].mute = !newC.tracks[thisIndex].mute;
-                newC.dirty = true;
-                return newC;
-            })
+            flipTrackAttrbute(thisIndex, 'mute', setFileContents);
         }
 
     }
@@ -112,12 +97,7 @@ export default function TracksDisplay() {
         const trackName = event.currentTarget.id.split(':')[1];
         const thisIndex = fileContents.tracks.findIndex((t) => (t.name == trackName));
         if (thisIndex >= 0) {
-            setFileContents((c: CMGFile) => {
-                const newC: CMGFile = c.copy();
-                newC.tracks[thisIndex].solo = !newC.tracks[thisIndex].solo;
-                newC.dirty = true;
-                return newC;
-            })
+            flipTrackAttrbute(thisIndex, 'solo', setFileContents);
         }
 
     }
@@ -148,49 +128,11 @@ export default function TracksDisplay() {
     }
 
     // switch places the the track immediately above the one selected
-    let callCount: number = 0;
     function handleTrackUpDown(event: MouseEvent<HTMLElement>, direction: string) {
         const thisTrackName = event.currentTarget.id.split(':')[1];
 
         // update the track sequence
-        setFileContents((prev: CMGFile) => {
-            // callCount++;
-            // console.log('moving', thisTrackName, direction, 'call number', callCount);
-            // if (callCount > 1) {
-            //     callCount = 0;
-            //     return prev;
-            // }
-
-            const newF: CMGFile = prev.copy();
-            for (let i = 0; i < newF.tracks.length; i++) {
-                console.log(i, newF.tracks[i].name);
-            }
-            const thisIndex: number = newF.tracks.findIndex((t) => (t.name == thisTrackName));
-            console.log('this index of track', thisTrackName, thisIndex);
-            if (thisIndex < 0) return prev;
-
-            const dir: number = (direction == 'up' ? -1 : 1);
-
-            const thatIndex: number = thisIndex + dir;
-            console.log('that index', thatIndex);
-            if (thatIndex < 0 || thatIndex > tracks.length - 1) return prev;
-
-            const newTracks: Track[] = [];
-            for (let i = 0; i < newF.tracks.length; i++) {
-                if (i == thisIndex) {
-                    newTracks.push(newF.tracks[thatIndex]);
-                } else if (i == thatIndex) {
-                    newTracks.push(newF.tracks[thisIndex]);
-                } else {
-                    newTracks.push(newF.tracks[i]);
-                }
-                console.log('track added', i, newTracks[newTracks.length - 1].name)
-            }
-            newF.tracks = newTracks;
-            newF.dirty = true;
-            return newF;
-        })
-
+        moveTrack(thisTrackName, direction, setFileContents);
     }
 
     return (
@@ -205,6 +147,7 @@ export default function TracksDisplay() {
                             >
                                 <button className='track-button'
                                     id={'track-delete:' + t.name}
+                                    key={'track-delete:' + t.name}
                                     onClick={handleDeleteTrack}
                                 >
                                     <AiOutlineClose size={10} />
@@ -214,6 +157,7 @@ export default function TracksDisplay() {
                                     style={{ float: 'right' }}
                                     className='track-button'
                                     id={'track-rename:' + t.name}
+                                    key={'track-rename:' + t.name}
                                     onClick={handleRenameTrack}
                                 >
                                     <CgRename />
@@ -221,6 +165,7 @@ export default function TracksDisplay() {
                                 <br />
                                 <button className='track-button'
                                     id={'track-mute:' + t.name}
+                                    key={'track-mute:' + t.name}
                                     onClick={handleMuteTrack}
                                 >
                                     {t.mute ? <AiFillMuted /> : <AiOutlineMuted />}
@@ -230,6 +175,7 @@ export default function TracksDisplay() {
                                     className='track-button'
                                     disabled={!fileContents.SoundFont}
                                     id={`track-gen:${i}`}
+                                    key={`track-gen:${i}`}
                                     onClick={(event) => handleAddGenerator(event, i)}
                                 >
                                     <RiAiGenerate />
@@ -238,6 +184,7 @@ export default function TracksDisplay() {
                                     style={{ float: 'right' }}
                                     className='track-button'
                                     id={'track-solo:' + t.name}
+                                    key={'track-solo:' + t.name}
                                     onClick={handleSoloTrack}
                                 >
                                     {t.solo ? <IoPerson /> : <IoPersonOutline />}
@@ -248,6 +195,7 @@ export default function TracksDisplay() {
                                     disabled={i == 0}
                                     className='track-button'
                                     id={'track-up:' + t.name}
+                                    key={'track-up:' + t.name}
                                     onClick={(e) => handleTrackUpDown(e, 'up')}
                                 >
                                     <AiFillCaretUp />
@@ -257,6 +205,7 @@ export default function TracksDisplay() {
                                     disabled={i == tracks.length - 1}
                                     className='track-button'
                                     id={'track-down:' + t.name}
+                                    key={'track-down:' + t.name}
                                     onClick={(e) => handleTrackUpDown(e, 'down')}
                                 >
                                     <AiFillCaretDown />
@@ -294,7 +243,6 @@ export default function TracksDisplay() {
                             </div>
                             <div className='page-track-display'
                                 key={'track-display:' + t.name}
-                                // onClick={(event) => handleAddGenerator(event, i)}
                                 ref={(el: HTMLDivElement) => trackRef.current[i] = el}>
                                 {trackRef.current[i] ?
                                     <GeneratorIcons

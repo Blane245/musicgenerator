@@ -51,6 +51,6 @@ export function bankBagPresettoName(preset: Preset): string {
   ("00" + preset.header.bank).slice(-3)
     .concat(":")
     .concat(("00" + preset.header.bagIndex).slice(-3))
-    .concat(' ')
+    .concat(':')
     .concat(preset.header.name));
 }

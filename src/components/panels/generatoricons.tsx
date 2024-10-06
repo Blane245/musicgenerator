@@ -12,6 +12,7 @@ import { SECONDSNAPUNIT, TimeLineScales } from "../../types/types";
 import GeneratorDialog from "../dialogs/generatordialog";
 import { Generate } from '../generation/generate';
 import { useCMGContext } from "../../contexts/cmgcontext";
+import { flipGeneratorMute, moveGeneratorBodyPosition, moveGeneratorTime, moveGenertorBodyTime } from "../../utils/cmfiletransactions";
 
 export interface GeneratorIconProps {
     track: Track,
@@ -22,7 +23,7 @@ type GeneratorBox = {
 }
 export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
     const {track, element } = props;
-    const {fileContents, setTracks, timeLine, setMessage, setStatus} = useCMGContext();
+    const {fileContents, setFileContents, timeLine, setMessage, setStatus} = useCMGContext();
     const [generatorIndex, setGeneratorIndex] = useState<number>(-1);
     const [cursorStyle, setCursorStyle] = useState<string>('cursor-default');
     const [moveMode, setMoveMode] = useState<string>('');
@@ -176,16 +177,17 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
 
     // toggle the mute condition of the selected generator
     function toggleGeneratorMute(index: number) {
-        setTracks((ts: Track[]) => {
-            const nts: Track[] = [];
-            ts.forEach((t) => {
-                if (t.name = track.name) {
-                    t.generators[index].mute = !t.generators[index].mute;
-                }
-                nts.push(t);
-            });
-            return nts;
-        });
+        flipGeneratorMute(track, index, setFileContents);
+        // setTracks((ts: Track[]) => {
+        //     const nts: Track[] = [];
+        //     ts.forEach((t) => {
+        //         if (t.name = track.name) {
+        //             t.generators[index].mute = !t.generators[index].mute;
+        //         }
+        //         nts.push(t);
+        //     });
+        //     return nts;
+        // });
     }
 
     function previewGenerator(index: number) {
@@ -200,9 +202,14 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
     return (
         <>
             {element ?
+            // TODO for some reason the element parameter client size of
+            // other elements is changing when mouse events are handled 
+            // within the generator box
+            // changing when mouse event are handled 
                 <svg
                     className={cursorStyle}
                     id={track.name.concat(': Generators')}
+                    key={track.name.concat(': Generators')}
                     xmlns="http://www.w3.org/2000/svg"
                     width={element.clientWidth}
                     height={element.clientHeight}
@@ -240,8 +247,9 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
                                 {generatorBox.generator.name.concat(":").concat(generatorBox.generator.type)}
                             </text>
                             <line
+                                key={'genstart-' + track.name + '-' + i}
                                 stroke="blue"
-                                strokeWidth={3}
+                                strokeWidth={5}
                                 x1={generatorBox.position.x}
                                 y1={generatorBox.position.y}
                                 x2={generatorBox.position.x}
@@ -252,8 +260,9 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
                                 onMouseMove={event => handleMouseMove(event, i)}
                             />
                             <line
+                                key={'genstop-' + track.name + '-' + i}
                                 stroke="blue"
-                                strokeWidth={3}
+                                strokeWidth={5}
                                 x1={generatorBox.position.x + generatorBox.width}
                                 y1={generatorBox.position.y}
                                 x2={generatorBox.position.x + generatorBox.width}
@@ -439,20 +448,21 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
         // if allowed, change the generators start and stop time
         if (allowed && moveNeeded) {
             console.log('newStart', newStart);
-            setTracks((ts: Track[]) => {
-                const newts: Track[] = []
-                ts.map((t: Track) => {
-                    const newt: Track = t.copy();
-                    if (t.name == track.name) {
-                        const newg = t.generators[generatorIndex].copy();
-                        newg.stopTime = newg.stopTime + newStart - newg.startTime;
-                        newg.startTime = newStart;
-                        newt.generators = newt.generators.map((g, i) => i == generatorIndex ? newg : g);
-                    }
-                    newts.push(newt);
-                });
-                return newts;
-            });
+            moveGenertorBodyTime (track, generatorIndex, newStart, setFileContents);
+            // setTracks((ts: Track[]) => {
+            //     const newts: Track[] = []
+            //     ts.map((t: Track) => {
+            //         const newt: Track = t.copy();
+            //         if (t.name == track.name) {
+            //             const newg = t.generators[generatorIndex].copy();
+            //             newg.stopTime = newg.stopTime + newStart - newg.startTime;
+            //             newg.startTime = newStart;
+            //             newt.generators = newt.generators.map((g, i) => i == generatorIndex ? newg : g);
+            //         }
+            //         newts.push(newt);
+            //     });
+            //     return newts;
+            // });
         }
 
         // check the vertical movement
@@ -478,19 +488,20 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
             //     })
             //     return newbs;
             // });
-            setTracks((ts: Track[]) => {
-                const newts: Track[] = []
-                ts.map((t: Track) => {
-                    const newt: Track = t.copy();
-                    if (t.name == track.name) {
-                        const newg = t.generators[generatorIndex].copy();
-                        newg.position = newTop;
-                        newt.generators = newt.generators.map((g, i) => i == generatorIndex ? newg : g);
-                    }
-                    newts.push(newt);
-                });
-                return newts;
-            })
+            moveGeneratorBodyPosition (track, generatorIndex, newTop, setFileContents);
+            // setTracks((ts: Track[]) => {
+            //     const newts: Track[] = []
+            //     ts.map((t: Track) => {
+            //         const newt: Track = t.copy();
+            //         if (t.name == track.name) {
+            //             const newg = t.generators[generatorIndex].copy();
+            //             newg.position = newTop;
+            //             newt.generators = newt.generators.map((g, i) => i == generatorIndex ? newg : g);
+            //         }
+            //         newts.push(newt);
+            //     });
+            //     return newts;
+            // })
         }
     }
 
@@ -500,8 +511,7 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
     // the starttime must not become less than the timeline start
     // the stop time must become greater than the timeline start plus extent
     function executeStartStopMove(mode: string, location: { x: number, y: number }, iconBox: GeneratorBox): void {
-        let newStart: number | null = null;
-        let newStop: number | null = null;
+        let newValue: number;
         console.log('in executeStartStopMove');
         const { error, snapPixelResolution, minTime, maxTime, trackBox } = getScalingValues();
         console.log(
@@ -529,35 +539,36 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
         if (mode == 'start') {
             if (newLeft < trackBox.left || deltaX >= iconBox.width)
                 return;
-            newStart = track.generators[generatorIndex].startTime +
+            newValue = track.generators[generatorIndex].startTime +
                 TimeLineScales[timeLine.currentZoomLevel].extent * deltaX / (trackBox.right - trackBox.left);
-            console.log('newStart', newStart)
+            console.log('newStart', newValue);
             setMouseDown({ ...location });
         } else if (mode == 'stop') {
             if (newRight > trackBox.right || iconBox.width + deltaX <= 0.0)
                 return;
-            newStop = track.generators[generatorIndex].stopTime +
+            newValue = track.generators[generatorIndex].stopTime +
                 TimeLineScales[timeLine.currentZoomLevel].extent * deltaX / (trackBox.right - trackBox.left);
-            console.log('newStop', newStop)
+            console.log('newStop', newValue)
             setMouseDown({ ...location });
         } else
             return;
-        setTracks((ts: Track[]) => {
-            const newts: Track[] = []
-            ts.map((t: Track) => {
-                const newt: Track = t.copy();
-                if (t.name == track.name) {
-                    const newg = t.generators[generatorIndex].copy();
-                    if (newStart)
-                        newg.startTime = newStart;
-                    if (newStop)
-                        newg.stopTime = newStop;
-                    newt.generators = newt.generators.map((g, i) => i == generatorIndex ? newg : g);
-                }
-                newts.push(newt);
-            });
-            return newts;
-        })
+        moveGeneratorTime (track, generatorIndex, mode, newValue, setFileContents);
+        // setTracks((ts: Track[]) => {
+        //     const newts: Track[] = []
+        //     ts.map((t: Track) => {
+        //         const newt: Track = t.copy();
+        //         if (t.name == track.name) {
+        //             const newg = t.generators[generatorIndex].copy();
+        //             if (newStart)
+        //                 newg.startTime = newStart;
+        //             if (newStop)
+        //                 newg.stopTime = newStop;
+        //             newt.generators = newt.generators.map((g, i) => i == generatorIndex ? newg : g);
+        //         }
+        //         newts.push(newt);
+        //     });
+        //     return newts;
+        // })
 
 
 

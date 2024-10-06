@@ -7,6 +7,7 @@ import { ProgressBar } from './audioplayerdisplay/progressbar';
 import TimeLineDisplay from './timelinedisplay';
 import { Generate } from '../generation/generate';
 import { useCMGContext } from '../../contexts/cmgcontext';
+import { setSoundFont } from '../../utils/cmfiletransactions';
 
 // display of the CGM file, its contents, and controls
 // main controls
@@ -24,9 +25,9 @@ export default function ControlsDisplay() {
     const [readyGenerate, setReadyGenerate] = useState<boolean>(true);
 
     // load the soundfont file list at start up
-    https://github.com/Blane245/musicgenerator/issues/14    
     useEffect(() => {
-        const SFFiles = import.meta.glob("/src/soundfonts/*.(SF@|sf2)");
+        // const SFFiles = import.meta.glob("/src/soundfonts/*.(SF@|sf2)");
+        const SFFiles = import.meta.glob("/src/newsoundfonts/*.(SF@|sf2)");
         const fileList: string[] = Object.keys(SFFiles);
         fileList.unshift('select a file'); // add select a file to the start of the list
         setSFFiles(fileList);
@@ -60,27 +61,10 @@ export default function ControlsDisplay() {
     // TODO - any generators that have been selected from a previous soundfont file will be violated. This will have to be handled
     async function handleFileNameChange(event: ChangeEvent<HTMLSelectElement>) {
         const fileName: string = event.target.value;
-        // function setSF(SF: SoundFont2): void {
-        //     setFileContents((c: CMGFile) => {
-        //         const newC: CMGFile = c.copy();
-        //         newC.SFFileName = fileName;
-        //         newC.SoundFont = SF;
-        //         newC.dirty = true;
-        //         return newC;
-        //     })
-        // }
         if (fileName !== '' && fileName !== 'select a file') {
             setSFFileName(fileName);
             const sf = await loadSoundFont(fileName);
-            setFileContents((c: CMGFile) => {
-                const newC: CMGFile = c.copy();
-                newC.SFFileName = fileName;
-                newC.SoundFont = sf;
-                newC.dirty = true;
-                return newC;
-            })
-            // loadSoundFont(fileName, setSF);
-
+            setSoundFont(fileName, sf, setFileContents);
             setStatus(`file ${fileName} loaded`);
         }
     }

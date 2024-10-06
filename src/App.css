@@ -116,6 +116,7 @@
   /* grid-template-columns: subgrid; */
   display: block;
   border: 1px black solid;
+  height: 100px;
 }
 
 .page-track-display {
@@ -123,6 +124,7 @@
   display: block;
   grid-column: span 11;
   border: 1px black solid;
+  height: 100px;
 }
 
 .page-footer {

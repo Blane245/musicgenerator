@@ -6,6 +6,7 @@ import SFPG from '../../classes/sfpg';
 import SFRG from 'classes/sfrg';
 import { InstrumentZone } from '../../types/soundfonttypes';
 import { getSFGeneratorValues } from '../../utils/soundfont2utils';
+import { CMGeneratorType } from '../../types/types';
 
 
 const SCHEDULEAHEADTIME: number = 0.1 // how far ahead to schedule audio (seconds)
@@ -15,7 +16,7 @@ let timerID: number = 0; // the timer used to set the schedule
 // using the defined cm generators for all tracks, create a web audio
 // if a generator is provided
 const CHUNKTIME: number = 0.1;
-export function Generate(fileContents: CMGFile, generator: CMG | SFPG | SFRG | null = null): string[] {
+export function Generate(fileContents: CMGFile, generator: CMGeneratorType | null = null): string[] {
 
     const errors: string[] = [];
     let playing: boolean = false;
@@ -24,7 +25,7 @@ export function Generate(fileContents: CMGFile, generator: CMG | SFPG | SFRG | n
     const SFPGenerators: SFPG[] = [];
     const SFRGenerators: SFRG[] = [];
     let playbackLength = 0;
-    if (generator) {
+    if (!generator) {
         fileContents.tracks.forEach((t) => {
             t.generators.forEach((g: CMG | SFPG) => {
                 if (g.type == 'SFPG' && !g.mute) {
@@ -38,12 +39,15 @@ export function Generate(fileContents: CMGFile, generator: CMG | SFPG | SFRG | n
             })
         })
     } else {
-        if (generator.type == 'SFPG' && !generator.mute) {
-            if (!(generator as SFPG).preset)
-                errors.push(`Generator '${generator.name}' does not have a preset assigned.`)
+        if ((generator as CMG).type == 'SFPG' && !(generator as CMG).mute) {
+            if (!(generator as CMG).preset)
+                errors.push(`Generator '${(generator as CMG).name}' does not have a preset assigned.`)
             else {
-                SFPGenerators.push(generator as SFPG);
-                playbackLength = Math.max(playbackLength, generator.stopTime);
+                const tempGen: SFPG = (generator as SFPG).copy();
+                tempGen.stopTime = tempGen.stopTime - tempGen.startTime;
+                tempGen.startTime = 0;
+                SFPGenerators.push(tempGen);
+                playbackLength = Math.max(playbackLength, (generator as CMG).stopTime);
             }
         }
     }
