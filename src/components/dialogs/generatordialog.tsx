@@ -99,7 +99,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                 case 'CMG': {
                     const newF = new CMG(0);
                     newF.name = prev.name;
-                    newF.startTime = prev.stopTime;
+                    newF.startTime = prev.startTime;
                     newF.stopTime = prev.stopTime;
                     newF.presetName = prev.presetName;
                     newF.preset = prev.preset;

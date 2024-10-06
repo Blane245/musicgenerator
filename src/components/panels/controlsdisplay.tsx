@@ -8,6 +8,8 @@ import TimeLineDisplay from './timelinedisplay';
 import { Generate } from '../generation/generate';
 import { useCMGContext } from '../../contexts/cmgcontext';
 import { setSoundFont } from '../../utils/cmfiletransactions';
+import Track from 'classes/track';
+import { CMGeneratorType } from 'types/types';
 
 // display of the CGM file, its contents, and controls
 // main controls
@@ -40,22 +42,30 @@ export default function ControlsDisplay() {
 
     // control the generate button
     // only enabled when a soundfont file is defined and all generators have presets and midi numbers assigned
-    // useEffect(() => {
-    //     if (!fileContents) {
-    //         setReadyGenerate(false);
-    //         return;
-    //     }
-    //     fileContents.tracks.forEach((t:Track) => {
-    //         t.generators.forEach((g: CMG) => {
-    //             if (g.presetName == '' || !g.preset || g.midi < 0 || g.midi > 255) {
-    //                 setReadyGenerate(false);
-    //                 return;
-    //             }
-    //         })
-    //     })
-    //     setReadyGenerate(true);
+    useEffect(() => {
+        if (!fileContents) {
+            setReadyGenerate(false);
+            return;
+        }
+        if (fileContents.tracks.length == 0) {
+            setReadyGenerate(false);
+            return;
+        }
+        let goodGeneratorCount: number = 0;
+        fileContents.tracks.forEach((t:Track) => {
+            t.generators.forEach((g: CMGeneratorType) => {
+                if (g.type != 'CMG' && g.presetName != '' && g.preset && g.midi >= 0 && g.midi <= 255) {
+                    goodGeneratorCount++;
+                }
+            })
+        })
+        if (goodGeneratorCount == 0) {
+            setReadyGenerate(false);
+            return;
+        }
+        setReadyGenerate(true);
 
-    // }, [fileContents, SFFileName])
+    }, [fileContents, SFFileName])
 
     // load the SF when one is selected
     // TODO - any generators that have been selected from a previous soundfont file will be violated. This will have to be handled
