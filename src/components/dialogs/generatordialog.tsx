@@ -10,24 +10,20 @@ import GeneratorTypeForm from "./generatortypeform";
 import { validateSFPGValues } from "./sfpgdialog";
 import SFRG from '../../classes/sfpg';
 import { bankBagPresettoName, toNote } from '../../utils/util';
+import { useCMGContext } from "../../contexts/cmgcontext";
+import CMGFile from "classes/cmgfile";
 
 // The icon starts at the generator's start time and ends at the generators endtime
 export interface GeneratorDialogProps {
-    setFileContents: Function,
     track: Track;
-    setTracks: Function;
     generatorIndex: number,
-    presets: Preset[],
     closeTrackGenerator: Function,
-    setMessage: Function,
-    setStatus: Function,
     setOpen: Function
 }
 
-
-
 export default function GeneratorDialog(props: GeneratorDialogProps) {
-    const { setFileContents, track, setTracks, presets, generatorIndex, closeTrackGenerator, setMessage, setStatus, setOpen } = props;
+    const { track, generatorIndex, closeTrackGenerator, setOpen } = props;
+    const { setFileContents, presets, setMessage, setStatus } = useCMGContext();
     const [showModal, setShowModal] = useState<boolean>(false);
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
     const [oldName, setOldName] = useState<string>('');
@@ -170,34 +166,39 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
 
         if (generatorIndex < 0) {
             // add a new generator to the current track
-            setTracks((ts: Track[]) => {
-                ts.map((t: Track) => {
-                    if (t.name == track.name) {
-                        track.generators.push(formData);
-                    }
-                    return t;
-                })
-                return ts;
+            setFileContents((c: CMGFile) => {
+                const newc = c.copy();
+                const thisTrack:Track | undefined = newc.tracks.find((t) => (t.name == track.name));
+                if (thisTrack) {
+                    thisTrack.generators.push(formData);
+                    newc.dirty = true;
+                    setStatus(`Generator: ${formData.name} added to track ${track.name}`)
+                } else {
+                    setStatus(`Track ${track.name} could not be found`);
+                }
+                return newc;
             });
-            setFileDirty(setFileContents);
-            setStatus(`Generator: ${formData.name} added to track ${track.name}`)
         }
         else {
             // this is a modify. change the generator on the active track
-            setTracks((ts: Track[]) => {
-                ts.map((t: Track) => {
-                    if (t.name == track.name) {
-                        const genIndex = t.generators.findIndex((g) => (g.name == oldName))
-                        if (genIndex >= 0) {
-                            t.generators[genIndex] = formData;
-                        }
+            setFileContents((c: CMGFile) => {
+                const newc = c.copy();
+                const thisTrack: Track | undefined = newc.tracks.find((t) => (t.name = track.name));
+                if (thisTrack) {
+                    newc.dirty = true;
+                    const index = thisTrack.generators.findIndex((g) => (g.name == oldName));
+                    if (index >= 0) {
+                        newc.dirty = true;
+                        thisTrack.generators[index] = formData;
+                        setStatus(`Generator: ${formData.name} on track ${track.name} modified`);
+                    } else {
+                        setStatus(`Generator: ${formData.name} could not be found on track ${track.name}`);
                     }
-                    return t;
-                })
-                return ts;
-            });
-            setFileDirty(setFileContents);
-            setStatus(`Generator: ${formData.name} modified on track ${track.name}`)
+                } else {
+                    setStatus(`Track ${track.name} could not be found`);
+                }
+                return newc;
+            })
         }
         setShowModal(false);
         setOpen(false);
@@ -248,17 +249,18 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
         const gName = event.currentTarget.id.split(':')[1];
         const index = track.generators.findIndex((g) => g.name == gName);
         if (index < 0) return;
-        setTracks((ts: Track[]) => {
-            ts.map((t) => {
-                if (t.name == track.name) {
-                    t.generators.splice(index, 1);
-                    return t;
-                }
-            })
-            return ts;
+        setFileContents((c) => {
+            const newc = c.copy();
+            const theTrackIndex = newc.tracks.findIndex((t) => (t.name == track.name));
+            if (theTrackIndex >= 0) {
+                newc.tracks.splice(theTrackIndex, 1);
+                newc.dirty = true;
+                setStatus(`Generator: ${gName} deleted from track ${track.name}`)
+            } else {
+                setStatus(`Generator: ${gName} could not be found on track ${track.name}`)
+            }
+            return newc;
         })
-        setFileDirty(setFileContents);
-        setStatus(`Generator: ${gName} deleted from track ${track.name}`)
         setDeleteModal(false);
         closeTrackGenerator();
     }

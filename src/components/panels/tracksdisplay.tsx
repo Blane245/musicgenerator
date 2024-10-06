@@ -5,23 +5,14 @@ import { IoPerson, IoPersonOutline } from "react-icons/io5";
 import { RiAiGenerate } from "react-icons/ri";
 import '../../App.css';
 import CMGFile from '../../classes/cmgfile';
-import TimeLine from '../../classes/timeline';
 import Track from "../../classes/track";
-import { Preset } from '../../types/soundfonttypes';
 import GeneratorDialog from '../dialogs/generatordialog';
 import GeneratorIcons from './generatoricons';
+import { useCMGContext } from "../../contexts/cmgcontext";
 
-export interface TracksDisplayProps {
-    fileContents: CMGFile,
-    setFileContents: Function,
-    timeLine: TimeLine,
-    presets: Preset[],
-    setMessage: Function,
-    setStatus: Function
-}
-
-export default function TracksDisplay(props: TracksDisplayProps) {
-    const { fileContents, setFileContents, setMessage, setStatus, timeLine, presets } = props;
+export default function TracksDisplay() {
+    const { fileContents, setFileContents, setMessage, setStatus, timeLine, presets }
+        = useCMGContext();
     const [tracks, setTracks] = useState<Track[]>([]);
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
     const [renameModal, setRenameModal] = useState<boolean>(false);
@@ -205,7 +196,6 @@ export default function TracksDisplay(props: TracksDisplayProps) {
     return (
         <>
             {tracks
-                // .sort((a, b) => (a.order - b.order))
                 .map((t, i) => {
                     console.log('track', t.name, 'i', i); return (
                         <>
@@ -308,15 +298,8 @@ export default function TracksDisplay(props: TracksDisplayProps) {
                                 ref={(el: HTMLDivElement) => trackRef.current[i] = el}>
                                 {trackRef.current[i] ?
                                     <GeneratorIcons
-                                        fileContents={fileContents}
-                                        setFileContents={setFileContents}
                                         track={t}
-                                        setTracks={setTracks}
-                                        presets={presets}
-                                        timeLine={timeLine}
                                         element={trackRef.current[i]}
-                                        setMessage={setMessage}
-                                        setStatus={setStatus}
                                     />
                                     : null}
 
@@ -326,13 +309,8 @@ export default function TracksDisplay(props: TracksDisplayProps) {
                 })}
             {enableGenerator >= 0 ?
                 <GeneratorDialog
-                    setFileContents={setFileContents}
                     track={tracks[enableGenerator]}
-                    setTracks={setTracks}
-                    presets={presets}
                     generatorIndex={-1}
-                    setMessage={setMessage}
-                    setStatus={setStatus}
                     closeTrackGenerator={closeTrackGenerator}
                     setOpen={() => { }} />
                 : null

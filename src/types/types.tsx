@@ -1,7 +1,10 @@
-import { SoundFont2 } from "soundfont2";
-import Track from "../classes/track";
+import CMG from "../classes/cmg";
+import SFPG from "../classes/sfpg";
+import SFRG from "../classes/sfrg";
 
 export type Message = { text: string, error: boolean }
+
+export type CMGeneratorType = CMG | SFPG | SFRG;
 
 export const MENUS = Object.freeze({
     FILE: 0,

@@ -1,17 +1,12 @@
-import CMGFile from '../../../classes/cmgfile';
-import { useAudioPlayerContext } from '../audioplayercontext';
-export interface ProgressBarProps {
-  fileContents: CMGFile,
-}
-export const ProgressBar = (props: ProgressBarProps) => {
-  const { fileContents } = props;
+import { useCMGContext } from '../../../contexts/cmgcontext';
+export const ProgressBar = () => {
   const {
     progressBarRef,
     audioRef,
     timeProgress,
     duration,
     setTimeProgress,
-  } = useAudioPlayerContext();
+  } = useCMGContext();
 
   const handleProgressChange = () => {
     if (audioRef.current && progressBarRef.current) {

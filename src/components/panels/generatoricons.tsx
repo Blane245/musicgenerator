@@ -7,30 +7,22 @@
 
 import { MouseEvent, useEffect, useState } from "react";
 import CMGenerator from "../../classes/cmg";
-import TimeLine from "../../classes/timeline";
 import Track from "../../classes/track";
-import { Preset } from "../../types/soundfonttypes";
 import { SECONDSNAPUNIT, TimeLineScales } from "../../types/types";
 import GeneratorDialog from "../dialogs/generatordialog";
 import { Generate } from '../generation/generate';
-import CMGFile from "classes/cmgfile";
+import { useCMGContext } from "../../contexts/cmgcontext";
 
 export interface GeneratorIconProps {
-    fileContents: CMGFile,
-    setFileContents: Function,
     track: Track,
-    setTracks: Function,
-    presets: Preset[],
-    timeLine: TimeLine,
     element: HTMLDivElement,
-    setMessage: Function,
-    setStatus: Function,
 }
 type GeneratorBox = {
     generator: CMGenerator, position: { x: number, y: number }, width: number, height: number
 }
 export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
-    const { fileContents, setFileContents, track, setTracks, presets, timeLine, element, setMessage, setStatus } = props;
+    const {track, element } = props;
+    const {fileContents, setTracks, timeLine, setMessage, setStatus} = useCMGContext();
     const [generatorIndex, setGeneratorIndex] = useState<number>(-1);
     const [cursorStyle, setCursorStyle] = useState<string>('cursor-default');
     const [moveMode, setMoveMode] = useState<string>('');
@@ -309,13 +301,8 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
             </div>
             {openDialog ?
                 <GeneratorDialog
-                    setFileContents={setFileContents}
                     track={track}
-                    setTracks={setTracks}
-                    presets={presets}
                     generatorIndex={generatorIndex}
-                    setMessage={setMessage}
-                    setStatus={setStatus}
                     closeTrackGenerator={setOpenDialog}
                     setOpen={setOpenDialog}
                 />

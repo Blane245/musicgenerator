@@ -1,29 +1,21 @@
 import CMGFile from '../../classes/cmgfile'
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 import { loadSoundFont } from '../../utils/loadsoundfont';
-import { useAudioPlayerContext } from "./audioplayercontext";
 import { VolumeControl } from "./audioplayerdisplay/volumecontrol";
 import { BsFillFastForwardFill, BsFillPauseFill, BsFillPlayFill, BsFillRewindFill } from "react-icons/bs";
 import { ProgressBar } from './audioplayerdisplay/progressbar';
-import TimeLine from '../../classes/timeline';
 import TimeLineDisplay from './timelinedisplay';
 import { Generate } from '../generation/generate';
-export interface ControlsDisplayProps {
-    fileContents: CMGFile,
-    setFileContents: Function,
-    timeLine: TimeLine,
-    setTimeLine: Function,
-    setMessage: Function,
-    setStatus: Function,
-}
+import { useCMGContext } from '../../contexts/cmgcontext';
 
 // display of the CGM file, its contents, and controls
 // main controls
 // SF File, Tempo, time Signature, Snap, Snap type, play buttons (reverse, fast forward, start, pause)
 // time line
 
-export default function ControlsDisplay(props: ControlsDisplayProps) {
-    const { fileContents, setFileContents, timeLine, setTimeLine, setMessage, setStatus } = props;
+export default function ControlsDisplay() {
+    const { fileContents, setFileContents, setStatus } = 
+    useCMGContext();
 
     const [SFfiles, setSFFiles] = useState<string[]>([]);
     const [SFFileName, setSFFileName] = useState<string>('');
@@ -66,7 +58,7 @@ export default function ControlsDisplay(props: ControlsDisplayProps) {
 
     // load the SF when one is selected
     // TODO - any generators that have been selected from a previous soundfont file will be violated. This will have to be handled
-    async function handleFileNameChange(event: ChangeEvent<HTMLSelectElement>): void {
+    async function handleFileNameChange(event: ChangeEvent<HTMLSelectElement>) {
         const fileName: string = event.target.value;
         // function setSF(SF: SoundFont2): void {
         //     setFileContents((c: CMGFile) => {
@@ -84,7 +76,7 @@ export default function ControlsDisplay(props: ControlsDisplayProps) {
                 const newC: CMGFile = c.copy();
                 newC.SFFileName = fileName;
                 newC.SoundFont = sf;
-                newC.dirty = false;
+                newC.dirty = true;
                 return newC;
             })
             // loadSoundFont(fileName, setSF);
@@ -103,7 +95,7 @@ export default function ControlsDisplay(props: ControlsDisplayProps) {
         progressBarRef,
         isPlaying,
         setIsPlaying,
-    } = useAudioPlayerContext();
+    } = useCMGContext();
     const playAnimationRef = useRef<number | null>(null);
     useEffect(() => {
         setCurrentTrack("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3");
@@ -229,15 +221,10 @@ export default function ControlsDisplay(props: ControlsDisplayProps) {
                 >
                     <BsFillFastForwardFill size={20} />
                 </button>
-                <ProgressBar fileContents={fileContents} />
-                <VolumeControl fileContents={fileContents} />
+                <ProgressBar />
+                <VolumeControl />
             </div>
-            <TimeLineDisplay
-                setMessage={setMessage}
-                setStatus={setStatus}
-                setTimeLine={setTimeLine}
-                timeLine={timeLine}
-            />
+            <TimeLineDisplay            />
             <div
                 style={{ display: showError ? "block" : "none" }}
                 className="modal-content"

@@ -1,16 +1,10 @@
 import { MouseEvent } from "react";
 import CMGFile from "../../classes/cmgfile";
 import Track from "../../classes/track";
+import { useCMGContext } from "../../contexts/cmgcontext";
 
-export interface TrackMenuProps {
-  fileContents: CMGFile,
-  setFileContents: Function,
-  setMessage: Function,
-  setStatus: Function,
-}
-
-export default function TrackMenu(props: TrackMenuProps) {
-  const { fileContents, setFileContents, setMessage, setStatus } = props;
+export default function TrackMenu() {
+  const { fileContents, setFileContents, setMessage, setStatus } = useCMGContext();
 
   function handleNewTrack(e: MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
@@ -29,7 +23,8 @@ export default function TrackMenu(props: TrackMenuProps) {
         newC.dirty = true;
         setStatus('New Track Added')
       } else {
-        console.log('attempt to added duplicate track', newTrack.name)
+        console.log('attempt to added duplicate track', newTrack.name);
+        setMessage({ error: true, text: `attempt to added duplicate track'${newTrack.name}'` })
       }
       return newC;
     })

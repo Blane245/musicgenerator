@@ -5,17 +5,12 @@ import {
   IoMdVolumeOff,
   IoMdVolumeLow,
 } from 'react-icons/io';
-import { useAudioPlayerContext } from '../audioplayercontext';
-import CMGFile from '../../../classes/cmgfile';
-export interface VolumeControlProps {
-  fileContents: CMGFile,
-}
+import { useCMGContext } from '../../../contexts/cmgcontext';
 
-export const VolumeControl = (props: VolumeControlProps) => {
-  const { fileContents } = props;
+export const VolumeControl = () => {
   const [volume, setVolume] = useState<number>(60);
   const [muteVolume, setMuteVolume] = useState(false);
-  const { audioRef } = useAudioPlayerContext();
+  const { audioRef } = useCMGContext();
 
   useEffect(() => {
     if (audioRef.current) {

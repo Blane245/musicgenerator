@@ -3,16 +3,11 @@ import TimeLine from '../../classes/timeline';
 import { TIMEFORMATS, TimeLineScale, TimeLineScales } from '../../types/types';
 import numeral from 'numeral';
 import { CiZoomIn, CiZoomOut } from "react-icons/ci";
-export interface TimeLineDisplayProps {
-    setMessage: Function,
-    setStatus: Function,
-    timeLine: TimeLine,
-    setTimeLine: Function,
-}
+import { useCMGContext } from '../../contexts/cmgcontext';
 
 // render the timeline
-export default function TimeLineDisplay(props: TimeLineDisplayProps) {
-    const { timeLine, setTimeLine, setMessage, setStatus } = props;
+export default function TimeLineDisplay() {
+    const { timeLine, setTimeLine } = useCMGContext();
     const timeLineRef = useRef<HTMLDivElement>(null);
     const [ticks, setTicks] = useState<{
         majorTickCount: number,

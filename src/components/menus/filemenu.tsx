@@ -9,19 +9,12 @@ import Track from '../../classes/track';
 import { getAttributeValue, getDocElement, getElementElement } from '../../utils/xmlfunctions';
 import { loadSoundFont } from '../../utils/loadsoundfont';
 import { Preset } from '../../types/soundfonttypes';
+import { useCMGContext } from '../../contexts/cmgcontext';
 
-export interface FileMenuProps {
-  fileContents: CMGFile,
-  setFileContents: Function,
-  setMessage: Function,
-  setStatus: Function,
-  setFileName: Function
-}
-
-export default function FileMenu(props: FileMenuProps) {
-  const { fileContents, setFileContents, setMessage, setStatus, setFileName } = props;
+export default function FileMenu() {
+  const { fileContents, setFileContents, setMessage, setStatus, setFileName } = useCMGContext();
   const [openFileNew, setOpenFileNew] = useState<boolean>(false);
-  // https://github.com/Blane245/musicgenerator/issues/3
+
   function handleFileNew() {
     if (fileContents.dirty)
       setOpenFileNew(true);
@@ -91,7 +84,7 @@ export default function FileMenu(props: FileMenuProps) {
       const fileElem: HTMLElement = doc.createElement('fileContents');
       fileContents.appendXML(doc, fileElem);
       const tracksElem: HTMLElement = doc.createElement('tracks');
-      fileContents.tracks.forEach(t => {
+      fileContents.tracks.forEach((t: Track) => {
         const trackElem: HTMLElement = doc.createElement('track');
         t.appendXML(doc, trackElem);
         tracksElem.appendChild(trackElem);
@@ -183,13 +176,6 @@ export default function FileMenu(props: FileMenuProps) {
                   fc.measureSnapUnit = getAttributeValue(fcElem, 'measureSnapUnit', 'int') as number;
                   fc.secondSnapUnit = getAttributeValue(fcElem, 'secondSnapUnit', 'int') as number;
                   fc.SFFileName = getAttributeValue(fcElem, 'SFFileName', 'string') as string;
-                  // function setSoundFont(SF: SoundFont2) {
-                  //   fc.SoundFont = SF;
-                  // }
-                  // if (fc.SFFileName != '') {
-                  //   //load the soundfont file
-                  //   loadSoundFont(fc.SFFileName, setSoundFont);
-                  // }
                   fc.SoundFont = await loadSoundFont(fc.SFFileName);
                   const tracksChildren: HTMLCollection = tracksElem.children
                   fc.tracks = [];

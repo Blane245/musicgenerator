@@ -1,8 +1,8 @@
-import { sineModulator } from '../modulators/sinemodulator';
+import { sineModulator } from '../components/modulators/sinemodulator';
 import CMG from "./cmg";
-import { sawtoothModulator } from "../modulators/sawtoothmodulator";
-import { squareModulator } from "../modulators/squaremodulator";
-import { triangleModulator } from "../modulators/trianglemodulator";
+import { sawtoothModulator } from "../components/modulators/sawtoothmodulator";
+import { squareModulator } from "../components/modulators/squaremodulator";
+import { triangleModulator } from "../components/modulators/trianglemodulator";
 export default class SFPG extends CMG {
     FMType: string;
     FMAmplitude: number; // cents
