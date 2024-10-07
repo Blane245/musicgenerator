@@ -16,7 +16,7 @@ let timerID: number = 0; // the timer used to set the schedule
 // using the defined cm generators for all tracks, create a web audio
 // if a generator is provided
 const CHUNKTIME: number = 0.1;
-export function Generate(fileContents: CMGFile, generator: CMGeneratorType | null = null): string[] {
+export function Generate(fileContents: CMGFile, setStatus: Function, mode: string, generator: CMGeneratorType | null = null, recordHandle: FileSystemFileHandle | null = null): string[] {
 
     const errors: string[] = [];
     let playing: boolean = false;
@@ -25,7 +25,7 @@ export function Generate(fileContents: CMGFile, generator: CMGeneratorType | nul
     const SFPGenerators: SFPG[] = [];
     const SFRGenerators: SFRG[] = [];
     let playbackLength = 0;
-    if (!generator) {
+    if (!generator || mode == 'recordfile') {
         fileContents.tracks.forEach((t) => {
             t.generators.forEach((g: CMG | SFPG) => {
                 if (g.type == 'SFPG' && !g.mute) {
@@ -62,26 +62,51 @@ export function Generate(fileContents: CMGFile, generator: CMGeneratorType | nul
     // get the length of the file, in seconds. It is the maximum of 
     // all of the generators stop times
 
-    // for now, we'll just play the tune
-    // const audioContext:OfflineAudioContext = 
-    //     new window.OfflineAudioContext({
-    //         numberOfChannels: 2,
-    //         sampleRate: 480000, 
-    //         length: playbackLength * 480000
-    //     });
-    const audioContext: AudioContext = new AudioContext()
-    // audioContext.suspend().then(()=> {
-    // console.log('audio context state', audioContext.state);});
-    // TODO - how to have the audio destination be an mpeg file
+    const audioContext: AudioContext = new AudioContext();
+    const recordDestination: MediaStreamAudioDestinationNode = audioContext.createMediaStreamDestination();
+    const destination: AudioDestinationNode | MediaStreamAudioDestinationNode = (generator || mode == 'previewfile'  ? audioContext.destination : recordDestination);
+    const mediaRecorder: MediaRecorder = new MediaRecorder(recordDestination.stream);
+    console.log(`recording set up, recorder in state ${mediaRecorder.state}`)
+    const recordChunks: Blob[] = [];
+    mediaRecorder.ondataavailable = (evt) => {
+        console.log(`new recorded chunk at ${evt.timeStamp}`);
+        recordChunks.push(evt.data);
+    }
+
+    mediaRecorder.onstop = async () => {
+        // capture the recorded data and create an mpeg blob
+        console.log('generator stopped recording');
+        if (recordChunks.length > 0) {
+            const mpeg: Blob = new Blob(recordChunks, { type: "audio/mpeg-3" });
+
+            // write the blob to disk
+
+            // const root = await navigator.storage.getDirectory();
+            // const recordHandle = await root.getFileHandle('C:/Users/blane/Documents/development/musicgenerator/generated.mpg', { create: true });
+            if (recordHandle) {
+                console.log('recordHandle.name', recordHandle.name)
+                const accessHandle = await recordHandle.createWritable();
+                accessHandle.write(mpeg);
+                accessHandle.close();
+            }
+        }
+    }
+
+    // start recording if not in preview mode
+    if (!generator) {
+        console.log('recording started');
+        mediaRecorder.start();
+    }
 
     // setup the sources for all of the generators
     const generatorSource: AudioBufferSourceNode[] = [];
     const generatorTime: { start: number, stop: number }[] = [];
     const generatorStarted: boolean[] = [];
+    // set the destination
     let nextTime: number = 0.0;
     SFPGenerators.forEach((g) => {
         const { sources, times } =
-            getBufferSourceNodesFromSample(audioContext, g, CHUNKTIME);
+            getBufferSourceNodesFromSample(audioContext, destination, g, CHUNKTIME);
         sources.forEach((s) => {
             generatorSource.push(s);
         })
@@ -145,7 +170,11 @@ export function Generate(fileContents: CMGFile, generator: CMGeneratorType | nul
         });
         if (allStop) {
             stop();
+            if (!generator && recordHandle) {
+                mediaRecorder.stop();
+                setStatus(`Recording complete in '${recordHandle.name}' in the directory of your choosing.`)
             // audioContext.close();
+            }
         }
     }
 
@@ -157,6 +186,7 @@ export function Generate(fileContents: CMGFile, generator: CMGeneratorType | nul
         generatorSource.start(time + generatorTime.start);
         generatorSource.stop(time + generatorTime.stop);
     }
+
 }
 
 // 
@@ -168,7 +198,7 @@ export function Generate(fileContents: CMGFile, generator: CMGeneratorType | nul
 // these chucks are fed to the scheduler as the audiocontext advances 
 // through current time.
 let currentSampleIndex: number = 0;
-function getBufferSourceNodesFromSample(context: AudioContext, CMgenerator: SFPG, deltaT: number): { sources: AudioBufferSourceNode[], times: { start: number, stop: number }[] } {
+function getBufferSourceNodesFromSample(context: AudioContext, destination: AudioDestinationNode | MediaStreamAudioDestinationNode, CMgenerator: SFPG, deltaT: number): { sources: AudioBufferSourceNode[], times: { start: number, stop: number }[] } {
 
     // get the instrument zone for generator's preset
     if (!CMgenerator.preset)
@@ -286,7 +316,7 @@ function getBufferSourceNodesFromSample(context: AudioContext, CMgenerator: SFPG
         panner.pan.value = Math.min(Math.max(pan, -1.0), 1.0);
         vol.connect(panner);
         source.connect(vol);
-        panner.connect(context.destination);
+        panner.connect(destination);
         // source.start(time + CMgenerator.startTime);
         // source.stop(time + CMgenerator.startTime + deltat);
 

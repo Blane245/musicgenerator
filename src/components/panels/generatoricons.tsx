@@ -191,7 +191,7 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
     }
 
     function previewGenerator(index: number) {
-        const newErrors:string[] = Generate(fileContents, generatorBoxes[index].generator);
+        const newErrors:string[] = Generate(fileContents, setStatus, 'previewgenerator', generatorBoxes[index].generator, null);
 
         if (newErrors.length != 0) {
             setMessage({error:true, text: newErrors[0]})
