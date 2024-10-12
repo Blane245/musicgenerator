@@ -1,91 +1,79 @@
 import { ChangeEvent } from "react";
-import SFPG from "../../classes/sfpg";
-import { MODULATOR } from "../../types/types";
-import { bankBagPresettoName, toNote } from "../../utils/util";
-import { useCMGContext } from "../../contexts/cmgcontext";
-import { Preset, PresetZone } from "../../types/soundfonttypes";
+import Noise from "../../classes/noise";
+import { MODULATOR, NOISETYPE } from "../../types/types";
 
 // provides the form fields and validators for the sfperiodic generator
 export interface SFPGDialogProps {
-    formData: SFPG,
+    formData: Noise,
     handleChange: (event: ChangeEvent<HTMLElement>) => void,
 }
-export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
+export default function NoiseDialog(props: SFPGDialogProps): JSX.Element {
     const { formData, handleChange } = props;
-    const { presets } = useCMGContext();
+
+    const INPUTSIZE: number = 6;
 
     // we are in the middle of the generator dialog form
     return (
         <>
-            <label htmlFor="presetName">Preset:</label>
-            <select name="presetName"
+            <label htmlFor="noiseType">Type:</label>
+            <select name="noiseType"
                 onChange={handleChange}
-                value={formData.presetName}
+                value={formData.noiseType}
             >
-                {presets
-                    .sort((a, b) => {
-                        if (a.header.bank < b.header.bank) return -1;
-                        if (a.header.bank > b.header.bank) return 1;
-                        return (a.header.bagIndex - b.header.bagIndex)
-                    })
-                    .map((p) => {
-                        const pName = bankBagPresettoName(p)
-                        return (
-                            <option key={`preset-${pName}`}
-                                value={pName}>
-                                {pName}
-                            </option>
-                        )
-                    })}
-            </select>
-            <br />
-            <label htmlFor="midi">Midi Number:</label>
-            <input name="midi"
-                type='number'
-                step='0.01'
-                onChange={handleChange}
-                value={formData.midi}
-            />
-            <span> {formData.midi > 0 ? toNote(formData.midi) : null}</span>
-            <hr />
-            <label htmlFor="FMType">FMType:</label>
-            <select name="FMType"
-                onChange={handleChange}
-                value={formData.FMType}
-            >
-                {Object.keys(MODULATOR).map((t) => {
+                {Object.keys(NOISETYPE).map((t) => {
                     if (!parseInt(t) && t != '0')
                         return (
-                            <option key={'FMType-' + t} value={t}>{t}</option>
+                            <option key={'noiseType-' + t} value={t}>{t}</option>
                         )
                 })}
             </select>
             <br />
-            <label htmlFor="FMAmplitude">FMAmplitude:</label>
-            <input name="FMAmplitude"
-                type='number'
-                onChange={handleChange}
-                value={formData.FMAmplitude}
-            />
-            <span> (midi)</span>
+            <label>
+                Sample Rate:
+                <input
+                    size={INPUTSIZE}
+                    name="sampleRate"
+                    value={formData.sampleRate}
+                    onChange={handleChange}
+                    type='number' min={15000} max={50000} step={1000}
+                /></label>
+            <span> (Hz)</span>
             <br />
-            <label htmlFor="FMFrequency">FMFrequency:</label>
-            <input name="FMFrequency"
-                type='number'
-                onChange={handleChange}
-                value={formData.FMFrequency}
-            />
-            <span> (milliHz)</span>
-            <br />
-            <label htmlFor="FMPhase">FMPhase:</label>
-            <input name="FMPhase"
-                type='number'
-                onChange={handleChange}
-                value={formData.FMPhase}
-            />
-            <span> (degrees)</span>
+            <label>
+                Sample Level:
+                <input size={INPUTSIZE}
+                    name="sampleLevel"
+                    value={formData.sampleLevel}
+                    onChange={handleChange}
+                    type='number' min={0} max={10000} step={10}
+                /></label>
+            {formData.noiseType == NOISETYPE.gaussian ?
+                <>
+                    <br />
+                    <label>
+                        Frequency:
+                        <input
+                            size={INPUTSIZE}
+                            name="mean"
+                            value={formData.mean}
+                            onChange={handleChange}
+                            type='number' min={20} max={20000} step={1}
+                        />
+                        <span> (Hz)</span>
+                    </label>
+                    <label>
+                        Standard Deviation:
+                        <input size={INPUTSIZE}
+                            name="std"
+                            value={formData.std}
+                            onChange={handleChange}
+                            type='number' min={1} max={1000} step={1}
+                        />
+                        <span> (Hz)</span>
+                    </label>
+                </>
+                : null}
             <hr />
-
             <label htmlFor="VMType">VMType:</label>
             <select name="VMType"
                 onChange={handleChange}
@@ -101,7 +89,7 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
             <br />
             <label htmlFor="VMCenter">VMCenter:</label>
             <input name="VMCenter"
-                type='number'
+                type='number' min={0} max={100} step={1}
                 onChange={handleChange}
                 value={formData.VMCenter}
             />
@@ -109,7 +97,7 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
             <br />
             <label htmlFor="VMAmplitude">VMAmplitude:</label>
             <input name="VMAmplitude"
-                type='number'
+                type='number' min={0} max={100} step={1}
                 onChange={handleChange}
                 value={formData.VMAmplitude}
             />
@@ -117,7 +105,7 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
             <br />
             <label htmlFor="VMFrequency">VMFrequency:</label>
             <input name="VMFrequency"
-                type='number'
+                type='number' min={0}
                 onChange={handleChange}
                 value={formData.VMFrequency}
             />
@@ -125,7 +113,7 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
             <br />
             <label htmlFor="VMPhase">VMPhase:</label>
             <input name="VMPhase"
-                type='number'
+                type='number' min={-360} max={360} step={1}
                 onChange={handleChange}
                 value={formData.VMPhase}
             />
@@ -168,7 +156,7 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
             <br />
             <label htmlFor="PMFrequency">PMFrequency:</label>
             <input name="PMFrequency"
-                type='number'
+                type='number' min={0}
                 onChange={handleChange}
                 value={formData.PMFrequency}
             />
@@ -176,7 +164,7 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
             <br />
             <label htmlFor="PMPhase">PMPhase:</label>
             <input name="PMPhase"
-                type='number'
+                type='number' min={-360} max={360} step={1}
                 onChange={handleChange}
                 value={formData.PMPhase}
             />
@@ -185,19 +173,10 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
     )
 }
 
-export function validateSFPGValues(values: SFPG, presets: Preset[]): string[] {
+export function validateNoiseValues(values: Noise): string[] {
     const result: string[] = [];
 
-    if (!values.presetName) 
-        result.push('PresetName must be specified')
-    if (values.midi < 0 || values.midi > 127)
-        result.push('Midi number must be between 0 and 127')
-    if (values.FMAmplitude < 0)
-        result.push('FMAmplitude must be greater than zero');
-    if (values.FMFrequency < 0)
-        result.push('FMFrequency must be greater than zero');
-    if (values.FMPhase < -360 || values.FMPhase > 360)
-        result.push('FMPhase must be greater than -360 and less than 360');
+    // the input component definitions make this redundant
     if (values.VMCenter < 0 || values.VMCenter > 100)
         result.push('VMCenter must be between 0 and 100');
     if (values.VMAmplitude < 0)
@@ -215,5 +194,4 @@ export function validateSFPGValues(values: SFPG, presets: Preset[]): string[] {
     if (values.PMPhase < -360 || values.PMPhase > 360)
         result.push('PMPhase must be greater than -360 and less than 360');
     return result;
-
 }

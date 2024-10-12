@@ -1,17 +1,14 @@
+import { getAttributeValue } from "../utils/xmlfunctions";
 import { CMGeneratorType } from "../types/types";
 export default class Track {
     name: string;
     mute: boolean; 
     solo: boolean;
-    volume: number;
-    pan: number;
     generators: CMGeneratorType[];
 constructor(nextTrack: number) {
         this.name = 'T'.concat(nextTrack.toString());
         this.mute = false;
         this.solo = false;
-        this.volume = 50;
-        this.pan = 0;
         this.generators = [];
     }
 
@@ -20,8 +17,6 @@ constructor(nextTrack: number) {
         t.name = this.name;
         t.mute = this.mute;
         t.solo = this.solo;
-        t.volume = this.volume;
-        t.pan = this.pan;
         t.generators = [];
         this.generators.forEach((g) => {
             const ng = g.copy();
@@ -33,8 +28,12 @@ constructor(nextTrack: number) {
         elem.setAttribute('name', this.name);
         elem.setAttribute('mute', this.mute.toString());
         elem.setAttribute('solo', this.solo.toString());
-        elem.setAttribute('volume', this.volume.toString());
-        elem.setAttribute('pan', this.pan.toString());
     }
 
+    getXML(doc: XMLDocument, elem: Element) {
+        this.name = getAttributeValue(elem, 'name', 'string') as string;
+        this.mute = (getAttributeValue(elem, 'mute', 'string') == 'true')
+        this.solo = (getAttributeValue(elem, 'solo', 'string') == 'true')
+
+    }
 }

@@ -1,16 +1,17 @@
+import { Box, Modal, Typography } from '@mui/material';
 import Button from '@mui/material/Button';
 import { useState } from "react";
-import { ModalStyle } from '../../types/types';
-import CMGFile from '../../classes/cmgfile';
-import { Box, Modal, Typography } from '@mui/material';
 import CMG from '../../classes/cmg';
+import CMGFile from '../../classes/cmgfile';
 import SFPG from '../../classes/sfpg';
+import SFRG from '../../classes/sfrg';
 import Track from '../../classes/track';
-import { getAttributeValue, getDocElement, getElementElement } from '../../utils/xmlfunctions';
-import { loadSoundFont } from '../../utils/loadsoundfont';
-import { Preset } from '../../types/soundfonttypes';
 import { useCMGContext } from '../../contexts/cmgcontext';
+import { Preset } from '../../types/soundfonttypes';
+import { ModalStyle } from '../../types/types';
 import { newFile, setDirty } from '../../utils/cmfiletransactions';
+import { getAttributeValue, getDocElement, getElementElement } from '../../utils/xmlfunctions';
+import Noise from '../../classes/noise';
 
 export default function FileMenu() {
   const { fileContents, setFileContents, setMessage, setStatus, setFileName } = useCMGContext();
@@ -101,8 +102,12 @@ export default function FileMenu() {
 
               break;
             case 'SFRG':
+              (g as SFRG).appendXML(doc,genElement);
               // (g as SFRG).appendXML(doc, genElement);
               break;
+              case 'Noise':
+                (g as Noise).appendXML(doc,genElement);
+                break;
             default:
               break;
           }
@@ -169,27 +174,14 @@ export default function FileMenu() {
                   const fc = new CMGFile();
                   const fcElem: Element = getDocElement(xmlDoc, 'fileContents');
                   fc.name = file.name;
-                  fc.timeLineStyle = getAttributeValue(fcElem, 'timeLineStyle', 'int') as number;
-                  fc.tempo = getAttributeValue(fcElem, 'tempo', 'int') as number;
+                  await fc.getXML(xmlDoc, fcElem, file.name);
                   const tracksElem: Element = getDocElement(xmlDoc, 'tracks');;
-                  fc.timeSignature.beatsPerMeasure = getAttributeValue(fcElem, 'beatsPerMeasure', 'int') as number,
-                    fc.timeSignature.measureUnit = getAttributeValue(fcElem, 'measureUnit', 'int') as number,
-                    fc.snap = (getAttributeValue(fcElem, 'snap', 'string') == 'true')
-                  fc.measureSnapUnit = getAttributeValue(fcElem, 'measureSnapUnit', 'int') as number;
-                  fc.secondSnapUnit = getAttributeValue(fcElem, 'secondSnapUnit', 'int') as number;
-                  fc.SFFileName = getAttributeValue(fcElem, 'SFFileName', 'string') as string;
-                  if (fc.SFFileName != '') {
-                    fc.SoundFont = await loadSoundFont(fc.SFFileName);}
                   const tracksChildren: HTMLCollection = tracksElem.children
                   fc.tracks = [];
                   for (let i = 0; i < tracksChildren.length; i++) {
-                    const track = new Track(0)
-                    const child = tracksChildren[i]
-                    track.name = getAttributeValue(child, 'name', 'string') as string;
-                    track.mute = (getAttributeValue(child, 'mute', 'string') == 'true')
-                    track.solo = (getAttributeValue(child, 'solo', 'string') == 'true')
-                    track.volume = getAttributeValue(child, 'volume', 'float') as number;
-                    track.pan = getAttributeValue(child, 'pan', 'float') as number;
+                    const track = new Track(0);
+                    const child = tracksChildren[i];
+                    track.getXML(xmlDoc, child);
                     const gensElem = getElementElement(child, 'generators');
                     const gensChildren: HTMLCollection = gensElem.children;
                     for (let j = 0; j < gensChildren.length; j++) {
@@ -199,63 +191,41 @@ export default function FileMenu() {
                       switch (type as string) {
                         case "CMG": {
                           gen = new CMG(0);
-                          gen.name = getAttributeValue(gchild, 'name', 'string') as string;
-                          gen.startTime = getAttributeValue(gchild, 'startTime', 'float') as number;
-                          gen.stopTime = getAttributeValue(gchild, 'stopTime', 'float') as number;
-                          gen.presetName = getAttributeValue(gchild, 'presetName', 'string') as string;
-                          gen.midi = getAttributeValue(gchild, 'midi', 'int') as number;
-                          gen.type = type;
-                          gen.mute = (getAttributeValue(fcElem, 'mute', 'string') == 'true');
-                          gen.position = getAttributeValue(fcElem, 'position', 'int') as number;
-                          // load the preset if soundfont file and preset is defined
-                          const pn: string = gen.presetName.split(":")[2];
-                          if (pn != '' && fc.SoundFont) {
-                            gen.preset = fc.SoundFont.presets.find((p) => (p.header.name == pn)) as Preset;
-                            if (gen == undefined)
-                              throw new Error(`Preset '${pn} not in soundfont file '${fc.SFFileName}'`);
-                          }
-
+                          gen.getXML(xmlDoc, gchild);
                           track.generators.push(gen);
                           break;
                         }
                         case 'SFPG': {
                           gen = new SFPG(0);
-                          gen.name = getAttributeValue(gchild, 'name', 'string') as string;
-                          gen.startTime = getAttributeValue(gchild, 'startTime', 'float') as number;
-                          gen.stopTime = getAttributeValue(gchild, 'stopTime', 'float') as number;
-                          gen.type = type;
-                          gen.presetName = getAttributeValue(gchild, 'presetName', 'string') as string;
-                          gen.midi = getAttributeValue(gchild, 'midi', 'int') as number;
-                          gen.mute = (getAttributeValue(gchild, 'mute', 'string') == 'true');
-                          gen.position = getAttributeValue(gchild, 'position', 'int') as number;
-                          gen.FMType = getAttributeValue(gchild, 'FMType', 'string') as string;
-                          gen.FMAmplitude = getAttributeValue(gchild, 'FMAmplitude', 'float') as number;
-                          gen.FMFrequency = getAttributeValue(gchild, 'FMFrequency', 'float') as number;
-                          gen.FMPhase = getAttributeValue(gchild, 'FMPhase', 'float') as number;
-                          gen.VMCenter = getAttributeValue(gchild, 'VMCenter', 'float') as number;
-                          gen.VMType = getAttributeValue(gchild, 'VMType', 'string') as string;
-                          gen.VMAmplitude = getAttributeValue(gchild, 'VMAmplitude', 'float') as number;
-                          gen.VMFrequency = getAttributeValue(gchild, 'VMFrequency', 'float') as number;
-                          gen.VMPhase = getAttributeValue(gchild, 'VMPhase', 'float') as number;
-                          gen.PMCenter = getAttributeValue(gchild, 'PMCenter', 'float') as number;
-                          gen.PMType = getAttributeValue(gchild, 'PMType', 'string') as string;
-                          gen.PMAmplitude = getAttributeValue(gchild, 'PMAmplitude', 'float') as number;
-                          gen.PMFrequency = getAttributeValue(gchild, 'PMFrequency', 'float') as number;
-                          gen.PMPhase = getAttributeValue(gchild, 'PMPhase', 'float') as number;
-
-                          // load the preset if soundfont file and preset is defined
+                          gen.getXML(xmlDoc, gchild);
+                          // load the preset if soundfont file and presetname is defined
                           const pn: string = gen.presetName.split(":")[2];
                           if (pn != '' && fc.SoundFont) {
                             gen.preset = fc.SoundFont.presets.find((p) => (p.header.name == pn)) as Preset;
-                            if (gen == undefined)
+                            if (gen.preset == undefined)
                               throw new Error(`Preset '${pn} not in soundfont file '${fc.SFFileName}'`);
                           }
                           track.generators.push(gen);
                           break;
                         }
                         case 'SFRG':
+                          gen = new SFRG(0);
+                          gen.getXML(xmlDoc, gchild);
+                          // load the preset if soundfont file and presetname is defined
+                          const pn: string = gen.presetName.split(":")[2];
+                          if (pn != '' && fc.SoundFont) {
+                            gen.preset = fc.SoundFont.presets.find((p) => (p.header.name == pn)) as Preset;
+                            if (gen.preset == undefined)
+                              throw new Error(`Preset '${pn} not in soundfont file '${fc.SFFileName}'`);
+                          }
+                          track.generators.push(gen);
                           break;
-                        default:
+                          case 'Noise':
+                            gen = new Noise(0);
+                            gen.getXML(xmlDoc, gchild);
+                            track.generators.push(gen);
+                            break;
+                          default:
                           break;
                       }
                     }

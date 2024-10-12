@@ -17,17 +17,17 @@ export default function TracksDisplay() {
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
     const [renameModal, setRenameModal] = useState<boolean>(false);
     const [trackName, setTrackName] = useState<string>('');
-    const [enableGenerator, setEnableGenerator] = useState<number>(-1);
+    const [enableGeneratorDialog, setEnableGeneratorDialog] = useState<number>(-1);
     const trackRef = useRef<HTMLDivElement[]>([]);
     useEffect(() => {
         setTracks(fileContents.tracks);
         setStatus(`displayed ${fileContents.tracks.length} tracks`);
-        setEnableGenerator(-1);
+        setEnableGeneratorDialog(-1);
         console.log('tracks refreshed');
     }, [fileContents.tracks]);
-    // useEffect(() => {
-    //     trackRef.current = trackRef.current.slice(0, tracks.length);
-    // }, [tracks, trackRef.current]);
+    useEffect(() => {
+        trackRef.current = trackRef.current.slice(0, tracks.length);
+    }, [tracks, trackRef.current]);
 
     function handleDeleteTrack(event: MouseEvent<HTMLElement>): void {
         console.log(event.currentTarget.id);
@@ -120,11 +120,11 @@ export default function TracksDisplay() {
     function handleAddGenerator(event: MouseEvent<HTMLElement>, index: number): void {
         event.preventDefault();
         console.log('index', index);
-        setEnableGenerator(index);
+        setEnableGeneratorDialog(index);
     }
 
     function closeTrackGenerator() {
-        setEnableGenerator(-1);
+        setEnableGeneratorDialog(-1);
     }
 
     // switch places the the track immediately above the one selected
@@ -173,7 +173,7 @@ export default function TracksDisplay() {
 
                                 <button
                                     className='track-button'
-                                    disabled={!fileContents.SoundFont}
+                                    // disabled={!fileContents.SoundFont}
                                     id={`track-gen:${i}`}
                                     key={`track-gen:${i}`}
                                     onClick={(event) => handleAddGenerator(event, i)}
@@ -210,36 +210,6 @@ export default function TracksDisplay() {
                                 >
                                     <AiFillCaretDown />
                                 </button>
-                                {/* {/* <div className='slidercontainer'>
-                            <label htmlFor={'track-volume:' + t.name}>
-                                Volume
-                            </label>
-                            <input
-                                className='slider'
-                                type='range'
-                                min='0'
-                                max='100'
-                                value={t.volume}
-                                onChange={handleVolumeChange}
-                                id={'track-volume:' + t.name}
-                                name={'track-volume:' + t.name} />
-                        </div>
-                        <div
-                            style={{ float: 'right' }}
-                            className='slidercontainer'>
-                            <label htmlFor={'track-pan:' + t.name}>
-                                Pan
-                            </label>
-                            <input
-                                className='slider'
-                                type='range'
-                                min='-1'
-                                max='1'
-                                value={t.pan}
-                                onChange={handlePanChange}
-                                id={'track-pan:' + t.name}
-                                name={'track-pan:' + t.name} />
-                        </div> */}
                             </div>
                             <div className='page-track-display'
                                 key={'track-display:' + t.name}
@@ -249,16 +219,17 @@ export default function TracksDisplay() {
                                         track={t}
                                         element={trackRef.current[i]}
                                     />
-                                    : null}
-
+                                    : <p>track reference null</p>
+                                }
                             </div>
                         </>
                     )
                 })}
-            {enableGenerator >= 0 ?
+            {enableGeneratorDialog >= 0 ?
                 <GeneratorDialog
-                    track={tracks[enableGenerator]}
+                    track={tracks[enableGeneratorDialog]}
                     generatorIndex={-1}
+                    setGeneratorIndex={() => {}}
                     closeTrackGenerator={closeTrackGenerator}
                     setOpen={() => { }} />
                 : null

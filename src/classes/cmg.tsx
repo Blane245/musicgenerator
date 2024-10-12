@@ -1,25 +1,21 @@
-import { Preset } from "types/soundfonttypes";
+import { getAttributeValue } from "../utils/xmlfunctions";
 
 export default class CMG {
     name: string;
     startTime: number;
     stopTime: number;
     type: string;
-    presetName: string;
-    preset: Preset | undefined;
-    midi: number;
     mute: boolean;
+    solo: boolean;
     position: number; // the vertical location of the generator icon
 
     constructor(nextGenerator: number) {
         this.name = "G".concat(nextGenerator.toString());
         this.startTime = 0;
         this.stopTime = 0;
-        this.presetName = '';
-        this.preset = undefined;
-        this.midi = -1;
         this.type = 'CMG';
         this.mute = false;
+        this.solo = false;
         this.position = 0;
     }
 
@@ -27,9 +23,8 @@ export default class CMG {
         elem.setAttribute('name', this.name);
         elem.setAttribute('startTime', this.startTime.toString());
         elem.setAttribute('stopTime', this.stopTime.toString());
-        elem.setAttribute('presetName', this.presetName);
-        elem.setAttribute('midi', this.midi.toString());
         elem.setAttribute('type', this.type);
+        elem.setAttribute('solo', this.solo.toString());
         elem.setAttribute('mute', this.mute.toString());
         elem.setAttribute('position', this.position.toString());
     }
@@ -40,10 +35,8 @@ export default class CMG {
         newCMG.startTime = this.startTime;
         newCMG.stopTime = this.stopTime;
         newCMG.type = this.type;
-        newCMG.presetName = this.presetName;
-        newCMG.preset = this.preset;
-        newCMG.midi = this.midi;
         newCMG.mute = this.mute;
+        newCMG.solo = this.solo;
         newCMG.position = this.position;
         return newCMG;
     }
@@ -59,11 +52,11 @@ export default class CMG {
             case 'stopTime':
                 this.stopTime = parseFloat(value);
                 break;
-            case 'presetName':
-                this.presetName = value;
+            case 'mute':
+                this.mute = value == 'true';
                 break;
-            case 'midi':
-                this.midi = parseInt(value);
+            case 'solo':
+                this.solo = value == 'true';
                 break;
             case 'type':
                 this.type = value;
@@ -71,5 +64,15 @@ export default class CMG {
             default:
                 break;
         }
+    }
+
+    getXML(doc: XMLDocument, elem: Element) {
+        this.name = getAttributeValue(elem, 'name', 'string') as string;
+        this.startTime = getAttributeValue(elem, 'startTime', 'float') as number;
+        this.stopTime = getAttributeValue(elem, 'stopTime', 'float') as number;
+        this.type = 'CMG';
+        this.mute = (getAttributeValue(elem, 'mute', 'string') == 'true');
+        this.solo = (getAttributeValue(elem, 'solo', 'string') == 'true');
+        this.position = getAttributeValue(elem, 'position', 'int') as number;
     }
 }

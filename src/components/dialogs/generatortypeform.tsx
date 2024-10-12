@@ -5,6 +5,9 @@ import CMG from "../../classes/cmg";
 import SFPG from "../../classes/sfpg";
 import SFRG from "../../classes/sfrg";
 import SFPGDialog from "./sfpgdialog";
+import SFRGDialog from "./sfrgdialog";
+import NoiseDialog from "./noisedialog";
+import Noise from "../../classes/noise";
 
 export interface GeneratorTypeFormProps {
     formData: CMG | SFPG | SFRG,
@@ -22,11 +25,18 @@ export default function GeneratorTypeForm(props: GeneratorTypeFormProps): JSX.El
                     handleChange={handleChange}
                 />
                 : null}
-            {/* <SFRGDialog
-        formData={formData}
-        handleChange={handleChange}
-            /> */}
-
+            {formData.type == 'SFRG' ?
+                <SFRGDialog
+                    formData={formData as SFRG}
+                    handleChange={handleChange}
+                />
+                : null}
+            {formData.type == 'Noise' ?
+                <NoiseDialog
+                    formData={formData as Noise}
+                    handleChange={handleChange}
+                />
+                : null}
         </>
     )
 }

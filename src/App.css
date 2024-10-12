@@ -221,7 +221,7 @@
 
 .generator-content {
   position: absolute;
-  top: 200px;
+  top: 50px;
   left: 300px;
   background-color: #fefefe;
   margin: auto;
@@ -256,6 +256,13 @@
 .modal-menu {
   background: rgba(221, 173, 84, 1.0);
   z-index: 99999;
+}
+.transition-box {
+  border: 1px solid black;
+}
+.transition-header {
+  text-align: center;
+  stroke:blue;
 }
 
 @keyframes animatetop {

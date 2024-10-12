@@ -28,8 +28,8 @@ export default function ControlsDisplay() {
 
     // load the soundfont file list at start up
     useEffect(() => {
-        // const SFFiles = import.meta.glob("/src/soundfonts/*.(SF@|sf2)");
-        const SFFiles = import.meta.glob("/src/newsoundfonts/*.(SF@|sf2)");
+        const SFFiles = import.meta.glob("/src/soundfonts/*.(SF@|sf2)");
+        // const SFFiles = import.meta.glob("/src/newsoundfonts/*.(SF@|sf2)");
         const fileList: string[] = Object.keys(SFFiles);
         fileList.unshift('select a file'); // add select a file to the start of the list
         setSFFiles(fileList);

@@ -175,11 +175,45 @@ export enum GENERATORTYPES  {
     "CMG",
     "SFPG",
     "SFRG",
+    "Noise",
 }
 
-export interface Envelop {
-    velocity?: number,
-    attackVolEnv?: number,
-    decayVolEnv?: number,
-  }
-  
+export enum MARKOVSTATE {
+    same = 'same',
+    up = 'up',
+    down = 'down',
+}
+
+// export enum RANDOMSFATTRIBUTE {
+//     midiT = 'midiT',
+//     speedT = 'speedT',
+//     volumeT = 'volumeT',
+//     panT = 'panT'
+// }
+
+export type AttributeRange = {
+    lo: number,
+    hi: number
+}
+
+export type KeyedType<T> = {
+    [key: string]: T,
+}
+export type MarkovProbabilities = {
+    same: number,
+    down: number,
+    up: number,
+}
+export type RandomSFTransitons = {
+    currentState: MARKOVSTATE,
+    currentValue: number,
+    range: AttributeRange,
+    same: MarkovProbabilities,
+    up: MarkovProbabilities,
+    down: MarkovProbabilities,    
+}
+
+export enum NOISETYPE {
+    white = 'white',
+    gaussian = 'gaussian',
+}

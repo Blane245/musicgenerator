@@ -1,18 +1,33 @@
-import { sineModulator } from '../components/modulators/sinemodulator';
+
+
+// a noise generator with different types of noise
+// starting off with white and gaussian
+//  the white noise generator uses a standard sample 
+//  rate and a nominal power level
+// 
+// the daussian noise generator has a centeral frequency
+// with a standard deviation
+
+import { sineModulator } from "../components/modulators/sinemodulator";
+import { NOISETYPE } from "../types/types";
 import CMG from "./cmg";
 import { sawtoothModulator } from "../components/modulators/sawtoothmodulator";
 import { squareModulator } from "../components/modulators/squaremodulator";
 import { triangleModulator } from "../components/modulators/trianglemodulator";
-import { Preset } from '../types/soundfonttypes';
-import { getAttributeValue } from '../utils/xmlfunctions';
-export default class SFPG extends CMG {
-    presetName: string;
-    preset: Preset | undefined;
-    midi: number;
-    FMType: string;
-    FMAmplitude: number; // cents
-    FMFrequency: number; // hz
-    FMPhase: number; // degrees
+import { gaussianRandom } from "../utils/gaussianrandom";
+import { getAttributeValue } from "../utils/xmlfunctions";
+
+// unsure about volume and pan. randon values
+// seem inapprpriate. maybe use the modulators from SFPG
+
+const SAMPLERATE: number = 20000;
+const SAMPLELEVEL: number = 100;
+export default class Noise extends CMG {
+    noiseType: string;
+    mean: number; // center frequency for gaussian noise (Hz)
+    std: number; // gaussian noise standard devision (Hz)
+    sampleRate: number;
+    sampleLevel: number;
     VMType: string;
     VMCenter: number; // 0 100
     VMFrequency: number; // hz
@@ -23,16 +38,15 @@ export default class SFPG extends CMG {
     PMFrequency: number; // hz
     PMAmplitude: number; // -50 50 (center applied, center +- amplitude cannot be outside -1, 1)
     PMPhase: number; // degrees
-    constructor(nextGenerator: number) {
-        super(nextGenerator);
-        this.presetName = '';
-        this.preset = undefined;
-        this.midi = 0;
-        this.type = 'SFPG';
-        this.FMType = "SINE";
-        this.FMAmplitude = 0;
-        this.FMFrequency = 0;
-        this.FMPhase = 0;
+
+    constructor(next: number) {
+        super(next);
+        this.type = 'Noise';
+        this.noiseType = NOISETYPE.white;
+        this.mean = 440;
+        this.std = 100;
+        this.sampleRate = SAMPLERATE;
+        this.sampleLevel = SAMPLELEVEL;
         this.VMType = "SINE";
         this.VMCenter = 50;
         this.VMFrequency = 0;
@@ -45,36 +59,31 @@ export default class SFPG extends CMG {
         this.PMPhase = 0;
     }
 
-    override copy(): SFPG {
-        const newG = new SFPG(0);
-        newG.name = this.name;
-        newG.startTime = this.startTime;
-        newG.stopTime = this.stopTime;
-        newG.mute = this.mute;
-        newG.solo = this.solo;
-        newG.type = this.type;
-        newG.position = this.position;
-        newG.presetName = this.presetName;
-        newG.preset = this.preset;
-        newG.midi = this.midi;
-        newG.mute = this.mute;
-        newG.position = this.position;
-        newG.FMType = this.FMType;
-        newG.FMAmplitude = this.FMAmplitude;
-        newG.FMFrequency = this.FMFrequency;
-        newG.FMPhase = this.FMPhase;
-        newG.VMCenter = this.VMCenter;
-        newG.VMType = this.VMType;
-        newG.VMAmplitude = this.VMAmplitude;
-        newG.VMFrequency = this.VMFrequency;
-        newG.VMPhase = this.VMPhase;
-        newG.PMCenter = this.PMCenter;
-        newG.PMType = this.PMType;
-        newG.PMAmplitude = this.PMAmplitude;
-        newG.PMFrequency = this.PMFrequency;
-        newG.PMPhase = this.PMPhase;
-        return newG;
-
+    override copy(): Noise {
+        const n = new Noise(0);
+        n.name = this.name;
+        n.startTime = this.startTime;
+        n.stopTime = this.stopTime;
+        n.mute = this.mute;
+        n.solo = this.solo;
+        n.type = this.type;
+        n.position = this.position;
+        n.noiseType = this.noiseType;
+        n.mean = this.mean;
+        n.std = this.std;
+        n.sampleLevel = this.sampleLevel;
+        n.sampleRate = this.sampleRate;
+        n.VMCenter = this.VMCenter;
+        n.VMType = this.VMType;
+        n.VMAmplitude = this.VMAmplitude;
+        n.VMFrequency = this.VMFrequency;
+        n.VMPhase = this.VMPhase;
+        n.PMCenter = this.PMCenter;
+        n.PMType = this.PMType;
+        n.PMAmplitude = this.PMAmplitude;
+        n.PMFrequency = this.PMFrequency;
+        n.PMPhase = this.PMPhase;
+        return n;
     }
 
     override setAttribute(name: string, value: string): void {
@@ -97,23 +106,20 @@ export default class SFPG extends CMG {
             case 'type':
                 this.type = value;
                 break;
-            case 'presetName':
-                this.presetName = value;
+            case 'noiseType':
+                this.noiseType = value;
                 break;
-            case 'midi':
-                this.midi = parseFloat(value);
+            case 'mean':
+                this.mean = parseFloat(value)
                 break;
-            case 'FMType':
-                this.FMType = value;
+            case 'std':
+                this.std = parseFloat(value)
                 break;
-            case 'FMAmplitude':
-                this.FMAmplitude = parseFloat(value);
+            case 'sampleRate':
+                this.sampleRate = parseFloat(value)
                 break;
-            case 'FMFrequency':
-                this.FMFrequency = parseFloat(value);
-                break;
-            case 'FMPhase':
-                this.FMPhase = parseFloat(value);
+            case 'sampleLevel':
+                this.sampleLevel = parseFloat(value)
                 break;
             case 'VMCenter':
                 this.VMCenter = parseFloat(value);
@@ -145,32 +151,26 @@ export default class SFPG extends CMG {
             case 'PMPhase':
                 this.PMPhase = parseFloat(value);
                 break;
-            default:
-                break;
-        }
 
+        }
     }
 
-    getCurrentValues(time: number): { pitch: number, volume: number, pan: number } {
-        let pitch: number = this.midi;
-        switch (this.FMType) {
-            case 'SINE':
-                pitch = sineModulator(time, this.startTime, this.midi,
-                    this.FMFrequency, this.FMAmplitude, this.FMPhase);
-                break;
-            case 'SAWTOOTH':
-                pitch = sawtoothModulator(time, this.startTime, this.midi,
-                    this.FMFrequency, this.FMAmplitude, this.FMPhase);
-                break;
-            case 'SQUARE':
-                pitch = squareModulator(time, this.startTime, this.midi,
-                    this.FMFrequency, this.FMAmplitude, this.FMPhase);
-                break;
-            case 'TRIANGLE':
-                pitch = triangleModulator(time, this.startTime, this.midi,
-                    this.FMFrequency, this.FMAmplitude, this.FMPhase);
-                break;
+    // return noise for length of time specified 
+    getCurrentValue(time: number): { sample: Float32Array, volume: number, pan: number } {
+        const sampleCount = time * this.sampleRate;
+        const sample: Float32Array = new Float32Array(sampleCount);
+        if (this.noiseType == NOISETYPE.white) {
+            // white noise genertor
+            for (let i = 0; i < sampleCount; i++) {
+                sample[i] = Math.random() * this.sampleLevel;
+            }
+        } else if (this.noiseType == NOISETYPE.gaussian) {
+            // gaussian noise generator
+            for (let i = 0; i < sampleCount; i++) {
+                sample[i] = gaussianRandom(this.mean, this.std) * this.sampleLevel;
+            }
         }
+
         let volume: number = this.VMCenter;
         switch (this.VMType) {
             case 'SINE':
@@ -209,8 +209,10 @@ export default class SFPG extends CMG {
                     this.PMFrequency, this.PMAmplitude, this.PMPhase);
                 break;
         }
-        return ({ pitch: pitch, volume: volume, pan: pan });
+        return ({ sample: sample, volume: volume, pan: pan });
+
     }
+
     override appendXML(doc: XMLDocument, elem: HTMLElement): void {
         elem.setAttribute('name', this.name);
         elem.setAttribute('startTime', this.startTime.toString());
@@ -218,13 +220,12 @@ export default class SFPG extends CMG {
         elem.setAttribute('solo', this.solo.toString());
         elem.setAttribute('mute', this.mute.toString());
         elem.setAttribute('position', this.position.toString());
-        elem.setAttribute('type', 'SFPG');
-        elem.setAttribute('presetName', this.presetName);
-        elem.setAttribute('midi', this.midi.toString());
-        elem.setAttribute('FMType', this.FMType.toString());
-        elem.setAttribute('FMAmplitude', this.FMAmplitude.toString());
-        elem.setAttribute('FMFrequency', this.FMFrequency.toString());
-        elem.setAttribute('FMPhase', this.FMPhase.toString());
+        elem.setAttribute('type', 'Noise');
+        elem.setAttribute('noiseType', this.noiseType);
+        elem.setAttribute('mean', this.mean.toString());
+        elem.setAttribute('std', this.std.toString());
+        elem.setAttribute('sampleRate', this.sampleRate.toString());
+        elem.setAttribute('sampleLevel', this.sampleLevel.toString());
         elem.setAttribute('VMType', this.VMType.toString());
         elem.setAttribute('VMCenter', this.VMCenter.toString());
         elem.setAttribute('VMFrequency', this.VMFrequency.toString());
@@ -244,16 +245,12 @@ export default class SFPG extends CMG {
         this.mute = (getAttributeValue(elem, 'mute', 'string') == 'true');
         this.solo = (getAttributeValue(elem, 'solo', 'string') == 'true');
         this.position = getAttributeValue(elem, 'position', 'int') as number;
-        this.type = 'SFPG';
-
-        this.presetName = getAttributeValue(elem, 'presetName', 'string') as string;
-        this.midi = getAttributeValue(elem, 'midi', 'int') as number;
-        this.mute = (getAttributeValue(elem, 'mute', 'string') == 'true');
-        this.position = getAttributeValue(elem, 'position', 'int') as number;
-        this.FMType = getAttributeValue(elem, 'FMType', 'string') as string;
-        this.FMAmplitude = getAttributeValue(elem, 'FMAmplitude', 'float') as number;
-        this.FMFrequency = getAttributeValue(elem, 'FMFrequency', 'float') as number;
-        this.FMPhase = getAttributeValue(elem, 'FMPhase', 'float') as number;
+        this.type = 'Noise';
+        this.noiseType = getAttributeValue(elem, 'noiseType', 'string') as string;
+        this.mean = getAttributeValue(elem, 'mean', 'float') as number;
+        this.std = getAttributeValue(elem, 'std', 'float') as number;
+        this.sampleRate = getAttributeValue(elem, 'sampleRate', 'float') as number;
+        this.sampleLevel = getAttributeValue(elem, 'sampleLevel', 'float') as number;
         this.VMCenter = getAttributeValue(elem, 'VMCenter', 'float') as number;
         this.VMType = getAttributeValue(elem, 'VMType', 'string') as string;
         this.VMAmplitude = getAttributeValue(elem, 'VMAmplitude', 'float') as number;
