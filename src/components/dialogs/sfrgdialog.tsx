@@ -1,7 +1,7 @@
 import { RandomSFTransitons } from "types/types";
 import SFRG from "../../classes/sfrg";
 import { ChangeEvent } from "react";
-import { bankBagPresettoName, toNote } from "../../utils/util";
+import { bankPresettoName, toNote } from "../../utils/util";
 import { useCMGContext } from "../../contexts/cmgcontext";
 import { Preset } from "../../types/soundfonttypes";
 
@@ -27,10 +27,10 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
                     .sort((a, b) => {
                         if (a.header.bank < b.header.bank) return -1;
                         if (a.header.bank > b.header.bank) return 1;
-                        return (a.header.bagIndex - b.header.bagIndex)
+                        return (a.header.preset - b.header.preset)
                     })
                     .map((p) => {
-                        const pName = bankBagPresettoName(p)
+                        const pName = bankPresettoName(p)
                         return (
                             <option key={`preset-${pName}`}
                                 value={pName}>
@@ -66,6 +66,8 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
             <div className="transition-box" >
                 <p className="transition-header">Speed Transtions</p>
                 <br />
+                <label>Starting Value:<input size={INPUTSIZE} name="speedT.currentValue" value={formData.speedT.currentValue} onChange={handleChange} type='number' min={40} max={200} step={10} /></label>
+                <br />
                 <label>same-&gt;same:<input size={INPUTSIZE} name="speedT.same.same" value={formData.speedT.same.same} onChange={handleChange} type='number' min={0} max={1} step={0.01} /></label>
                 <label>same-&gt;up:<input size={INPUTSIZE} name="speedT.same.up" value={formData.speedT.same.up} onChange={handleChange} type='number' min={0} max={1} step={0.01} /></label>
                 <label>same-&gt;down:<input size={INPUTSIZE} name="speedT.same.down" value={formData.speedT.same.down} onChange={handleChange} type='number' min={0} max={1} step={0.01} /></label>
@@ -81,6 +83,8 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
             <div className="transition-box" >
                 <p className="transition-header">Volume Transtions</p>
                 <br />
+                <label>Starting Value:<input size={INPUTSIZE} name="volumeT.currentValue" value={formData.volumeT.currentValue} onChange={handleChange} type='number' min={0} max={100} step={10} /></label>
+                <br />
                 <label>same-&gt;same:<input size={INPUTSIZE} name="volumeT.same.same" value={formData.volumeT.same.same} onChange={handleChange} type='number' min={0} max={1} step={0.01} /></label>
                 <label>same-&gt;up:<input size={INPUTSIZE} name="volumeT.same.up" value={formData.volumeT.same.up} onChange={handleChange} type='number' min={0} max={1} step={0.01} /></label>
                 <label>same-&gt;down:<input size={INPUTSIZE} name="volumeT.same.down" value={formData.volumeT.same.down} onChange={handleChange} type='number' min={0} max={1} step={0.01} /></label>
@@ -95,6 +99,8 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
             </div>
             <div className="transition-box" >
                 <p className="transition-header">Pan Transtions</p>
+                <br />
+                <label>Starting Value:<input size={INPUTSIZE} name="panT.currentValue" value={formData.panT.currentValue} onChange={handleChange} type='number' min={-1.0} max={1.0} step={0.1} /></label>
                 <br />
                 <label>same-&gt;same:<input size={INPUTSIZE} name="panT.same.same" value={formData.panT.same.same} onChange={handleChange} type='number' min={0} max={1} step={0.01} /></label>
                 <label>same-&gt;up:<input size={INPUTSIZE} name="panT.same.up" value={formData.panT.same.up} onChange={handleChange} type='number' min={0} max={1} step={0.01} /></label>
@@ -149,8 +155,10 @@ export function validateSFRGValues(formData: SFRG, presets: Preset[]): string[] 
         if (transition.down.down < 0 || transition.down.down > 1)
             result.push(`${name} down->same probabilty must be between 0 and 1 inclusive`);
     }
+    if (!formData.presetName) 
+        result.push('PresetName must be specified');
     if (formData.midi < 0 || formData.midi > 127)
-        result.push('Midi number must be between 0 and 127')
+        result.push('Midi number must be between 0 and 127');
 
     validateCumulatives('midi', formData.midiT);
     validateCumulatives('speed', formData.speedT);

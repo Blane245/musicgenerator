@@ -46,11 +46,11 @@ export const toNote = (midi: number): string => {
   return noteName.concat(octave.toString().concat(extra));
 }
 
-export function bankBagPresettoName(preset: Preset): string {
+export function bankPresettoName(preset: Preset): string {
   return (
   ("00" + preset.header.bank).slice(-3)
     .concat(":")
-    .concat(("00" + preset.header.bagIndex).slice(-3))
+    .concat(("00" + preset.header.preset).slice(-3))
     .concat(':')
     .concat(preset.header.name));
 }

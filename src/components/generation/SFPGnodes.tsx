@@ -16,6 +16,10 @@ export function getBufferSourceNodesFromSFPG(
     context: AudioContext, destination: AudioDestinationNode | MediaStreamAudioDestinationNode, CMgenerator: SFPG, deltaT: number
 ): { sources: AudioBufferSourceNode[], times: { start: number, stop: number }[] } {
 
+    console.log('getting SFPG sources',
+        'name', CMgenerator.name,
+        'deltaT', deltaT,
+    );
     // get the instrument zone for generator's preset
     if (!CMgenerator.preset)
         throw new Error(`Preset '${CMgenerator.presetName}' has not been initialized.`)
@@ -31,9 +35,7 @@ export function getBufferSourceNodesFromSFPG(
     // loop through each time chunks to get the current pitch, volume, and pan
     // for each chunk and apply them to the chunk
     let currentZone: InstrumentZone | null = null;
-    // let nextSampleIndex: number = 0;
     let lastPitch: number = -1;
-    // const sampleDuration: number = CMgenerator.stopTime - CMgenerator.startTime;
     const sources: AudioBufferSourceNode[] = [];
     const times: { start: number, stop: number }[] = [];
     for (let iChunk: number = 0; iChunk < chunkCount; iChunk += 1) {
@@ -43,7 +45,6 @@ export function getBufferSourceNodesFromSFPG(
         if (lastPitch != pitch) {
             lastPitch = pitch;
         }
-        // get the samples for the sound to last the 
         // get the instrument's zone from the pitch, with clipping
         let iZone = 0;
         const basePitch = Math.trunc(pitch)
@@ -58,10 +59,10 @@ export function getBufferSourceNodesFromSFPG(
             currentZone = zones[iZone];
             currentSampleIndex = 0;
         }
-        // console.log (
-        //     'iZone', iZone,
-        //     'currentZone', currentZone, 
-        // )
+        console.log (
+            'iZone', iZone,
+            'currentZone', currentZone, 
+        )
         const { sampleRate, start, startLoop, endLoop, pitchCorrection } = currentZone.sample.header;
 
         // each chuck a number of samples depending on the sample rate and the Chunk size
@@ -99,23 +100,23 @@ export function getBufferSourceNodesFromSFPG(
             loopStart, loopEnd,
             currentZone.sample.data,
             chunkSize * playbackRate);
-        // console.log(
-        //     'iChunk', iChunk,
-        //     'time', time,
-        //     'currentzone', currentZone,
-        //     'rootKey', rootKey,
-        //     'pitchCorrection', pitchCorrection,
-        //     'fineTune', fineTune,
-        //     'baseDetune', baseDetune,
-        //     'pitch', pitch,
-        //     'cents', cents,
-        //     'playbackRate', playbackRate,
-        //     'currentSampleIndex',currentSampleIndex,
-        //     'sampleRate', sampleRate,
-        //     'loopStart', loopStart,
-        //     'loopEnd', loopEnd,
-        //     'sample length', floatSample.length,
-        // )
+        console.log(
+            'iChunk', iChunk,
+            'time', time,
+            'currentSampleIndex',currentSampleIndex,
+            'loopStart', loopStart,
+            'loopEnd', loopEnd,
+            'sample length', floatSample.length,
+            'currentzone', currentZone,
+            'rootKey', rootKey,
+            'pitchCorrection', pitchCorrection,
+            'fineTune', fineTune,
+            'baseDetune', baseDetune,
+            'pitch', pitch,
+            'cents', cents,
+            'playbackRate', playbackRate,
+            'sampleRate', sampleRate,
+        )
 
 
         // move the chunk into the audio node
@@ -133,8 +134,6 @@ export function getBufferSourceNodesFromSFPG(
         vol.connect(panner);
         source.connect(vol);
         panner.connect(destination);
-        // source.start(time + CMgenerator.startTime);
-        // source.stop(time + CMgenerator.startTime + deltat);
 
         // and add it to the accumulated sources
         sources.push(source);
@@ -148,10 +147,13 @@ export function getBufferSourceNodesFromSFPG(
 // taking into account looping
 function getNextSample
     (startLoop: number, endLoop: number, sampleData: Int16Array, chunkSize: number): Float32Array {
-    // make sure the zone has proper loop values
-    // nextsampleindex is the place in teh smaple where the chunk
-    // will start
     let sampleCount = 0;
+    console.log('in getNextSample',
+        'chunkSize', chunkSize,
+         'startLoop', startLoop,
+           'endLoop', endLoop,
+           'sample length', sampleData.length,
+    )
     const floatSample: Float32Array = new Float32Array(chunkSize);
     while (sampleCount < chunkSize) {
         floatSample[sampleCount] =
@@ -159,8 +161,10 @@ function getNextSample
         currentSampleIndex++;
         if (currentSampleIndex > endLoop) {
             currentSampleIndex = startLoop;
+            console.log(`loop back, ${currentSampleIndex}`)
         }
         sampleCount++;
     }
+    console.log(`last sample, ${sampleCount}`);
     return floatSample;
 }

@@ -42,7 +42,7 @@ export default class SFRG extends CMG {
         }
         this.speedT = {
             currentState: MARKOVSTATE.same,
-            currentValue: 0,
+            currentValue: 60,
             range: { lo: 20, hi: 500 },
             same: { same: 1.0, up: 0.0, down: 0.0 },
             up: { same: 1.0, up: 0.0, down: 0.0 },
@@ -50,7 +50,7 @@ export default class SFRG extends CMG {
         }
         this.volumeT = {
             currentState: MARKOVSTATE.same,
-            currentValue: 0,
+            currentValue: 50,
             range: { lo: 0, hi: 100 },
             same: { same: 1.0, up: 0.0, down: 0.0 },
             up: { same: 1.0, up: 0.0, down: 0.0 },
@@ -116,11 +116,12 @@ export default class SFRG extends CMG {
             case 'type':
                 this.type = value;
                 break;
-            case 'presetName':
+            case 'presetName': 
                 this.presetName = value;
                 break;
             case 'midi':
                 this.midi = parseFloat(value);
+                this.midiT.currentValue =  this.midi;
                 break;
             case 'midiT.same.same':
                 this.midiT.same.same = parseFloat(value); break;
@@ -141,6 +142,8 @@ export default class SFRG extends CMG {
             case 'midiT.down.down':
                 this.midiT.down.down = parseFloat(value); break;
 
+            case 'speedT.currentValue':
+                this.speedT.currentValue = parseFloat(value); break;
             case 'speedT.same.same':
                 this.speedT.same.same = parseFloat(value); break;
             case 'speedT.same.up':
@@ -160,7 +163,9 @@ export default class SFRG extends CMG {
             case 'speedT.down.down':
                 this.speedT.down.down = parseFloat(value); break;
 
-            case 'volumeT.same.same':
+                case 'volumeT.currentValue':
+                    this.volumeT.currentValue = parseFloat(value); break;
+                case 'volumeT.same.same':
                 this.volumeT.same.same = parseFloat(value); break;
             case 'volumeT.same.up':
                 this.volumeT.same.up = parseFloat(value); break;
@@ -179,7 +184,9 @@ export default class SFRG extends CMG {
             case 'volumeT.down.down':
                 this.volumeT.down.down = parseFloat(value); break;
 
-            case 'panT.same.same':
+                case 'panT.currentValue':
+                    this.panT.currentValue = parseFloat(value); break;
+                case 'panT.same.same':
                 this.panT.same.same = parseFloat(value); break;
             case 'panT.same.up':
                 this.panT.same.up = parseFloat(value); break;
@@ -238,14 +245,14 @@ export default class SFRG extends CMG {
             return newState;
 
         }
-        function getNewValue(currentValue: number, increment: number, limits: { lo: number, high: number }, state: MARKOVSTATE): number {
+        function getNewValue(currentValue: number, increment: number, limits: AttributeRange, state: MARKOVSTATE): number {
             let newValue = currentValue;
             switch (state) {
                 case MARKOVSTATE.same:
                     break;
                 case MARKOVSTATE.up:
                     newValue += increment;
-                    newValue = Math.min(newValue, limits.high);
+                    newValue = Math.min(newValue, limits.hi);
                     break;
                 case MARKOVSTATE.down:
                     newValue -= increment;
@@ -258,18 +265,19 @@ export default class SFRG extends CMG {
         }
 
         this.midiT.currentState = changeState(this.midiT);
-        this.midiT.currentValue = getNewValue(this.midiT.currentValue, 1, { lo: 0, high: 127 }, this.midiT.currentState);
+        this.midiT.currentValue = getNewValue(this.midiT.currentValue, 1, this.midiT.range, this.midiT.currentState);
+        console.log('midiT state', this.midiT.currentState,'value',this.midiT.currentValue);
         this.speedT.currentState = changeState(this.speedT);
-        this.speedT.currentValue = getNewValue(this.speedT.currentValue, 5, { lo: 40, high: 220 }, this.speedT.currentState);
+        this.speedT.currentValue = getNewValue(this.speedT.currentValue, 10, this.speedT.range, this.speedT.currentState);
         this.volumeT.currentState = changeState(this.volumeT);
-        this.volumeT.currentValue = getNewValue(this.volumeT.currentValue, 10, { lo: 0, high: 100 }, this.volumeT.currentState);
+        this.volumeT.currentValue = getNewValue(this.volumeT.currentValue, 10, this.volumeT.range, this.volumeT.currentState);
         this.panT.currentState = changeState(this.panT);
-        this.panT.currentValue = getNewValue(this.panT.currentValue, 0.1, { lo: -1, high: 1 }, this.panT.currentState);
+        this.panT.currentValue = getNewValue(this.panT.currentValue, 0.1, this.panT.range, this.panT.currentState);
         return {
             midi: this.midiT.currentValue,
-            speed: this.midiT.currentValue,
-            volume: this.midiT.currentValue,
-            pan: this.midiT.currentValue,
+            speed: this.speedT.currentValue,
+            volume: this.volumeT.currentValue,
+            pan: this.panT.currentValue,
         }
     }
 
@@ -292,9 +300,10 @@ export default class SFRG extends CMG {
 
         function addTransitionAttributes(name: string, transition: RandomSFTransitons): HTMLElement {
             const tElement: HTMLElement = doc.createElement(name);
+            tElement.setAttribute('currentValue', transition.currentValue.toString())
             const range: HTMLElement = doc.createElement('range');
             range.setAttribute('lo', transition.range.lo.toString());
-            range.setAttribute('hi', transition.range.lo.toString());
+            range.setAttribute('hi', transition.range.hi.toString());
             const same: HTMLElement = doc.createElement('same');
             same.setAttribute('same', transition.same.same.toString());
             same.setAttribute('up', transition.same.up.toString());
@@ -337,9 +346,13 @@ export default class SFRG extends CMG {
 
         const { midiT, speedT, volumeT, panT } = getTransitions(midiTChildren, speedTChildren, volumeTChildren, panTChildren);
         this.midiT = midiT
+        this.midiT.currentValue = getAttributeValue(midiTElem, 'currentValue', 'float') as number;
         this.speedT = speedT;
+        this.speedT.currentValue = getAttributeValue(speedTElem, 'currentValue', 'float') as number;
         this.volumeT = volumeT;
+        this.volumeT.currentValue = getAttributeValue(volumeTElem, 'currentValue', 'float') as number;
         this.panT = panT;
+        this.panT.currentValue = getAttributeValue(panTElem, 'currentValue', 'float') as number;
 
 
         function getTransitions(
@@ -377,16 +390,16 @@ export default class SFRG extends CMG {
                 up: { same: 1.0, up: 0.0, down: 0.0 },
                 down: { same: 1.0, up: 0.0, down: 0.0 },
             }
-            function getRangeValues (child: Element): AttributeRange {
-                const lo:number = getAttributeValue(child, 'lo', 'float') as number;
-                const hi:number = getAttributeValue(child, 'hi', 'float') as number;
-                return ({lo, hi});
+            function getRangeValues(child: Element): AttributeRange {
+                const lo: number = getAttributeValue(child, 'lo', 'float') as number;
+                const hi: number = getAttributeValue(child, 'hi', 'float') as number;
+                return ({ lo, hi });
             }
             function getTransitionValues(child: Element): MarkovProbabilities {
-                const same:number = getAttributeValue(child, 'same', 'float') as number;
-                const up:number = getAttributeValue(child, 'up', 'float') as number;
-                const down:number = getAttributeValue(child, 'down', 'float') as number;
-                return ({same, up, down});
+                const same: number = getAttributeValue(child, 'same', 'float') as number;
+                const up: number = getAttributeValue(child, 'up', 'float') as number;
+                const down: number = getAttributeValue(child, 'down', 'float') as number;
+                return ({ same, up, down });
             }
             for (let i = 0; i < midiTChildren.length; i++) {
                 const child = midiTChildren[i];

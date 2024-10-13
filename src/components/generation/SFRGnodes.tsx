@@ -99,6 +99,7 @@ export function getBufferSourceNodesFromSFRG(
         channelData.set(floatSample);
         const source: AudioBufferSourceNode = context.createBufferSource();
         source.buffer = buffer;
+        // source.loop = true;
         source.loopEnd = loopEnd;
         source.loopStart = loopStart;
         source.playbackRate.value = playbackRate;

@@ -3,12 +3,12 @@
 import CMG from '../../classes/cmg';
 import CMGFile from '../../classes/cmgfile';
 import SFPG from '../../classes/sfpg';
-import SFRG from 'classes/sfrg';
+import SFRG from '../../classes/sfrg';
 import { CMGeneratorType } from '../../types/types';
-import { getBufferSourceNodesFromSFPG } from './SFPGnodes';
-import { getBufferSourceNodesFromSFRG } from './SFRGnodes';
-import Noise from 'classes/noise';
+import Noise from '../../classes/noise';
 import { getBufferSourceNodesFromNoise } from './noisenodes';
+import { getBufferSourceNodesFromSFPG } from './sfpgnodes';
+import { getBufferSourceNodesFromSFRG } from './sfrgnodes';
 
 
 const SCHEDULEAHEADTIME: number = 0.1 // how far ahead to schedule audio (seconds)
@@ -43,7 +43,7 @@ export function Generate(fileContents: CMGFile, setStatus: Function, mode: strin
                     if (!(g as SFRG).preset)
                         errors.push(`Generator '${g.name}' on track '${t.name}' does not have a preset assigned.`)
                     else {
-                        SFPGenerators.push(g as SFPG);
+                        SFRGenerators.push(g as SFRG);
                         playbackLength = Math.max(playbackLength, g.stopTime);
                     }
                 }
@@ -61,19 +61,20 @@ export function Generate(fileContents: CMGFile, setStatus: Function, mode: strin
                 tempGen.stopTime = tempGen.stopTime - tempGen.startTime;
                 tempGen.startTime = 0;
                 SFPGenerators.push(tempGen);
+                playbackLength = tempGen.stopTime;
             } else if (generator.type == 'SFRG') {
                 const tempGen: SFRG = (generator as SFRG).copy();
                 tempGen.stopTime = tempGen.stopTime - tempGen.startTime;
                 tempGen.startTime = 0;
                 SFRGenerators.push(tempGen);
+                playbackLength = tempGen.stopTime;
             } else if (generator.type == 'Noise') {
                 const tempGen: Noise = (generator as Noise).copy();
                 tempGen.stopTime = tempGen.stopTime - tempGen.startTime;
                 tempGen.startTime = 0;
                 NoiseGenerators.push(tempGen);
-
+                playbackLength = tempGen.stopTime;
             }
-            playbackLength = Math.max(playbackLength, (generator as CMG).stopTime);
         }
     }
     if (SFPGenerators.length == 0 &&
@@ -84,7 +85,7 @@ export function Generate(fileContents: CMGFile, setStatus: Function, mode: strin
     if (errors.length != 0)
         return errors;
 
-    console.log('useful generators', SFPGenerators.length + SFRGenerators.length + NoiseGenerators.length)
+    console.log('useful generators', 'SFPG', SFPGenerators.length, 'SFRG', SFRGenerators.length, 'Noise', NoiseGenerators.length)
 
     // create an audiocontext that has its output as an mpeg file that is stored in the Generate folder.
     // get the length of the file, in seconds. It is the maximum of 
@@ -136,37 +137,25 @@ export function Generate(fileContents: CMGFile, setStatus: Function, mode: strin
     SFPGenerators.forEach((g) => {
         const { sources, times } =
             getBufferSourceNodesFromSFPG(audioContext, destination, g, CHUNKTIME);
-        sources.forEach((s) => {
-            generatorSource.push(s);
-        })
-        times.forEach((t) => {
-            generatorTime.push(t);
-            generatorStarted.push(false);
-        })
+        generatorSource.push(...sources);
+        generatorTime.push(...times);
+        generatorStarted.push(...Array(times.length).fill(false));
     });
 
     // build the buffers for the SFRGs
     SFRGenerators.forEach(g => {
         const { sources, times } = getBufferSourceNodesFromSFRG(audioContext, destination, g);
-        sources.forEach(s => {
-            generatorSource.push(s);
-        });
-        times.forEach(t => {
-            generatorTime.push(t);
-            generatorStarted.push(false);
-        });
+        generatorSource.push(...sources);
+        generatorTime.push(...times);
+        generatorStarted.push(...Array(times.length).fill(false));
     });
 
     // build the buffers for the SFRGs
     NoiseGenerators.forEach(g => {
         const { sources, times } = getBufferSourceNodesFromNoise(audioContext, destination, g);
-        sources.forEach(s => {
-            generatorSource.push(s);
-        });
-        times.forEach(t => {
-            generatorTime.push(t);
-            generatorStarted.push(false);
-        });
+        generatorSource.push(...sources);
+        generatorTime.push(...times);
+        generatorStarted.push(...Array(times.length).fill(false));
     });
 
 
@@ -199,14 +188,14 @@ export function Generate(fileContents: CMGFile, setStatus: Function, mode: strin
             while (nextTime < aheadTime) {
                 generatorSource.forEach((g, i) => {
                     if (aheadTime >= generatorTime[i].start && !generatorStarted[i]) {
-                        // console.log('source', i, 'start', generatorTime[i].start, 'stop', generatorTime[i].stop, 'aheadtime', aheadTime, 'buffer length', g.buffer?.length);
+                        console.log('source', i, 'start', generatorTime[i].start, 'stop', generatorTime[i].stop, 'aheadtime', aheadTime, 'buffer length', g.buffer?.length);
                         g.start(generatorTime[i].start);
                         g.stop(generatorTime[i].stop + 2 * LOOKAHEAD / 1000);
                         generatorStarted[i] = true;
-                        // playSample(aheadTime, generatorSource[i], generatorTime[i]);
                     }
                 });
                 nextTime += CHUNKTIME;
+                // console.log(`next chunk`, nextTime)
             }
             timerID = window.setTimeout(scheduler, LOOKAHEAD);
             // console.log('timer set');
@@ -216,16 +205,19 @@ export function Generate(fileContents: CMGFile, setStatus: Function, mode: strin
         }
         // stop the playback if the current time is past all generator stop times
         let allStop = true;
-        SFPGenerators.forEach((g) => {
-            if (g.stopTime > audioContext.currentTime)
+        generatorTime.forEach((t) => {
+            // console.log('generator stopped?', g.stopTime, 'context', audioContext.currentTime);
+            if (t.stop > audioContext.currentTime) {
+                // console.log('genertor not stopped', g.name, g.stopTime, audioContext.currentTime);
                 allStop = false;
+        }
         });
         if (allStop) {
+            // console.log('all stop')
             stop();
             if (!generator && recordHandle) {
                 mediaRecorder.stop();
                 setStatus(`Recording complete in '${recordHandle.name}' in the directory of your choosing.`)
-                // audioContext.close();
             }
         }
     }

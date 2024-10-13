@@ -6,3 +6,4 @@ TODO
 * track rename caused generators to not be displayed
 * generate button not activating
 * generator menu remains on a click away
+* need to be able to seed the randon=m number generator to get the same sequence each time

@@ -1,7 +1,7 @@
 import { ChangeEvent } from "react";
 import SFPG from "../../classes/sfpg";
 import { MODULATOR } from "../../types/types";
-import { bankBagPresettoName, toNote } from "../../utils/util";
+import { bankPresettoName, toNote } from "../../utils/util";
 import { useCMGContext } from "../../contexts/cmgcontext";
 import { Preset, PresetZone } from "../../types/soundfonttypes";
 
@@ -26,10 +26,10 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
                     .sort((a, b) => {
                         if (a.header.bank < b.header.bank) return -1;
                         if (a.header.bank > b.header.bank) return 1;
-                        return (a.header.bagIndex - b.header.bagIndex)
+                        return (a.header.preset - b.header.preset)
                     })
                     .map((p) => {
-                        const pName = bankBagPresettoName(p)
+                        const pName = bankPresettoName(p)
                         return (
                             <option key={`preset-${pName}`}
                                 value={pName}>

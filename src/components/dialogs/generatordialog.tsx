@@ -13,6 +13,7 @@ import { validateSFRGValues } from "./sfrgdialog";
 import Noise from "../../classes/noise";
 import { validateNoiseValues } from "./noisedialog";
 import { Preset } from "types/soundfonttypes";
+import { bankPresettoName } from "utils/util";
 
 // The icon starts at the generator's start time and ends at the generators endtime
 export interface GeneratorDialogProps {
@@ -168,7 +169,8 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                     setMessage({ error: true, text: "Errors on generator form" });
                     return;
                 }
-                (formData as SFPG).preset = presets.find((p:Preset) => ((formData as SFPG).presetName == p.header.name));
+                const pn:string = (formData as SFPG).presetName.split(":")[2];
+                (formData as SFPG).preset = presets.find((p:Preset) => (pn == p.header.name));
 
             }
                 break;
@@ -182,7 +184,8 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                     setMessage({ error: true, text: "Errors on generator form" });
                     return;
                 }
-                (formData as SFRG).preset = presets.find((p:Preset) => ((formData as SFRG).presetName == p.header.name));
+                const pn:string = (formData as SFRG).presetName.split(":")[2];
+                (formData as SFPG).preset = presets.find((p:Preset) => (pn == p.header.name));
             }
                 break;
             case "Noise": {
