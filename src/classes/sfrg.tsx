@@ -35,7 +35,8 @@ export default class SFRG extends CMG {
         this.midiT = {
             currentState: MARKOVSTATE.same,
             currentValue: 0,
-            range: { lo: 0, hi: 127 },
+            startValue: 0,
+            range: { lo: 0, hi: 127, step: 1 },
             same: { same: 1.0, up: 0.0, down: 0.0 },
             up: { same: 1.0, up: 0.0, down: 0.0 },
             down: { same: 1.0, up: 0.0, down: 0.0 },
@@ -43,7 +44,8 @@ export default class SFRG extends CMG {
         this.speedT = {
             currentState: MARKOVSTATE.same,
             currentValue: 60,
-            range: { lo: 20, hi: 500 },
+            startValue: 60,
+            range: { lo: 20, hi: 500, step: 1 },
             same: { same: 1.0, up: 0.0, down: 0.0 },
             up: { same: 1.0, up: 0.0, down: 0.0 },
             down: { same: 1.0, up: 0.0, down: 0.0 },
@@ -51,7 +53,8 @@ export default class SFRG extends CMG {
         this.volumeT = {
             currentState: MARKOVSTATE.same,
             currentValue: 50,
-            range: { lo: 0, hi: 100 },
+            startValue: 50,
+            range: { lo: 0, hi: 100, step: 1 },
             same: { same: 1.0, up: 0.0, down: 0.0 },
             up: { same: 1.0, up: 0.0, down: 0.0 },
             down: { same: 1.0, up: 0.0, down: 0.0 },
@@ -59,7 +62,8 @@ export default class SFRG extends CMG {
         this.panT = {
             currentState: MARKOVSTATE.same,
             currentValue: 0,
-            range: { lo: -1, hi: 1 },
+            startValue: 0,
+            range: { lo: -1, hi: 1, step: 0.1 },
             same: { same: 1.0, up: 0.0, down: 0.0 },
             up: { same: 1.0, up: 0.0, down: 0.0 },
             down: { same: 1.0, up: 0.0, down: 0.0 },
@@ -84,11 +88,12 @@ export default class SFRG extends CMG {
         return newG;
 
         function copyTransitions(transition: RandomSFTransitons): RandomSFTransitons {
-            const { lo, hi } = transition.range;
+            const { lo, hi, step } = transition.range;
             const t: RandomSFTransitons = {
                 currentState: transition.currentState,
                 currentValue: transition.currentValue,
-                range: { lo, hi },
+                startValue: transition.startValue,
+                range: { lo, hi, step },
                 same: copyProbabilities(transition.same),
                 up: copyProbabilities(transition.up),
                 down: copyProbabilities(transition.down),
@@ -116,13 +121,19 @@ export default class SFRG extends CMG {
             case 'type':
                 this.type = value;
                 break;
-            case 'presetName': 
+            case 'presetName':
                 this.presetName = value;
                 break;
             case 'midi':
                 this.midi = parseFloat(value);
-                this.midiT.currentValue =  this.midi;
+                this.midiT.startValue = this.midi;
                 break;
+            case 'midiT.range.lo':
+                this.midiT.range.lo = parseFloat(value); break;
+            case 'midiT.range.hi':
+                this.midiT.range.hi = parseFloat(value); break;
+            case 'midiT.range.step':
+                this.midiT.range.step = parseFloat(value); break;
             case 'midiT.same.same':
                 this.midiT.same.same = parseFloat(value); break;
             case 'midiT.same.up':
@@ -142,8 +153,14 @@ export default class SFRG extends CMG {
             case 'midiT.down.down':
                 this.midiT.down.down = parseFloat(value); break;
 
-            case 'speedT.currentValue':
-                this.speedT.currentValue = parseFloat(value); break;
+            case 'speedT.startValue':
+                this.speedT.startValue = parseFloat(value); break;
+            case 'speedT.range.lo':
+                this.speedT.range.lo = parseFloat(value); break;
+            case 'speedT.range.hi':
+                this.speedT.range.hi = parseFloat(value); break;
+            case 'speedT.range.step':
+                this.speedT.range.step = parseFloat(value); break;
             case 'speedT.same.same':
                 this.speedT.same.same = parseFloat(value); break;
             case 'speedT.same.up':
@@ -163,9 +180,15 @@ export default class SFRG extends CMG {
             case 'speedT.down.down':
                 this.speedT.down.down = parseFloat(value); break;
 
-                case 'volumeT.currentValue':
-                    this.volumeT.currentValue = parseFloat(value); break;
-                case 'volumeT.same.same':
+            case 'volumeT.startValue':
+                this.volumeT.startValue = parseFloat(value); break;
+            case 'volumeT.range.lo':
+                this.volumeT.range.lo = parseFloat(value); break;
+            case 'volumeT.range.hi':
+                this.volumeT.range.hi = parseFloat(value); break;
+            case 'volumeT.range.step':
+                this.volumeT.range.step = parseFloat(value); break;
+            case 'volumeT.same.same':
                 this.volumeT.same.same = parseFloat(value); break;
             case 'volumeT.same.up':
                 this.volumeT.same.up = parseFloat(value); break;
@@ -184,9 +207,15 @@ export default class SFRG extends CMG {
             case 'volumeT.down.down':
                 this.volumeT.down.down = parseFloat(value); break;
 
-                case 'panT.currentValue':
-                    this.panT.currentValue = parseFloat(value); break;
-                case 'panT.same.same':
+            case 'panT.startValue':
+                this.panT.startValue = parseFloat(value); break;
+            case 'panT.range.lo':
+                this.panT.range.lo = parseFloat(value); break;
+            case 'panT.range.hi':
+                this.panT.range.hi = parseFloat(value); break;
+            case 'panT.range.step':
+                this.panT.range.step = parseFloat(value); break;
+            case 'panT.same.same':
                 this.panT.same.same = parseFloat(value); break;
             case 'panT.same.up':
                 this.panT.same.up = parseFloat(value); break;
@@ -204,7 +233,6 @@ export default class SFRG extends CMG {
                 this.panT.down.up = parseFloat(value); break;
             case 'panT.down.down':
                 this.panT.down.down = parseFloat(value); break;
-
         }
 
     }
@@ -245,17 +273,17 @@ export default class SFRG extends CMG {
             return newState;
 
         }
-        function getNewValue(currentValue: number, increment: number, limits: AttributeRange, state: MARKOVSTATE): number {
+        function getNewValue(currentValue: number, limits: AttributeRange, state: MARKOVSTATE): number {
             let newValue = currentValue;
             switch (state) {
                 case MARKOVSTATE.same:
                     break;
                 case MARKOVSTATE.up:
-                    newValue += increment;
+                    newValue += limits.step;
                     newValue = Math.min(newValue, limits.hi);
                     break;
                 case MARKOVSTATE.down:
-                    newValue -= increment;
+                    newValue -= limits.step;
                     newValue = Math.max(newValue, limits.lo);
                     break;
                 default:
@@ -265,14 +293,14 @@ export default class SFRG extends CMG {
         }
 
         this.midiT.currentState = changeState(this.midiT);
-        this.midiT.currentValue = getNewValue(this.midiT.currentValue, 1, this.midiT.range, this.midiT.currentState);
-        console.log('midiT state', this.midiT.currentState,'value',this.midiT.currentValue);
+        this.midiT.currentValue = getNewValue(this.midiT.currentValue, this.midiT.range, this.midiT.currentState);
+        console.log('midiT state', this.midiT.currentState, 'value', this.midiT.currentValue);
         this.speedT.currentState = changeState(this.speedT);
-        this.speedT.currentValue = getNewValue(this.speedT.currentValue, 10, this.speedT.range, this.speedT.currentState);
+        this.speedT.currentValue = getNewValue(this.speedT.currentValue, this.speedT.range, this.speedT.currentState);
         this.volumeT.currentState = changeState(this.volumeT);
-        this.volumeT.currentValue = getNewValue(this.volumeT.currentValue, 10, this.volumeT.range, this.volumeT.currentState);
+        this.volumeT.currentValue = getNewValue(this.volumeT.currentValue, this.volumeT.range, this.volumeT.currentState);
         this.panT.currentState = changeState(this.panT);
-        this.panT.currentValue = getNewValue(this.panT.currentValue, 0.1, this.panT.range, this.panT.currentState);
+        this.panT.currentValue = getNewValue(this.panT.currentValue, this.panT.range, this.panT.currentState);
         return {
             midi: this.midiT.currentValue,
             speed: this.speedT.currentValue,
@@ -300,10 +328,11 @@ export default class SFRG extends CMG {
 
         function addTransitionAttributes(name: string, transition: RandomSFTransitons): HTMLElement {
             const tElement: HTMLElement = doc.createElement(name);
-            tElement.setAttribute('currentValue', transition.currentValue.toString())
+            tElement.setAttribute('startValue', transition.startValue.toString())
             const range: HTMLElement = doc.createElement('range');
             range.setAttribute('lo', transition.range.lo.toString());
             range.setAttribute('hi', transition.range.hi.toString());
+            range.setAttribute('step', transition.range.step.toString());
             const same: HTMLElement = doc.createElement('same');
             same.setAttribute('same', transition.same.same.toString());
             same.setAttribute('up', transition.same.up.toString());
@@ -346,13 +375,13 @@ export default class SFRG extends CMG {
 
         const { midiT, speedT, volumeT, panT } = getTransitions(midiTChildren, speedTChildren, volumeTChildren, panTChildren);
         this.midiT = midiT
-        this.midiT.currentValue = getAttributeValue(midiTElem, 'currentValue', 'float') as number;
+        this.midiT.startValue = getAttributeValue(midiTElem, 'startValue', 'float') as number;
         this.speedT = speedT;
-        this.speedT.currentValue = getAttributeValue(speedTElem, 'currentValue', 'float') as number;
+        this.speedT.startValue = getAttributeValue(speedTElem, 'startValue', 'float') as number;
         this.volumeT = volumeT;
-        this.volumeT.currentValue = getAttributeValue(volumeTElem, 'currentValue', 'float') as number;
+        this.volumeT.startValue = getAttributeValue(volumeTElem, 'startValue', 'float') as number;
         this.panT = panT;
-        this.panT.currentValue = getAttributeValue(panTElem, 'currentValue', 'float') as number;
+        this.panT.startValue = getAttributeValue(panTElem, 'startValue', 'float') as number;
 
 
         function getTransitions(
@@ -361,7 +390,8 @@ export default class SFRG extends CMG {
             const midiT: RandomSFTransitons = {
                 currentState: MARKOVSTATE.same,
                 currentValue: 0,
-                range: { lo: 0, hi: 0 },
+                startValue: 0,
+                range: { lo: 0, hi: 0, step: 0 },
                 same: { same: 1.0, up: 0.0, down: 0.0 },
                 up: { same: 1.0, up: 0.0, down: 0.0 },
                 down: { same: 1.0, up: 0.0, down: 0.0 },
@@ -369,7 +399,8 @@ export default class SFRG extends CMG {
             const speedT: RandomSFTransitons = {
                 currentState: MARKOVSTATE.same,
                 currentValue: 0,
-                range: { lo: 0, hi: 0 },
+                startValue: 0,
+                range: { lo: 0, hi: 0, step: 0 },
                 same: { same: 1.0, up: 0.0, down: 0.0 },
                 up: { same: 1.0, up: 0.0, down: 0.0 },
                 down: { same: 1.0, up: 0.0, down: 0.0 },
@@ -377,7 +408,8 @@ export default class SFRG extends CMG {
             const volumeT: RandomSFTransitons = {
                 currentState: MARKOVSTATE.same,
                 currentValue: 0,
-                range: { lo: 0, hi: 0 },
+                startValue: 0,
+                range: { lo: 0, hi: 0, step: 0 },
                 same: { same: 1.0, up: 0.0, down: 0.0 },
                 up: { same: 1.0, up: 0.0, down: 0.0 },
                 down: { same: 1.0, up: 0.0, down: 0.0 },
@@ -385,7 +417,8 @@ export default class SFRG extends CMG {
             const panT: RandomSFTransitons = {
                 currentState: MARKOVSTATE.same,
                 currentValue: 0,
-                range: { lo: 0, hi: 0 },
+                startValue: 0,
+                range: { lo: 0, hi: 0, step:0 },
                 same: { same: 1.0, up: 0.0, down: 0.0 },
                 up: { same: 1.0, up: 0.0, down: 0.0 },
                 down: { same: 1.0, up: 0.0, down: 0.0 },
@@ -393,7 +426,8 @@ export default class SFRG extends CMG {
             function getRangeValues(child: Element): AttributeRange {
                 const lo: number = getAttributeValue(child, 'lo', 'float') as number;
                 const hi: number = getAttributeValue(child, 'hi', 'float') as number;
-                return ({ lo, hi });
+                const step: number = getAttributeValue(child, 'step', 'float') as number;
+                return ({ lo, hi, step });
             }
             function getTransitionValues(child: Element): MarkovProbabilities {
                 const same: number = getAttributeValue(child, 'same', 'float') as number;
@@ -405,9 +439,10 @@ export default class SFRG extends CMG {
                 const child = midiTChildren[i];
                 switch (child.tagName) {
                     case 'range':
-                        const { lo, hi } = getRangeValues(child)
+                        const { lo, hi, step } = getRangeValues(child)
                         midiT.range.lo = lo;
                         midiT.range.hi = hi;
+                        midiT.range.step = step;
                         break;
                     case 'same': {
                         const { same, up, down } = getTransitionValues(child)
@@ -436,9 +471,10 @@ export default class SFRG extends CMG {
                 const child = speedTChildren[i];
                 switch (child.tagName) {
                     case 'range':
-                        const { lo, hi } = getRangeValues(child)
+                        const { lo, hi, step } = getRangeValues(child)
                         speedT.range.lo = lo;
                         speedT.range.hi = hi;
+                        speedT.range.step = step;
                         break;
                     case 'same': {
                         const { same, up, down } = getTransitionValues(child)
@@ -467,9 +503,10 @@ export default class SFRG extends CMG {
                 const child = volumeTChildren[i];
                 switch (child.tagName) {
                     case 'range':
-                        const { lo, hi } = getRangeValues(child)
+                        const { lo, hi, step } = getRangeValues(child)
                         volumeT.range.lo = lo;
                         volumeT.range.hi = hi;
+                        volumeT.range.step = step;
                         break;
                     case 'same': {
                         const { same, up, down } = getTransitionValues(child)
@@ -498,9 +535,10 @@ export default class SFRG extends CMG {
                 const child = panTChildren[i];
                 switch (child.tagName) {
                     case 'range':
-                        const { lo, hi } = getRangeValues(child)
+                        const { lo, hi, step } = getRangeValues(child)
                         panT.range.lo = lo;
                         panT.range.hi = hi;
+                        panT.range.step = step;
                         break;
                     case 'same': {
                         const { same, up, down } = getTransitionValues(child)

@@ -10,6 +10,8 @@ export interface SFPGDialogProps {
     formData: SFPG,
     handleChange: (event: ChangeEvent<HTMLElement>) => void,
 }
+const INPUTSIZE: number = 6;
+
 export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
     const { formData, handleChange } = props;
     const { presets } = useCMGContext();
@@ -38,11 +40,11 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
                         )
                     })}
             </select>
-            <br />
             <label htmlFor="midi">Midi Number:</label>
             <input name="midi"
+                size={INPUTSIZE}
                 type='number'
-                step='0.01'
+                min={0} max={255} step={1}
                 onChange={handleChange}
                 value={formData.midi}
             />
@@ -60,26 +62,26 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
                         )
                 })}
             </select>
-            <br />
             <label htmlFor="FMAmplitude">FMAmplitude:</label>
             <input name="FMAmplitude"
                 type='number'
+                min={0} max={255} size={1}
                 onChange={handleChange}
                 value={formData.FMAmplitude}
             />
             <span> (midi)</span>
-            <br />
             <label htmlFor="FMFrequency">FMFrequency:</label>
             <input name="FMFrequency"
                 type='number'
+                min={0} max={1000000} step={1}
                 onChange={handleChange}
                 value={formData.FMFrequency}
             />
             <span> (milliHz)</span>
-            <br />
             <label htmlFor="FMPhase">FMPhase:</label>
             <input name="FMPhase"
                 type='number'
+                min={-360} max={360} step={1}
                 onChange={handleChange}
                 value={formData.FMPhase}
             />
@@ -98,34 +100,34 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
                         )
                 })}
             </select>
-            <br />
             <label htmlFor="VMCenter">VMCenter:</label>
             <input name="VMCenter"
                 type='number'
+                min={0} max={100} step={1}
                 onChange={handleChange}
                 value={formData.VMCenter}
             />
             <span> (%)</span>
-            <br />
             <label htmlFor="VMAmplitude">VMAmplitude:</label>
             <input name="VMAmplitude"
                 type='number'
+                min={0} max={100} step={1}
                 onChange={handleChange}
                 value={formData.VMAmplitude}
             />
             <span> (%)</span>
-            <br />
             <label htmlFor="VMFrequency">VMFrequency:</label>
             <input name="VMFrequency"
                 type='number'
+                min={0} max={1000000} step={1}
                 onChange={handleChange}
                 value={formData.VMFrequency}
             />
             <span> (milliHz)</span>
-            <br />
             <label htmlFor="VMPhase">VMPhase:</label>
             <input name="VMPhase"
                 type='number'
+                min={-360} max={360} step={1}
                 onChange={handleChange}
                 value={formData.VMPhase}
             />
@@ -143,18 +145,14 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
                         )
                 })}
             </select>
-            <br />
             <label htmlFor="PMCenter">PMCenter:</label>
             <input name="PMCenter"
                 type='number'
+                min={-1} max={1} step={.1}
                 onChange={handleChange}
                 value={formData.PMCenter}
-                min={-1.0}
-                max={1.0}
-                step={0.1}
             />
             <span> (-1 to +1)</span>
-            <br />
             <label htmlFor="PMAmplitude">PMAmplitude:</label>
             <input name="PMAmplitude"
                 type='number'
@@ -165,18 +163,18 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
                 step={0.1}
             />
             <span> (0 to 1)</span>
-            <br />
             <label htmlFor="PMFrequency">PMFrequency:</label>
             <input name="PMFrequency"
                 type='number'
+                min={0} max={1000000} step={1}
                 onChange={handleChange}
                 value={formData.PMFrequency}
             />
             <span> (milliHz)</span>
-            <br />
             <label htmlFor="PMPhase">PMPhase:</label>
             <input name="PMPhase"
                 type='number'
+                min={-360} max={360} step={1}
                 onChange={handleChange}
                 value={formData.PMPhase}
             />
@@ -188,7 +186,7 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
 export function validateSFPGValues(values: SFPG, presets: Preset[]): string[] {
     const result: string[] = [];
 
-    if (!values.presetName) 
+    if (!values.presetName)
         result.push('PresetName must be specified')
     if (values.midi < 0 || values.midi > 127)
         result.push('Midi number must be between 0 and 127')

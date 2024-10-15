@@ -1,44 +1,51 @@
-import { Box, Modal, Typography } from '@mui/material';
-import Button from '@mui/material/Button';
 import { useState } from "react";
 import CMG from '../../classes/cmg';
 import CMGFile from '../../classes/cmgfile';
+import Noise from '../../classes/noise';
 import SFPG from '../../classes/sfpg';
 import SFRG from '../../classes/sfrg';
 import Track from '../../classes/track';
 import { useCMGContext } from '../../contexts/cmgcontext';
 import { Preset } from '../../types/soundfonttypes';
-import { ModalStyle } from '../../types/types';
 import { newFile, setDirty } from '../../utils/cmfiletransactions';
 import { getAttributeValue, getDocElement, getElementElement } from '../../utils/xmlfunctions';
-import Noise from '../../classes/noise';
 
 export default function FileMenu() {
   const { fileContents, setFileContents, setMessage, setStatus, setFileName } = useCMGContext();
-  const [openFileNew, setOpenFileNew] = useState<boolean>(false);
-  
+  const [open, setOpen] = useState<string>('');
+
   function handleFileNew() {
     if (fileContents.dirty)
-      setOpenFileNew(true);
+      setOpen('new');
     else {
       const contents: CMGFile = new CMGFile();
-      newFile (contents, setFileContents);
+      newFile(contents, setFileContents);
+      setFileName('');
       setStatus('New file started');
     }
   }
-  function handleFileNewCancel() {
-    setOpenFileNew(false);
+  function handleCancel() {
+    setOpen('');
   }
 
-  function handleFileNewOK() {
-    const contents = new CMGFile();
-    newFile(contents, setFileContents);
-    setOpenFileNew(false);
-    setStatus('New file started');
+  function handleOK() {
+    if (open == 'new') {
+      const contents = new CMGFile();
+      newFile(contents, setFileContents);
+      setOpen('');
+      setFileName('');
+      setStatus('New file started');
+    } else {
+      readFileContents();
+    }
   }
 
   function handleOpenClick() {
-    readFileContents();
+    if (fileContents.dirty)
+      setOpen('open');
+    else {
+      readFileContents();
+    }
   }
   function handleFileSave() {
     saveFileContents();
@@ -50,32 +57,30 @@ export default function FileMenu() {
       <button onClick={handleOpenClick}>Open File ...</button>
       <button onClick={handleFileSave}>Save File ...</button>
 
-      <Modal
-        id='filenew'
-        open={openFileNew}
-        onClose={handleFileNewCancel}
+      <div
+        style={{ display: open == '' ? 'none' : 'block' }}
+        className='modal-content'
       >
-        <Box sx={ModalStyle}>
-          <Typography>
+        <div className='modal-header'>
+          <span className='close'>&times;</span>
+          <h2>Confirm {open} file</h2>
+        </div>
+        <div className="modal-body">
+          <p>
             The current file has not been saved.
-            Do you wish to delete its contents withut saving?
-          </Typography>
-          <Button
-            variant='outlined'
-            onClick={handleFileNewOK}
-          >
-            OK
-          </Button>
-          <Button
-            variant='outlined'
-            onClick={handleFileNewCancel}
-          >
-            Cancel
-          </Button>
-
-        </Box>
-      </Modal>
-
+            Do you wish to delete its contents without saving?
+          </p>
+        </div>
+        <div className='modal-footer'>
+          <button
+            id={"file-delete:" + fileContents.name}
+            onClick={handleOK}
+          >OK</button>
+          <button
+            onClick={handleCancel}
+          >Cancel</button>
+        </div>
+      </div>
     </>
   );
   function saveFileContents() {
@@ -102,12 +107,12 @@ export default function FileMenu() {
 
               break;
             case 'SFRG':
-              (g as SFRG).appendXML(doc,genElement);
+              (g as SFRG).appendXML(doc, genElement);
               // (g as SFRG).appendXML(doc, genElement);
               break;
-              case 'Noise':
-                (g as Noise).appendXML(doc,genElement);
-                break;
+            case 'Noise':
+              (g as Noise).appendXML(doc, genElement);
+              break;
             default:
               break;
           }
@@ -220,12 +225,12 @@ export default function FileMenu() {
                           }
                           track.generators.push(gen);
                           break;
-                          case 'Noise':
-                            gen = new Noise(0);
-                            gen.getXML(xmlDoc, gchild);
-                            track.generators.push(gen);
-                            break;
-                          default:
+                        case 'Noise':
+                          gen = new Noise(0);
+                          gen.getXML(xmlDoc, gchild);
+                          track.generators.push(gen);
+                          break;
+                        default:
                           break;
                       }
                     }

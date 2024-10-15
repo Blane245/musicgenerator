@@ -8,11 +8,11 @@
 import { MouseEvent, useEffect, useState } from "react";
 import CMGenerator from "../../classes/cmg";
 import Track from "../../classes/track";
-import { SECONDSNAPUNIT, TimeLineScales } from "../../types/types";
-import GeneratorDialog from "../dialogs/generatordialog";
-import { Generate } from '../generation/generate';
+import Generate from "../../components/generation/generate";
 import { useCMGContext } from "../../contexts/cmgcontext";
+import { SECONDSNAPUNIT, TimeLineScales } from "../../types/types";
 import { flipGeneratorMute, moveGeneratorBodyPosition, moveGeneratorTime, moveGenertorBodyTime } from "../../utils/cmfiletransactions";
+import GeneratorDialog from "../dialogs/generatordialog";
 
 export interface GeneratorIconProps {
     track: Track,
@@ -23,7 +23,7 @@ type GeneratorBox = {
 }
 export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
     const { track, element } = props;
-    const { fileContents, setFileContents, timeLine, setMessage, setStatus } = useCMGContext();
+    const { setFileContents, timeLine, setStatus } = useCMGContext();
     const [generatorIndex, setGeneratorIndex] = useState<number>(-1);
     const [cursorStyle, setCursorStyle] = useState<string>('cursor-default');
     const [moveMode, setMoveMode] = useState<string>('');
@@ -33,6 +33,8 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
     const [mouseDown, setMouseDown] = useState<{ x: number, y: number }>({ x: 0, y: 0 });
     const [generatorBoxes, setGeneratorBoxes] = useState<GeneratorBox[]>([]);
     const [openDialog, setOpenDialog] = useState<boolean>(false);
+    const [preview, setPreview] = useState<CMGenerator | null>(null);
+    const [mode, setMode] = useState<string>('');
 
     // TODO revise as snapping is implemented
     const snapTimeResolution = SECONDSNAPUNIT.Deciseconds;
@@ -77,6 +79,11 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
         });
     }, [track.generators, timeLine, element]);
     // }, [fileContents]);
+
+    useEffect(() => {
+        if (mode == '')
+            setPreview(null)
+    },[mode]);
 
     function handleBodyMouseDown(event: MouseEvent<HTMLOrSVGElement>, index: number) {
         event.preventDefault();
@@ -176,12 +183,9 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
     }
 
     function previewGenerator(index: number) {
-        const newErrors: string[] = Generate(fileContents, setStatus, 'previewgenerator', generatorBoxes[index].generator, null);
-
-        if (newErrors.length != 0) {
-            setMessage({ error: true, text: newErrors[0] })
-        }
-        setStatus('audio file previewed');
+        setMode('previewgenerator');
+        setPreview(generatorBoxes[index].generator);
+        setStatus('audio file being previewed');
 
     }
     return (
@@ -300,10 +304,17 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
                     setOpen={setOpenDialog}
                 />
                 : null}
+                {preview?
+                <Generate
+                mode={mode}
+                setMode={setMode}
+                generator={preview}
+                />
+            : null}
         </>
     )
 
-    // index points to the selected genertor box
+    // index points to the selected generator box
     // track is the active track element
     // the svg parent has id track.name.concat(': Generators') and contrains the up and down movement
     // the timeline object defines the time boundaries and constrains tht left and right movement

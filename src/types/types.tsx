@@ -193,7 +193,8 @@ export enum MARKOVSTATE {
 
 export type AttributeRange = {
     lo: number,
-    hi: number
+    hi: number,
+    step: number,
 }
 
 export type KeyedType<T> = {
@@ -207,6 +208,7 @@ export type MarkovProbabilities = {
 export type RandomSFTransitons = {
     currentState: MARKOVSTATE,
     currentValue: number,
+    startValue: number,
     range: AttributeRange,
     same: MarkovProbabilities,
     up: MarkovProbabilities,

@@ -1,15 +1,11 @@
-import CMGFile from '../../classes/cmgfile'
-import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
-import { loadSoundFont } from '../../utils/loadsoundfont';
-import { VolumeControl } from "./audioplayerdisplay/volumecontrol";
-import { BsFillFastForwardFill, BsFillPauseFill, BsFillPlayFill, BsFillRewindFill } from "react-icons/bs";
-import { ProgressBar } from './audioplayerdisplay/progressbar';
-import TimeLineDisplay from './timelinedisplay';
-import { Generate } from '../generation/generate';
+import Track from 'classes/track';
+import { ChangeEvent, useEffect, useState } from "react";
+import { CMGeneratorType } from 'types/types';
+import Generate from "../../components/generation/generate";
 import { useCMGContext } from '../../contexts/cmgcontext';
 import { setSoundFont } from '../../utils/cmfiletransactions';
-import Track from 'classes/track';
-import { CMGeneratorType } from 'types/types';
+import { loadSoundFont } from '../../utils/loadsoundfont';
+import TimeLineDisplay from './timelinedisplay';
 
 // display of the CGM file, its contents, and controls
 // main controls
@@ -17,14 +13,15 @@ import { CMGeneratorType } from 'types/types';
 // time line
 
 export default function ControlsDisplay() {
-    const { fileContents, setFileContents, setStatus } = 
-    useCMGContext();
+    const { fileContents, setFileContents, setStatus } =
+        useCMGContext();
 
     const [SFfiles, setSFFiles] = useState<string[]>([]);
     const [SFFileName, setSFFileName] = useState<string>('');
     const [errors, setErrors] = useState<string[]>([]);
     const [showError, setShowError] = useState<boolean>(false);
     const [readyGenerate, setReadyGenerate] = useState<boolean>(true);
+    const [mode, setMode] = useState<string>('');
 
     // load the soundfont file list at start up
     useEffect(() => {
@@ -38,7 +35,7 @@ export default function ControlsDisplay() {
     useEffect(() => {
         if (fileContents)
             setSFFileName(fileContents.SFFileName);
-    },[fileContents]);
+    }, [fileContents]);
 
     // control the generate button
     // only enabled when a soundfont file is defined and all generators have presets and midi numbers assigned
@@ -52,10 +49,13 @@ export default function ControlsDisplay() {
             return;
         }
         let goodGeneratorCount: number = 0;
-        fileContents.tracks.forEach((t:Track) => {
+        fileContents.tracks.forEach((t: Track) => {
             t.generators.forEach((g: CMGeneratorType) => {
-                if (g.type != 'CMG' && g.presetName != '' && g.preset && g.midi >= 0 && g.midi <= 255) {
-                    goodGeneratorCount++;
+                if (g.type != 'CMG') {
+                    if (((g.type == 'SFPG' || g.type == 'SFRG') && g.presetName != '' && g.preset && g.midi >= 0 && g.midi <= 255) ||
+                        g.type == 'Noise') {
+                        goodGeneratorCount++;
+                    }
                 }
             })
         })
@@ -79,104 +79,6 @@ export default function ControlsDisplay() {
         }
     }
 
-    // const {
-    //     currentTrack,
-    //     audioRef,
-    //     setDuration,
-    //     duration,
-    //     setTimeProgress,
-    //     setCurrentTrack,
-    //     progressBarRef,
-    //     isPlaying,
-    //     setIsPlaying,
-    // } = useCMGContext();
-    // const playAnimationRef = useRef<number | null>(null);
-    // useEffect(() => {
-    //     setCurrentTrack("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3");
-    // }, [])
-
-    // const updateProgress = useCallback(() => {
-    //     if (audioRef.current && progressBarRef.current && duration) {
-    //         const currentTime = audioRef.current.currentTime;
-    //         setTimeProgress(currentTime);
-
-    //         progressBarRef.current.value = currentTime.toString();
-    //         progressBarRef.current.style.setProperty(
-    //             '--range-progress',
-    //             `${(currentTime / duration) * 100}%`
-    //         );
-    //     }
-    // }, [duration, setTimeProgress, audioRef, progressBarRef]);
-
-    // const startAnimation = useCallback(() => {
-    //     if (audioRef.current && progressBarRef.current && duration) {
-    //         const animate = () => {
-    //             updateProgress();
-    //             playAnimationRef.current = requestAnimationFrame(animate);
-    //         };
-    //         playAnimationRef.current = requestAnimationFrame(animate);
-    //     }
-    // }, [updateProgress, duration, audioRef, progressBarRef]);
-
-    // useEffect(() => {
-    //     if (isPlaying) {
-    //         audioRef.current?.play();
-    //         startAnimation();
-    //     } else {
-    //         audioRef.current?.pause();
-    //         if (playAnimationRef.current !== null) {
-    //             cancelAnimationFrame(playAnimationRef.current);
-    //             playAnimationRef.current = null;
-    //         }
-    //         updateProgress(); // Ensure progress is updated immediately when paused
-    //     }
-
-    //     return () => {
-    //         if (playAnimationRef.current !== null) {
-    //             cancelAnimationFrame(playAnimationRef.current);
-    //         }
-    //     };
-    // }, [isPlaying, startAnimation, updateProgress, audioRef]);
-
-    // const onLoadedMetadata = () => {
-    //     const seconds = audioRef.current?.duration;
-    //     if (seconds !== undefined) {
-    //         setDuration(seconds);
-    //         if (progressBarRef.current) {
-    //             progressBarRef.current.max = seconds.toString();
-    //         }
-    //     }
-    // };
-
-    // const skipForward = () => {
-    //     if (audioRef.current) {
-    //         audioRef.current.currentTime += 15;
-    //         updateProgress();
-    //     }
-    // };
-
-    // const skipBackward = () => {
-    //     if (audioRef.current) {
-    //         audioRef.current.currentTime -= 15;
-    //         updateProgress();
-    //     }
-    // };
-
-    const handleGenerate = async () => {
-        const recordHandle = await window.showSaveFilePicker();
-        const newErrors:string[] = Generate(fileContents, setStatus, 'recordfile', null, recordHandle);
-
-        if (newErrors.length != 0) {
-            setErrors(newErrors);
-            setShowError(true);
-        }
-        // setStatus(`audio file generated. File name is '${recordHandle.name}' in the directory of your choosing.`);
-    }
-
-    const handlePreview = () => {
-        const newErrors: string = Generate(fileContents, setStatus, 'previewfile', null, null )
-    }
-
     const handleErrorsClose = () => {
         setShowError(false);
     }
@@ -196,39 +98,17 @@ export default function ControlsDisplay() {
                     ))}
                 </select>
                 <button
-                disabled={!readyGenerate}
-                    onClick={handleGenerate}>
-                    Generate
+                    disabled={!readyGenerate}
+                    onClick={() => setMode('recordfile')}>
+                    Record
                 </button>
                 <button
-                disabled={!readyGenerate}
-                    onClick={handlePreview}>
+                    disabled={!readyGenerate}
+                    onClick={() => setMode('previewfile')}>
                     Preview
                 </button>
-                {/* <audio
-                    src={currentTrack}
-                    ref={audioRef}
-                    onLoadedMetadata={onLoadedMetadata} />
-                <button onClick={skipBackward}
-                >
-                    <BsFillRewindFill size={20} />
-                </button>
-                <button onClick={() => setIsPlaying((prev) => !prev)}
-                >
-                    {isPlaying ? (
-                        <BsFillPauseFill size={20} />
-                    ) : (
-                        <BsFillPlayFill size={20} />
-                    )}
-                </button>
-                <button onClick={skipForward}
-                >
-                    <BsFillFastForwardFill size={20} />
-                </button>
-                <ProgressBar />
-                <VolumeControl /> */}
             </div>
-            <TimeLineDisplay            />
+            <TimeLineDisplay />
             <div
                 style={{ display: showError ? "block" : "none" }}
                 className="modal-content"
@@ -249,7 +129,15 @@ export default function ControlsDisplay() {
                     >OK</button>
                 </div>
             </div>
-            
+            {/* the generator ... */}
+            {mode != '' ?
+                <Generate
+                    mode={mode}
+                    setMode={setMode}
+                    generator={null}
+                />
+                : null}
+
         </>
     )
 }

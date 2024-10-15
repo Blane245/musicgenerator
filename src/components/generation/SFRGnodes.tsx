@@ -8,24 +8,30 @@ import { getSFGeneratorValues } from "../../utils/soundfont2utils";
 
 // the node's midi, volume, and pan values is plugged in from their respective chains 
 export function getBufferSourceNodesFromSFRG(
-    context: AudioContext, destination: AudioDestinationNode | MediaStreamAudioDestinationNode, CMgenerator: SFRG
+    context: AudioContext, destination: AudioDestinationNode | MediaStreamAudioDestinationNode, gen: SFRG
 ): 
 { sources: AudioBufferSourceNode[], times: { start: number, stop: number }[] } {
 
     // get the instrument zone for generator's preset
-    if (!CMgenerator.preset)
-        throw new Error(`Preset '${CMgenerator.presetName}' has not been initialized.`)
-    const zones: InstrumentZone[] = CMgenerator.preset.zones[0].instrument.zones;
+    if (!gen.preset)
+        throw new Error(`Preset '${gen.presetName}' has not been initialized.`)
+    const zones: InstrumentZone[] = gen.preset.zones[0].instrument.zones;
     if (zones.length == 0)
-        throw new Error(`Preset '${CMgenerator.presetName}' instrument zones no not exist.`)
+        throw new Error(`Preset '${gen.presetName}' instrument zones no not exist.`)
 
     // the generator has a start and end time
-    const { startTime, stopTime } = CMgenerator;
+    const { startTime, stopTime } = gen;
     let currentTime: number = startTime;
     const sources: AudioBufferSourceNode[] = [];
     const times: { start: number, stop: number }[] = [];
+
+    // initialize the current values of the generator
+    gen.midiT.currentValue = gen.midi;
+    gen.speedT.currentValue = gen.speedT.startValue;
+    gen.volumeT.currentValue = gen.volumeT.startValue;
+    gen.panT.currentValue = gen.panT.startValue;
     while (currentTime < stopTime) {
-        const { midi, speed, volume, pan } = CMgenerator.getCurrentValue();
+        const { midi, speed, volume, pan } = gen.getCurrentValue();
 
         // deterime how long this note will play from the new speed and set its start and stop times
         const timeStep = 60.0 / speed;
@@ -43,7 +49,7 @@ export function getBufferSourceNodesFromSFRG(
 
         // get the soundfont generator values
         const generatorValues: Map<number, number> =
-            getSFGeneratorValues(CMgenerator.preset, currentZone);
+            getSFGeneratorValues(gen.preset, currentZone);
         // apply adjustments
         const startloopAddrsOffset: number | undefined = generatorValues.get(2);
         const endloopAddrsOffset: number | undefined = generatorValues.get(3);

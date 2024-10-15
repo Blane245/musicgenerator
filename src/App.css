@@ -222,12 +222,12 @@
 .generator-content {
   position: absolute;
   top: 50px;
-  left: 300px;
+  left: 100px;
   background-color: #fefefe;
   margin: auto;
   padding: 0;
   border: 1px solid #888;
-  width: 50%;
+  width: 80%;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   animation-name: animateleft;
   animation-duration: 0.4s
@@ -263,6 +263,27 @@
 .transition-header {
   text-align: center;
   stroke:blue;
+}
+
+.progress-container {
+  height: 20;
+  width: 100%;
+  background-color: #e0e0de;
+  border-radius: 50;
+  margin: 50;
+}
+
+.progress-filler {
+  height: 100%;
+  background-color: #00695c;
+  border-radius: inherit;
+  text-align: right;
+}
+
+.progress-labels {
+  padding: 5;
+  color: white;
+  font-weight: bold;
 }
 
 @keyframes animatetop {

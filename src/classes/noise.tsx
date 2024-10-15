@@ -17,17 +17,12 @@ import { triangleModulator } from "../components/modulators/trianglemodulator";
 import { gaussianRandom } from "../utils/gaussianrandom";
 import { getAttributeValue } from "../utils/xmlfunctions";
 
-// unsure about volume and pan. randon values
-// seem inapprpriate. maybe use the modulators from SFPG
-
 const SAMPLERATE: number = 20000;
-const SAMPLELEVEL: number = 100;
 export default class Noise extends CMG {
     noiseType: string;
     mean: number; // center frequency for gaussian noise (Hz)
-    std: number; // gaussian noise standard devision (Hz)
+    std: number; // gaussian signal level noise standard devision (amplitude)
     sampleRate: number;
-    sampleLevel: number;
     VMType: string;
     VMCenter: number; // 0 100
     VMFrequency: number; // hz
@@ -44,9 +39,8 @@ export default class Noise extends CMG {
         this.type = 'Noise';
         this.noiseType = NOISETYPE.white;
         this.mean = 440;
-        this.std = 100;
+        this.std = 0;
         this.sampleRate = SAMPLERATE;
-        this.sampleLevel = SAMPLELEVEL;
         this.VMType = "SINE";
         this.VMCenter = 50;
         this.VMFrequency = 0;
@@ -71,7 +65,6 @@ export default class Noise extends CMG {
         n.noiseType = this.noiseType;
         n.mean = this.mean;
         n.std = this.std;
-        n.sampleLevel = this.sampleLevel;
         n.sampleRate = this.sampleRate;
         n.VMCenter = this.VMCenter;
         n.VMType = this.VMType;
@@ -118,9 +111,6 @@ export default class Noise extends CMG {
             case 'sampleRate':
                 this.sampleRate = parseFloat(value)
                 break;
-            case 'sampleLevel':
-                this.sampleLevel = parseFloat(value)
-                break;
             case 'VMCenter':
                 this.VMCenter = parseFloat(value);
                 break;
@@ -156,18 +146,30 @@ export default class Noise extends CMG {
     }
 
     // return noise for length of time specified 
-    getCurrentValue(time: number): { sample: Float32Array, volume: number, pan: number } {
-        const sampleCount = time * this.sampleRate;
+    getCurrentValue(time: number, timeInterval: number): { sample: Float32Array, volume: number, pan: number } {
+        const sampleCount = timeInterval * this.sampleRate;
+        const timeStep: number = 1 / this.sampleRate;
         const sample: Float32Array = new Float32Array(sampleCount);
         if (this.noiseType == NOISETYPE.white) {
-            // white noise genertor
+            // white noise generator
             for (let i = 0; i < sampleCount; i++) {
-                sample[i] = Math.random() * this.sampleLevel;
+                sample[i] = (Math.random() - 0.5);
             }
         } else if (this.noiseType == NOISETYPE.gaussian) {
             // gaussian noise generator
             for (let i = 0; i < sampleCount; i++) {
-                sample[i] = gaussianRandom(this.mean, this.std) * this.sampleLevel;
+                const noise: number = gaussianRandom(0.0, this.std);
+                const freq = this.mean;
+                const deltaT: number = i * timeStep + time;
+                sample[i] = Math.cos(2.0 * Math.PI * freq * deltaT) + noise;
+                if (i == 0) {
+                // console.log(
+                //     'freq', freq,
+                //     'i', i,
+                //     'deltaT', deltaT,
+                //     'sample[i]', sample[i]
+                // )
+            }
             }
         }
 
@@ -225,7 +227,6 @@ export default class Noise extends CMG {
         elem.setAttribute('mean', this.mean.toString());
         elem.setAttribute('std', this.std.toString());
         elem.setAttribute('sampleRate', this.sampleRate.toString());
-        elem.setAttribute('sampleLevel', this.sampleLevel.toString());
         elem.setAttribute('VMType', this.VMType.toString());
         elem.setAttribute('VMCenter', this.VMCenter.toString());
         elem.setAttribute('VMFrequency', this.VMFrequency.toString());
@@ -250,7 +251,6 @@ export default class Noise extends CMG {
         this.mean = getAttributeValue(elem, 'mean', 'float') as number;
         this.std = getAttributeValue(elem, 'std', 'float') as number;
         this.sampleRate = getAttributeValue(elem, 'sampleRate', 'float') as number;
-        this.sampleLevel = getAttributeValue(elem, 'sampleLevel', 'float') as number;
         this.VMCenter = getAttributeValue(elem, 'VMCenter', 'float') as number;
         this.VMType = getAttributeValue(elem, 'VMType', 'string') as string;
         this.VMAmplitude = getAttributeValue(elem, 'VMAmplitude', 'float') as number;

@@ -13,7 +13,6 @@ import { validateSFRGValues } from "./sfrgdialog";
 import Noise from "../../classes/noise";
 import { validateNoiseValues } from "./noisedialog";
 import { Preset } from "types/soundfonttypes";
-import { bankPresettoName } from "utils/util";
 
 // The icon starts at the generator's start time and ends at the generators endtime
 export interface GeneratorDialogProps {
@@ -26,7 +25,7 @@ export interface GeneratorDialogProps {
 
 export default function GeneratorDialog(props: GeneratorDialogProps) {
     const { track, generatorIndex, setGeneratorIndex, closeTrackGenerator, setOpen } = props;
-    const { setFileContents, setMessage, presets, setStatus } = useCMGContext();
+    const { setFileContents, setMessage, presets } = useCMGContext();
     const [showModal, setShowModal] = useState<boolean>(false);
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
     const [oldName, setOldName] = useState<string>('');
@@ -177,7 +176,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
             case "SFRG": {
                 let newMessages = validateCMGValues(formData);
                 msgs.push(...newMessages);
-                newMessages = validateSFRGValues(formData as SFRG, presets);
+                newMessages = validateSFRGValues(formData as SFRG);
                 msgs.push(...newMessages);
                 if (msgs.length > 0) {
                     setErrorMessages(msgs);
@@ -290,16 +289,14 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                             onChange={handleChange}
                             value={formData.startTime}
                         />
-                        <span> (seconds)</span>
-                        <br />
+                        <span> (seconds) </span>
                         <label htmlFor="stopTime">Stop Time:</label>
                         <input name="stopTime"
                             type='number'
                             onChange={handleChange}
                             value={formData.stopTime}
                         />
-                        <span> (seconds)</span>
-                        <br />
+                        <span> (seconds) </span>
                         <label htmlFor="type">Type:</label>
                         <select name='type'
                             onChange={handleTypeChange}
