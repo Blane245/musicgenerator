@@ -4,6 +4,7 @@
 // the SFPG generatr
 // each node time starts when the last one stops as determined by the spped attribute
 
+import { setRansomSeed } from "../../utils/seededrandom";
 import Noise from "../../classes/noise";
 const CHUNKSIZE: number = 0.1; // seconds
 // the node's midi, volume, and pan values is plugged in from their respective chains 
@@ -22,6 +23,7 @@ export function getBufferSourceNodesFromNoise(
 
     // move the chunk into the audio node
     const chunkCount = Math.ceil((stopTime - startTime) / CHUNKSIZE);
+    setRansomSeed(CMgenerator.seed);
     for (let i = 0; i < chunkCount; i++) {
         const time: number = i * CHUNKSIZE + startTime;
         const { sample, volume, pan } = CMgenerator.getCurrentValue(time, CHUNKSIZE);

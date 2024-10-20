@@ -2,7 +2,7 @@ import { Preset } from "../types/soundfonttypes";
 import { AttributeRange, MarkovProbabilities, MARKOVSTATE, RandomSFTransitons } from "../types/types";
 import CMG from "./cmg";
 import { getAttributeValue, getElementElement } from "../utils/xmlfunctions";
-import numeral from "numeral";
+import { rand, setRansomSeed } from "../utils/seededrandom";
 
 // trying a markov chain for midi and BPM 
 // the model has three states up, down, and same
@@ -19,7 +19,7 @@ export default class SFRG extends CMG {
     presetName: string;
     preset: Preset | undefined;
     midi: number;
-    randomSeed: number;
+    seed: string;
     midiT: RandomSFTransitons; // midi
     speedT: RandomSFTransitons; // BPM
     volumeT: RandomSFTransitons; // %
@@ -31,7 +31,8 @@ export default class SFRG extends CMG {
         this.presetName = '';
         this.preset = undefined;
         this.midi = 0;
-        this.randomSeed = 55; //TODO ineffective as javascript has not way to seed a random number generator
+        this.seed = this.name;
+        setRansomSeed(this.seed);
         this.midiT = {
             currentState: MARKOVSTATE.same,
             currentValue: 0,
@@ -76,6 +77,7 @@ export default class SFRG extends CMG {
         newG.startTime = this.startTime;
         newG.stopTime = this.stopTime;
         newG.type = this.type;
+        newG.seed = this.seed;
         newG.presetName = this.presetName;
         newG.preset = this.preset;
         newG.midi = this.midi;
@@ -120,6 +122,10 @@ export default class SFRG extends CMG {
                 break;
             case 'type':
                 this.type = value;
+                break;
+            case 'seed':
+                this.seed = value;
+                setRansomSeed(this.seed);
                 break;
             case 'presetName':
                 this.presetName = value;
@@ -240,29 +246,29 @@ export default class SFRG extends CMG {
     getCurrentValue(): { midi: number, speed: number, volume: number, pan: number } {
 
         function changeState(attribute: RandomSFTransitons): MARKOVSTATE {
-            const rand: number = Math.random();
+            const x: number = rand();
             let newState: MARKOVSTATE = MARKOVSTATE.same;
             switch (attribute.currentState) {
                 case MARKOVSTATE.same:
-                    if (rand <= attribute.same.same)
+                    if (x <= attribute.same.same)
                         newState = MARKOVSTATE.same;
-                    else if (rand <= attribute.same.same + attribute.same.up)
+                    else if (x <= attribute.same.same + attribute.same.up)
                         newState = MARKOVSTATE.up;
                     else
                         newState = MARKOVSTATE.down;
                     break;
                 case MARKOVSTATE.up:
-                    if (rand <= attribute.up.same)
+                    if (x <= attribute.up.same)
                         newState = MARKOVSTATE.same;
-                    else if (rand <= attribute.up.same + attribute.up.up)
+                    else if (x <= attribute.up.same + attribute.up.up)
                         newState = MARKOVSTATE.up;
                     else
                         newState = MARKOVSTATE.down;
                     break;
                 case MARKOVSTATE.down:
-                    if (rand <= attribute.down.same)
+                    if (x <= attribute.down.same)
                         newState = MARKOVSTATE.same;
-                    else if (rand <= attribute.down.same + attribute.down.up)
+                    else if (x <= attribute.down.same + attribute.down.up)
                         newState = MARKOVSTATE.up;
                     else
                         newState = MARKOVSTATE.down;
@@ -294,7 +300,6 @@ export default class SFRG extends CMG {
 
         this.midiT.currentState = changeState(this.midiT);
         this.midiT.currentValue = getNewValue(this.midiT.currentValue, this.midiT.range, this.midiT.currentState);
-        console.log('midiT state', this.midiT.currentState, 'value', this.midiT.currentValue);
         this.speedT.currentState = changeState(this.speedT);
         this.speedT.currentValue = getNewValue(this.speedT.currentValue, this.speedT.range, this.speedT.currentState);
         this.volumeT.currentState = changeState(this.volumeT);
@@ -318,9 +323,9 @@ export default class SFRG extends CMG {
         elem.setAttribute('mute', this.mute.toString());
         elem.setAttribute('position', this.position.toString());
         elem.setAttribute('type', 'SFRG');
+        elem.setAttribute('seed', this.seed);
         elem.setAttribute('presetName', this.presetName);
         elem.setAttribute('midi', this.midi.toString());
-        elem.setAttribute('randomSeed', this.randomSeed.toString());
         elem.appendChild(addTransitionAttributes('midiT', this.midiT));
         elem.appendChild(addTransitionAttributes('speedT', this.speedT));
         elem.appendChild(addTransitionAttributes('volumeT', this.volumeT));
@@ -362,7 +367,7 @@ export default class SFRG extends CMG {
         this.position = getAttributeValue(elem, 'position', 'int') as number;
         this.type = 'SFRG';
         this.presetName = getAttributeValue(elem, 'presetName', 'string') as string;
-        this.randomSeed = getAttributeValue(elem, 'randomSeed', 'float') as number;
+        this.seed = getAttributeValue(elem, 'seed', 'string') as string;
         this.midi = getAttributeValue(elem, 'midi', 'int') as number;
         const midiTElem: Element = getElementElement(elem, 'midiT');
         const midiTChildren: HTMLCollection = midiTElem.children;

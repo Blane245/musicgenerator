@@ -3,7 +3,7 @@ import SFPG from "../../classes/sfpg";
 import { MODULATOR } from "../../types/types";
 import { bankPresettoName, toNote } from "../../utils/util";
 import { useCMGContext } from "../../contexts/cmgcontext";
-import { Preset, PresetZone } from "../../types/soundfonttypes";
+import { Preset } from "../../types/soundfonttypes";
 
 // provides the form fields and validators for the sfperiodic generator
 export interface SFPGDialogProps {
@@ -183,7 +183,7 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
     )
 }
 
-export function validateSFPGValues(values: SFPG, presets: Preset[]): string[] {
+export function validateSFPGValues(values: SFPG): string[] {
     const result: string[] = [];
 
     if (!values.presetName)

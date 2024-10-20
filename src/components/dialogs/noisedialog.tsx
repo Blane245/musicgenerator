@@ -27,8 +27,7 @@ export default function NoiseDialog(props: SFPGDialogProps): JSX.Element {
                         )
                 })}
             </select>
-            <label>
-                Sample Rate:
+            <label> Sample Rate:
                 <input
                     name="sampleRate"
                     value={formData.sampleRate}
@@ -36,21 +35,27 @@ export default function NoiseDialog(props: SFPGDialogProps): JSX.Element {
                     type='number' min={15000} max={50000} step={1000}
                 /></label>
             <span> (Hz)</span>
+            <label> Random Seed:
+                <input
+                    name="seed"
+                    value={formData.seed}
+                    onChange={handleChange}
+                    type='text'
+                /></label>
+            <span> (Hz)</span>
             {formData.noiseType == NOISETYPE.gaussian ?
                 <>
-                    <label>
-                        Frequency:
+                    <label> Frequency:
                         <input
                             size={INPUTSIZE}
                             name="mean"
                             value={formData.mean}
                             onChange={handleChange}
-                            type='number' min={20} max={20000} step={10}
+                            type='number' min={20} max={20000} step={.01}
                         />
                         <span> (Hz)</span>
                     </label>
-                    <label>
-                        Standard Deviation:
+                    <label> Standard Deviation:
                         <input size={INPUTSIZE}
                             name="std"
                             value={formData.std}
@@ -62,7 +67,7 @@ export default function NoiseDialog(props: SFPGDialogProps): JSX.Element {
                 </>
                 : null}
             <hr />
-            <label htmlFor="VMType">VMType:</label>
+            <label htmlFor="VMType"> VMType:</label>
             <select name="VMType"
                 onChange={handleChange}
                 value={formData.VMType}
@@ -74,21 +79,21 @@ export default function NoiseDialog(props: SFPGDialogProps): JSX.Element {
                         )
                 })}
             </select>
-            <label htmlFor="VMCenter">VMCenter:</label>
+            <label htmlFor="VMCenter"> VMCenter:</label>
             <input name="VMCenter"
                 type='number' min={0} max={100} step={1}
                 onChange={handleChange}
                 value={formData.VMCenter}
             />
             <span> (%)</span>
-            <label htmlFor="VMAmplitude">VMAmplitude:</label>
+            <label htmlFor="VMAmplitude"> VMAmplitude:</label>
             <input name="VMAmplitude"
                 type='number' min={0} max={100} step={1}
                 onChange={handleChange}
                 value={formData.VMAmplitude}
             />
             <span> (%) </span>
-            <label htmlFor="VMFrequency">VMFrequency:</label>
+            <label htmlFor="VMFrequency"> VMFrequency:</label>
             <input name="VMFrequency"
                             size={INPUTSIZE}
                             type='number' min={0} max={20000}
@@ -96,7 +101,7 @@ export default function NoiseDialog(props: SFPGDialogProps): JSX.Element {
                 value={formData.VMFrequency}
             />
             <span> (milliHz) </span>
-            <label htmlFor="VMPhase">VMPhase:</label>
+            <label htmlFor="VMPhase"> VMPhase:</label>
             <input name="VMPhase"
                 type='number' min={-360} max={360} step={1}
                 onChange={handleChange}
@@ -104,7 +109,7 @@ export default function NoiseDialog(props: SFPGDialogProps): JSX.Element {
                 />
             <span> (degrees) </span>
             <hr />
-            <label htmlFor="PMType">PMType:</label>
+            <label htmlFor="PMType"> PMType:</label>
             <select name="PMType"
                 onChange={handleChange}
                 value={formData.PMType}
@@ -116,7 +121,7 @@ export default function NoiseDialog(props: SFPGDialogProps): JSX.Element {
                         )
                 })}
             </select>
-            <label htmlFor="PMCenter">PMCenter:</label>
+            <label htmlFor="PMCenter"> PMCenter:</label>
             <input name="PMCenter"
                 type='number'
                 size={INPUTSIZE}
@@ -127,7 +132,7 @@ export default function NoiseDialog(props: SFPGDialogProps): JSX.Element {
                 step={0.1}
             />
             <span> (-1 to +1) </span>
-            <label htmlFor="PMAmplitude">PMAmplitude:</label>
+            <label htmlFor="PMAmplitude"> PMAmplitude:</label>
             <input name="PMAmplitude"
                 type='number'
                 size={INPUTSIZE}
@@ -138,7 +143,7 @@ export default function NoiseDialog(props: SFPGDialogProps): JSX.Element {
                 step={0.1}
             />
             <span> (0 to 1) </span>
-            <label htmlFor="PMFrequency">PMFrequency:</label>
+            <label htmlFor="PMFrequency"> PMFrequency:</label>
             <input name="PMFrequency"
                 type='number' min={0} max={20000}
                 size={INPUTSIZE}

@@ -30,7 +30,7 @@ export function getBufferSourceNodesFromSFPG(
     // the generator has a start and end time
     const { startTime, stopTime } = CMgenerator;
     // A generator will need a number of #chucks = (stoptime-start)/CHUCKSIZE
-    const chunkCount = Math.trunc(stopTime - startTime) / deltaT;
+    const chunkCount = Math.round((stopTime - startTime) / deltaT);
 
     // loop through each time chunks to get the current pitch, volume, and pan
     // for each chunk and apply them to the chunk
@@ -59,10 +59,10 @@ export function getBufferSourceNodesFromSFPG(
             currentZone = zones[iZone];
             currentSampleIndex = 0;
         }
-        console.log (
-            'iZone', iZone,
-            'currentZone', currentZone, 
-        )
+        // console.log (
+        //     'iZone', iZone,
+        //     'currentZone', currentZone, 
+        // )
         const { sampleRate, start, startLoop, endLoop, pitchCorrection } = currentZone.sample.header;
 
         // each chuck a number of samples depending on the sample rate and the Chunk size
@@ -101,6 +101,7 @@ export function getBufferSourceNodesFromSFPG(
             currentZone.sample.data,
             chunkSize * playbackRate);
         console.log(
+            'chunkCount', chunkCount,
             'iChunk', iChunk,
             'time', time,
             'currentSampleIndex',currentSampleIndex,
@@ -148,12 +149,12 @@ export function getBufferSourceNodesFromSFPG(
 function getNextSample
     (startLoop: number, endLoop: number, sampleData: Int16Array, chunkSize: number): Float32Array {
     let sampleCount = 0;
-    console.log('in getNextSample',
-        'chunkSize', chunkSize,
-         'startLoop', startLoop,
-           'endLoop', endLoop,
-           'sample length', sampleData.length,
-    )
+    // console.log('in getNextSample',
+    //     'chunkSize', chunkSize,
+    //      'startLoop', startLoop,
+    //        'endLoop', endLoop,
+    //        'sample length', sampleData.length,
+    // )
     const floatSample: Float32Array = new Float32Array(chunkSize);
     while (sampleCount < chunkSize) {
         floatSample[sampleCount] =
@@ -165,6 +166,6 @@ function getNextSample
         }
         sampleCount++;
     }
-    console.log(`last sample, ${sampleCount}`);
+    // console.log(`last sample, ${sampleCount}`);
     return floatSample;
 }

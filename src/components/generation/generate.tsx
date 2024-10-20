@@ -26,12 +26,9 @@ export interface GeneratorProps {
 }
 export default function Generate(props: GeneratorProps) {
     const { mode, setMode, generator } = props;
-    const { fileContents, setStatus } = useCMGContext();
-    const playing = useRef<boolean>(false);
-    const [progress, setProgress] = useState<number>(0);
-    // const [playing, setPlaying] = useState<boolean>(false);
+    const { fileContents, setStatus, playing, setTimeProgress } = useCMGContext();
     const [error, setError] = useState<string>('');
-    const [recordHandle, setRecordHandle] = useState<FileSystemFileHandle | null>(null);
+    const recordHandle = useRef<FileSystemFileHandle>();
     const generatorSource: AudioBufferSourceNode[] = [];
     const generatorTime: { start: number, stop: number }[] = [];
     const generatorStarted: boolean[] = [];
@@ -39,25 +36,20 @@ export default function Generate(props: GeneratorProps) {
     useEffect(() => {
         async function filePicker() {
             try {
-                const rh: FileSystemFileHandle[] = await window.showOpenFilePicker();
-                setRecordHandle(rh[0]);
+                const rh: FileSystemFileHandle = await window.showSaveFilePicker();
+                recordHandle.current = rh;
                 doTheWork();
             } catch (e) {
                 // nothing to do here - user aborted recording
             }
         }
+        console.log('mode change:', mode);
         if (mode == 'recordfile') {
             filePicker();
-        } else {
+        } else if (mode != '') {
             doTheWork();
         }
-    }, [mode, generator])
-
-    function handleGeneratorStop() {
-        playing.current = false;
-        // setPlaying(false);
-        setMode('');
-    }
+    }, [mode])
 
     function handleErrorClose() {
         setError('');
@@ -66,44 +58,188 @@ export default function Generate(props: GeneratorProps) {
 
     function doTheWork() {
 
-        // collect all generators on unmuted tracks
         const SFPGenerators: SFPG[] = [];
         const SFRGenerators: SFRG[] = [];
         const NoiseGenerators: Noise[] = [];
         generatorSource.splice(0, generatorSource.length);
         generatorTime.splice(0, generatorTime.length);
         generatorStarted.splice(0, generatorStarted.length);
-
         let playbackLength = 0;
-        if (mode == 'recordfile' || mode == 'previewfile') {
-            fileContents.tracks.forEach((t) => {
-                t.generators.forEach((g: CMG | SFPG | SFRG | Noise) => {
-                    if (g.type == 'SFPG' && !g.mute) {
-                        if (!(g as SFPG).preset) {
-                            setError(`Generator '${g.name}' on track '${t.name}' does not have a preset assigned.`);
-                            return;
-                        }
-                        else {
-                            SFPGenerators.push(g as SFPG);
-                            playbackLength = Math.max(playbackLength, g.stopTime);
-                        }
-                    }
-                    if (g.type == 'SFRG' && !g.mute) {
-                        if (!(g as SFRG).preset) {
-                            setError(`Generator '${g.name}' on track '${t.name}' does not have a preset assigned.`);
-                            return;
-                        }
-                        else {
-                            SFRGenerators.push(g as SFRG);
-                            playbackLength = Math.max(playbackLength, g.stopTime);
-                        }
-                    }
-                    if (g.type == 'Noise') {
-                        NoiseGenerators.push(g as Noise);
-                        playbackLength = Math.max(playbackLength, g.stopTime);
 
+        // build the audio sources from the generators
+        function buildSources(context: AudioContext, destination: AudioDestinationNode | MediaStreamAudioDestinationNode, chunkTime: number): void {
+            SFPGenerators.forEach((g) => {
+                const { sources, times } =
+                    getBufferSourceNodesFromSFPG(context, destination, g, chunkTime);
+                generatorSource.push(...sources);
+                generatorTime.push(...times);
+                generatorStarted.push(...Array(times.length).fill(false));
+            });
+
+            // build the buffers for the SFRGs
+            SFRGenerators.forEach(g => {
+                const { sources, times } = getBufferSourceNodesFromSFRG(context, destination, g);
+                generatorSource.push(...sources);
+                generatorTime.push(...times);
+                generatorStarted.push(...Array(times.length).fill(false));
+            });
+
+            // build the buffers for the SFRGs
+            NoiseGenerators.forEach(g => {
+                const { sources, times } = getBufferSourceNodesFromNoise(context, destination, g);
+                generatorSource.push(...sources);
+                generatorTime.push(...times);
+                generatorStarted.push(...Array(times.length).fill(false));
+            });
+        }
+
+        function PreviewOrRecord(mode: string): void {
+            if (playing.current)
+                playing.current.on = true;
+            setTimeProgress(0);
+
+            // create an audiocontext that has its output as an mpeg file that is stored in the Generate folder.
+            // get the length of the file, in seconds. It is the maximum of 
+            // all of the generators stop times
+
+            const audioContext: AudioContext = new AudioContext();
+            audioContext.suspend();
+
+            // setup the sources for all of the generators
+            const recordDestination: MediaStreamAudioDestinationNode = audioContext.createMediaStreamDestination();
+            const destination = (mode == 'recordfile'? recordDestination: audioContext.destination);
+            const mediaRecorder: MediaRecorder = new MediaRecorder(recordDestination.stream);
+            const recordChunks: Blob[] = [];
+            if (mode == 'recordfile') {
+                mediaRecorder.start();
+                mediaRecorder.pause();
+            }
+
+            mediaRecorder.ondataavailable = (evt) => {
+                console.log(`new recorded chunk at ${evt.timecode}, chunk size ${evt.data.size}`);
+                recordChunks.push(evt.data);
+            }
+
+            mediaRecorder.onstop = async () => {
+                // capture the recorded data and create an mpeg blob
+                console.log('generator stopped recording with chunks', recordChunks.length);
+                if (recordChunks.length > 0) {
+                    const mpeg: Blob = new Blob(recordChunks, { type: "audio/mpeg-3" });
+
+                    // write the blob to disk
+                    if (recordHandle.current) {
+                        console.log('recordHandle.name', recordHandle.current.name)
+                        const accessHandle = await recordHandle.current.createWritable();
+                        accessHandle.write(mpeg);
+                        accessHandle.close();
                     }
-                })
+                }
+                if (playing.current) playing.current.on = false;
+            }
+
+            let nextTime: number = 0.0;
+            // setup the destination as either the speakers or a recording buffer
+
+            buildSources(audioContext, destination, CHUNKTIME);
+
+            // resume the audio context after the sources have been built
+            audioContext.resume();
+            if (mode == 'recordfile') mediaRecorder.resume();
+
+            // the real time scheduler
+            scheduler();
+
+            function scheduler(): void {
+                if (playing.current?.on) {
+                    const aheadTime = audioContext.currentTime + SCHEDULEAHEADTIME;
+                    // console.log('currentTIME', audioContext.currentTime, 'nextTime', nextTime, 'aheadTime', aheadTime);
+                    while (nextTime < aheadTime) {
+                        let started:boolean = false;
+                        generatorSource.forEach((g, i) => {
+                            if (aheadTime >= generatorTime[i].start && !generatorStarted[i]) {
+                                // console.log('source', i, 'start', generatorTime[i].start, 'stop', generatorTime[i].stop, 'aheadtime', aheadTime, 'buffer length', g.buffer?.length);
+                                console.log('source', i, 'start', generatorTime[i].start, 'stop', generatorTime[i].stop);
+                                g.start(generatorTime[i].start);
+                                g.stop(generatorTime[i].stop + 2 * LOOKAHEAD / 1000);
+                                generatorStarted[i] = true;
+                                started = true;
+                            }
+                        });
+                        if (started) setTimeProgress(audioContext.currentTime);
+                        nextTime += CHUNKTIME;
+                        // console.log(`next chunk`, nextTime)
+                    }
+                    timerID = window.setTimeout(scheduler, LOOKAHEAD);
+                    // console.log('timer set');
+                } else {
+                    // console.log('clearing timer')
+                    clearTimeout(timerID);
+                }
+                // stop the playback if the current time is past all generator stop times
+                const running = generatorTime.find((t) => (t.stop > audioContext.currentTime))
+                // generatorTime.forEach((t) => {
+                //     // console.log('generator stopped?', g.stopTime, 'context', audioContext.currentTime);
+                //     if (t.stop > audioContext.currentTime) {
+                //         // console.log('genertor not stopped', g.name, g.stopTime, audioContext.currentTime);
+                //         allStop = false;
+                //     }
+                // });
+                if (!running || !playing.current?.on) {
+                    // if (!running || !playing) {
+                    // console.log('all stop')
+                    // setPlaying(false);
+                    if (playing.current)
+                        playing.current.on = false;
+                    if (audioContext.state !== 'closed') {
+                        audioContext.suspend();
+                        audioContext.close();
+                    }
+                    if (mode == 'recordfile')
+                        mediaRecorder.stop();
+                    setMode('');
+                    setTimeProgress(0);
+                }
+            }
+        }
+
+        // get the active generators
+        if (mode == 'recordfile' || mode == 'previewfile') {
+
+            // find is there are any solo tracks
+            let isSolo: boolean = (fileContents.tracks.findIndex((t) => (t.solo)) >= 0)
+
+            fileContents.tracks.forEach((t) => {
+                if (!t.mute) {
+                    if ((isSolo && t.solo) || !isSolo) {
+                        t.generators.forEach((g: CMG | SFPG | SFRG | Noise) => {
+                            if (g.type == 'SFPG' && !g.mute) {
+                                if (!(g as SFPG).preset) {
+                                    setError(`Generator '${g.name}' on track '${t.name}' does not have a preset assigned.`);
+                                    return;
+                                }
+                                else {
+                                    SFPGenerators.push(g as SFPG);
+                                    playbackLength = Math.max(playbackLength, g.stopTime);
+                                }
+                            }
+                            if (g.type == 'SFRG' && !g.mute) {
+                                if (!(g as SFRG).preset) {
+                                    setError(`Generator '${g.name}' on track '${t.name}' does not have a preset assigned.`);
+                                    return;
+                                }
+                                else {
+                                    SFRGenerators.push(g as SFRG);
+                                    playbackLength = Math.max(playbackLength, g.stopTime);
+                                }
+                            }
+                            if (g.type == 'Noise') {
+                                NoiseGenerators.push(g as Noise);
+                                playbackLength = Math.max(playbackLength, g.stopTime);
+
+                            }
+                        })
+                    }
+                }
             })
         } else if (generator) {
             if (!generator.mute) {
@@ -138,161 +274,12 @@ export default function Generate(props: GeneratorProps) {
 
         console.log('useful generators', 'SFPG', SFPGenerators.length, 'SFRG', SFRGenerators.length, 'Noise', NoiseGenerators.length);
 
-        // create an audiocontext that has its output as an mpeg file that is stored in the Generate folder.
-        // get the length of the file, in seconds. It is the maximum of 
-        // all of the generators stop times
-
-        const audioContext: AudioContext = new AudioContext();
-        const recordDestination: MediaStreamAudioDestinationNode = audioContext.createMediaStreamDestination();
-        const destination: AudioDestinationNode | MediaStreamAudioDestinationNode =
-            (generator || mode == 'previewfile' ? audioContext.destination : recordDestination);
-        const mediaRecorder: MediaRecorder = new MediaRecorder(recordDestination.stream);
-        console.log(`recording set up, recorder in state ${mediaRecorder.state}`)
-        const recordChunks: Blob[] = [];
-        mediaRecorder.ondataavailable = (evt) => {
-            console.log(`new recorded chunk at ${evt.timeStamp}`);
-            recordChunks.push(evt.data);
-        }
-
-        mediaRecorder.onstop = async () => {
-            // capture the recorded data and create an mpeg blob
-            console.log('generator stopped recording');
-            if (recordChunks.length > 0) {
-                const mpeg: Blob = new Blob(recordChunks, { type: "audio/mpeg-3" });
-
-                // write the blob to disk
-
-                // const root = await navigator.storage.getDirectory();
-                // const recordHandle = await root.getFileHandle('C:/Users/blane/Documents/development/musicgenerator/generated.mpg', { create: true });
-                if (recordHandle) {
-                    console.log('recordHandle.name', recordHandle.name)
-                    const accessHandle = await recordHandle.createWritable();
-                    accessHandle.write(mpeg);
-                    accessHandle.close();
-                }
-            }
-        }
-
-        // start recording if not in preview mode
-        if (!generator) {
-            console.log('recording started');
-            mediaRecorder.start();
-        }
-
-        // setup the sources for all of the generators
-        // build the buffers for the SFPGs
-        let nextTime: number = 0.0;
-        SFPGenerators.forEach((g) => {
-            const { sources, times } =
-                getBufferSourceNodesFromSFPG(audioContext, destination, g, CHUNKTIME);
-            generatorSource.push(...sources);
-            generatorTime.push(...times);
-            generatorStarted.push(...Array(times.length).fill(false));
-        });
-
-        // build the buffers for the SFRGs
-        SFRGenerators.forEach(g => {
-            const { sources, times } = getBufferSourceNodesFromSFRG(audioContext, destination, g);
-            generatorSource.push(...sources);
-            generatorTime.push(...times);
-            generatorStarted.push(...Array(times.length).fill(false));
-        });
-
-        // build the buffers for the SFRGs
-        NoiseGenerators.forEach(g => {
-            const { sources, times } = getBufferSourceNodesFromNoise(audioContext, destination, g);
-            generatorSource.push(...sources);
-            generatorTime.push(...times);
-            generatorStarted.push(...Array(times.length).fill(false));
-        });
-
-
-        // setPlaying(true);
-        playing.current = true;
-        setProgress(0);
-        scheduler();
-        function scheduler(): void {
-            if (playing.current) {
-                const aheadTime = audioContext.currentTime + SCHEDULEAHEADTIME;
-                // console.log('currentTIME', audioContext.currentTime, 'nextTime', nextTime, 'aheadTime', aheadTime);
-                let progressIncrement: number = 0;
-                while (nextTime < aheadTime) {
-                    generatorSource.forEach((g, i) => {
-                        if (aheadTime >= generatorTime[i].start && !generatorStarted[i]) {
-                            // console.log('source', i, 'start', generatorTime[i].start, 'stop', generatorTime[i].stop, 'aheadtime', aheadTime, 'buffer length', g.buffer?.length);
-                            g.start(generatorTime[i].start);
-                            g.stop(generatorTime[i].stop + 2 * LOOKAHEAD / 1000);
-                            generatorStarted[i] = true;
-                            progressIncrement += 1;
-                        }
-                    });
-                    nextTime += CHUNKTIME;
-                    // console.log(`next chunk`, nextTime)
-                }
-                if (progressIncrement > 0)
-                    setProgress((prev) =>
-                        (prev + 100* progressIncrement / generatorTime.length));
-                timerID = window.setTimeout(scheduler, LOOKAHEAD);
-                // console.log('timer set');
-            } else {
-                // console.log('clearing timer')
-                clearTimeout(timerID);
-            }
-            // stop the playback if the current time is past all generator stop times
-            let allStop = true;
-            generatorTime.forEach((t) => {
-                // console.log('generator stopped?', g.stopTime, 'context', audioContext.currentTime);
-                if (t.stop > audioContext.currentTime) {
-                    // console.log('genertor not stopped', g.name, g.stopTime, audioContext.currentTime);
-                    allStop = false;
-                }
-            });
-            if (allStop) {
-                // console.log('all stop')
-                // setPlaying(false);
-                playing.current = false;
-                setMode('');
-                if (!generator && recordHandle) {
-                    mediaRecorder.stop();
-                    setStatus(`Recording complete in '${recordHandle.name}' in the directory of your choosing.`)
-                }
-                audioContext.close();
-            }
-        }
+        // select either recording or preview
+        PreviewOrRecord(mode);
     }
 
     return (
         <>
-            {/* Generator running modal */}
-            <div
-                style={{ display: playing ? "block" : "none" }}
-                className="modal-content"
-            >
-                <div className='modal-header'>
-                    <span className='close' onClick={handleGeneratorStop}>&times;</span>
-                    <h2>Generator Running</h2>
-                </div>
-                <div className='modal-body'>
-                    <div className='progress-container' key={'progress-container'}>
-                        <div className='progress-filler'
-                            style={{ width: `${progress}%` }}
-                        >
-                            <div className='progress-labels'>
-                                <span>{`${Math.trunc(progress)}%`}</span>
-                            </div>
-                        </div>
-                    </div>
-                    {/* <ProgressBar key={'playback-progress'} completed={progress.current} /> */}
-                </div>
-                <div className='modal-footer'>
-                    <button
-                        id={'generator-stop'}
-                        key={'generator-stop'}
-                        onClick={handleGeneratorStop}>
-                        Stop Generator
-                    </button>
-                </div>
-            </div>
             {/* error modal */}
             <div
                 style={{ display: error == '' ? "none" : "block" }}

@@ -1,4 +1,4 @@
-import { ChangeEvent, FormEvent, MouseEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, MouseEvent, useEffect, useRef, useState } from "react";
 import { AiFillCaretDown, AiFillCaretUp, AiFillMuted, AiOutlineClose, AiOutlineMuted } from 'react-icons/ai';
 import { CgRename } from "react-icons/cg";
 import { IoPerson, IoPersonOutline } from "react-icons/io5";
@@ -11,8 +11,9 @@ import { useCMGContext } from "../../contexts/cmgcontext";
 import { deleteTrack, flipTrackAttrbute, moveTrack, renameTrack } from "../../utils/cmfiletransactions";
 
 export default function TracksDisplay() {
-    const { fileContents, setFileContents, setMessage, setStatus}
+    const { fileContents, setFileContents }
         = useCMGContext();
+    const [message, setMessage] = useState<string>('');
     const [tracks, setTracks] = useState<Track[]>([]);
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
     const [renameModal, setRenameModal] = useState<boolean>(false);
@@ -20,17 +21,15 @@ export default function TracksDisplay() {
     const [enableGeneratorDialog, setEnableGeneratorDialog] = useState<number>(-1);
     const trackRef = useRef<HTMLDivElement[]>([]);
     useEffect(() => {
-        setTracks(fileContents.tracks);
-        setStatus(`displayed ${fileContents.tracks.length} tracks`);
-        setEnableGeneratorDialog(-1);
-        console.log('tracks refreshed');
-    }, [fileContents.tracks]);
-    useEffect(() => {
         trackRef.current = trackRef.current.slice(0, tracks.length);
     }, [tracks, trackRef.current]);
+    useEffect(() => {
+        setTracks(fileContents.tracks);
+        setEnableGeneratorDialog(-1);
+        console.log('tracks changed')
+    }, [fileContents]);
 
     function handleDeleteTrack(event: MouseEvent<HTMLElement>): void {
-        console.log(event.currentTarget.id);
         const trackName = event.currentTarget.id.split(':')[1];
         setTrackName(trackName);
         setDeleteModal(true);
@@ -50,7 +49,6 @@ export default function TracksDisplay() {
     }
 
     function handleRenameTrack(event: MouseEvent<HTMLElement>): void {
-        console.log(event.currentTarget.id);
         const trackName = event.currentTarget.id.split(':')[1];
         setTrackName(trackName);
         setRenameModal(true);
@@ -60,10 +58,10 @@ export default function TracksDisplay() {
         event.preventDefault();
         const renameElement = document.getElementById('track-rename-field');
         if (!renameElement) return;
-        const newName: string | null = renameElement.value;
+        const newName: string | null = (renameElement as HTMLInputElement).value;
         if (!newName) return;
         if (!validateNewName(newName)) {
-            setMessage({ error: true, text: `'${newName}' is already being used or it is blank.` });
+            setMessage(`'${newName}' is already being used or it is blank.`);
             return;
         }
         const thisIndex = fileContents.tracks.findIndex((t) => (t.name == trackName));
@@ -102,18 +100,6 @@ export default function TracksDisplay() {
 
     }
 
-    // pick up here
-    // range sliders are not appearing properly
-    function handleVolumeChange(event: ChangeEvent<HTMLElement>): void {
-        console.log(event.currentTarget.id);
-
-    }
-
-    function handlePanChange(event: ChangeEvent<HTMLElement>): void {
-        console.log(event.currentTarget.id);
-
-    }
-
     // this is the input business end of this app. Generators will 
     // come in different shapes and sizes. There CRUD will be handled by modals
     // that appear in a different component
@@ -134,6 +120,18 @@ export default function TracksDisplay() {
         // update the track sequence
         moveTrack(thisTrackName, direction, setFileContents);
     }
+
+    // function addIcons(track: Track) {
+    //     const trackElement = document.parentElement;
+    //     if (!trackElement) {
+    //         return (<p>parent element not located</p>)
+    //     }
+    //     return (
+    //         <GeneratorIcons
+    //             track={track}
+    //             element={trackElement as HTMLDivElement} />
+    //     )
+    // }
 
     return (
         <>
@@ -173,7 +171,6 @@ export default function TracksDisplay() {
 
                                 <button
                                     className='track-button'
-                                    // disabled={!fileContents.SoundFont}
                                     id={`track-gen:${i}`}
                                     key={`track-gen:${i}`}
                                     onClick={(event) => handleAddGenerator(event, i)}
@@ -213,14 +210,15 @@ export default function TracksDisplay() {
                             </div>
                             <div className='page-track-display'
                                 key={'track-display:' + t.name}
-                                ref={(el: HTMLDivElement) => trackRef.current[i] = el}>
+                                id={'track-display:' + t.name}
+                                ref={(el: HTMLDivElement) => trackRef.current[i] = el}
+                            >
                                 {trackRef.current[i] ?
-                                    <GeneratorIcons
+                            <GeneratorIcons
                                         track={t}
                                         element={trackRef.current[i]}
                                     />
-                                    : <p>track reference null</p>
-                                }
+                            : <p>track reference null</p>}
                             </div>
                         </>
                     )
@@ -229,7 +227,7 @@ export default function TracksDisplay() {
                 <GeneratorDialog
                     track={tracks[enableGeneratorDialog]}
                     generatorIndex={-1}
-                    setGeneratorIndex={() => {}}
+                    setGeneratorIndex={() => { }}
                     closeTrackGenerator={closeTrackGenerator}
                     setOpen={() => { }} />
                 : null
@@ -239,7 +237,7 @@ export default function TracksDisplay() {
                 className="modal-content"
             >
                 <div className='modal-header'>
-                    <span className='close'>&times;</span>
+                    <span className='close' onClick={handleDeleteCancel}>&times;</span>
                     <h2>Confirm delete of track '{trackName}'</h2>
                 </div>
                 <div className="modal-body">
@@ -261,31 +259,29 @@ export default function TracksDisplay() {
                 style={{ display: renameModal ? "block" : "none" }}
                 className="modal-content"
             >
-                <form name='track-rename-form' id='track-rename-form'
-                    onSubmit={handleRenameOK}>
-                    <div className='modal-header'>
-                        <span className='close'>&times;</span>
-                        <h2>Enter new name for Track '{trackName}'</h2>
-                    </div>
-                    <div className="modal-body">
-                        <label htmlFor='track-rename-field'>New Name:</label>
+                <div className='modal-header'>
+                    <span className='close' onClick={handleRenameCancel}>&times;</span>
+                    <h2>Enter new name for Track '{trackName}'</h2>
+                </div>
+                <div className="modal-body">
+                    <form name='track-rename-form' id='track-rename-form'
+                        onSubmit={handleRenameOK}>
+                        <label htmlFor='track-rename-field'>New Name: </label>
                         <input
                             name='track-rename-field'
                             id='track-rename-field'
                             type="text"
                             defaultValue={trackName}
                         />
-
-                    </div>
-                    <div className='modal-footer'>
+                        <br />
                         <button type='submit'
                             id={"track-rename-submit"}
                         >OK</button>
-                        <button
-                            onClick={handleRenameCancel}
-                        >Cancel</button>
-                    </div>
-                </form>
+                    </form>
+                </div>
+                <div className='modal-footer'>
+                    <p>{message}</p>
+                </div>
             </div>
         </>
     )

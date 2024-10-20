@@ -18,19 +18,9 @@ interface CMGContextType {
     setTimeLine: Dispatch<SetStateAction<TimeLine>>;
     presets: Preset[];
     setPresets: Dispatch<SetStateAction<Preset[]>>;
-
-    // integrated from audioplayercontext
-    currentTrack: string;
-    setCurrentTrack: Dispatch<SetStateAction<string>>;
+    playing: RefObject<{on:boolean}>;
     timeProgress: number;
     setTimeProgress: Dispatch<SetStateAction<number>>;
-    duration: number;
-    setDuration: Dispatch<SetStateAction<number>>;
-    audioRef: RefObject<HTMLAudioElement>;
-    progressBarRef: RefObject<HTMLInputElement>;
-    isPlaying: boolean;
-    setIsPlaying: Dispatch<SetStateAction<boolean>>;
-
 }
 
 const CMGContext = createContext<CMGContextType | undefined>(undefined);
@@ -40,16 +30,11 @@ export const CMGProvider = ({ children, }: { children: ReactNode }) => {
     const [message, setMessage] = useState<Message>({ error: false, text: 'Welcome' });
     const [status, setStatus] = useState<string>('')
     const [timeLine, setTimeLine] = useState<TimeLine>(new TimeLine(0, 0));
-    const [currentTrack, setCurrentTrack] = useState<string>('');
     const [fileName, setFileName] = useState<string>('');
 
-    //audiocontext
     const [presets, setPresets] = useState<Preset[]>([]);
+    const playing = useRef<{on:boolean}>({on:false});
     const [timeProgress, setTimeProgress] = useState<number>(0);
-    const [duration, setDuration] = useState<number>(0);
-    const [isPlaying, setIsPlaying] = useState<boolean>(false);
-    const audioRef = useRef<HTMLAudioElement>(null);
-    const progressBarRef = useRef<HTMLInputElement>(null);
 
     const contextValue = {
         fileName,
@@ -64,17 +49,9 @@ export const CMGProvider = ({ children, }: { children: ReactNode }) => {
         setTimeLine,
         presets,
         setPresets,
-// audiocontext
-        currentTrack,
-        setCurrentTrack,
-        audioRef,
-        progressBarRef,
+        playing,
         timeProgress,
         setTimeProgress,
-        duration,
-        setDuration,
-        isPlaying,
-        setIsPlaying,
     };
 
     return (

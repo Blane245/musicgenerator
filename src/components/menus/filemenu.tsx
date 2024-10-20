@@ -22,6 +22,7 @@ export default function FileMenu() {
       newFile(contents, setFileContents);
       setFileName('');
       setStatus('New file started');
+      setOpen('');
     }
   }
   function handleCancel() {
@@ -37,6 +38,7 @@ export default function FileMenu() {
       setStatus('New file started');
     } else {
       readFileContents();
+      setOpen('');
     }
   }
 
@@ -45,6 +47,7 @@ export default function FileMenu() {
       setOpen('open');
     else {
       readFileContents();
+      setOpen('');
     }
   }
   function handleFileSave() {

@@ -3,7 +3,6 @@ import SFRG from "../../classes/sfrg";
 import { ChangeEvent } from "react";
 import { bankPresettoName, toNote } from "../../utils/util";
 import { useCMGContext } from "../../contexts/cmgcontext";
-import { Preset } from "../../types/soundfonttypes";
 
 // provides the form fields and validators for the sfperiodic generator
 export type SFRGDialogDialogProps = {
@@ -17,9 +16,15 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
     // we are in the middle of the generator dialog form
     return (
         <>
+                <label htmlFor="seed">Random Seed: </label>
+                <input name="seed"
+                    type='text'
+                    onChange={handleChange}
+                    value={formData.seed}
+                />
             <div className="transition-box" >
                 <p className="transition-header">Midi Transtions</p>
-                <label htmlFor="presetName">Preset:</label>
+                <label htmlFor="presetName"> Preset:</label>
                 <select name="presetName"
                     onChange={handleChange}
                     value={formData.presetName}
@@ -40,7 +45,7 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
                             )
                         })}
                 </select>
-                <label htmlFor="midi">Midi Number:</label>
+                <label htmlFor="midi"> Midi Number: </label>
                 <input name="midi"
                     type='number'
                     min={0} max={255} step={1}
@@ -175,6 +180,8 @@ export function validateSFRGValues(formData: SFRG): string[] {
         if (transition.down.down < 0 || transition.down.down > 1)
             result.push(`${name} down->same probabilty must be between 0 and 1 inclusive`);
     }
+    if (formData.seed == '') 
+        result.push('Random seed must not be blank');
     if (!formData.presetName)
         result.push('PresetName must be specified');
     if (formData.midi < 0 || formData.midi > 127)

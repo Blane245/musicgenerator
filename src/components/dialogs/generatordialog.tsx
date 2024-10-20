@@ -120,6 +120,10 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                     newF.name = prev.name;
                     newF.startTime = prev.startTime;
                     newF.stopTime = prev.stopTime;
+                    if (presets.length > 0) {
+                        newF.preset = presets[0];
+                        newF.presetName = newF.preset.header.name
+                    }
                     return newF;
                 }
                 case 'SFRG': {
@@ -127,6 +131,10 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                     newF.name = prev.name;
                     newF.startTime = prev.startTime;
                     newF.stopTime = prev.stopTime;
+                    if (presets.length > 0) {
+                        newF.preset = presets[0];
+                        newF.presetName = newF.preset.header.name
+                    }
                     return newF;
                 }
                 case 'Noise': {
@@ -161,7 +169,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
             case "SFPG": {
                 let newMessages = validateCMGValues(formData);
                 msgs.push(...newMessages);
-                newMessages = validateSFPGValues(formData as SFPG, presets);
+                newMessages = validateSFPGValues(formData as SFPG);
                 msgs.push(...newMessages);
                 if (msgs.length > 0) {
                     setErrorMessages(msgs);

@@ -7,7 +7,7 @@ import { useCMGContext } from '../../contexts/cmgcontext';
 
 // render the timeline
 export default function TimeLineDisplay() {
-    const { timeLine, setTimeLine } = useCMGContext();
+    const { timeLine, setTimeLine, timeProgress } = useCMGContext();
     const timeLineRef = useRef<HTMLDivElement>(null);
     const [ticks, setTicks] = useState<{
         majorTickCount: number,
@@ -33,6 +33,11 @@ export default function TimeLineDisplay() {
             setTimeLine(newT);
         }
     }, []);
+
+    // update the playback tick when the time progress changes
+    useEffect(() => {
+        updatePlayBackTime();
+    }, [timeProgress])
 
     // capture the tick parameters when the zoom level changes
     useEffect(() => {
@@ -92,6 +97,18 @@ export default function TimeLineDisplay() {
         return result;
     }
 
+    function updatePlayBackTime() {
+        if (ticks.scaleExtent > 0) {
+            if (timeProgress >= timeLine.startTime && timeProgress <= timeLine.startTime + ticks.scaleExtent) {
+                const playbackElem = document.getElementById('playback-tick');
+                if (playbackElem) {
+                    const newLoc = timeLine.width * (timeProgress - timeLine.startTime) / (ticks.scaleExtent)
+                    playbackElem.setAttribute('x1', newLoc.toString());
+                    playbackElem.setAttribute('x2', newLoc.toString());
+                }
+            }
+        }
+    }
 
     const handleZoomIn = (): void => {
         setTimeLine((c: TimeLine) => {
@@ -138,6 +155,7 @@ export default function TimeLineDisplay() {
                     <path stroke="black" d={`m 0 ${timeLine.height} H ${timeLine.width}`} />
                     {getTickLines(ticks?.tickCount, ticks?.tickHeight, ticks?.tickSpacing)}
                     {getTickLabels(ticks.majorTickCount, ticks.labelSize, ticks.labelSpacing, ticks.scaleExtent, ticks.labelFormat)}
+                    <line stroke="red" x1="0" x2="0" y1="0" y2={timeLine.height} id='playback-tick' />
                 </svg>
             </div>
         </>

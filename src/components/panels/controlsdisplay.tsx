@@ -13,16 +13,20 @@ import TimeLineDisplay from './timelinedisplay';
 // time line
 
 export default function ControlsDisplay() {
-    const { fileContents, setFileContents, setStatus } =
+    const { fileContents, setFileContents, setStatus, playing } =
         useCMGContext();
 
     const [SFfiles, setSFFiles] = useState<string[]>([]);
     const [SFFileName, setSFFileName] = useState<string>('');
-    const [errors, setErrors] = useState<string[]>([]);
-    const [showError, setShowError] = useState<boolean>(false);
     const [readyGenerate, setReadyGenerate] = useState<boolean>(true);
     const [mode, setMode] = useState<string>('');
+    const [showStop, setShowStop] = useState<boolean>(false);
 
+    useEffect(() => {
+        if (playing.current) {
+            setShowStop(playing.current.on)
+        }
+    }, [playing.current?.on])
     // load the soundfont file list at start up
     useEffect(() => {
         const SFFiles = import.meta.glob("/src/soundfonts/*.(SF@|sf2)");
@@ -79,10 +83,6 @@ export default function ControlsDisplay() {
         }
     }
 
-    const handleErrorsClose = () => {
-        setShowError(false);
-    }
-
     return (
         <>
             <div className='page-control'>
@@ -107,29 +107,13 @@ export default function ControlsDisplay() {
                     onClick={() => setMode('previewfile')}>
                     Preview
                 </button>
+                <button
+                    hidden={!showStop}
+                    onClick={() => {if (playing.current) playing.current.on = false }}>
+                    Stop
+                </button>
             </div>
             <TimeLineDisplay />
-            <div
-                style={{ display: showError ? "block" : "none" }}
-                className="modal-content"
-            >
-                <div className='modal-header'>
-                    <span className='close' onClick={handleErrorsClose}>&times;</span>
-                    <h2>Errors occurred during audio generation</h2>
-                </div>
-                <div className="modal-body">
-                    {errors.map((e) => (
-                        <p>{e}</p>
-                    ))}
-                </div>
-                <div className='modal-footer'>
-                    <button
-                        id={'generator-error'}
-                        onClick={handleErrorsClose}
-                    >OK</button>
-                </div>
-            </div>
-            {/* the generator ... */}
             {mode != '' ?
                 <Generate
                     mode={mode}

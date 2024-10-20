@@ -5,25 +5,25 @@
 //     with text Generator name: type draw centered in the box
 //     when this svg is click, it invoked the modify RUD action on the generator
 
-import { MouseEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, MouseEvent, useEffect, useRef, useState } from "react";
 import CMGenerator from "../../classes/cmg";
 import Track from "../../classes/track";
 import Generate from "../../components/generation/generate";
 import { useCMGContext } from "../../contexts/cmgcontext";
 import { SECONDSNAPUNIT, TimeLineScales } from "../../types/types";
-import { flipGeneratorMute, moveGeneratorBodyPosition, moveGeneratorTime, moveGenertorBodyTime } from "../../utils/cmfiletransactions";
+import { addGenerator, flipGeneratorMute, moveGeneratorBodyPosition, moveGeneratorTime } from "../../utils/cmfiletransactions";
 import GeneratorDialog from "../dialogs/generatordialog";
 
 export interface GeneratorIconProps {
     track: Track,
-    element: HTMLDivElement,
+    element: HTMLDivElement | null,
 }
 type GeneratorBox = {
     generator: CMGenerator, position: { x: number, y: number }, width: number, height: number
 }
 export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
     const { track, element } = props;
-    const { setFileContents, timeLine, setStatus } = useCMGContext();
+    const { setFileContents, timeLine, setStatus, fileContents, playing } = useCMGContext();
     const [generatorIndex, setGeneratorIndex] = useState<number>(-1);
     const [cursorStyle, setCursorStyle] = useState<string>('cursor-default');
     const [moveMode, setMoveMode] = useState<string>('');
@@ -33,7 +33,10 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
     const [mouseDown, setMouseDown] = useState<{ x: number, y: number }>({ x: 0, y: 0 });
     const [generatorBoxes, setGeneratorBoxes] = useState<GeneratorBox[]>([]);
     const [openDialog, setOpenDialog] = useState<boolean>(false);
-    const [preview, setPreview] = useState<CMGenerator | null>(null);
+    const [copyDialog, setCopyDialog] = useState<boolean>(false);
+    const [selectedTrackName, setSelectedTrackName] = useState<string>('');
+    // const [preview, setPreview] = useState<CMGenerator | null>(null);
+    const preview = useRef<CMGenerator | null>();
     const [mode, setMode] = useState<string>('');
 
     // TODO revise as snapping is implemented
@@ -41,12 +44,15 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
 
     // set the generator icon boxes based on the generator times and timeLine 
     useEffect(() => {
+        if (!element) {
+            console.log(`track reference null of track ${track.name}`);
+            return;
+        }
+        setSelectedTrackName(track.name);
         // get all of the generator boxes
         const boxes: GeneratorBox[] = [];
         console.log(`Track ${track.name} generators refreshed`)
         track.generators.forEach(generator => {
-            console.log('generator.name', generator.name)
-
             // is the generator out of the currently displayed current time
             const timeLineStopTime = timeLine.startTime + TimeLineScales[timeLine.currentZoomLevel].extent;
             if (!(generator.startTime < timeLine.startTime && generator.stopTime < timeLineStopTime) &&
@@ -57,9 +63,7 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
                 const iconStopTime: number = Math.min(generator.stopTime, timeLineStopTime);
 
                 // the track timeline box
-                const top = element.clientTop;
                 const height = element.clientHeight;
-                const left = element.clientLeft;
                 const width = element.clientWidth;
                 const iconTop = generator.position;
                 const iconLeft = width * (iconStartTime - timeLine.startTime) / (timeLineStopTime - timeLine.startTime);
@@ -78,12 +82,11 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
 
         });
     }, [track.generators, timeLine, element]);
-    // }, [fileContents]);
 
     useEffect(() => {
         if (mode == '')
-            setPreview(null)
-    },[mode]);
+            preview.current = null;
+    }, [mode]);
 
     function handleBodyMouseDown(event: MouseEvent<HTMLOrSVGElement>, index: number) {
         event.preventDefault();
@@ -101,6 +104,7 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
     }
     function handleTextMouseDown(event: MouseEvent<HTMLOrSVGElement>, index: number) {
         event.preventDefault();
+        event.stopPropagation();
         const button = event.button;
         console.log('text button down', button, 'generator', generatorBoxes[index].generator.name);
         setGeneratorIndex(index);
@@ -168,13 +172,13 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
         setCursorStyle('cursor-default');
         setMoveMode('');
         setMouseDown({ x: 0, y: 0 });
-        setMenuEnabled(false);
+        // setMenuEnabled(false);
         setGeneratorIndex(-1);
     }
 
     // supress all default behavior on a mouse click
     function handleClick(event: MouseEvent<HTMLOrSVGElement>) {
-        event.preventDefault();
+        // event.preventDefault();
     }
 
     // toggle the mute condition of the selected generator
@@ -182,12 +186,76 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
         flipGeneratorMute(track, index, setFileContents);
     }
 
-    function previewGenerator(index: number) {
+    function handlePreviewClick() {
+        setMenuEnabled(false);
+        setCursorStyle('cursor-default');
         setMode('previewgenerator');
-        setPreview(generatorBoxes[index].generator);
+        // setPreview(generatorBoxes[generatorIndex].generator);
+        preview.current = generatorBoxes[generatorIndex].generator;
         setStatus('audio file being previewed');
-
     }
+
+    function handleEditClick() {
+        setOpenDialog(true);
+        setMenuEnabled(false);
+        setCursorStyle('cursor-default');
+    }
+
+    function handleMuteClick() {
+        toggleGeneratorMute(generatorIndex);
+        setMenuEnabled(false);
+        setCursorStyle('cursor-default');
+    }
+    function handleCopyClick() {
+        // display a dialog to ask for the track to copy to
+        // then copy it changing the name to something unique
+        setSelectedTrackName(track.name);
+        setCopyDialog(true);
+        setMenuEnabled(false);
+    }
+
+    function handleSelectedTrackChange(event: ChangeEvent<HTMLElement>) {
+        setSelectedTrackName(event.target.value);
+    }
+    function handleCopyOK(event: FormEvent<HTMLElement>): void {
+        event.preventDefault();
+        setCopyDialog(false);
+
+        const targetTrack = fileContents.tracks.find((t) => (t.name == selectedTrackName));
+        if (!targetTrack) return;
+
+        // get a copy of the selected generator
+        // and find a unique name for the generator
+        const newG = generatorBoxes[generatorIndex].generator.copy();
+        let next = targetTrack.generators.length + 1;
+        let found = false;
+        while (!found) {
+            const newName = `G${next.toString()}`;
+            if (targetTrack.generators.findIndex((g) => (g.name == newName)) < 0) {
+                newG.name = newName;
+                found = true;
+            } else {
+                next++
+            }
+        }
+
+        //add the generator to the track
+        addGenerator(targetTrack, newG, setFileContents);
+        setStatus(`Generator '${generatorBoxes[generatorIndex].generator.name}' copied to track '${targetTrack.name}' with name '${newG.name}'`)
+    }
+
+    function handleCopyCancel() {
+        setCopyDialog(false);
+    }
+
+
+    // window.onclick = function(event) {
+    //     const genMenu = document.getElementById('gen-menu');
+    //     console.log('current target', event.currentTarget, 'target', event.target);
+    //     if ((event.currentTarget && event.currentTarget.tagName != 'TEXT') || event.target != genMenu)
+    //         setMenuEnabled(false);
+    // }
+
     return (
         <>
             {element ?
@@ -219,6 +287,7 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
                                     onClick={handleClick}
                                 />
                                 <text
+                                aria-disabled={playing.current?.on}
                                     x={generatorBox.position.x + generatorBox.width / 2.0}
                                     y={generatorBox.position.y + generatorBox.height / 3.0}
                                     fontSize={'10pt'}
@@ -227,7 +296,6 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
                                     key={'gentext-' + track.name + '-' + i}
                                     onMouseDown={event => handleTextMouseDown(event, i)}
                                     onMouseUp={handleMouseUp}
-                                    onMouseMove={event => handleMouseMove(event, i)}
                                     onClick={handleClick}
                                     stroke={generatorBox.generator.mute ? 'red' : 'black'}
                                 >
@@ -268,30 +336,25 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
 
             <div
                 className="modal-menu"
+                id='gen-menu'
                 style={{
                     display: menuEnabled ? "block" : "none",
                     position: 'absolute',
                     top: menuY.toString() + 'px',
                     left: menuX.toString() + 'px'
-
                 }}
-
-
+            // onClick={()=>setMenuEnabled(false)}
             >
-                <p
-                    onClick={() => { setOpenDialog(true); setMenuEnabled(false); setCursorStyle('cursor-default'); }}
-
-                >
+                <p onClick={() => handleEditClick()}>
                     Edit
                 </p>
-                <p
-                    onClick={() => { toggleGeneratorMute(generatorIndex); setMenuEnabled(false); setCursorStyle('cursor-default'); }}
-                >
+                <p onClick={() => handleCopyClick()}>
+                    Copy
+                </p>
+                <p onClick={() => handleMuteClick()}>
                     {generatorIndex >= 0 && track.generators[generatorIndex].mute ? 'Unmute' : 'Mute'}
                 </p>
-                <p
-                    onClick={() => { setMenuEnabled(false); setCursorStyle('cursor-default'); previewGenerator(generatorIndex) }}
-                >
+                <p onClick={() => handlePreviewClick()}>
                     Preview
                 </p>
             </div>
@@ -304,13 +367,47 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
                     setOpen={setOpenDialog}
                 />
                 : null}
-                {preview?
+            {preview.current ?
                 <Generate
-                mode={mode}
-                setMode={setMode}
-                generator={preview}
+                    mode={mode}
+                    setMode={setMode}
+                    generator={preview.current}
                 />
-            : null}
+                : null}
+            <div className="modal-content"
+                style={{ display: copyDialog ? 'block' : 'none' }}            >
+                <div className="modal-header">
+                    <span className='close' onClick={handleCopyCancel}>&times;</span>
+                    <h2>Select track to receive a copy of '{generatorIndex >= 0 ? track.generators[generatorIndex].name : ''}'</h2>
+                </div>
+
+                <div className="modal-body"
+                >
+                    <label> Track Name:
+                        <select
+                            value={selectedTrackName}
+                            onChange={handleSelectedTrackChange}
+                        >
+                            {
+                                fileContents.tracks.map((t: Track) => {
+                                    return (
+                                        <option key={`select-track ${t.name}`}
+                                            value={t.name}>{t.name}</option>
+                                    );
+                                })
+                            }
+                        </select>
+
+                    </label>
+                    <br />
+                </div>
+                <div className="modal-footer">
+                    <button onClick={handleCopyOK}>Copy</button>
+                    <button onClick={handleCopyCancel}>Cancel</button>
+                </div>
+
+
+            </div>
         </>
     )
 
@@ -435,30 +532,16 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
         const { error, snapPixelResolution, minTime, maxTime, trackBox } = getScalingValues();
         if (error) return;
 
-        ({ allowed, moveNeeded, start: newStart } = MoveBodyHorizontal(location, snapPixelResolution,
-            iconBox.position.x, iconBox.position.x + iconBox.width,
-            trackBox.left, trackBox.right,
-        ));
+        // ({ allowed, moveNeeded, start: newStart } = MoveBodyHorizontal(location, snapPixelResolution,
+        //     iconBox.position.x, iconBox.position.x + iconBox.width,
+        //     trackBox.left, trackBox.right,
+        // ));
 
-        // if allowed, change the generators start and stop time
-        if (allowed && moveNeeded) {
-            console.log('newStart', newStart);
-            moveGenertorBodyTime(track, generatorIndex, newStart, setFileContents);
-            // setTracks((ts: Track[]) => {
-            //     const newts: Track[] = []
-            //     ts.map((t: Track) => {
-            //         const newt: Track = t.copy();
-            //         if (t.name == track.name) {
-            //             const newg = t.generators[generatorIndex].copy();
-            //             newg.stopTime = newg.stopTime + newStart - newg.startTime;
-            //             newg.startTime = newStart;
-            //             newt.generators = newt.generators.map((g, i) => i == generatorIndex ? newg : g);
-            //         }
-            //         newts.push(newt);
-            //     });
-            //     return newts;
-            // });
-        }
+        // // if allowed, change the generators start and stop time
+        // if (allowed && moveNeeded) {
+        //     console.log('newStart', newStart);
+        //     moveGenertorBodyTime(track, generatorIndex, newStart, setFileContents);
+        // }
 
         // check the vertical movement
         ({ allowed, moveNeeded, top: newTop } = MoveBodyVertical(location,
@@ -471,32 +554,7 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
                 'vertical move',
                 'generatorIndex', generatorIndex,
             )
-            // setGeneratorBoxes((prev: GeneratorBox[]) => {
-            //     const newbs: GeneratorBox[] = [];
-            //     prev.forEach((b, i) => {
-            //         const newb = b.copy();
-            //         if (i == generatorIndex) {
-            //             newb.position.y = newTop;
-            //             console.log('newTop', newTop);
-            //         }
-            //         newbs.push(newb);
-            //     })
-            //     return newbs;
-            // });
             moveGeneratorBodyPosition(track, generatorIndex, newTop, setFileContents);
-            // setTracks((ts: Track[]) => {
-            //     const newts: Track[] = []
-            //     ts.map((t: Track) => {
-            //         const newt: Track = t.copy();
-            //         if (t.name == track.name) {
-            //             const newg = t.generators[generatorIndex].copy();
-            //             newg.position = newTop;
-            //             newt.generators = newt.generators.map((g, i) => i == generatorIndex ? newg : g);
-            //         }
-            //         newts.push(newt);
-            //     });
-            //     return newts;
-            // })
         }
     }
 
@@ -548,22 +606,6 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
         } else
             return;
         moveGeneratorTime(track, generatorIndex, mode, newValue, setFileContents);
-        // setTracks((ts: Track[]) => {
-        //     const newts: Track[] = []
-        //     ts.map((t: Track) => {
-        //         const newt: Track = t.copy();
-        //         if (t.name == track.name) {
-        //             const newg = t.generators[generatorIndex].copy();
-        //             if (newStart)
-        //                 newg.startTime = newStart;
-        //             if (newStop)
-        //                 newg.stopTime = newStop;
-        //             newt.generators = newt.generators.map((g, i) => i == generatorIndex ? newg : g);
-        //         }
-        //         newts.push(newt);
-        //     });
-        //     return newts;
-        // })
 
 
 
