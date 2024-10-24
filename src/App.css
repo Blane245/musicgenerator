@@ -6,6 +6,13 @@
   text-align: left;
 }
 
+fieldset {
+    display:inline;
+    border-style: none;
+    padding:0%;
+    margin: 0%;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;
@@ -190,8 +197,8 @@
 
 /* Modal Content */
 .modal-content {
-  position: relative;
-  top: -100px;
+  position: absolute;
+  top: 100px;
   left: 200px;
   width: 50em;
   background-color: #fefefe;
@@ -222,7 +229,7 @@
 .generator-content {
   position: absolute;
   top: 50px;
-  left: 100px;
+  left: 200px;
   background-color: #fefefe;
   margin: auto;
   padding: 0;

@@ -4,13 +4,13 @@
 // the SFPG generatr
 // each node time starts when the last one stops as determined by the spped attribute
 
-import { setRansomSeed } from "../../utils/seededrandom";
 import Noise from "../../classes/noise";
+import { GeneratorTimes } from "../../types/types";
 const CHUNKSIZE: number = 0.1; // seconds
 // the node's midi, volume, and pan values is plugged in from their respective chains 
 export function getBufferSourceNodesFromNoise(
-    context: AudioContext, destination: AudioDestinationNode | MediaStreamAudioDestinationNode, CMgenerator: Noise
-): { sources: AudioBufferSourceNode[], times: { start: number, stop: number }[] } {
+    context: AudioContext | OfflineAudioContext, destination: AudioDestinationNode | MediaStreamAudioDestinationNode, CMgenerator: Noise
+): { sources: AudioBufferSourceNode[], times: GeneratorTimes[] } {
 
     // console.log(
     //     'in getBufferSourceNodesFromNoise',
@@ -18,12 +18,11 @@ export function getBufferSourceNodesFromNoise(
     // the generator has a start and end time
     const { startTime, stopTime } = CMgenerator;
     const sources: AudioBufferSourceNode[] = [];
-    const times: { start: number, stop: number }[] = [];
+    const times: GeneratorTimes[] = [];
 
 
     // move the chunk into the audio node
     const chunkCount = Math.ceil((stopTime - startTime) / CHUNKSIZE);
-    setRansomSeed(CMgenerator.seed);
     for (let i = 0; i < chunkCount; i++) {
         const time: number = i * CHUNKSIZE + startTime;
         const { sample, volume, pan } = CMgenerator.getCurrentValue(time, CHUNKSIZE);
@@ -52,7 +51,7 @@ export function getBufferSourceNodesFromNoise(
         source.connect(vol);
         panner.connect(destination);
         sources.push(source);
-        times.push({ start: time, stop: time + CHUNKSIZE });
+        times.push({ start: time, stop: time + CHUNKSIZE, lastGain: (i == chunkCount - 1? vol: null)});
     }
     return { sources: sources, times: times };
 }

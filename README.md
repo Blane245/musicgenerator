@@ -1,5 +1,5 @@
 # Rambling
-I want a music generator that will play one or more voices using various random note generators. The generators may be random walk, or stocastic up to 3 degrees. Each voide can be assigned to a sound font file bank and preset. 
+I want a music generator that will play one or more voices using various note generators. The generators may be sequnces random walk, or stocastic up to 3 degrees. Each voice can be assigned to a sound font file bank and preset. 
 Voice controls include
 * start and stop times (may be multiple)
 * soundfont bank and preset
@@ -11,68 +11,20 @@ Voice controls include
 Files
 * piece generation parameters (like JSON)
 * generated sequence (XML)
-* sound export (mpeg, etc.)
-# React + TypeScript + Vite
+* sound export (mp3, wav, etc.)
+# Application structure
+![CMG Class diagram](ComputerMusicGenerator-2024-10-24-133419.png)
+# The CMG file structure
+A generate configuration is defined by an XML file that has then folloing structure
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
-
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
-
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
-# XML File Structure
 ```xml
 <?xml verson="1.0"?>
   <fileContents
     name = 'string'
     timeLineStyle = 'int'
     tempo = 'int'
-    <timeSignature
       beatsPerMinute = 'int'
       measureUnit = 'int'
-    /> 
     snap = 'boolean'
     measureSnapUnit = 'int'
     secondSnapUnit = 'int'
@@ -81,18 +33,16 @@ export default tseslint.config({
     <tracks>
       <track 
         name = 'string'
-        order =  'int'
         mute = 'boolean'
         solo = 'boolean'
-        volume = 'float'
-        pan = 'float'
       >
         <generators>
           <generator
             name = 'string'
             startTime = 'float'
             stopTime = 'float'
-            type = 'string'
+            type = 'string' // (could be CMG, SFPG, SFRG, Noise)
+            preset = 'Preset'
             presetNumber = 'int'
             midi = 'int'
             FMType = 'int'
@@ -117,3 +67,8 @@ export default tseslint.config({
 ```
 #Thanx
 Special thanx to various people
+* My son, Ryan Lane, that got me into web-based programming
+* sfumato - who revealed the complexities of soundfont signal processing
+* WebAudio documentation, particulary the authors of the page [Advanced techniques: Creating and sequencing audio](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Advanced_techniques)
+* Russell Good for his blog [How to Convert an AudioBuffer to an Audio File with JavaScript](https://russellgood.com/how-to-convert-audiobuffer-to-audio-file/)
+* Duckduckgo search engine that helped me hack by way through this

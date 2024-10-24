@@ -5,12 +5,12 @@
 //     with text Generator name: type draw centered in the box
 //     when this svg is click, it invoked the modify RUD action on the generator
 
-import { ChangeEvent, FormEvent, MouseEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, MouseEvent, useEffect, useState } from "react";
 import CMGenerator from "../../classes/cmg";
 import Track from "../../classes/track";
 import Generate from "../../components/generation/generate";
 import { useCMGContext } from "../../contexts/cmgcontext";
-import { SECONDSNAPUNIT, TimeLineScales } from "../../types/types";
+import { GENERATIONMODE, SECONDSNAPUNIT, TimeLineScales } from "../../types/types";
 import { addGenerator, flipGeneratorMute, moveGeneratorBodyPosition, moveGeneratorTime } from "../../utils/cmfiletransactions";
 import GeneratorDialog from "../dialogs/generatordialog";
 
@@ -35,9 +35,9 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
     const [openDialog, setOpenDialog] = useState<boolean>(false);
     const [copyDialog, setCopyDialog] = useState<boolean>(false);
     const [selectedTrackName, setSelectedTrackName] = useState<string>('');
-    // const [preview, setPreview] = useState<CMGenerator | null>(null);
-    const preview = useRef<CMGenerator | null>();
-    const [mode, setMode] = useState<string>('');
+    const [preview, setPreview] = useState<CMGenerator | null>(null);
+    // const preview = useRef<CMGenerator | null>();
+    const [mode, setMode] = useState<GENERATIONMODE>(GENERATIONMODE.idle);
 
     // TODO revise as snapping is implemented
     const snapTimeResolution = SECONDSNAPUNIT.Deciseconds;
@@ -54,20 +54,25 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
         console.log(`Track ${track.name} generators refreshed`)
         track.generators.forEach(generator => {
             // is the generator out of the currently displayed current time
-            const timeLineStopTime = timeLine.startTime + TimeLineScales[timeLine.currentZoomLevel].extent;
-            if (!(generator.startTime < timeLine.startTime && generator.stopTime < timeLineStopTime) &&
-                !(generator.startTime > timeLine.startTime && generator.stopTime > timeLineStopTime)) {
+            const timeLineStop = timeLine.startTime + TimeLineScales[timeLine.currentZoomLevel].extent;
+            const timeLineStart = timeLine.startTime;
+            const generatorStart = generator.startTime;
+            const generatorStop = generator.stopTime;
+
+            // if either the generators start or stop time is within the timeline, display it
+            if ((generatorStart >= timeLineStart && generatorStart < timeLineStop) ||
+                (generatorStop >= timeLineStart && generatorStop < timeLineStop)) {
 
                 // bound the icon's start and stop time to the timeline
-                const iconStartTime: number = Math.max(generator.startTime, timeLine.startTime);
-                const iconStopTime: number = Math.min(generator.stopTime, timeLineStopTime);
+                const iconStartTime: number = Math.max(generatorStart, timeLineStart);
+                const iconStopTime: number = Math.min(generatorStop, timeLineStop);
 
                 // the track timeline box
                 const height = element.clientHeight;
                 const width = element.clientWidth;
                 const iconTop = generator.position;
-                const iconLeft = width * (iconStartTime - timeLine.startTime) / (timeLineStopTime - timeLine.startTime);
-                const iconWidth: number = width * (iconStopTime - iconStartTime) / (timeLineStopTime - timeLine.startTime);
+                const iconLeft = width * (iconStartTime - timeLineStart) / (timeLineStop - timeLineStart);
+                const iconWidth: number = width * (iconStopTime - iconStartTime) / (timeLineStop - timeLineStart);
                 const iconHeight: number = height / 3.0;
                 if (iconWidth > 0 && iconHeight > 0) {
                     boxes.push({
@@ -84,8 +89,8 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
     }, [track.generators, timeLine, element]);
 
     useEffect(() => {
-        if (mode == '')
-            preview.current = null;
+        if (mode == GENERATIONMODE.idle)
+            setPreview(null);
     }, [mode]);
 
     function handleBodyMouseDown(event: MouseEvent<HTMLOrSVGElement>, index: number) {
@@ -189,9 +194,9 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
     function handlePreviewClick() {
         setMenuEnabled(false);
         setCursorStyle('cursor-default');
-        setMode('previewgenerator');
+        setMode(GENERATIONMODE.solo);
         // setPreview(generatorBoxes[generatorIndex].generator);
-        preview.current = generatorBoxes[generatorIndex].generator;
+        setPreview(generatorBoxes[generatorIndex].generator);
         setStatus('audio file being previewed');
     }
 
@@ -214,7 +219,7 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
         setMenuEnabled(false);
     }
 
-    function handleSelectedTrackChange(event: ChangeEvent<HTMLElement>) {
+    function handleSelectedTrackChange(event: ChangeEvent<HTMLSelectElement>) {
         setSelectedTrackName(event.target.value);
     }
     function handleCopyOK(event: FormEvent<HTMLElement>): void {
@@ -268,67 +273,66 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
                     height={element.clientHeight}
                     viewBox={`0 0 ${element.clientWidth} ${element.clientHeight}`}
                 >
-                    {generatorBoxes.length == 0 ?
-                        <></> :
-                        generatorBoxes.map((generatorBox, i) => (
-                            <>
-                                <rect
-                                    x={generatorBox.position.x}
-                                    y={generatorBox.position.y}
-                                    width={generatorBox.width}
-                                    height={generatorBox.height}
-                                    fill='white'
-                                    stroke="black"
-                                    strokeWidth={1}
-                                    key={'genrect-' + track.name + '-' + i}
-                                    onMouseDown={event => handleBodyMouseDown(event, i)}
-                                    onMouseUp={handleMouseUp}
-                                    onMouseMove={event => handleMouseMove(event, i)}
-                                    onClick={handleClick}
-                                />
-                                <text
-                                aria-disabled={playing.current?.on}
-                                    x={generatorBox.position.x + generatorBox.width / 2.0}
-                                    y={generatorBox.position.y + generatorBox.height / 3.0}
-                                    fontSize={'10pt'}
-                                    textAnchor='middle'
-                                    dominantBaseline='hanging'
-                                    key={'gentext-' + track.name + '-' + i}
-                                    onMouseDown={event => handleTextMouseDown(event, i)}
-                                    onMouseUp={handleMouseUp}
-                                    onClick={handleClick}
-                                    stroke={generatorBox.generator.mute ? 'red' : 'black'}
-                                >
-                                    {generatorBox.generator.name.concat(":").concat(generatorBox.generator.type)}
-                                </text>
-                                <line
-                                    key={'genstart-' + track.name + '-' + i}
-                                    stroke="blue"
-                                    strokeWidth={5}
-                                    x1={generatorBox.position.x}
-                                    y1={generatorBox.position.y}
-                                    x2={generatorBox.position.x}
-                                    y2={generatorBox.position.y + generatorBox.height}
-                                    onMouseDown={event => handleStartStopMouseDown(event, i, 'start')}
-                                    onMouseUp={handleMouseUp}
-                                    onClick={handleClick}
-                                    onMouseMove={event => handleMouseMove(event, i)}
-                                />
-                                <line
-                                    key={'genstop-' + track.name + '-' + i}
-                                    stroke="blue"
-                                    strokeWidth={5}
-                                    x1={generatorBox.position.x + generatorBox.width}
-                                    y1={generatorBox.position.y}
-                                    x2={generatorBox.position.x + generatorBox.width}
-                                    y2={generatorBox.position.y + generatorBox.height}
-                                    onMouseDown={event => handleStartStopMouseDown(event, i, 'stop')}
-                                    onMouseUp={handleMouseUp}
-                                    onMouseMove={event => handleMouseMove(event, i)}
-                                    onClick={handleClick}
-                                />
-                            </>
-                        ))}
+                    {generatorBoxes.map((generatorBox, i) => (
+                        <>
+                            <rect
+                                pointerEvents={playing.current?.on?'none':'all'}
+                                x={generatorBox.position.x}
+                                y={generatorBox.position.y}
+                                width={generatorBox.width}
+                                height={generatorBox.height}
+                                fill='white'
+                                stroke="black"
+                                strokeWidth={1}
+                                key={'genrect-' + track.name + '-' + i}
+                                onMouseDown={event => handleBodyMouseDown(event, i)}
+                                onMouseUp={handleMouseUp}
+                                onMouseMove={event => handleMouseMove(event, i)}
+                                onClick={handleClick}
+                            />
+                            <text
+                                pointerEvents={playing.current?.on?'none':'all'}
+                                x={generatorBox.position.x + generatorBox.width / 2.0}
+                                y={generatorBox.position.y + generatorBox.height / 3.0}
+                                fontSize={'10pt'}
+                                textAnchor='middle'
+                                dominantBaseline='hanging'
+                                key={'gentext-' + track.name + '-' + i}
+                                onMouseDown={event => handleTextMouseDown(event, i)}
+                                stroke={generatorBox.generator.mute ? 'red' : 'black'}
+                            >
+                                {generatorBox.generator.name.concat(":").concat(generatorBox.generator.type)}
+                            </text>
+                            <line
+                                pointerEvents={playing.current?.on?'none':'all'}
+                                key={'genstart-' + track.name + '-' + i}
+                                stroke="blue"
+                                strokeWidth={5}
+                                x1={generatorBox.position.x}
+                                y1={generatorBox.position.y}
+                                x2={generatorBox.position.x}
+                                y2={generatorBox.position.y + generatorBox.height}
+                                onMouseDown={event => handleStartStopMouseDown(event, i, 'start')}
+                                onMouseUp={handleMouseUp}
+                                onClick={handleClick}
+                                onMouseMove={event => handleMouseMove(event, i)}
+                            />
+                            <line
+                                pointerEvents={playing.current?.on?'none':'all'}
+                                key={'genstop-' + track.name + '-' + i}
+                                stroke="blue"
+                                strokeWidth={5}
+                                x1={generatorBox.position.x + generatorBox.width}
+                                y1={generatorBox.position.y}
+                                x2={generatorBox.position.x + generatorBox.width}
+                                y2={generatorBox.position.y + generatorBox.height}
+                                onMouseDown={event => handleStartStopMouseDown(event, i, 'stop')}
+                                onMouseUp={handleMouseUp}
+                                onMouseMove={event => handleMouseMove(event, i)}
+                                onClick={handleClick}
+                            />
+                        </>
+                    ))}
 
 
                 </svg>
@@ -343,7 +347,6 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
                     top: menuY.toString() + 'px',
                     left: menuX.toString() + 'px'
                 }}
-            // onClick={()=>setMenuEnabled(false)}
             >
                 <p onClick={() => handleEditClick()}>
                     Edit
@@ -358,22 +361,19 @@ export default function GeneratorIcons(props: GeneratorIconProps): JSX.Element {
                     Preview
                 </p>
             </div>
-            {openDialog ?
                 <GeneratorDialog
                     track={track}
                     generatorIndex={generatorIndex}
                     setGeneratorIndex={setGeneratorIndex}
                     closeTrackGenerator={setOpenDialog}
+                    open={openDialog}
                     setOpen={setOpenDialog}
                 />
-                : null}
-            {preview.current ?
                 <Generate
                     mode={mode}
                     setMode={setMode}
-                    generator={preview.current}
+                    generator={preview}
                 />
-                : null}
             <div className="modal-content"
                 style={{ display: copyDialog ? 'block' : 'none' }}            >
                 <div className="modal-header">

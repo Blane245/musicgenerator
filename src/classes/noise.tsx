@@ -9,14 +9,13 @@
 // with a standard deviation
 
 import { sineModulator } from "../components/modulators/sinemodulator";
-import { NOISETYPE } from "../types/types";
+import { GENERATORTYPES, NOISETYPE } from "../types/types";
 import CMG from "./cmg";
 import { sawtoothModulator } from "../components/modulators/sawtoothmodulator";
 import { squareModulator } from "../components/modulators/squaremodulator";
 import { triangleModulator } from "../components/modulators/trianglemodulator";
 import { gaussianRandom } from "../utils/gaussianrandom";
 import { getAttributeValue } from "../utils/xmlfunctions";
-import { rand, setRansomSeed } from "../utils/seededrandom";
 
 const SAMPLERATE: number = 20000;
 export default class Noise extends CMG {
@@ -38,9 +37,8 @@ export default class Noise extends CMG {
 
     constructor(next: number) {
         super(next);
-        this.type = 'Noise';
+        this.type = GENERATORTYPES.Noise;
         this.seed = this.name;
-        setRansomSeed(this.seed);
         this.noiseType = NOISETYPE.white;
         this.mean = 440;
         this.std = 0;
@@ -102,14 +100,13 @@ export default class Noise extends CMG {
                 this.solo = value == 'true';
                 break;
             case 'type':
-                this.type = value;
+                this.type = value as GENERATORTYPES;
                 break;
             case 'noiseType':
                 this.noiseType = value;
                 break;
             case 'seed':
                 this.seed = value;
-                setRansomSeed(this.seed);
                 break;
             case 'mean':
                 this.mean = parseFloat(value)
@@ -162,7 +159,8 @@ export default class Noise extends CMG {
         if (this.noiseType == NOISETYPE.white) {
             // white noise generator
             for (let i = 0; i < sampleCount; i++) {
-                sample[i] = (rand() - 0.5);
+                // sample[i] = (rand() - 0.5);
+                sample[i] = (Math.random() - 0.5);
             }
         } else if (this.noiseType == NOISETYPE.gaussian) {
             // gaussian noise generator
@@ -172,12 +170,6 @@ export default class Noise extends CMG {
                 const deltaT: number = i * timeStep + time;
                 sample[i] = Math.cos(2.0 * Math.PI * freq * deltaT) + noise;
                 if (i == 0) {
-                    // console.log(
-                    //     'freq', freq,
-                    //     'i', i,
-                    //     'deltaT', deltaT,
-                    //     'sample[i]', sample[i]
-                    // )
                 }
             }
         }
@@ -230,7 +222,7 @@ export default class Noise extends CMG {
         elem.setAttribute('solo', this.solo.toString());
         elem.setAttribute('mute', this.mute.toString());
         elem.setAttribute('position', this.position.toString());
-        elem.setAttribute('type', 'Noise');
+        elem.setAttribute('type', GENERATORTYPES.Noise);
         elem.setAttribute('seed', this.seed);
         elem.setAttribute('noiseType', this.noiseType);
         elem.setAttribute('mean', this.mean.toString());
@@ -255,10 +247,9 @@ export default class Noise extends CMG {
         this.mute = (getAttributeValue(elem, 'mute', 'string') == 'true');
         this.solo = (getAttributeValue(elem, 'solo', 'string') == 'true');
         this.position = getAttributeValue(elem, 'position', 'int') as number;
-        this.type = 'Noise';
+        this.type = GENERATORTYPES.Noise;
         this.noiseType = getAttributeValue(elem, 'noiseType', 'string') as string;
         this.seed = getAttributeValue(elem, 'seed', 'string') as string;
-        setRansomSeed(this.seed);
         this.mean = getAttributeValue(elem, 'mean', 'float') as number;
         this.std = getAttributeValue(elem, 'std', 'float') as number;
         this.sampleRate = getAttributeValue(elem, 'sampleRate', 'float') as number;

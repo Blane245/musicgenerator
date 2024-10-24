@@ -1,8 +1,8 @@
 import { Preset } from "../types/soundfonttypes";
-import { AttributeRange, MarkovProbabilities, MARKOVSTATE, RandomSFTransitons } from "../types/types";
+import { AttributeRange, GENERATORTYPES, MarkovProbabilities, MARKOVSTATE, RandomSFTransitons } from "../types/types";
 import CMG from "./cmg";
 import { getAttributeValue, getElementElement } from "../utils/xmlfunctions";
-import { rand, setRansomSeed } from "../utils/seededrandom";
+import { rand } from "../utils/seededrandom";
 
 // trying a markov chain for midi and BPM 
 // the model has three states up, down, and same
@@ -27,12 +27,11 @@ export default class SFRG extends CMG {
 
     constructor(nextGenerator: number) {
         super(nextGenerator);
-        this.type = 'SFRG';
+        this.type = GENERATORTYPES.SFRG;
         this.presetName = '';
         this.preset = undefined;
         this.midi = 0;
         this.seed = this.name;
-        setRansomSeed(this.seed);
         this.midiT = {
             currentState: MARKOVSTATE.same,
             currentValue: 0,
@@ -121,11 +120,10 @@ export default class SFRG extends CMG {
                 this.stopTime = parseFloat(value);
                 break;
             case 'type':
-                this.type = value;
+                this.type = value as GENERATORTYPES;
                 break;
             case 'seed':
                 this.seed = value;
-                setRansomSeed(this.seed);
                 break;
             case 'presetName':
                 this.presetName = value;
@@ -247,6 +245,7 @@ export default class SFRG extends CMG {
 
         function changeState(attribute: RandomSFTransitons): MARKOVSTATE {
             const x: number = rand();
+            console.log(x);
             let newState: MARKOVSTATE = MARKOVSTATE.same;
             switch (attribute.currentState) {
                 case MARKOVSTATE.same:
@@ -322,7 +321,7 @@ export default class SFRG extends CMG {
         elem.setAttribute('solo', this.solo.toString());
         elem.setAttribute('mute', this.mute.toString());
         elem.setAttribute('position', this.position.toString());
-        elem.setAttribute('type', 'SFRG');
+        elem.setAttribute('type', GENERATORTYPES.SFRG);
         elem.setAttribute('seed', this.seed);
         elem.setAttribute('presetName', this.presetName);
         elem.setAttribute('midi', this.midi.toString());
@@ -365,7 +364,7 @@ export default class SFRG extends CMG {
         this.mute = (getAttributeValue(elem, 'mute', 'string') == 'true');
         this.solo = (getAttributeValue(elem, 'solo', 'string') == 'true');
         this.position = getAttributeValue(elem, 'position', 'int') as number;
-        this.type = 'SFRG';
+        this.type = GENERATORTYPES.SFRG;
         this.presetName = getAttributeValue(elem, 'presetName', 'string') as string;
         this.seed = getAttributeValue(elem, 'seed', 'string') as string;
         this.midi = getAttributeValue(elem, 'midi', 'int') as number;

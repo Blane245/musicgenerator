@@ -1,10 +1,15 @@
-import Track from 'classes/track';
 import { ChangeEvent, useEffect, useState } from "react";
-import { CMGeneratorType } from 'types/types';
+import { SoundFont2 } from 'soundfont2';
+import SFPG from '../../classes/sfpg';
+import SFRG from '../../classes/sfrg';
+import Track from '../../classes/track';
 import Generate from "../../components/generation/generate";
 import { useCMGContext } from '../../contexts/cmgcontext';
-import { setSoundFont } from '../../utils/cmfiletransactions';
+import { Preset } from '../../types/soundfonttypes';
+import { CMGeneratorType, GENERATIONMODE, GENERATORTYPES } from '../../types/types';
+import { modifyGenerator, setSoundFont } from '../../utils/cmfiletransactions';
 import { loadSoundFont } from '../../utils/loadsoundfont';
+import { bankPresettoName } from '../../utils/util';
 import TimeLineDisplay from './timelinedisplay';
 
 // display of the CGM file, its contents, and controls
@@ -19,8 +24,9 @@ export default function ControlsDisplay() {
     const [SFfiles, setSFFiles] = useState<string[]>([]);
     const [SFFileName, setSFFileName] = useState<string>('');
     const [readyGenerate, setReadyGenerate] = useState<boolean>(true);
-    const [mode, setMode] = useState<string>('');
+    const [mode, setMode] = useState<GENERATIONMODE>(GENERATIONMODE.idle);
     const [showStop, setShowStop] = useState<boolean>(false);
+    const [errors, setErrors] = useState<string[]>([]);
 
     useEffect(() => {
         if (playing.current) {
@@ -55,11 +61,10 @@ export default function ControlsDisplay() {
         let goodGeneratorCount: number = 0;
         fileContents.tracks.forEach((t: Track) => {
             t.generators.forEach((g: CMGeneratorType) => {
-                if (g.type != 'CMG') {
-                    if (((g.type == 'SFPG' || g.type == 'SFRG') && g.presetName != '' && g.preset && g.midi >= 0 && g.midi <= 255) ||
-                        g.type == 'Noise') {
-                        goodGeneratorCount++;
-                    }
+                if (g.type != GENERATORTYPES.CMG && ((g.type == GENERATORTYPES.SFPG || g.type == GENERATORTYPES.SFRG)
+                    && g.presetName != '' && g.preset && g.midi >= 0 && g.midi <= 255) ||
+                    g.type == GENERATORTYPES.Noise) {
+                    goodGeneratorCount++;
                 }
             })
         })
@@ -75,19 +80,62 @@ export default function ControlsDisplay() {
     // TODO - any generators that have been selected from a previous soundfont file will be violated. This will have to be handled
     async function handleFileNameChange(event: ChangeEvent<HTMLSelectElement>) {
         const fileName: string = event.target.value;
-        if (fileName !== '' && fileName !== 'select a file') {
+        if (fileName !== '' && fileName !== 'select a file' && fileName != fileContents.SFFileName) {
             setSFFileName(fileName);
             const sf = await loadSoundFont(fileName);
             setSoundFont(fileName, sf, setFileContents);
+
+            // we need to update the preset names if any generators are using presets
+            // they will change to the ones that match teh bak and channel number of 
+            // the old file. If there is no match, first preset
+            updatePresets(sf);
             setStatus(`file ${fileName} loaded`);
         }
+    }
+
+    function updatePresets(sf: SoundFont2) {
+
+        // locate each generator that is using a preset and rename it. 
+        const errors: string[] = [];
+        fileContents.tracks.forEach((t: Track) => {
+            t.generators.forEach((g: CMGeneratorType) => {
+                let presetSplit: string[] = [];
+                if (g.type == GENERATORTYPES.SFPG) {
+                    presetSplit = (g as SFPG).presetName.split(":");
+                }
+                if (g.type == GENERATORTYPES.SFRG) {
+                    presetSplit = (g as SFRG).presetName.split(":");
+                }
+                if (presetSplit.length == 3) {
+                    const bank: number = parseInt(presetSplit[0]);
+                    const channel: number = parseInt(presetSplit[1]);
+
+                    // find the present in the new soundfont file with this 
+                    // back and channel number
+                    let newPreset: Preset | undefined = sf.presets.find((p) => (bank == p.header.bank && channel == p.header.preset));
+                    let newPresetName: string = '';
+                    if (newPreset) {
+                        newPresetName = bankPresettoName(newPreset);
+                    } else {
+                        errors.push(`Track ${t.name}, generator ${g.name} has no preset for bank ${bank}, channel${channel}. Setting first preset`)
+                        newPreset = sf.presets[0];
+                        newPresetName = bankPresettoName(newPreset);
+                    }
+                    const newG = g.copy();
+                    newG.presetName = newPresetName;
+                    newG.preset = newPreset;
+                    modifyGenerator(t, newG, g.name, setFileContents);
+                }
+            });
+        });
+        setErrors(errors);
     }
 
     return (
         <>
             <div className='page-control'>
                 <label htmlFor="SFfile-select">SoundFont File:</label>
-                <select
+                <select disabled={playing.current?.on}
                     name="SFfile-select"
                     id="SFfile-select"
                     value={SFFileName}
@@ -98,29 +146,47 @@ export default function ControlsDisplay() {
                     ))}
                 </select>
                 <button
-                    disabled={!readyGenerate}
-                    onClick={() => setMode('recordfile')}>
+                    disabled={!readyGenerate || playing.current?.on}
+                    onClick={() => setMode(GENERATIONMODE.record)}>
                     Record
                 </button>
                 <button
-                    disabled={!readyGenerate}
-                    onClick={() => setMode('previewfile')}>
+                    disabled={!readyGenerate || playing.current?.on}
+                    onClick={() => setMode(GENERATIONMODE.preview)}>
                     Preview
                 </button>
                 <button
                     hidden={!showStop}
-                    onClick={() => {if (playing.current) playing.current.on = false }}>
+                    onClick={() => { if (playing.current) playing.current.on = false }}>
                     Stop
                 </button>
             </div>
+
             <TimeLineDisplay />
-            {mode != '' ?
-                <Generate
-                    mode={mode}
-                    setMode={setMode}
-                    generator={null}
-                />
-                : null}
+            <Generate
+                mode={mode}
+                setMode={setMode}
+                generator={null}
+            />
+            {/* error popup */}
+            <div className='modal-content'
+                style={{ display: (errors.length != 0 ? "block" : "none") }}
+            >
+                <div className='modal-header'>
+                    h2 Errors while switching soundfont files
+                </div>
+                <div className='modal-body'>
+                    {errors.map((e) => (
+                        <p>{e}</p>
+                    ))}
+                </div>
+                <div className='modal-footer'>
+                    <button
+                        onClick={() => { setErrors([]); }}>
+                        OK
+                    </button>
+                </div>
+            </div>
 
         </>
     )

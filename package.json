@@ -10,11 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@emotion/styled": "^11.13.0",
-    "@mui/icons-material": "^5.16.7",
-    "@mui/material": "^5.16.7",
-    "@mui/styles": "^6.1.0",
-    "@mui/system": "^5.16.7",
     "file-system-access": "^1.0.4",
     "material-ui-audio-player": "^1.6.6",
     "numeral": "^2.0.6",

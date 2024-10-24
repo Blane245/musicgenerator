@@ -3,12 +3,11 @@ import SFPG from "../../classes/sfpg";
 import { MODULATOR } from "../../types/types";
 import { bankPresettoName, toNote } from "../../utils/util";
 import { useCMGContext } from "../../contexts/cmgcontext";
-import { Preset } from "../../types/soundfonttypes";
 
 // provides the form fields and validators for the sfperiodic generator
 export interface SFPGDialogProps {
     formData: SFPG,
-    handleChange: (event: ChangeEvent<HTMLElement>) => void,
+    handleChange: (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void,
 }
 const INPUTSIZE: number = 6;
 
@@ -188,30 +187,6 @@ export function validateSFPGValues(values: SFPG): string[] {
 
     if (!values.presetName)
         result.push('PresetName must be specified')
-    if (values.midi < 0 || values.midi > 127)
-        result.push('Midi number must be between 0 and 127')
-    if (values.FMAmplitude < 0)
-        result.push('FMAmplitude must be greater than zero');
-    if (values.FMFrequency < 0)
-        result.push('FMFrequency must be greater than zero');
-    if (values.FMPhase < -360 || values.FMPhase > 360)
-        result.push('FMPhase must be greater than -360 and less than 360');
-    if (values.VMCenter < 0 || values.VMCenter > 100)
-        result.push('VMCenter must be between 0 and 100');
-    if (values.VMAmplitude < 0)
-        result.push('VMAmplitude must be greater than zero');
-    if (values.VMFrequency < 0)
-        result.push('VMFrequency must be greater than zero');
-    if (values.VMPhase < -360 || values.VMPhase > 360)
-        result.push('VMPhase must be greater than -360 and less than 360');
-    if (values.PMCenter < -1.0 || values.PMCenter > 1.0)
-        result.push('PMCenter must be between -1 and 1');
-    if (values.PMAmplitude < 0)
-        result.push('PMAmplitude must be greater than zero');
-    if (values.PMFrequency < 0)
-        result.push('PMFrequency must be greater than zero');
-    if (values.PMPhase < -360 || values.PMPhase > 360)
-        result.push('PMPhase must be greater than -360 and less than 360');
     return result;
 
 }

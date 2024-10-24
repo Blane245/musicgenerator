@@ -4,7 +4,7 @@ import { useCMGContext } from "../../contexts/cmgcontext";
 import { addTrack } from "../../utils/cmfiletransactions";
 
 export default function TrackMenu() {
-  const { fileContents, setFileContents, setStatus } = useCMGContext();
+  const { fileContents, setFileContents, setStatus, playing } = useCMGContext();
 
   function handleNewTrack(e: MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
@@ -31,11 +31,11 @@ export default function TrackMenu() {
   }
 
   return (
-    <>
+    <fieldset disabled={playing.current?.on} style={{width:'30em'}}>
       <button
         onClick={e => handleNewTrack(e)}
       >New Track...</button>
-    </>
+    </fieldset>
   );
 
 }

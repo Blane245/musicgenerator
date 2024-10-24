@@ -18,10 +18,10 @@ function cyrb128(str: string): number[] {
     return [h1 >>> 0, h2 >>> 0, h3 >>> 0, h4 >>> 0];
 }
 
-export function setRansomSeed(word: string): void {
+export function setRandomSeed(word: string): void {
     seed = cyrb128(word);
     // do a little early sequence mixing
-    for (let i = 0; i < 10; i++) rand();
+    for (let i = 0; i < 1000; i++) rand();
 }
 
 function sfc32(): Function {
@@ -44,4 +44,5 @@ return function () {
 //     return sfc32(seed[0], seed[1], seed[2], seed[3])();}
 export function rand(): number {
     return sfc32()();
+    // return Math.random();
 }

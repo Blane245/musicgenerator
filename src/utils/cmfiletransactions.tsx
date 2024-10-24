@@ -8,11 +8,13 @@ export function newFile(contents: CMGFile, setFileContents: Function): void {
 }
 export function setSoundFont(fileName: string, sf: SoundFont2, setFileContents: Function): void {
     setFileContents((c: CMGFile) => {
-        const newC: CMGFile = c.copy();
-        newC.SFFileName = fileName;
-        newC.SoundFont = sf;
-        newC.dirty = true;
-        return newC;
+        if (c.SFFileName != fileName) {
+            const newC: CMGFile = c.copy();
+            newC.SFFileName = fileName;
+            newC.SoundFont = sf;
+            newC.dirty = true;
+            return newC;
+        } else return c;
     })
 }
 
@@ -104,11 +106,11 @@ export function moveTrack(trackName: string, direction: string, setFileContents:
     })
 }
 
-export function addGenerator (track: Track, generator: CMGeneratorType, setFileContents: Function) {
+export function addGenerator(track: Track, generator: CMGeneratorType, setFileContents: Function) {
     setFileContents((prev: CMGFile) => {
         const newF: CMGFile = prev.copy();
-        const thisTrack:Track | undefined = newF.tracks.find((t) => t.name == track.name);
-        if (!thisTrack) return prev; 
+        const thisTrack: Track | undefined = newF.tracks.find((t) => t.name == track.name);
+        if (!thisTrack) return prev;
 
         thisTrack.generators.push(generator.copy());
         newF.dirty = true;
@@ -116,13 +118,13 @@ export function addGenerator (track: Track, generator: CMGeneratorType, setFileC
     })
 }
 
-export function modifyGenerator (track: Track, generator: CMGeneratorType, oldName: string, setFileContents: Function) {
+export function modifyGenerator(track: Track, generator: CMGeneratorType, oldName: string, setFileContents: Function) {
     setFileContents((prev: CMGFile) => {
         const newF: CMGFile = prev.copy();
-        const thisTrack:Track | undefined = newF.tracks.find((t) => t.name == track.name);
-        if (!thisTrack) return prev; 
+        const thisTrack: Track | undefined = newF.tracks.find((t) => t.name == track.name);
+        if (!thisTrack) return prev;
 
-        const newGIndex:number = thisTrack.generators.findIndex((g) => g.name == oldName);
+        const newGIndex: number = thisTrack.generators.findIndex((g) => g.name == oldName);
         if (newGIndex < 0) return prev;
 
         thisTrack.generators[newGIndex] = generator.copy();
@@ -133,13 +135,13 @@ export function modifyGenerator (track: Track, generator: CMGeneratorType, oldNa
 
 }
 
-export function deleteGenerator (track: Track, name: string, setFileContents: Function) {
+export function deleteGenerator(track: Track, name: string, setFileContents: Function) {
     setFileContents((prev: CMGFile) => {
         const newF: CMGFile = prev.copy();
-        const thisTrack:Track | undefined = newF.tracks.find((t) => t.name == track.name);
-        if (!thisTrack) return prev; 
+        const thisTrack: Track | undefined = newF.tracks.find((t) => t.name == track.name);
+        if (!thisTrack) return prev;
 
-        const gIndex:number = thisTrack.generators.findIndex((g) => g.name == name);
+        const gIndex: number = thisTrack.generators.findIndex((g) => g.name == name);
         if (gIndex < 0) return prev;
 
         thisTrack.generators.splice(gIndex, 1);
@@ -149,12 +151,12 @@ export function deleteGenerator (track: Track, name: string, setFileContents: Fu
 
 }
 
-export function flipGeneratorMute (track:Track, index:number, setFileContents: Function) {
-    
+export function flipGeneratorMute(track: Track, index: number, setFileContents: Function) {
+
     setFileContents((prev: CMGFile) => {
         const newF: CMGFile = prev.copy();
-        const thisTrack:Track | undefined = newF.tracks.find((t) => t.name == track.name);
-        if (!thisTrack) return prev; 
+        const thisTrack: Track | undefined = newF.tracks.find((t) => t.name == track.name);
+        if (!thisTrack) return prev;
 
         const newG: CMGeneratorType = thisTrack.generators[index];
         newG.mute = !newG.mute;
@@ -163,11 +165,11 @@ export function flipGeneratorMute (track:Track, index:number, setFileContents: F
     })
 }
 
-export function moveGenertorBodyTime (track: Track, index: number, newStart:number, setFileContents: Function) {
+export function moveGenertorBodyTime(track: Track, index: number, newStart: number, setFileContents: Function) {
     setFileContents((prev: CMGFile) => {
         const newF: CMGFile = prev.copy();
-        const thisTrack:Track | undefined = newF.tracks.find((t) => t.name == track.name);
-        if (!thisTrack) return prev; 
+        const thisTrack: Track | undefined = newF.tracks.find((t) => t.name == track.name);
+        if (!thisTrack) return prev;
 
         const newG: CMGeneratorType = thisTrack.generators[index];
         newG.stopTime = newG.stopTime - newG.startTime + newStart;
@@ -177,11 +179,11 @@ export function moveGenertorBodyTime (track: Track, index: number, newStart:numb
     })
 }
 
-export function moveGeneratorBodyPosition (track: Track, index: number, position: number, setFileContents: Function) {
+export function moveGeneratorBodyPosition(track: Track, index: number, position: number, setFileContents: Function) {
     setFileContents((prev: CMGFile) => {
         const newF: CMGFile = prev.copy();
-        const thisTrack:Track | undefined = newF.tracks.find((t) => t.name == track.name);
-        if (!thisTrack) return prev; 
+        const thisTrack: Track | undefined = newF.tracks.find((t) => t.name == track.name);
+        if (!thisTrack) return prev;
 
         const newG: CMGeneratorType = thisTrack.generators[index];
         newG.position = position;
@@ -190,11 +192,11 @@ export function moveGeneratorBodyPosition (track: Track, index: number, position
     })
 }
 
-export function moveGeneratorTime (track: Track, index: number, mode: string, newValue: number, setFileContents: Function) {
+export function moveGeneratorTime(track: Track, index: number, mode: string, newValue: number, setFileContents: Function) {
     setFileContents((prev: CMGFile) => {
         const newF: CMGFile = prev.copy();
-        const thisTrack:Track | undefined = newF.tracks.find((t) => t.name == track.name);
-        if (!thisTrack) return prev; 
+        const thisTrack: Track | undefined = newF.tracks.find((t) => t.name == track.name);
+        if (!thisTrack) return prev;
 
         const newG: CMGeneratorType = thisTrack.generators[index];
         if (mode == 'start') {

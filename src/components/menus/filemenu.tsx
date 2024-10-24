@@ -9,9 +9,10 @@ import { useCMGContext } from '../../contexts/cmgcontext';
 import { Preset } from '../../types/soundfonttypes';
 import { newFile, setDirty } from '../../utils/cmfiletransactions';
 import { getAttributeValue, getDocElement, getElementElement } from '../../utils/xmlfunctions';
+import { GENERATORTYPES } from "../../types/types";
 
 export default function FileMenu() {
-  const { fileContents, setFileContents, setMessage, setStatus, setFileName } = useCMGContext();
+  const { fileContents, setFileContents, setMessage, setStatus, setFileName, playing } = useCMGContext();
   const [open, setOpen] = useState<string>('');
 
   function handleFileNew() {
@@ -55,7 +56,7 @@ export default function FileMenu() {
   }
 
   return (
-    <>
+    <fieldset disabled={playing.current?.on} style={{width:'25em'}}>
       <button onClick={handleFileNew}>New File ...</button>
       <button onClick={handleOpenClick}>Open File ...</button>
       <button onClick={handleFileSave}>Save File ...</button>
@@ -84,7 +85,7 @@ export default function FileMenu() {
           >Cancel</button>
         </div>
       </div>
-    </>
+    </fieldset>
   );
   function saveFileContents() {
     try {
@@ -102,18 +103,18 @@ export default function FileMenu() {
         t.generators.forEach(g => {
           const genElement: HTMLElement = doc.createElement('generator');
           switch (g.type) {
-            case 'CMG':
+            case GENERATORTYPES.CMG:
               (g as CMG).appendXML(doc, genElement);
               break;
-            case 'SFPG':
+            case GENERATORTYPES.SFPG:
               (g as SFPG).appendXML(doc, genElement);
 
               break;
-            case 'SFRG':
+            case GENERATORTYPES.SFRG:
               (g as SFRG).appendXML(doc, genElement);
               // (g as SFRG).appendXML(doc, genElement);
               break;
-            case 'Noise':
+            case GENERATORTYPES.Noise:
               (g as Noise).appendXML(doc, genElement);
               break;
             default:
@@ -132,20 +133,16 @@ export default function FileMenu() {
       const serializer = new XMLSerializer();
       const xmlString = serializer.serializeToString(doc);
 
-      // write the file
-      const options = {
-        types: [
-          {
-            description: 'CMG files',
-            accept: {
-              'cmg': ['.cmg']
-            }
-          }
-        ]
-      }
-
       // save the xml data
-      window.showSaveFilePicker(/*options*/)
+      window.showSaveFilePicker(
+        {types: [
+          {
+              description: "Computer Music Generator File",
+              accept: { "application/cmg": [".cmg"]}
+          }
+      ]}
+
+      )
         .then((handle) => {
           handle.createWritable()
             .then(async (writeable) => {
@@ -166,11 +163,16 @@ export default function FileMenu() {
   }
 
   function readFileContents() {
-    const options = {
-      types: [{ description: 'CMG files', accept: { 'cmg': ['.cmg'] } }]
-    };
     try {
-      window.showOpenFilePicker(/*options*/)
+      window.showOpenFilePicker(
+        {types: [
+          {
+              description: "Computer Music Generator File",
+              accept: { "application/cmg": [".cmg"]}
+          }
+      ]}
+
+      )
         .then((handle) => {
           handle[0].getFile()
             .then((file) => {
@@ -197,13 +199,13 @@ export default function FileMenu() {
                       const type = getAttributeValue(gchild, 'type', 'string') as string;
                       let gen = null;
                       switch (type as string) {
-                        case "CMG": {
+                        case GENERATORTYPES.CMG: {
                           gen = new CMG(0);
                           gen.getXML(xmlDoc, gchild);
                           track.generators.push(gen);
                           break;
                         }
-                        case 'SFPG': {
+                        case GENERATORTYPES.SFPG: {
                           gen = new SFPG(0);
                           gen.getXML(xmlDoc, gchild);
                           // load the preset if soundfont file and presetname is defined
@@ -216,7 +218,7 @@ export default function FileMenu() {
                           track.generators.push(gen);
                           break;
                         }
-                        case 'SFRG':
+                        case GENERATORTYPES.SFRG:
                           gen = new SFRG(0);
                           gen.getXML(xmlDoc, gchild);
                           // load the preset if soundfont file and presetname is defined
@@ -228,7 +230,7 @@ export default function FileMenu() {
                           }
                           track.generators.push(gen);
                           break;
-                        case 'Noise':
+                        case GENERATORTYPES.Noise:
                           gen = new Noise(0);
                           gen.getXML(xmlDoc, gchild);
                           track.generators.push(gen);

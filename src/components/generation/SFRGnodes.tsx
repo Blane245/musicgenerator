@@ -2,15 +2,15 @@
 // this follows the 4 markov chains for the midi, speed, volume, and pan attributes
 // each node time starts when the last one stops as determined by the spped attribute
 
+import { GeneratorTimes } from "../../types/types";
 import SFRG from "../../classes/sfrg";
 import { InstrumentZone } from "../../types/soundfonttypes";
 import { getSFGeneratorValues } from "../../utils/soundfont2utils";
 
 // the node's midi, volume, and pan values is plugged in from their respective chains 
 export function getBufferSourceNodesFromSFRG(
-    context: AudioContext, destination: AudioDestinationNode | MediaStreamAudioDestinationNode, gen: SFRG
-): 
-{ sources: AudioBufferSourceNode[], times: { start: number, stop: number }[] } {
+    context: AudioContext | OfflineAudioContext, destination: AudioDestinationNode | MediaStreamAudioDestinationNode, gen: SFRG
+): { sources: AudioBufferSourceNode[], times: GeneratorTimes[] } {
 
     // get the instrument zone for generator's preset
     if (!gen.preset)
@@ -23,7 +23,7 @@ export function getBufferSourceNodesFromSFRG(
     const { startTime, stopTime } = gen;
     let currentTime: number = startTime;
     const sources: AudioBufferSourceNode[] = [];
-    const times: { start: number, stop: number }[] = [];
+    const times: GeneratorTimes[] = [];
 
     // initialize the current values of the generator
     gen.midiT.currentValue = gen.midi;
@@ -35,15 +35,12 @@ export function getBufferSourceNodesFromSFRG(
 
         // deterime how long this note will play from the new speed and set its start and stop times
         const timeStep = 60.0 / speed;
-        const thisTimeInterval: { start: number, stop: number } =
-            { start: currentTime, stop: Math.min(stopTime, currentTime + timeStep) };
-        currentTime += timeStep;
-        times.push(thisTimeInterval);
 
         // get the new midi attributes from the soundfont file
         // get the samples for the sound to last the 
         // get the instrument's zone from the pitch, with clipping
-        const iZone = zones.findIndex((z) => (z.keyRange && midi >= z.keyRange.lo && midi <= z.keyRange.hi));
+        let iZone = zones.findIndex((z) => (z.keyRange && midi >= z.keyRange.lo && midi <= z.keyRange.hi));
+        if (iZone < 0) iZone = 0;
         const currentZone: InstrumentZone = zones[iZone];
         const { sampleRate, start, startLoop, endLoop, pitchCorrection } = currentZone.sample.header;
 
@@ -73,16 +70,32 @@ export function getBufferSourceNodesFromSFRG(
 
         // get the chunk's sample
         // nextSampleIndex = Math.ceil(iChunk * chunkSize * playbackRate);
-        const floatSample: Float32Array = new Float32Array(currentZone.sample.data.length)
-        for (let i = 0; i < floatSample.length; i++) {
-            floatSample[i] = currentZone.sample.data[i] / 32768.0
+        function getSample (loopStart: number, loopEnd: number, sample: Int16Array, chunkSize: number): Float32Array {
+            const nSam = Math.ceil(chunkSize);
+            const sam: Float32Array = new Float32Array(nSam);
+            let iSam: number = 0;
+            let iLoop: number = 0;
+            while (iSam < nSam) {
+                sam[iSam] = sample[iLoop] / 32768.0;
+                iSam++;
+                iLoop++;
+                if (iLoop > loopEnd) {
+                    iLoop = loopStart;
+                    console.log(`loop back at ${iSam} -  ${iLoop}`)
+                }
+            }
+            return sam;
         }
+        const floatSample: Float32Array = getSample (loopStart, loopEnd, currentZone.sample.data, sampleRate * timeStep * playbackRate )
+        // const floatSample: Float32Array = new Float32Array(currentZone.sample.data.length)
+        // for (let i = 0; i < floatSample.length; i++) {
+        //     floatSample[i] = currentZone.sample.data[i] / 32768.0
+        // }
         console.log(
             'midi', midi,
             'speed', speed,
             'volume', volume,
             'pan', pan,
-            'thisTimeInterval', thisTimeInterval,
             'currentTime', currentTime,
             'currentzone', currentZone,
             'rootKey', rootKey,
@@ -117,6 +130,13 @@ export function getBufferSourceNodesFromSFRG(
         source.connect(vol);
         panner.connect(destination);
         sources.push(source);
+        const thisTimeInterval: GeneratorTimes =
+            { start: currentTime, stop: Math.min(stopTime, currentTime + timeStep), lastGain: vol };
+        console.log(
+            'thisTimeInterval', thisTimeInterval,
+        )
+        times.push(thisTimeInterval);
+        currentTime += timeStep;
     }
 
     return { sources: sources, times: times };

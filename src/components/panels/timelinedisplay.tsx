@@ -1,13 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
-import TimeLine from '../../classes/timeline';
-import { TIMEFORMATS, TimeLineScale, TimeLineScales } from '../../types/types';
 import numeral from 'numeral';
-import { CiZoomIn, CiZoomOut } from "react-icons/ci";
+import { useEffect, useRef, useState } from 'react';
+import { CiCircleChevLeft, CiCircleChevRight, CiZoomIn, CiZoomOut } from "react-icons/ci";
+import TimeLine from '../../classes/timeline';
 import { useCMGContext } from '../../contexts/cmgcontext';
+import { TIMEFORMATS, TimeLineScale, TimeLineScales } from '../../types/types';
 
 // render the timeline
 export default function TimeLineDisplay() {
-    const { timeLine, setTimeLine, timeProgress } = useCMGContext();
+    const { timeLine, setTimeLine, timeProgress, playing } = useCMGContext();
     const timeLineRef = useRef<HTMLDivElement>(null);
     const [ticks, setTicks] = useState<{
         majorTickCount: number,
@@ -129,21 +129,58 @@ export default function TimeLineDisplay() {
         });
     }
 
+    // shift time line start left 1/2 of the extent of the current zoom level
+    const handleShiftLeft = (): void => {
+        setTimeLine ((c: TimeLine) => {
+            const extent = TimeLineScales[c.currentZoomLevel].extent;
+            const newC = new TimeLine(timeLine.width, timeLine.height);
+            newC.currentZoomLevel = c.currentZoomLevel;
+            newC.startTime = c.startTime - extent / 2.0;
+            return newC;
+        })
+    }
+
+    // shift time line start right 1/2 of the extent of the current zoom level
+    const handleShiftRight = (): void => {
+        setTimeLine ((c: TimeLine) => {
+            const extent = TimeLineScales[c.currentZoomLevel].extent;
+            const newC = new TimeLine(timeLine.width, timeLine.height);
+            newC.currentZoomLevel = c.currentZoomLevel;
+            newC.startTime = c.startTime + extent / 2.0;
+            return newC;
+        })
+        
+    }
+
     return (
         <>
             <div className='page-time-control'>
-                <button
+            <fieldset disabled={playing.current?.on} style={{ width: 'inherit' }}>
+                <button style={{fontSize:'15px'}}
                     disabled={timeLine.currentZoomLevel == 0}
                     onClick={handleZoomIn}
                 >
                     <CiZoomIn />
                 </button>
-                <button
+                <button style={{fontSize:'15px'}}
                     disabled={timeLine.currentZoomLevel == TimeLineScales.length - 1}
                     onClick={handleZoomOut}
                 >
-                    <CiZoomOut />
+                    <CiZoomOut/>
                 </button>
+                <button style={{fontSize:'15px'}}
+                    disabled={timeLine.startTime == 0}
+                    onClick={handleShiftLeft}
+                >
+                    <CiCircleChevLeft/>
+                </button>
+                <button style={{fontSize:'15px'}}
+                    // disabled={timeLine.startTime + TimeLineScales[timeLine.currentZoomLevel].extent}
+                    onClick={handleShiftRight}
+                >
+                    <CiCircleChevRight/>
+                </button>
+            </fieldset>
             </div>
             <div ref={timeLineRef} className='page-time-timeline'>
                 <svg

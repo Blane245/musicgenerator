@@ -3,6 +3,6 @@ export function sineModulator
 // x = A * sin(f * (t - t0) + p) + base
 const result:number = 
 baseValue + 
-amplitude * Math.sin(frequency / 1000.0 * (time - startTime) * 2.0 * Math.PI + phase * (Math.PI / 180.0));
+amplitude * Math.sin(frequency / 1000.0 * (time) * 2.0 * Math.PI + phase * (Math.PI / 180.0));
 return result;
 }

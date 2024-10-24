@@ -5,7 +5,7 @@ import { MODULATOR, NOISETYPE } from "../../types/types";
 // provides the form fields and validators for the sfperiodic generator
 export interface SFPGDialogProps {
     formData: Noise,
-    handleChange: (event: ChangeEvent<HTMLElement>) => void,
+    handleChange: (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void,
 }
 export default function NoiseDialog(props: SFPGDialogProps): JSX.Element {
     const { formData, handleChange } = props;

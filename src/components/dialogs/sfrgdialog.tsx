@@ -7,7 +7,7 @@ import { useCMGContext } from "../../contexts/cmgcontext";
 // provides the form fields and validators for the sfperiodic generator
 export type SFRGDialogDialogProps = {
     formData: SFRG,
-    handleChange: (event: ChangeEvent<HTMLElement>) => void;
+    handleChange: (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void,
 }
 export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
     const { formData, handleChange } = props;
@@ -72,10 +72,10 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
             </div>
             <div className="transition-box" >
                 <p className="transition-header">Speed Transtions</p>
-                <label>Starting Value:<input name="speedT.startValue" value={formData.speedT.startValue} onChange={handleChange} type='number' min={20} max={500} step={10} /></label>
+                <label>Starting Value:<input name="speedT.startValue" value={formData.speedT.startValue} onChange={handleChange} type='number' min={5} max={500} step={5} /></label>
                 <br />
-                <label>Range lo:<input name="speedT.range.lo" value={formData.speedT.range.lo} onChange={handleChange} type='number' min={20} max={500} step={1} /></label>
-                <label>Range hi:<input name="speedT.range.hi" value={formData.speedT.range.hi} onChange={handleChange} type='number' min={20} max={500} step={1} /></label>
+                <label>Range lo:<input name="speedT.range.lo" value={formData.speedT.range.lo} onChange={handleChange} type='number' min={5} max={500} step={1} /></label>
+                <label>Range hi:<input name="speedT.range.hi" value={formData.speedT.range.hi} onChange={handleChange} type='number' min={5} max={500} step={1} /></label>
                 <label>Range step:<input name="speedT.range.step" value={formData.speedT.range.step} onChange={handleChange} type='number' min={0} max={500} step={1} /></label>
                 <br />
                 <label>same-&gt;same:<input name="speedT.same.same" value={formData.speedT.same.same} onChange={handleChange} type='number' min={0} max={1} step={0.01} /></label>

@@ -1,10 +1,11 @@
+import Noise from "../classes/noise";
 import CMG from "../classes/cmg";
 import SFPG from "../classes/sfpg";
 import SFRG from "../classes/sfrg";
 
 export type Message = { text: string, error: boolean }
 
-export type CMGeneratorType = CMG | SFPG | SFRG;
+export type CMGeneratorType = CMG | SFPG | SFRG | Noise;
 
 export const MENUS = Object.freeze({
     FILE: 0,
@@ -114,6 +115,7 @@ export type TimeFormat = {
     value: string,
     type: TIMEFORMATTYPE,
 }
+
 export const TIMEFORMATS:TimeFormat[]  = [
     {value:'0.000000',type:TIMEFORMATTYPE.NUMBER},
     {value:'0.0000',type:TIMEFORMATTYPE.NUMBER},
@@ -172,10 +174,10 @@ export const TimeLineScales:TimeLineScale[] = [
  ]
 
 export enum GENERATORTYPES  {
-    "CMG",
-    "SFPG",
-    "SFRG",
-    "Noise",
+    CMG = 'CMG',
+    SFPG = 'SFPG',
+    SFRG = 'SFRG',
+    Noise = 'Noise',
 }
 
 export enum MARKOVSTATE {
@@ -184,6 +186,11 @@ export enum MARKOVSTATE {
     down = 'down',
 }
 
+export type GeneratorTimes = {
+    start:number,
+    stop:number,
+    lastGain: GainNode | null,
+}
 // export enum RANDOMSFATTRIBUTE {
 //     midiT = 'midiT',
 //     speedT = 'speedT',
@@ -218,4 +225,12 @@ export type RandomSFTransitons = {
 export enum NOISETYPE {
     white = 'white',
     gaussian = 'gaussian',
+}
+
+export enum GENERATIONMODE {
+    record = 'record',
+    preview = 'preview',
+    solo = 'solo',
+    idle = 'idle'
+
 }

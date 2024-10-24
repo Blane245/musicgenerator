@@ -5,6 +5,7 @@ import { squareModulator } from "../components/modulators/squaremodulator";
 import { triangleModulator } from "../components/modulators/trianglemodulator";
 import { Preset } from '../types/soundfonttypes';
 import { getAttributeValue } from '../utils/xmlfunctions';
+import { GENERATORTYPES } from '../types/types';
 export default class SFPG extends CMG {
     presetName: string;
     preset: Preset | undefined;
@@ -28,7 +29,7 @@ export default class SFPG extends CMG {
         this.presetName = '';
         this.preset = undefined;
         this.midi = 0;
-        this.type = 'SFPG';
+        this.type = GENERATORTYPES.SFPG;
         this.FMType = "SINE";
         this.FMAmplitude = 0;
         this.FMFrequency = 0;
@@ -95,7 +96,7 @@ export default class SFPG extends CMG {
                 this.solo = value == 'true';
                 break;
             case 'type':
-                this.type = value;
+                this.type = value as GENERATORTYPES;
                 break;
             case 'presetName':
                 this.presetName = value;
@@ -218,7 +219,7 @@ export default class SFPG extends CMG {
         elem.setAttribute('solo', this.solo.toString());
         elem.setAttribute('mute', this.mute.toString());
         elem.setAttribute('position', this.position.toString());
-        elem.setAttribute('type', 'SFPG');
+        elem.setAttribute('type', GENERATORTYPES.SFPG);
         elem.setAttribute('presetName', this.presetName);
         elem.setAttribute('midi', this.midi.toString());
         elem.setAttribute('FMType', this.FMType.toString());
@@ -244,7 +245,7 @@ export default class SFPG extends CMG {
         this.mute = (getAttributeValue(elem, 'mute', 'string') == 'true');
         this.solo = (getAttributeValue(elem, 'solo', 'string') == 'true');
         this.position = getAttributeValue(elem, 'position', 'int') as number;
-        this.type = 'SFPG';
+        this.type = GENERATORTYPES.SFPG;
 
         this.presetName = getAttributeValue(elem, 'presetName', 'string') as string;
         this.midi = getAttributeValue(elem, 'midi', 'int') as number;

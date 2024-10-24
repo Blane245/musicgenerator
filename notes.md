@@ -1,31 +1,35 @@
 TODO
 * ? open file starts up with no track reference for generator icons
-* added generator not displayed until timeline is changed, when file is opened, when track is renamed
-* save and load file need cmg type 
+* added generator not displayed until timeline is changed, when file is opened, when track is renamed. looks like a trackref timing issue
 * generator menu remains on a click away
-* do a decay at the end of a generator to stop the 'clicking'
-* add progress on timeline rather than a popup (sort of works)
 * implement keyboard short cuts
-* when the soundfont file is changed, map the existing presets to the same bank and 'preset'
-* The track timeline is not displaying the generators until the timeline is zoomed in or out. It should update whenever a change occurs including initial file load.
-* add a play recording button
+* record to wav offline (maybe changed to mpg format)
+* try to prevent track updates during rendering
+* clear message and status areas on at each interaction
+* sometimes generator edit will show CMG type rather than correct one
+* sometimes preview does get addressibility on generatorboxes and throws an exception
+* SFPG is clicking every chunktime (sample is ending with zero signal level - probably a precision counting problem )
+    * the prolemis that some chunktime samples stop early with zero signal level for a few samples 
+* add a repeat option to soundfont samples - some presets have bad repeat patterns. Could repeat from beginning as a option (loop repeat, beginning repeat, no repeat)
 
 done
-* implement generator copy function - allow track selection
-* generate sometime repeats sequence
-* SFPG and SFRG presets must be modified on an add for validation pass
-* delete generator not working properly. icon remains on track timeline
-* need to be able to seed the random number generator to get the same sequence each time
-* have 'record' done as quickly as possible, not in real time (building the buffer offline still requires a realtime recording. approach might be to build an ogg filer and the use a webaudio to play it back or record it to mpg).
-
+* add progress on timeline rather than a popup (sort of works)
+* do a decay at the end of a generator to stop the 'clicking' (didn't work but does softening end transition)
+* save and load file need cmg type 
+* when the soundfont file is changed, map the existing presets to the same bank and 'preset'
+* do a soft release at the end of the each generator so it doesn't abroptly 
+* AHHH! whote noise is buggered up
+* disable record prevew and generator text when sounds are playing (the screen should be locked while previewing or recording)
+* make timeline scroll
+* see Onev2 T2, G1 for range problem with midi sine wave (non repeatible)
+* refactored tracksdisplay separating trackcontrolsdisplay
 
 # offline audio generation and recording
 
-define a recordcontext (create the ondataavailable and onstop handlers)
+as user for a file to be written to
 define a offlineaudiocontext (offlinectx = new (OfflineAudioContext(1, 20000)))
-build the sources from the generators
-after all of the sources are connected to this context, start it (source.start())
+and destination = offlinectx.destination
+build the sources from the generators in teh offlinecontext
+after all of the sources are connected to this context, provide the start and stop times to the sources from generatortimes
 render the offline context (offlinectx.startRendering)
-load the renderedbuffer to a audiosourcenode (const song = new AudioBufferSourceNode(recordcontext, {buffer: renderedBuffer}))
-connect the song to the record context (recordcontext.destination)
-start the song(song.start())
+encode the rendredbuffer to wave format and write to user-selected file
