@@ -1,16 +1,22 @@
 // 
 // this follows the 4 markov chains for the midi, speed, volume, and pan attributes
 // each node time starts when the last one stops as determined by the spped attribute
-
-import { GeneratorTimes } from "../../types/types";
+import { NodeConnections } from "../../utils/nodeconnections";
+import Equalizer from "../../classes/equalizer";
 import SFRG from "../../classes/sfrg";
 import { InstrumentZone } from "../../types/soundfonttypes";
+import { GeneratorTime, REPEATOPTION } from "../../types/types";
 import { getSFGeneratorValues } from "../../utils/soundfont2utils";
+import Compressor from "classes/compressor";
 
 // the node's midi, volume, and pan values is plugged in from their respective chains 
 export function getBufferSourceNodesFromSFRG(
-    context: AudioContext | OfflineAudioContext, destination: AudioDestinationNode | MediaStreamAudioDestinationNode, gen: SFRG
-): { sources: AudioBufferSourceNode[], times: GeneratorTimes[] } {
+    context: AudioContext | OfflineAudioContext,
+    destination: AudioDestinationNode | MediaStreamAudioDestinationNode,
+    equalizer: Equalizer,
+    compressor: Compressor,
+    gen: SFRG
+): { sources: AudioBufferSourceNode[], times: GeneratorTime[] } {
 
     // get the instrument zone for generator's preset
     if (!gen.preset)
@@ -23,7 +29,7 @@ export function getBufferSourceNodesFromSFRG(
     const { startTime, stopTime } = gen;
     let currentTime: number = startTime;
     const sources: AudioBufferSourceNode[] = [];
-    const times: GeneratorTimes[] = [];
+    const times: GeneratorTime[] = [];
 
     // initialize the current values of the generator
     gen.midiT.currentValue = gen.midi;
@@ -42,7 +48,7 @@ export function getBufferSourceNodesFromSFRG(
         let iZone = zones.findIndex((z) => (z.keyRange && midi >= z.keyRange.lo && midi <= z.keyRange.hi));
         if (iZone < 0) iZone = 0;
         const currentZone: InstrumentZone = zones[iZone];
-        const { sampleRate, start, startLoop, endLoop, pitchCorrection } = currentZone.sample.header;
+        const { sampleRate, startLoop, endLoop, pitchCorrection } = currentZone.sample.header;
 
         // get the soundfont generator values
         const generatorValues: Map<number, number> =
@@ -54,8 +60,6 @@ export function getBufferSourceNodesFromSFRG(
         const endloopAddrsCoarseOffset: number | undefined = generatorValues.get(50);
         const overridingRootKey: number | undefined = generatorValues.get(58);
         const fineTune: number | undefined = generatorValues.get(52);
-        const sampleModes: number | undefined = generatorValues.get(54);
-        const velocity: number | undefined = generatorValues.get(47);
 
         const rootKey = overridingRootKey !== undefined && overridingRootKey > 0 ? overridingRootKey : currentZone.sample.header.originalPitch;
         const baseDetune = 100 * rootKey + pitchCorrection - (fineTune ? fineTune : 0);
@@ -70,45 +74,51 @@ export function getBufferSourceNodesFromSFRG(
 
         // get the chunk's sample
         // nextSampleIndex = Math.ceil(iChunk * chunkSize * playbackRate);
-        function getSample (loopStart: number, loopEnd: number, sample: Int16Array, chunkSize: number): Float32Array {
+        function getSample(loopStart: number, loopEnd: number, repeat: REPEATOPTION, sample: Int16Array, chunkSize: number): Float32Array {
             const nSam = Math.ceil(chunkSize);
             const sam: Float32Array = new Float32Array(nSam);
             let iSam: number = 0;
             let iLoop: number = 0;
             while (iSam < nSam) {
-                sam[iSam] = sample[iLoop] / 32768.0;
+                if (repeat == REPEATOPTION.None && iSam > loopEnd)
+                    sam[iSam] = 0.0;
+                else
+                    sam[iSam] = sample[iLoop] / 32768.0;
                 iSam++;
                 iLoop++;
-                if (iLoop > loopEnd) {
-                    iLoop = loopStart;
-                    console.log(`loop back at ${iSam} -  ${iLoop}`)
-                }
+                if (iLoop > loopEnd)
+                    if (repeat == REPEATOPTION.Sample)
+                        iLoop = loopStart;
+                    else if (repeat == REPEATOPTION.Beginning)
+                        iLoop = 0;
+                // console.log(`loop back at ${iSam} -  ${iLoop}`)
+
             }
             return sam;
         }
-        const floatSample: Float32Array = getSample (loopStart, loopEnd, currentZone.sample.data, sampleRate * timeStep * playbackRate )
+        const floatSample: Float32Array = getSample(loopStart, loopEnd, gen.repeat, currentZone.sample.data, sampleRate * timeStep * playbackRate)
         // const floatSample: Float32Array = new Float32Array(currentZone.sample.data.length)
         // for (let i = 0; i < floatSample.length; i++) {
         //     floatSample[i] = currentZone.sample.data[i] / 32768.0
         // }
-        console.log(
-            'midi', midi,
-            'speed', speed,
-            'volume', volume,
-            'pan', pan,
-            'currentTime', currentTime,
-            'currentzone', currentZone,
-            'rootKey', rootKey,
-            'pitchCorrection', pitchCorrection,
-            'fineTune', fineTune,
-            'baseDetune', baseDetune,
-            'cents', cents,
-            'playbackRate', playbackRate,
-            'sampleRate', sampleRate,
-            'loopStart', loopStart,
-            'loopEnd', loopEnd,
-            'sample length', floatSample.length,
-        )
+        // console.log(
+        //     'midi', midi,
+        //     'speed', speed,
+        //     'volume', volume,
+        //     'pan', pan,
+        //     'currentTime', currentTime,
+        //     'currentzone', currentZone,
+        //     'rootKey', rootKey,
+        //     'pitchCorrection', pitchCorrection,
+        //     'fineTune', fineTune,
+        //     'baseDetune', baseDetune,
+        //     'cents', cents,
+        //     'playbackRate', playbackRate,
+        //     'sampleRate', sampleRate,
+        //     'loopStart', loopStart,
+        //     'loopEnd', loopEnd,
+        //     'sample length', floatSample.length,
+        // )
 
 
         // move the chunk into the audio node
@@ -118,23 +128,23 @@ export function getBufferSourceNodesFromSFRG(
         channelData.set(floatSample);
         const source: AudioBufferSourceNode = context.createBufferSource();
         source.buffer = buffer;
-        // source.loop = true;
-        source.loopEnd = loopEnd;
-        source.loopStart = loopStart;
+        source.loop = false;
+        // source.loopEnd = loopEnd;
+        // source.loopStart = loopStart;
         source.playbackRate.value = playbackRate;
         const vol: GainNode = context.createGain();
         vol.gain.value = volume / 100;
         const panner: StereoPannerNode = context.createStereoPanner();
         panner.pan.value = pan;
-        vol.connect(panner);
         source.connect(vol);
-        panner.connect(destination);
+        vol.connect(panner);
+        NodeConnections(panner, equalizer, compressor, destination);
         sources.push(source);
-        const thisTimeInterval: GeneratorTimes =
+        const thisTimeInterval: GeneratorTime =
             { start: currentTime, stop: Math.min(stopTime, currentTime + timeStep), lastGain: vol };
-        console.log(
-            'thisTimeInterval', thisTimeInterval,
-        )
+        // console.log(
+        //     'thisTimeInterval', thisTimeInterval,
+        // )
         times.push(thisTimeInterval);
         currentTime += timeStep;
     }

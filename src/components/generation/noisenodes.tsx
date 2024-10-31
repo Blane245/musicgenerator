@@ -4,13 +4,20 @@
 // the SFPG generatr
 // each node time starts when the last one stops as determined by the spped attribute
 
+import { NodeConnections } from "../../utils/nodeconnections";
+import Compressor from "../../classes/compressor";
+import Equalizer from "../../classes/equalizer";
 import Noise from "../../classes/noise";
-import { GeneratorTimes } from "../../types/types";
+import { GeneratorTime } from "../../types/types";
 const CHUNKSIZE: number = 0.1; // seconds
 // the node's midi, volume, and pan values is plugged in from their respective chains 
 export function getBufferSourceNodesFromNoise(
-    context: AudioContext | OfflineAudioContext, destination: AudioDestinationNode | MediaStreamAudioDestinationNode, CMgenerator: Noise
-): { sources: AudioBufferSourceNode[], times: GeneratorTimes[] } {
+    context: AudioContext | OfflineAudioContext, 
+    destination: AudioDestinationNode | MediaStreamAudioDestinationNode, 
+    equalizer: Equalizer,
+    compressor: Compressor,
+    CMgenerator: Noise
+): { sources: AudioBufferSourceNode[], times: GeneratorTime[] } {
 
     // console.log(
     //     'in getBufferSourceNodesFromNoise',
@@ -18,7 +25,7 @@ export function getBufferSourceNodesFromNoise(
     // the generator has a start and end time
     const { startTime, stopTime } = CMgenerator;
     const sources: AudioBufferSourceNode[] = [];
-    const times: GeneratorTimes[] = [];
+    const times: GeneratorTime[] = [];
 
 
     // move the chunk into the audio node
@@ -47,9 +54,9 @@ export function getBufferSourceNodesFromNoise(
         vol.gain.value = volume / 100;
         const panner: StereoPannerNode = context.createStereoPanner();
         panner.pan.value = pan;
-        vol.connect(panner);
         source.connect(vol);
-        panner.connect(destination);
+        vol.connect(panner);
+        NodeConnections(panner, equalizer, compressor, destination);
         sources.push(source);
         times.push({ start: time, stop: time + CHUNKSIZE, lastGain: (i == chunkCount - 1? vol: null)});
     }

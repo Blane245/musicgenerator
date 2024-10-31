@@ -1,5 +1,5 @@
 export function sawtoothModulator
-    (time: number, startTime: number, baseValue: number, frequency: number, amplitude: number, phase: number): number {
+    (time: number, baseValue: number, frequency: number, amplitude: number, phase: number): number {
     const period: number = 1000 / frequency;
     const tPhase: number = period * phase / 360;
     const t0: number = (time + tPhase) % period;

@@ -5,7 +5,6 @@ import GeneratorDialog from '../dialogs/generatordialog';
 import GeneratorIcons from './generatoricons';
 import { useCMGContext } from "../../contexts/cmgcontext";
 import TrackControlsDisplay from "./trackcontrolsdisplay";
-
 export default function TracksDisplay() {
     const { fileContents } = useCMGContext();
     const [tracks, setTracks] = useState<Track[]>([]);
@@ -37,14 +36,13 @@ export default function TracksDisplay() {
                             <div className='page-track-display'
                                 key={'track-display:' + t.name}
                                 id={'track-display:' + t.name}
-                                ref={(el: HTMLDivElement) => trackRef.current[i] = el}
+                                ref={(el: HTMLDivElement) => {trackRef.current[i] = el; return el}}
                             >
-                                {trackRef.current[i] ?
-                                    <GeneratorIcons
-                                        track={t}
-                                        element={trackRef.current[i]}
-                                    />
-                                    : <p>track reference null</p>}
+                                <GeneratorIcons
+                                    track={t}
+                                    trackIndex={i}
+                                    elementRef={trackRef}
+                                />
                             </div>
                         </>
                     )

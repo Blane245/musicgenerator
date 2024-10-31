@@ -9,11 +9,20 @@ import { useCMGContext } from '../../contexts/cmgcontext';
 import { Preset } from '../../types/soundfonttypes';
 import { newFile, setDirty } from '../../utils/cmfiletransactions';
 import { getAttributeValue, getDocElement, getElementElement } from '../../utils/xmlfunctions';
-import { GENERATORTYPES } from "../../types/types";
+import { GENERATORTYPE } from "../../types/types";
+import { useHotkeys } from "react-hotkeys-hook";
 
 export default function FileMenu() {
-  const { fileContents, setFileContents, setMessage, setStatus, setFileName, playing } = useCMGContext();
+  const { fileContents, setFileContents, setMessage, setStatus, setFileName, playing} = useCMGContext();
   const [open, setOpen] = useState<string>('');
+
+  useHotkeys('ctrl+s', () => { if (!playing.current?.on) saveFileContents() },
+    { preventDefault: true });
+  // edge insists that thisis a new new tab request that can't be denied
+  // useHotkeys('ctrl+n', () => {if (!playing.current?.on) handleFileNew()},
+  // {preventDefault: true});
+  useHotkeys('ctrl+o', () => { if (!playing.current?.on) handleOpen() },
+    { preventDefault: true });
 
   function handleFileNew() {
     if (fileContents.dirty)
@@ -43,7 +52,7 @@ export default function FileMenu() {
     }
   }
 
-  function handleOpenClick() {
+  function handleOpen() {
     if (fileContents.dirty)
       setOpen('open');
     else {
@@ -56,9 +65,9 @@ export default function FileMenu() {
   }
 
   return (
-    <fieldset disabled={playing.current?.on} style={{width:'25em'}}>
+    <fieldset disabled={playing.current?.on} style={{ width: '25em' }}>
       <button onClick={handleFileNew}>New File ...</button>
-      <button onClick={handleOpenClick}>Open File ...</button>
+      <button onClick={handleOpen}>Open File ...</button>
       <button onClick={handleFileSave}>Save File ...</button>
 
       <div
@@ -103,18 +112,18 @@ export default function FileMenu() {
         t.generators.forEach(g => {
           const genElement: HTMLElement = doc.createElement('generator');
           switch (g.type) {
-            case GENERATORTYPES.CMG:
+            case GENERATORTYPE.CMG:
               (g as CMG).appendXML(doc, genElement);
               break;
-            case GENERATORTYPES.SFPG:
+            case GENERATORTYPE.SFPG:
               (g as SFPG).appendXML(doc, genElement);
 
               break;
-            case GENERATORTYPES.SFRG:
+            case GENERATORTYPE.SFRG:
               (g as SFRG).appendXML(doc, genElement);
               // (g as SFRG).appendXML(doc, genElement);
               break;
-            case GENERATORTYPES.Noise:
+            case GENERATORTYPE.Noise:
               (g as Noise).appendXML(doc, genElement);
               break;
             default:
@@ -135,12 +144,14 @@ export default function FileMenu() {
 
       // save the xml data
       window.showSaveFilePicker(
-        {types: [
-          {
+        {
+          types: [
+            {
               description: "Computer Music Generator File",
-              accept: { "application/cmg": [".cmg"]}
-          }
-      ]}
+              accept: { "application/cmg": [".cmg"] }
+            }
+          ]
+        }
 
       )
         .then((handle) => {
@@ -154,8 +165,6 @@ export default function FileMenu() {
           setStatus(`File '${handle.name}' saved`)
         });
 
-      //TODO delete the XML document when finished
-
     } catch (err) {
       const e = err as Error;
       setMessage({ error: true, text: `Error saving cmg file, type: '${e.name}' message: '${e.message}'` })
@@ -165,12 +174,14 @@ export default function FileMenu() {
   function readFileContents() {
     try {
       window.showOpenFilePicker(
-        {types: [
-          {
+        {
+          types: [
+            {
               description: "Computer Music Generator File",
-              accept: { "application/cmg": [".cmg"]}
-          }
-      ]}
+              accept: { "application/cmg": [".cmg"] }
+            }
+          ]
+        }
 
       )
         .then((handle) => {
@@ -197,16 +208,15 @@ export default function FileMenu() {
                     for (let j = 0; j < gensChildren.length; j++) {
                       const gchild = gensChildren[j];
                       const type = getAttributeValue(gchild, 'type', 'string') as string;
-                      let gen = null;
                       switch (type as string) {
-                        case GENERATORTYPES.CMG: {
-                          gen = new CMG(0);
+                        case GENERATORTYPE.CMG: {
+                          const gen = new CMG(0);
                           gen.getXML(xmlDoc, gchild);
                           track.generators.push(gen);
                           break;
                         }
-                        case GENERATORTYPES.SFPG: {
-                          gen = new SFPG(0);
+                        case GENERATORTYPE.SFPG: {
+                          const gen = new SFPG(0);
                           gen.getXML(xmlDoc, gchild);
                           // load the preset if soundfont file and presetname is defined
                           const pn: string = gen.presetName.split(":")[2];
@@ -218,8 +228,8 @@ export default function FileMenu() {
                           track.generators.push(gen);
                           break;
                         }
-                        case GENERATORTYPES.SFRG:
-                          gen = new SFRG(0);
+                        case GENERATORTYPE.SFRG: {
+                          const gen = new SFRG(0);
                           gen.getXML(xmlDoc, gchild);
                           // load the preset if soundfont file and presetname is defined
                           const pn: string = gen.presetName.split(":")[2];
@@ -230,11 +240,13 @@ export default function FileMenu() {
                           }
                           track.generators.push(gen);
                           break;
-                        case GENERATORTYPES.Noise:
-                          gen = new Noise(0);
+                        }
+                        case GENERATORTYPE.Noise: {
+                          const gen = new Noise(0);
                           gen.getXML(xmlDoc, gchild);
                           track.generators.push(gen);
                           break;
+                        }
                         default:
                           break;
                       }

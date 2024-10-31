@@ -6,7 +6,7 @@ import Track from '../../classes/track';
 import Generate from "../../components/generation/generate";
 import { useCMGContext } from '../../contexts/cmgcontext';
 import { Preset } from '../../types/soundfonttypes';
-import { CMGeneratorType, GENERATIONMODE, GENERATORTYPES } from '../../types/types';
+import { CMGeneratorType, GENERATIONMODE, GENERATORTYPE } from '../../types/types';
 import { modifyGenerator, setSoundFont } from '../../utils/cmfiletransactions';
 import { loadSoundFont } from '../../utils/loadsoundfont';
 import { bankPresettoName } from '../../utils/util';
@@ -36,7 +36,6 @@ export default function ControlsDisplay() {
     // load the soundfont file list at start up
     useEffect(() => {
         const SFFiles = import.meta.glob("/src/soundfonts/*.(SF@|sf2)");
-        // const SFFiles = import.meta.glob("/src/newsoundfonts/*.(SF@|sf2)");
         const fileList: string[] = Object.keys(SFFiles);
         fileList.unshift('select a file'); // add select a file to the start of the list
         setSFFiles(fileList);
@@ -61,9 +60,9 @@ export default function ControlsDisplay() {
         let goodGeneratorCount: number = 0;
         fileContents.tracks.forEach((t: Track) => {
             t.generators.forEach((g: CMGeneratorType) => {
-                if (g.type != GENERATORTYPES.CMG && ((g.type == GENERATORTYPES.SFPG || g.type == GENERATORTYPES.SFRG)
+                if (g.type != GENERATORTYPE.CMG && ((g.type == GENERATORTYPE.SFPG || g.type == GENERATORTYPE.SFRG)
                     && g.presetName != '' && g.preset && g.midi >= 0 && g.midi <= 255) ||
-                    g.type == GENERATORTYPES.Noise) {
+                    g.type == GENERATORTYPE.Noise) {
                     goodGeneratorCount++;
                 }
             })
@@ -77,7 +76,6 @@ export default function ControlsDisplay() {
     }, [fileContents, SFFileName])
 
     // load the SF when one is selected
-    // TODO - any generators that have been selected from a previous soundfont file will be violated. This will have to be handled
     async function handleFileNameChange(event: ChangeEvent<HTMLSelectElement>) {
         const fileName: string = event.target.value;
         if (fileName !== '' && fileName !== 'select a file' && fileName != fileContents.SFFileName) {
@@ -89,7 +87,7 @@ export default function ControlsDisplay() {
             // they will change to the ones that match teh bak and channel number of 
             // the old file. If there is no match, first preset
             updatePresets(sf);
-            setStatus(`file ${fileName} loaded`);
+            setStatus(`Soundfont file '${fileName}' loaded`);
         }
     }
 
@@ -100,10 +98,10 @@ export default function ControlsDisplay() {
         fileContents.tracks.forEach((t: Track) => {
             t.generators.forEach((g: CMGeneratorType) => {
                 let presetSplit: string[] = [];
-                if (g.type == GENERATORTYPES.SFPG) {
+                if (g.type == GENERATORTYPE.SFPG) {
                     presetSplit = (g as SFPG).presetName.split(":");
                 }
-                if (g.type == GENERATORTYPES.SFRG) {
+                if (g.type == GENERATORTYPE.SFRG) {
                     presetSplit = (g as SFRG).presetName.split(":");
                 }
                 if (presetSplit.length == 3) {

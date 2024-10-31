@@ -27,7 +27,7 @@ export default function TrackMenu() {
     const newTrack = new Track(next);
     // and added to the file
     addTrack (newTrack, setFileContents);
-    setStatus('New Track Added')
+    setStatus(`Track ${newTrack.name}' Added`)
   }
 
   return (

@@ -1,4 +1,4 @@
-import { AttributeRange, RandomSFTransitons } from "types/types";
+import { AttributeRange, EPS, RandomSFTransitons, REPEATOPTION } from "../../types/types";
 import SFRG from "../../classes/sfrg";
 import { ChangeEvent } from "react";
 import { bankPresettoName, toNote } from "../../utils/util";
@@ -16,12 +16,12 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
     // we are in the middle of the generator dialog form
     return (
         <>
-                <label htmlFor="seed">Random Seed: </label>
-                <input name="seed"
-                    type='text'
-                    onChange={handleChange}
-                    value={formData.seed}
-                />
+            <label htmlFor="seed">Random Seed: </label>
+            <input name="seed"
+                type='text'
+                onChange={handleChange}
+                value={formData.seed}
+            />
             <div className="transition-box" >
                 <p className="transition-header">Midi Transtions</p>
                 <label htmlFor="presetName"> Preset:</label>
@@ -41,6 +41,21 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
                                 <option key={`preset-${pName}`}
                                     value={pName}>
                                     {pName}
+                                </option>
+                            )
+                        })}
+                </select>
+                <label htmlFor="repeat"> Loop Option: </label>
+                <select name="repeat"
+                    onChange={handleChange}
+                    value={formData.repeat}
+                >
+                    {Object.keys(REPEATOPTION)
+                        .map((o) => {
+                            return (
+                                <option key={`repeat-${o}`}
+                                    value={o}>
+                                    {o}
                                 </option>
                             )
                         })}
@@ -135,7 +150,7 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
 }
 
 // validate the fields returning each error as a text entry in the array
-const EPS: number = 1e-4;
+
 export function validateSFRGValues(formData: SFRG): string[] {
     const result: string[] = [];
 
@@ -180,7 +195,7 @@ export function validateSFRGValues(formData: SFRG): string[] {
         if (transition.down.down < 0 || transition.down.down > 1)
             result.push(`${name} down->same probabilty must be between 0 and 1 inclusive`);
     }
-    if (formData.seed == '') 
+    if (formData.seed == '')
         result.push('Random seed must not be blank');
     if (!formData.presetName)
         result.push('PresetName must be specified');

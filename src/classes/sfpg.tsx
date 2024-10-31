@@ -1,14 +1,15 @@
-import { sineModulator } from '../components/modulators/sinemodulator';
-import CMG from "./cmg";
 import { sawtoothModulator } from "../components/modulators/sawtoothmodulator";
+import { sineModulator } from '../components/modulators/sinemodulator';
 import { squareModulator } from "../components/modulators/squaremodulator";
 import { triangleModulator } from "../components/modulators/trianglemodulator";
 import { Preset } from '../types/soundfonttypes';
+import { GENERATORTYPE, REPEATOPTION } from '../types/types';
 import { getAttributeValue } from '../utils/xmlfunctions';
-import { GENERATORTYPES } from '../types/types';
+import CMG from "./cmg";
 export default class SFPG extends CMG {
     presetName: string;
     preset: Preset | undefined;
+    repeat: REPEATOPTION;
     midi: number;
     FMType: string;
     FMAmplitude: number; // cents
@@ -28,8 +29,9 @@ export default class SFPG extends CMG {
         super(nextGenerator);
         this.presetName = '';
         this.preset = undefined;
+        this.repeat = REPEATOPTION.Sample;
         this.midi = 0;
-        this.type = GENERATORTYPES.SFPG;
+        this.type = GENERATORTYPE.SFPG;
         this.FMType = "SINE";
         this.FMAmplitude = 0;
         this.FMFrequency = 0;
@@ -57,6 +59,7 @@ export default class SFPG extends CMG {
         newG.position = this.position;
         newG.presetName = this.presetName;
         newG.preset = this.preset;
+        newG.repeat = this.repeat;
         newG.midi = this.midi;
         newG.mute = this.mute;
         newG.position = this.position;
@@ -96,12 +99,15 @@ export default class SFPG extends CMG {
                 this.solo = value == 'true';
                 break;
             case 'type':
-                this.type = value as GENERATORTYPES;
+                this.type = GENERATORTYPE.SFPG;
                 break;
-            case 'presetName':
-                this.presetName = value;
-                break;
-            case 'midi':
+                case 'presetName':
+                    this.presetName = value;
+                    break;
+                    case 'repeat':
+                        this.repeat = value as REPEATOPTION;
+                        break;
+                        case 'midi':
                 this.midi = parseFloat(value);
                 break;
             case 'FMType':
@@ -156,57 +162,57 @@ export default class SFPG extends CMG {
         let pitch: number = this.midi;
         switch (this.FMType) {
             case 'SINE':
-                pitch = sineModulator(time, this.startTime, this.midi,
+                pitch = sineModulator(time, this.midi,
                     this.FMFrequency, this.FMAmplitude, this.FMPhase);
                 break;
             case 'SAWTOOTH':
-                pitch = sawtoothModulator(time, this.startTime, this.midi,
+                pitch = sawtoothModulator(time, this.midi,
                     this.FMFrequency, this.FMAmplitude, this.FMPhase);
                 break;
             case 'SQUARE':
-                pitch = squareModulator(time, this.startTime, this.midi,
+                pitch = squareModulator(time, this.midi,
                     this.FMFrequency, this.FMAmplitude, this.FMPhase);
                 break;
             case 'TRIANGLE':
-                pitch = triangleModulator(time, this.startTime, this.midi,
+                pitch = triangleModulator(time, this.midi,
                     this.FMFrequency, this.FMAmplitude, this.FMPhase);
                 break;
         }
         let volume: number = this.VMCenter;
         switch (this.VMType) {
             case 'SINE':
-                volume = sineModulator(time, this.startTime, this.VMCenter,
+                volume = sineModulator(time, this.VMCenter,
                     this.VMFrequency, this.VMAmplitude, this.VMPhase);
                 break;
             case 'SAWTOOTH':
-                volume = sawtoothModulator(time, this.startTime, this.VMCenter,
+                volume = sawtoothModulator(time, this.VMCenter,
                     this.VMFrequency, this.VMAmplitude, this.VMPhase);
                 break;
             case 'SQUARE':
-                volume = squareModulator(time, this.startTime, this.VMCenter,
+                volume = squareModulator(time, this.VMCenter,
                     this.VMFrequency, this.VMAmplitude, this.VMPhase);
                 break;
             case 'TRIANGLE':
-                volume = triangleModulator(time, this.startTime, this.VMCenter,
+                volume = triangleModulator(time, this.VMCenter,
                     this.VMFrequency, this.VMAmplitude, this.VMPhase);
                 break;
         }
         let pan: number = this.VMCenter;
         switch (this.VMType) {
             case 'SINE':
-                pan = sineModulator(time, this.startTime, this.PMCenter,
+                pan = sineModulator(time, this.PMCenter,
                     this.PMFrequency, this.PMAmplitude, this.PMPhase);
                 break;
             case 'SAWTOOTH':
-                pan = sawtoothModulator(time, this.startTime, this.PMCenter,
+                pan = sawtoothModulator(time, this.PMCenter,
                     this.PMFrequency, this.PMAmplitude, this.PMPhase);
                 break;
             case 'SQUARE':
-                pan = squareModulator(time, this.startTime, this.PMCenter,
+                pan = squareModulator(time, this.PMCenter,
                     this.PMFrequency, this.PMAmplitude, this.PMPhase);
                 break;
             case 'TRIANGLE':
-                pan = triangleModulator(time, this.startTime, this.PMCenter,
+                pan = triangleModulator(time, this.PMCenter,
                     this.PMFrequency, this.PMAmplitude, this.PMPhase);
                 break;
         }
@@ -219,8 +225,9 @@ export default class SFPG extends CMG {
         elem.setAttribute('solo', this.solo.toString());
         elem.setAttribute('mute', this.mute.toString());
         elem.setAttribute('position', this.position.toString());
-        elem.setAttribute('type', GENERATORTYPES.SFPG);
+        elem.setAttribute('type', GENERATORTYPE.SFPG);
         elem.setAttribute('presetName', this.presetName);
+        elem.setAttribute('repeat', this.repeat);
         elem.setAttribute('midi', this.midi.toString());
         elem.setAttribute('FMType', this.FMType.toString());
         elem.setAttribute('FMAmplitude', this.FMAmplitude.toString());
@@ -245,9 +252,9 @@ export default class SFPG extends CMG {
         this.mute = (getAttributeValue(elem, 'mute', 'string') == 'true');
         this.solo = (getAttributeValue(elem, 'solo', 'string') == 'true');
         this.position = getAttributeValue(elem, 'position', 'int') as number;
-        this.type = GENERATORTYPES.SFPG;
-
+        this.type = GENERATORTYPE.SFPG;
         this.presetName = getAttributeValue(elem, 'presetName', 'string') as string;
+        this.repeat = getAttributeValue(elem, 'repeat', 'string') as REPEATOPTION;
         this.midi = getAttributeValue(elem, 'midi', 'int') as number;
         this.mute = (getAttributeValue(elem, 'mute', 'string') == 'true');
         this.position = getAttributeValue(elem, 'position', 'int') as number;

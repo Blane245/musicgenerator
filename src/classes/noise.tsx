@@ -7,17 +7,15 @@
 // 
 // the daussian noise generator has a centeral frequency
 // with a standard deviation
-
-import { sineModulator } from "../components/modulators/sinemodulator";
-import { GENERATORTYPES, NOISETYPE } from "../types/types";
-import CMG from "./cmg";
 import { sawtoothModulator } from "../components/modulators/sawtoothmodulator";
+import { sineModulator } from "../components/modulators/sinemodulator";
 import { squareModulator } from "../components/modulators/squaremodulator";
 import { triangleModulator } from "../components/modulators/trianglemodulator";
+import { GENERATORTYPE, NOISETYPE, SAMPLERATE } from "../types/types";
 import { gaussianRandom } from "../utils/gaussianrandom";
 import { getAttributeValue } from "../utils/xmlfunctions";
+import CMG from "./cmg";
 
-const SAMPLERATE: number = 20000;
 export default class Noise extends CMG {
     noiseType: string;
     seed: string;
@@ -37,7 +35,7 @@ export default class Noise extends CMG {
 
     constructor(next: number) {
         super(next);
-        this.type = GENERATORTYPES.Noise;
+        this.type = GENERATORTYPE.Noise;
         this.seed = this.name;
         this.noiseType = NOISETYPE.white;
         this.mean = 440;
@@ -100,7 +98,7 @@ export default class Noise extends CMG {
                 this.solo = value == 'true';
                 break;
             case 'type':
-                this.type = value as GENERATORTYPES;
+                this.type =GENERATORTYPE.Noise;
                 break;
             case 'noiseType':
                 this.noiseType = value;
@@ -177,38 +175,38 @@ export default class Noise extends CMG {
         let volume: number = this.VMCenter;
         switch (this.VMType) {
             case 'SINE':
-                volume = sineModulator(time, this.startTime, this.VMCenter,
+                volume = sineModulator(time, this.VMCenter,
                     this.VMFrequency, this.VMAmplitude, this.VMPhase);
                 break;
             case 'SAWTOOTH':
-                volume = sawtoothModulator(time, this.startTime, this.VMCenter,
+                volume = sawtoothModulator(time, this.VMCenter,
                     this.VMFrequency, this.VMAmplitude, this.VMPhase);
                 break;
             case 'SQUARE':
-                volume = squareModulator(time, this.startTime, this.VMCenter,
+                volume = squareModulator(time, this.VMCenter,
                     this.VMFrequency, this.VMAmplitude, this.VMPhase);
                 break;
             case 'TRIANGLE':
-                volume = triangleModulator(time, this.startTime, this.VMCenter,
+                volume = triangleModulator(time, this.VMCenter,
                     this.VMFrequency, this.VMAmplitude, this.VMPhase);
                 break;
         }
         let pan: number = this.VMCenter;
         switch (this.VMType) {
             case 'SINE':
-                pan = sineModulator(time, this.startTime, this.PMCenter,
+                pan = sineModulator(time, this.PMCenter,
                     this.PMFrequency, this.PMAmplitude, this.PMPhase);
                 break;
             case 'SAWTOOTH':
-                pan = sawtoothModulator(time, this.startTime, this.PMCenter,
+                pan = sawtoothModulator(time, this.PMCenter,
                     this.PMFrequency, this.PMAmplitude, this.PMPhase);
                 break;
             case 'SQUARE':
-                pan = squareModulator(time, this.startTime, this.PMCenter,
+                pan = squareModulator(time, this.PMCenter,
                     this.PMFrequency, this.PMAmplitude, this.PMPhase);
                 break;
             case 'TRIANGLE':
-                pan = triangleModulator(time, this.startTime, this.PMCenter,
+                pan = triangleModulator(time, this.PMCenter,
                     this.PMFrequency, this.PMAmplitude, this.PMPhase);
                 break;
         }
@@ -222,7 +220,7 @@ export default class Noise extends CMG {
         elem.setAttribute('solo', this.solo.toString());
         elem.setAttribute('mute', this.mute.toString());
         elem.setAttribute('position', this.position.toString());
-        elem.setAttribute('type', GENERATORTYPES.Noise);
+        elem.setAttribute('type', GENERATORTYPE.Noise);
         elem.setAttribute('seed', this.seed);
         elem.setAttribute('noiseType', this.noiseType);
         elem.setAttribute('mean', this.mean.toString());
@@ -247,7 +245,7 @@ export default class Noise extends CMG {
         this.mute = (getAttributeValue(elem, 'mute', 'string') == 'true');
         this.solo = (getAttributeValue(elem, 'solo', 'string') == 'true');
         this.position = getAttributeValue(elem, 'position', 'int') as number;
-        this.type = GENERATORTYPES.Noise;
+        this.type = GENERATORTYPE.Noise;
         this.noiseType = getAttributeValue(elem, 'noiseType', 'string') as string;
         this.seed = getAttributeValue(elem, 'seed', 'string') as string;
         this.mean = getAttributeValue(elem, 'mean', 'float') as number;

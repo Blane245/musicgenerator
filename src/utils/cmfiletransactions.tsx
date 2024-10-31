@@ -29,6 +29,52 @@ export function setDirty(state: boolean, fileContents: CMGFile, setFileContents:
 
 }
 
+export function setEqualizer(index: number, value: number, setFileContents: Function): void {
+    setFileContents((c: CMGFile) => {
+        const newC: CMGFile = c.copy();
+        newC.dirty = true;
+        newC.equalizer.setGain(index, value);
+        return newC;
+    })
+}
+
+export function setCompressor(parameter: string, value: number, setFileContents: Function): void {
+    setFileContents((c: CMGFile) => {
+        const newC: CMGFile = c.copy();
+        newC.dirty = true;
+        switch (parameter) {
+            case 'threshold':
+                newC.compressor.setThreshold(value);
+                break;
+            case 'knee':
+                newC.compressor.setKnee(value);
+                break;
+            case 'ratio':
+                newC.compressor.setRatio(value);
+                break;
+            case 'attack':
+                newC.compressor.setAttack(value/1000);
+                break;
+            case 'release':
+                newC.compressor.setRelease(value/100);
+                break;
+            default:
+                throw new Error(`Invalid compressor parameter ${parameter}`);
+                break;
+        }
+        return newC;
+    })
+}
+
+export function clearAudioContext (setFileContents: Function) {
+    setFileContents((c: CMGFile) => {
+        const newC: CMGFile = c.copy();
+        newC.equalizer.clearContext();
+        newC.compressor.clearContext();
+        return newC;
+    })
+
+}
 export function addTrack(newTrack: Track, setFileContents: Function) {
     setFileContents((c: CMGFile) => {
         const newC: CMGFile = c.copy();

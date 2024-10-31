@@ -7,7 +7,7 @@ import SFPG from "../../classes/sfpg";
 import SFRG from '../../classes/sfrg';
 import Track from "../../classes/track";
 import { useCMGContext } from "../../contexts/cmgcontext";
-import { CMGeneratorType, GENERATORTYPES } from "../../types/types";
+import { CMGeneratorType, GENERATORTYPE } from "../../types/types";
 import { addGenerator, deleteGenerator, modifyGenerator } from "../../utils/cmfiletransactions";
 import GeneratorTypeForm from "./generatortypeform";
 import { validateNoiseValues } from "./noisedialog";
@@ -26,7 +26,7 @@ export interface GeneratorDialogProps {
 
 export default function GeneratorDialog(props: GeneratorDialogProps) {
     const { track, generatorIndex, setGeneratorIndex, closeTrackGenerator, open, setOpen } = props;
-    const { setFileContents, setMessage, presets } = useCMGContext();
+    const { setFileContents, setMessage, presets, setStatus } = useCMGContext();
     const [showModal, setShowModal] = useState<boolean>(false);
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
     const [oldName, setOldName] = useState<string>('');
@@ -67,8 +67,9 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
             const eventName: string | null = event.target['name'];
             const eventValue: string | null = event.target['value'];
             // get a copy of the base elements
+
             switch (formData.type) {
-                case GENERATORTYPES.CMG: {
+                case GENERATORTYPE.CMG: {
                     const newFormData: CMG = (prev as CMG).copy();
                     if (eventName && eventValue) {
                         newFormData.setAttribute(eventName, eventValue);
@@ -76,7 +77,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                     }
                     return prev;
                 }
-                case GENERATORTYPES.SFPG: {
+                case GENERATORTYPE.SFPG: {
                     const newFormData: SFPG = (prev as SFPG).copy();
                     if (eventName && eventValue) {
                         newFormData.setAttribute(eventName, eventValue);
@@ -84,7 +85,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                     }
                     return prev;
                 }
-                case GENERATORTYPES.SFRG: {
+                case GENERATORTYPE.SFRG: {
                     const newFormData: SFRG = (prev as SFRG).copy();
                     if (eventName && eventValue) {
                         newFormData.setAttribute(eventName, eventValue);
@@ -92,7 +93,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                     }
                     return prev;
                 }
-                case GENERATORTYPES.Noise: {
+                case GENERATORTYPE.Noise: {
                     const newFormData: Noise = (prev as Noise).copy();
                     if (eventName && eventValue) {
                         newFormData.setAttribute(eventName, eventValue);
@@ -108,17 +109,17 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
 
     // copies the basic data and change the type of the form data
     function handleTypeChange(event: ChangeEvent<HTMLSelectElement>): void {
-        const newType: GENERATORTYPES = event.target['value'] as GENERATORTYPES;
-        setFormData((prev: CMG | SFPG | SFRG) => {
+        const newType: GENERATORTYPE = event.target['value'] as GENERATORTYPE;
+        setFormData((prev: CMGeneratorType) => {
             switch (newType) {
-                case GENERATORTYPES.CMG: {
+                case GENERATORTYPE.CMG: {
                     const newF = new CMG(0);
                     newF.name = prev.name;
                     newF.startTime = prev.startTime;
                     newF.stopTime = prev.stopTime;
                     return newF;
                 }
-                case GENERATORTYPES.SFPG: {
+                case GENERATORTYPE.SFPG: {
                     const newF = new SFPG(0);
                     newF.name = prev.name;
                     newF.startTime = prev.startTime;
@@ -129,7 +130,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                     }
                     return newF;
                 }
-                case GENERATORTYPES.SFRG: {
+                case GENERATORTYPE.SFRG: {
                     const newF = new SFRG(0);
                     newF.name = prev.name;
                     newF.startTime = prev.startTime;
@@ -140,7 +141,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                     }
                     return newF;
                 }
-                case GENERATORTYPES.Noise: {
+                case GENERATORTYPE.Noise: {
                     const newF = new Noise(0);
                     newF.name = prev.name;
                     newF.startTime = prev.startTime;
@@ -150,33 +151,29 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                 default:
                     return prev;
             }
-
         })
-
     }
 
     function handleSubmit(event: FormEvent<HTMLElement>): void {
         event.preventDefault();
         const msgs: string[] = [];
         switch (formData.type) {
-            case GENERATORTYPES.CMG: {
+            case GENERATORTYPE.CMG: {
                 const newMessages = validateCMGValues(formData);
                 msgs.push(...newMessages);
                 if (msgs.length > 0) {
                     setErrorMessages(msgs);
-                    setMessage({ error: true, text: "Errors on generator form" });
                     return;
                 }
             }
                 break;
-            case GENERATORTYPES.SFPG: {
+            case GENERATORTYPE.SFPG: {
                 let newMessages = validateCMGValues(formData);
                 msgs.push(...newMessages);
                 newMessages = validateSFPGValues(formData as SFPG);
                 msgs.push(...newMessages);
                 if (msgs.length > 0) {
                     setErrorMessages(msgs);
-                    setMessage({ error: true, text: "Errors on generator form" });
                     return;
                 }
                 const pn: string = (formData as SFPG).presetName.split(":")[2];
@@ -184,28 +181,26 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
 
             }
                 break;
-            case GENERATORTYPES.SFRG: {
+            case GENERATORTYPE.SFRG: {
                 let newMessages = validateCMGValues(formData);
                 msgs.push(...newMessages);
                 newMessages = validateSFRGValues(formData as SFRG);
                 msgs.push(...newMessages);
                 if (msgs.length > 0) {
                     setErrorMessages(msgs);
-                    setMessage({ error: true, text: "Errors on generator form" });
                     return;
                 }
                 const pn: string = (formData as SFRG).presetName.split(":")[2];
                 (formData as SFPG).preset = presets.find((p: Preset) => (pn == p.header.name));
             }
                 break;
-            case GENERATORTYPES.Noise: {
+            case GENERATORTYPE.Noise: {
                 let newMessages = validateCMGValues(formData);
                 msgs.push(...newMessages);
                 newMessages = validateNoiseValues(formData as Noise);
                 msgs.push(...newMessages);
                 if (msgs.length > 0) {
                     setErrorMessages(msgs);
-                    setMessage({ error: true, text: "Errors on generator form" });
                     return;
                 }
             }
@@ -218,11 +213,14 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
         if (generatorIndex < 0) {
             // add a new generator to the current track 
             addGenerator(track, formData, setFileContents);
+            setStatus(`Generator '${formData.name}' added to track '${track.name}'`)
         }
         else {
             // this is a modify. change the generator on the active track
             modifyGenerator(track, formData, oldName, setFileContents);
+            setStatus(`Generator '${formData.name}' modified on track '${track.name}'`)
         }
+
         setShowModal(false);
         setOpen(false);
         closeTrackGenerator();
@@ -248,6 +246,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
         setShowModal(false);
         setOpen(false);
         closeTrackGenerator();
+        setStatus('');
     }
 
     function handleDeleteClick(event: MouseEvent<HTMLElement>) {
@@ -256,6 +255,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
         const gName = event.currentTarget.id.split(":")[1];
         setGeneratorName(gName);
         setDeleteModal(true);
+        setStatus(``);
     }
 
     function handleDeleteOK(event: MouseEvent<HTMLElement>): void {
@@ -268,16 +268,18 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
         setDeleteModal(false);
         setGeneratorIndex(-1);
         closeTrackGenerator();
+        setStatus (`Generator '${gName}' deleted from track '${track.name}'`)
     }
 
     function handleDeleteCancel() {
         setDeleteModal(false);
+        setStatus('');
     }
     return (
         <>
             {open ?
                 <>
-                    <div
+                    <div aria-modal='true'
                         style={{ display: showModal ? "block" : "none" }}
                         className="generator-content"
                     >
@@ -315,7 +317,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                                     onChange={handleTypeChange}
                                     value={formData.type}
                                 >
-                                    {Object.keys(GENERATORTYPES).map((t) => {
+                                    {Object.keys(GENERATORTYPE).map((t) => {
                                         if (!parseInt(t) && t != '0')
                                             return (
                                                 <option key={'GT-' + t} value={t}>{t}</option>

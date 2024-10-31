@@ -2,7 +2,7 @@ import CMGFile from "../classes/cmgfile";
 import TimeLine from "../classes/timeline";
 import { createContext, Dispatch, ReactNode, RefObject, SetStateAction, useContext, useRef, useState } from "react";
 import { Message } from "../types/types";
-import { Preset } from "types/soundfonttypes";
+import { Preset } from "../types/soundfonttypes";
 
 // the elements of this application that are used at many levels
 interface CMGContextType {
@@ -27,7 +27,7 @@ const CMGContext = createContext<CMGContextType | undefined>(undefined);
 
 export const CMGProvider = ({ children, }: { children: ReactNode }) => {
     const [fileContents, setFileContents] = useState<CMGFile>(new CMGFile());
-    const [message, setMessage] = useState<Message>({ error: false, text: 'Welcome' });
+    const [message, setMessage] = useState<Message>({ error: false, text: '' });
     const [status, setStatus] = useState<string>('')
     const [timeLine, setTimeLine] = useState<TimeLine>(new TimeLine(0, 0));
     const [fileName, setFileName] = useState<string>('');

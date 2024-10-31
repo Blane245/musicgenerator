@@ -1,15 +1,15 @@
 import { useEffect } from 'react';
-import TracksDisplay from '../panels/tracksdisplay';
-import { Preset } from '../../types/soundfonttypes';
 import { useCMGContext } from '../../contexts/cmgcontext';
+import { Preset } from '../../types/soundfonttypes';
+import TracksDisplay from '../panels/tracksdisplay';
 
 export default function Body() {
-    const { fileContents, setMessage, setStatus, setPresets } =
+    const { fileContents, setStatus, setPresets } =
         useCMGContext();
 
 
     useEffect(() => {
-        setMessage({ error: false, text: 'Welcome' });
+        // setMessage({ error: false, text: 'Welcome' });
         setStatus('');
     }, []);
 

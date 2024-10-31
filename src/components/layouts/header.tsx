@@ -22,10 +22,16 @@ export default function Header(props: HeaderProps) {
                 />
             </div>
             <div className="page-title">
-                <p style={{ fontWeight: "bold" }}>{`${appName}: ${appVersion} (${fileName})`}                    </p>
+                <p style={{ fontWeight: "bold" }}>{`${appName}: ${appVersion} (${fileName})`} </p>
             </div>
             <div className="page-message">
-                <p style={{ fontWeight: "bold" }} color={message.error ? 'red' : 'black'}>{message.text}</p>
+                <p style=
+                    {message.error ?
+                        { fontWeight: "bold", color: 'red' }
+                        :
+                        { fontWeight: "bold", color: 'black' }
+                    }
+                >{message.text}</p>
             </div>
             <div className="page-menus">
                 <FileMenu />

@@ -1,11 +1,10 @@
-import { MEASURESNAPUNIT, SECONDSNAPUNIT, TIMELINESTYLE, TimeSignature } from "../types/types";
 import { SoundFont2 } from "soundfont2";
-import Track from "./track";
-import CMG from "./cmg";
-import SFPG from "./sfpg";
-import SFRG from "./sfrg";
-import { getAttributeValue } from "../utils/xmlfunctions";
+import { CMGeneratorType, MEASURESNAPUNIT, SECONDSNAPUNIT, TIMELINESTYLE, TimeSignature } from "../types/types";
 import { loadSoundFont } from "../utils/loadsoundfont";
+import { getAttributeValue } from "../utils/xmlfunctions";
+import Track from "./track";
+import Compressor from "./compressor";
+import Equalizer from "./equalizer";
 export default class CMGFile {
     dirty: boolean; // if the contents of the file has been changed since loaded, it is marked dirty
     name: string; // the name of the file on the disk or null if not saved
@@ -15,6 +14,8 @@ export default class CMGFile {
     snap: boolean; // whether generators snap to the time grid or not
     measureSnapUnit: MEASURESNAPUNIT; // how snaping is performed, depending on the time line style
     secondSnapUnit: SECONDSNAPUNIT;
+    compressor: Compressor;
+    equalizer: Equalizer;
     tracks: Track[];
     SFFileName: string; // the file name of the soundfont
     SoundFont: SoundFont2 | null; // the soundfont selected for this file
@@ -28,6 +29,8 @@ export default class CMGFile {
         this.snap = false,
             this.measureSnapUnit = MEASURESNAPUNIT["1/8"];
         this.secondSnapUnit = SECONDSNAPUNIT.Seconds;
+        this.compressor = new Compressor();
+        this.equalizer = new Equalizer();
         this.tracks = [];
         this.SFFileName = '';
         this.SoundFont = null;
@@ -39,15 +42,17 @@ export default class CMGFile {
         newFile.timeLineStyle = this.timeLineStyle;
         newFile.dirty = this.dirty;
         const newTracks: Track[] = []
+        newFile.compressor = this.compressor.copy();
+        newFile.equalizer = this.equalizer.copy();
         this.tracks.forEach((t) => {
             const newTrack: Track = t.copy();
-            const newGenerators: (CMG | SFPG | SFRG)[] = [];
-            t.generators.forEach((g: CMG | SFPG | SFRG) => {
-                const newGenerator: CMG | SFPG | SFRG = g.copy();
+            const newGenerators: CMGeneratorType[] = [];
+            t.generators.forEach((g: CMGeneratorType) => {
+                const newGenerator: CMGeneratorType = g.copy();
                 newGenerators.push(newGenerator);
             });
             newTracks.push(newTrack);
-        })
+        });
         newFile.tracks = newTracks;
         newFile.snap = this.snap;
         newFile.measureSnapUnit = this.measureSnapUnit;
@@ -68,6 +73,8 @@ export default class CMGFile {
         elem.setAttribute('measureSnapUnit', this.measureSnapUnit.toString());
         elem.setAttribute('secondSnapUnit', this.secondSnapUnit.toString());
         elem.setAttribute('SFFileName', this.SFFileName);
+        this.compressor.appendXML(elem);
+        this.equalizer.appendXML(elem);
     }
 
     async getXML(doc: XMLDocument, fcElem: Element, fileName: string) {
@@ -83,5 +90,7 @@ export default class CMGFile {
         if (this.SFFileName != '') {
             this.SoundFont = await loadSoundFont(this.SFFileName);
         }
+        this.compressor.getXML(fcElem);
+        this.equalizer.getXML(fcElem);
     }
 }

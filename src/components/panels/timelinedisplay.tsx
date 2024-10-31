@@ -98,15 +98,42 @@ export default function TimeLineDisplay() {
     }
 
     function updatePlayBackTime() {
+
         if (ticks.scaleExtent > 0) {
-            if (timeProgress >= timeLine.startTime && timeProgress <= timeLine.startTime + ticks.scaleExtent) {
-                const playbackElem = document.getElementById('playback-tick');
-                if (playbackElem) {
-                    const newLoc = timeLine.width * (timeProgress - timeLine.startTime) / (ticks.scaleExtent)
-                    playbackElem.setAttribute('x1', newLoc.toString());
-                    playbackElem.setAttribute('x2', newLoc.toString());
+
+            // shift left or right if the timeprogress is the left or right of the start time
+            const extent = TimeLineScales[timeLine.currentZoomLevel].extent;
+            let startTime = timeLine.startTime;
+            if (timeProgress < timeLine.startTime) {
+                while (timeProgress < startTime) {
+                    startTime = Math.max(startTime - extent / 2.0, 0);
+                }
+            } else if (timeProgress > timeLine.startTime + extent) {
+                let endTime = timeLine.startTime + extent;
+                while (timeProgress > endTime) {
+                    endTime += extent / 2.0;
+                    startTime = endTime - extent;
                 }
             }
+
+            // update the timeline if it has moved
+            if (startTime != timeLine.startTime) {
+                setTimeLine((c: TimeLine) => {
+                    const newC = new TimeLine(timeLine.width, timeLine.height);
+                    newC.currentZoomLevel = c.currentZoomLevel;
+                    newC.startTime = startTime;
+                    return newC;
+                });       
+            }
+
+            // move the playback tick
+            const playbackElem = document.getElementById('playback-tick');
+            if (playbackElem) {
+                const newLoc = timeLine.width * (timeProgress - startTime) / (ticks.scaleExtent)
+                playbackElem.setAttribute('x1', newLoc.toString());
+                playbackElem.setAttribute('x2', newLoc.toString());
+            }
+
         }
     }
 
@@ -131,56 +158,56 @@ export default function TimeLineDisplay() {
 
     // shift time line start left 1/2 of the extent of the current zoom level
     const handleShiftLeft = (): void => {
-        setTimeLine ((c: TimeLine) => {
+        setTimeLine((c: TimeLine) => {
             const extent = TimeLineScales[c.currentZoomLevel].extent;
             const newC = new TimeLine(timeLine.width, timeLine.height);
             newC.currentZoomLevel = c.currentZoomLevel;
-            newC.startTime = c.startTime - extent / 2.0;
+            newC.startTime = Math.min(0, c.startTime - extent / 2.0);
             return newC;
         })
     }
 
     // shift time line start right 1/2 of the extent of the current zoom level
     const handleShiftRight = (): void => {
-        setTimeLine ((c: TimeLine) => {
+        setTimeLine((c: TimeLine) => {
             const extent = TimeLineScales[c.currentZoomLevel].extent;
             const newC = new TimeLine(timeLine.width, timeLine.height);
             newC.currentZoomLevel = c.currentZoomLevel;
             newC.startTime = c.startTime + extent / 2.0;
             return newC;
         })
-        
+
     }
 
     return (
         <>
             <div className='page-time-control'>
-            <fieldset disabled={playing.current?.on} style={{ width: 'inherit' }}>
-                <button style={{fontSize:'15px'}}
-                    disabled={timeLine.currentZoomLevel == 0}
-                    onClick={handleZoomIn}
-                >
-                    <CiZoomIn />
-                </button>
-                <button style={{fontSize:'15px'}}
-                    disabled={timeLine.currentZoomLevel == TimeLineScales.length - 1}
-                    onClick={handleZoomOut}
-                >
-                    <CiZoomOut/>
-                </button>
-                <button style={{fontSize:'15px'}}
-                    disabled={timeLine.startTime == 0}
-                    onClick={handleShiftLeft}
-                >
-                    <CiCircleChevLeft/>
-                </button>
-                <button style={{fontSize:'15px'}}
-                    // disabled={timeLine.startTime + TimeLineScales[timeLine.currentZoomLevel].extent}
-                    onClick={handleShiftRight}
-                >
-                    <CiCircleChevRight/>
-                </button>
-            </fieldset>
+                <fieldset disabled={playing.current?.on} style={{ width: 'inherit' }}>
+                    <button style={{ fontSize: '15px' }}
+                        disabled={timeLine.currentZoomLevel == 0}
+                        onClick={handleZoomIn}
+                    >
+                        <CiZoomIn />
+                    </button>
+                    <button style={{ fontSize: '15px' }}
+                        disabled={timeLine.currentZoomLevel == TimeLineScales.length - 1}
+                        onClick={handleZoomOut}
+                    >
+                        <CiZoomOut />
+                    </button>
+                    <button style={{ fontSize: '15px' }}
+                        disabled={timeLine.startTime == 0}
+                        onClick={handleShiftLeft}
+                    >
+                        <CiCircleChevLeft />
+                    </button>
+                    <button style={{ fontSize: '15px' }}
+                        // disabled={timeLine.startTime + TimeLineScales[timeLine.currentZoomLevel].extent}
+                        onClick={handleShiftRight}
+                    >
+                        <CiCircleChevRight />
+                    </button>
+                </fieldset>
             </div>
             <div ref={timeLineRef} className='page-time-timeline'>
                 <svg

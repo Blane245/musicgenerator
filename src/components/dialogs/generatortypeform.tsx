@@ -8,10 +8,10 @@ import SFPGDialog from "./sfpgdialog";
 import SFRGDialog from "./sfrgdialog";
 import NoiseDialog from "./noisedialog";
 import Noise from "../../classes/noise";
-import { GENERATORTYPES } from "../../types/types";
+import { CMGeneratorType, GENERATORTYPE } from "../../types/types";
 
 export interface GeneratorTypeFormProps {
-    formData: CMG | SFPG | SFRG,
+    formData: CMGeneratorType,
     handleChange: (event:ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void,
 }
 
@@ -20,19 +20,19 @@ export default function GeneratorTypeForm(props: GeneratorTypeFormProps): JSX.El
     const { formData,  handleChange} = props;
     return (
         <>
-            {formData.type == GENERATORTYPES.SFPG ?
+            {formData.type == GENERATORTYPE.SFPG ?
                 <SFPGDialog
                     formData={formData as SFPG}
                     handleChange={handleChange}
                 />
                 : null}
-            {formData.type == GENERATORTYPES.SFRG ?
+            {formData.type == GENERATORTYPE.SFRG ?
                 <SFRGDialog
                     formData={formData as SFRG}
                     handleChange={handleChange}
                 />
                 : null}
-            {formData.type == GENERATORTYPES.Noise ?
+            {formData.type == GENERATORTYPE.Noise ?
                 <NoiseDialog
                     formData={formData as Noise}
                     handleChange={handleChange}

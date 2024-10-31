@@ -3,7 +3,6 @@ import './App.css';
 import Body from './components/layouts/body';
 import Footer from './components/layouts/footer';
 import Header from './components/layouts/header';
-import { CMGProvider } from './contexts/cmgcontext';
 
 export default function App() {
 
@@ -12,7 +11,6 @@ export default function App() {
       <Helmet>
         <title> Computer Music Generator </title>
       </Helmet>
-      <CMGProvider>
         <div className='page'>
           <div className='page-grid'>
             <Header
@@ -24,7 +22,6 @@ export default function App() {
             <Footer />
           </div>
         </div>
-      </CMGProvider>
 
     </>
   )

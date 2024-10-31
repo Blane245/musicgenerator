@@ -1,4 +1,4 @@
-import { GENERATORTYPES } from "../types/types";
+import { GENERATORTYPE } from "../types/types";
 import { getAttributeValue } from "../utils/xmlfunctions";
 
 /**
@@ -30,9 +30,9 @@ export default class CMG {
     /**
      * The type of the generator
      *
-     * @type {GENERATORTYPES}
+     * @type {GENERATORTYPE}
      */
-    type: GENERATORTYPES;
+    type: GENERATORTYPE;
     /**
      * Mute status of the generator
      *
@@ -62,7 +62,7 @@ export default class CMG {
         this.name = "G".concat(nextGenerator.toString());
         this.startTime = 0;
         this.stopTime = 0;
-        this.type = GENERATORTYPES.CMG;
+        this.type = GENERATORTYPE.CMG;
         this.mute = false;
         this.solo = false;
         this.position = 0;
@@ -127,7 +127,7 @@ export default class CMG {
                 this.solo = value == 'true';
                 break;
             case 'type':
-                this.type = value as GENERATORTYPES;
+                this.type = GENERATORTYPE.CMG;
                 break;
             default:
                 break;
@@ -145,7 +145,7 @@ export default class CMG {
         this.name = getAttributeValue(elem, 'name', 'string') as string;
         this.startTime = getAttributeValue(elem, 'startTime', 'float') as number;
         this.stopTime = getAttributeValue(elem, 'stopTime', 'float') as number;
-        this.type = GENERATORTYPES.CMG;
+        this.type = GENERATORTYPE.CMG;
         this.mute = (getAttributeValue(elem, 'mute', 'string') == 'true');
         this.solo = (getAttributeValue(elem, 'solo', 'string') == 'true');
         this.position = getAttributeValue(elem, 'position', 'int') as number;

@@ -1,65 +1,27 @@
-import Noise from "../classes/noise";
 import CMG from "../classes/cmg";
+import Noise from "../classes/noise";
 import SFPG from "../classes/sfpg";
 import SFRG from "../classes/sfrg";
+
+export const SAMPLERATE:number = 44100;
+
+export const CHUNKTIME: number = 0.1;
+
+export const EPS: number = 1e-4;
 
 export type Message = { text: string, error: boolean }
 
 export type CMGeneratorType = CMG | SFPG | SFRG | Noise;
 
-export const MENUS = Object.freeze({
-    FILE: 0,
-    EDIT: 1,
-    TRACKS: 2,
-});
-
-export const COMMANDS = [
-    {
-        menu: MENUS.FILE,
-        menuCommands: ['NEW', 'OPEN', 'SAVE', 'SAVEAS']
-    },
-    {
-        menu: MENUS.EDIT,
-        menuCommands: ['REDO', 'UNDO']
-    },
-    {
-        menu: MENUS.TRACKS,
-        menuCommands: ['NEW', 'REMOVE']
-    }
-]
-export type Menu = number;
-
-export type Command = string;
-
-export type MenuAction = { menu: Menu, command: Command, toDo?: any }
-
-export function findCommand(menu: Menu, name: string): MenuAction | null {
-    const menuIndex: number = COMMANDS.findIndex((entry) => menu == entry.menu);
-    if (menuIndex >= 0) {
-        const commandIndex: number = COMMANDS[menuIndex].menuCommands
-            .findIndex((entry) => name == entry);
-        if (commandIndex >= 0)
-            return { menu: COMMANDS[menuIndex].menu, command: COMMANDS[menuIndex].menuCommands[commandIndex] }
-        return null;
-    }
-    return null;
-}
-
 export type SFFile = { name: string }
 
 export type SFFiles = SFFiles[];
 
-export const ModalStyle = {
-    position: 'absolute' as 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    boxShadow: 24,
-    p: 4,
-};
+export enum REPEATOPTION {
+    'None' = 'None',
+    'Sample' = 'Sample',
+    'Beginning' = 'Beginning',
+}
 
 export enum TIMELINESTYLE {
     SECONDS_MINUTES = 0,
@@ -101,11 +63,7 @@ export enum MODULATOR {
     'TRIANGLE',
     'SAWTOOTH',
 }
-export enum MODULATORCLASS {
-    Frequency,
-    Volume,
-    Pan,
-}
+
 export enum TIMEFORMATTYPE {
     NUMBER,
     TIME,
@@ -173,11 +131,11 @@ export const TimeLineScales:TimeLineScale[] = [
     {extent: 1209600., majorDivisions: 2, minorDivisions: 7, format: 10},
  ]
 
-export enum GENERATORTYPES  {
-    CMG = 'CMG',
-    SFPG = 'SFPG',
-    SFRG = 'SFRG',
-    Noise = 'Noise',
+export enum GENERATORTYPE  {
+    'CMG' = 'CMG',
+    'SFPG' = 'SFPG',
+    'SFRG' = 'SFRG',
+    'Noise' = 'Noise',
 }
 
 export enum MARKOVSTATE {
@@ -186,17 +144,11 @@ export enum MARKOVSTATE {
     down = 'down',
 }
 
-export type GeneratorTimes = {
+export type GeneratorTime = {
     start:number,
     stop:number,
     lastGain: GainNode | null,
 }
-// export enum RANDOMSFATTRIBUTE {
-//     midiT = 'midiT',
-//     speedT = 'speedT',
-//     volumeT = 'volumeT',
-//     panT = 'panT'
-// }
 
 export type AttributeRange = {
     lo: number,

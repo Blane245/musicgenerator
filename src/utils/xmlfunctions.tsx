@@ -1,3 +1,4 @@
+
 export function getDocElement(object: Document, item: string): Element {
     const itemElement: Element | null = object.querySelector(item);
     if (!itemElement)
@@ -12,7 +13,7 @@ export function getElementElement(object: Element, item: string): Element {
     return itemElement;
 }
 
-export function getAttributeValue (object: Element, item: string, outputType: string): string | number {
+export function getAttributeValue(object: Element, item: string, outputType: string): string | number {
     const itemElement: HTMLElement | null = object.attributes[item];
     if (!itemElement)
         throw new Error(`Item '${item}' not found in document`)
@@ -20,7 +21,7 @@ export function getAttributeValue (object: Element, item: string, outputType: st
     const itemText: string = itemElement.value;
     switch (outputType) {
         case 'string':
-            return itemText ;
+            return itemText;
         case 'int':
             return parseInt(itemText);
         case 'float':

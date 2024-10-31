@@ -6,11 +6,14 @@ import Noise from '../../classes/noise';
 import SFPG from '../../classes/sfpg';
 import SFRG from '../../classes/sfrg';
 import { useCMGContext } from '../../contexts/cmgcontext';
-import { CMGeneratorType, GENERATIONMODE, GeneratorTimes, GENERATORTYPES } from '../../types/types';
+import { CHUNKTIME, CMGeneratorType, GENERATIONMODE, GeneratorTime, GENERATORTYPE, SAMPLERATE } from '../../types/types';
 import { setRandomSeed } from '../../utils/seededrandom';
 import { getBufferSourceNodesFromNoise } from './noisenodes';
 import { getBufferSourceNodesFromSFPG } from './sfpgnodes';
 import { getBufferSourceNodesFromSFRG } from './sfrgnodes';
+import Equalizer from '../../classes/equalizer';
+import Compressor from '../../classes/compressor';
+import { clearAudioContext } from '../../utils/cmfiletransactions';
 
 
 const SCHEDULEAHEADTIME: number = 0.1 // how far ahead to schedule audio (seconds)
@@ -19,7 +22,6 @@ let timerID: number = 0; // the timer used to set the schedule
 
 // using the defined cm generators for all tracks, create a web audio
 // if a generator is provided
-const CHUNKTIME: number = 0.1;
 export interface GeneratorProps {
     mode: GENERATIONMODE;
     setMode: Function;
@@ -27,11 +29,11 @@ export interface GeneratorProps {
 }
 export default function Generate(props: GeneratorProps) {
     const { mode, setMode, generator } = props;
-    const { fileContents, setStatus, playing, setTimeProgress } = useCMGContext();
+    const { fileContents, setFileContents, setStatus, playing, setTimeProgress, setMessage } = useCMGContext();
     const [error, setError] = useState<string>('');
     const recordHandle = useRef<FileSystemFileHandle | null>(null);
     const generatorSource: AudioBufferSourceNode[] = [];
-    const generatorTime: GeneratorTimes[] = [];
+    const generatorTime: GeneratorTime[] = [];
     const generatorStarted: boolean[] = [];
     const SFPGenerators: SFPG[] = [];
     const SFRGenerators: SFRG[] = [];
@@ -67,6 +69,7 @@ export default function Generate(props: GeneratorProps) {
     function handleErrorClose() {
         setError('');
         setMode(GENERATIONMODE.idle);
+        setStatus(``);
     }
 
     function ReadyGenerate() {
@@ -80,7 +83,7 @@ export default function Generate(props: GeneratorProps) {
                 if (!t.mute) {
                     if ((isSolo && t.solo) || !isSolo) {
                         t.generators.forEach((g: CMG | SFPG | SFRG | Noise) => {
-                            if (g.type == GENERATORTYPES.SFPG && !g.mute) {
+                            if (g.type == GENERATORTYPE.SFPG && !g.mute) {
                                 if (!(g as SFPG).preset) {
                                     setError(`Generator '${g.name}' on track '${t.name}' does not have a preset assigned.`);
                                     return;
@@ -90,7 +93,7 @@ export default function Generate(props: GeneratorProps) {
                                     playbackLength = Math.max(playbackLength, g.stopTime);
                                 }
                             }
-                            if (g.type == GENERATORTYPES.SFRG && !g.mute) {
+                            if (g.type == GENERATORTYPE.SFRG && !g.mute) {
                                 if (!(g as SFRG).preset) {
                                     setError(`Generator '${g.name}' on track '${t.name}' does not have a preset assigned.`);
                                     return;
@@ -100,7 +103,7 @@ export default function Generate(props: GeneratorProps) {
                                     playbackLength = Math.max(playbackLength, g.stopTime);
                                 }
                             }
-                            if (g.type == GENERATORTYPES.Noise) {
+                            if (g.type == GENERATORTYPE.Noise) {
                                 NoiseGenerators.push(g as Noise);
                                 playbackLength = Math.max(playbackLength, g.stopTime);
 
@@ -112,19 +115,19 @@ export default function Generate(props: GeneratorProps) {
             // get the generator being soloed and shift its start time to zero
         } else if (mode == GENERATIONMODE.solo && generator) {
             if (!generator.mute) {
-                if (generator.type == GENERATORTYPES.SFPG) {
+                if (generator.type == GENERATORTYPE.SFPG) {
                     const tempGen: SFPG = (generator as SFPG).copy();
                     tempGen.stopTime = tempGen.stopTime - tempGen.startTime;
                     tempGen.startTime = 0;
                     SFPGenerators.push(tempGen);
                     playbackLength = tempGen.stopTime;
-                } else if (generator.type == GENERATORTYPES.SFRG) {
+                } else if (generator.type == GENERATORTYPE.SFRG) {
                     const tempGen: SFRG = (generator as SFRG).copy();
                     tempGen.stopTime = tempGen.stopTime - tempGen.startTime;
                     tempGen.startTime = 0;
                     SFRGenerators.push(tempGen);
                     playbackLength = tempGen.stopTime;
-                } else if (generator.type == GENERATORTYPES.Noise) {
+                } else if (generator.type == GENERATORTYPE.Noise) {
                     const tempGen: Noise = (generator as Noise).copy();
                     tempGen.stopTime = tempGen.stopTime - tempGen.startTime;
                     tempGen.startTime = 0;
@@ -141,8 +144,12 @@ export default function Generate(props: GeneratorProps) {
                 setError('No generators are available to produce any sound');
             }
             else {
-                console.log('useful generators', GENERATORTYPES.SFPG, SFPGenerators.length, GENERATORTYPES.SFRG, SFRGenerators.length, GENERATORTYPES.Noise, NoiseGenerators.length);
+                // console.log('useful generators', GENERATORTYPE.SFPG, SFPGenerators.length, GENERATORTYPE.SFRG, SFRGenerators.length, GENERATORTYPE.Noise, NoiseGenerators.length);
             }
+        }
+        if (error == '' && mode != GENERATIONMODE.idle) {
+            if (playing.current)
+                playing.current.on = true;
         }
     }
 
@@ -170,10 +177,15 @@ export default function Generate(props: GeneratorProps) {
     );
 
     // construct the audio sources from the selected generators
-    function buildSources(context: AudioContext | OfflineAudioContext, chunkTime: number): void {
+    function buildSources(context: AudioContext | OfflineAudioContext, equalizer: Equalizer, compressor: Compressor, chunkTime: number): void {
         SFPGenerators.forEach((g) => {
             const { sources, times } =
-                getBufferSourceNodesFromSFPG(context, context.destination, g, chunkTime);
+                getBufferSourceNodesFromSFPG(context,
+                    context.destination,
+                    equalizer,
+                    compressor,
+                    g,
+                    chunkTime);
             generatorSource.push(...sources);
             generatorTime.push(...times);
             generatorStarted.push(...Array(times.length).fill(false));
@@ -182,7 +194,11 @@ export default function Generate(props: GeneratorProps) {
         // build the buffers for the SFRGs
         SFRGenerators.forEach(g => {
             setRandomSeed(g.seed);
-            const { sources, times } = getBufferSourceNodesFromSFRG(context, context.destination, g);
+            const { sources, times } = getBufferSourceNodesFromSFRG(context,
+                context.destination,
+                equalizer,
+                compressor,
+                g);
             generatorSource.push(...sources);
             generatorTime.push(...times);
             generatorStarted.push(...Array(times.length).fill(false));
@@ -191,22 +207,28 @@ export default function Generate(props: GeneratorProps) {
         // build the buffers for the SFRGs
         NoiseGenerators.forEach(g => {
             setRandomSeed(g.seed);
-            const { sources, times } = getBufferSourceNodesFromNoise(context, context.destination, g);
+            const { sources, times } = getBufferSourceNodesFromNoise(context,
+                context.destination,
+                equalizer,
+                compressor,
+                g);
             generatorSource.push(...sources);
             generatorTime.push(...times);
             generatorStarted.push(...Array(times.length).fill(false));
         });
     }
 
-    function StartStop(source: AudioBufferSourceNode, start: number, stop: number, lastGain:GainNode | null) : void {
+    function StartStop(source: AudioBufferSourceNode, start: number, stop: number, lastGain: GainNode | null): void {
         source.start(start);
         if (lastGain) {
             const value = lastGain.gain.value;
-            console.log('last gain at time ', stop, 'value', value);
+            // console.log('last gain at time ', stop, 'value', value);
             lastGain.gain.setValueAtTime(value, stop - CHUNKTIME);
             lastGain.gain.cancelAndHoldAtTime(stop - CHUNKTIME);
             lastGain.gain.exponentialRampToValueAtTime(0.001, stop);
             source.stop(stop);
+        } if (stop >= playbackLength - 1.) {
+
         } else {
             source.stop(stop);
         }
@@ -225,13 +247,17 @@ export default function Generate(props: GeneratorProps) {
             const context: AudioContext | OfflineAudioContext =
                 (live ?
                     new AudioContext() :
-                    new OfflineAudioContext(2, 40000 * playbackLength, 40000));
+                    new OfflineAudioContext(2, SAMPLERATE * playbackLength, SAMPLERATE));
 
             // hold up the speakers until all of the generators have been built
             if (live)
                 (context as AudioContext).suspend();
 
-            buildSources(context, CHUNKTIME);
+            // set up the equalizer and compressor
+            fileContents.equalizer.setContext(context);
+            fileContents.compressor.setContext(context);
+
+            buildSources(context, fileContents.equalizer, fileContents.compressor, CHUNKTIME);
 
             // the preview and solo modes are done in realtime 
             if (live) {
@@ -251,7 +277,7 @@ export default function Generate(props: GeneratorProps) {
                                 if (aheadTime >= generatorTime[i].start && !generatorStarted[i]) {
                                     // console.log('source', i, 'start', generatorTime[i].start, 'stop', generatorTime[i].stop, 'aheadtime', aheadTime, 'buffer length', s.buffer?.length);
                                     // console.log('source', i, 'start', generatorTime[i].start, 'stop', generatorTime[i].stop);
-                                    const {start, stop, lastGain} = generatorTime[i];
+                                    const { start, stop, lastGain } = generatorTime[i];
                                     StartStop(s, start, stop, lastGain);
                                     generatorStarted[i] = true;
                                     started = true;
@@ -278,7 +304,9 @@ export default function Generate(props: GeneratorProps) {
                             (context as AudioContext).close();
                         }
                         setMode(GENERATIONMODE.idle);
+                        clearAudioContext(setFileContents);
                         setTimeProgress(0);
+                        setStatus(`Preview Complete`);
                     }
                 }
 
@@ -287,20 +315,20 @@ export default function Generate(props: GeneratorProps) {
                 const rh: FileSystemFileHandle = recordHandle.current;
                 // and provide all source their start and stop times
                 generatorSource.forEach((s, i) => {
-                    const {start, stop, lastGain} = generatorTime[i];
+                    const { start, stop, lastGain } = generatorTime[i];
                     StartStop(s, start, stop, lastGain);
                 });
 
                 // render the sources
                 (context as OfflineAudioContext).startRendering()
                     .then((renderBuffer: AudioBuffer) => {
-                        console.log('offline render complete');
+                        // console.log('offline render complete');
 
                         // build the blob and write it to the selected file
-                        console.log('recordHandle.name', rh.name)
+                        // console.log('recordHandle.name', rh.name)
                         rh.createWritable()
                             .then((accessHandle) => {
-                                console.log('writing wav file');
+                                // console.log('writing wav file');
                                 const blob: Blob = bufferToWave(renderBuffer, (context as OfflineAudioContext).length)
                                 accessHandle.write(blob);
                                 accessHandle.close();
@@ -310,9 +338,10 @@ export default function Generate(props: GeneratorProps) {
                                     playing.current.on = false;
                             });
                         recordHandle.current = null;
+                        clearAudioContext(setFileContents);
                     })
             } else {
-                setStatus('Recording aborted');
+                setMessage({ error: true, text: `Improper genration mode '${mode}'` });
                 setMode(GENERATIONMODE.idle);
                 if (playing.current)
                     playing.current.on = false;
