@@ -51,7 +51,7 @@ export default function TrackControlsDisplay(props: TrackControlsDisplayProps) {
         setStatus(``);
     }
 
-    function handleRenameOK(event: FormEvent<HTMLElement>): void {
+    function handleRenameOK(event: FormEvent<Element>): void {
         event.preventDefault();
         const newName: string = trackName;
         if (!validateNewName(newName)) {
@@ -97,7 +97,7 @@ export default function TrackControlsDisplay(props: TrackControlsDisplayProps) {
     // this is the input business end of this app. Generators will 
     // come in different shapes and sizes. There CRUD will be handled by modals
     // that appear in a different component
-    function handleAddGenerator(event: MouseEvent<HTMLElement>, index: number): void {
+    function handleAddGenerator(event: MouseEvent<Element>, index: number): void {
         event.preventDefault();
         console.log('index', index);
         setEnableGeneratorDialog(index);

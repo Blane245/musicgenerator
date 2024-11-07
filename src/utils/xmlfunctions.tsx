@@ -13,8 +13,8 @@ export function getElementElement(object: Element, item: string): Element {
     return itemElement;
 }
 
-export function getAttributeValue(object: Element, item: string, outputType: string): string | number {
-    const itemElement: HTMLElement | null = object.attributes[item];
+export function getAttributeValue(object: Element, item: string, outputType: string): string | number | boolean {
+    const itemElement: Element | null = object.attributes[item];
     if (!itemElement)
         throw new Error(`Item '${item}' not found in document`)
 
@@ -26,6 +26,8 @@ export function getAttributeValue(object: Element, item: string, outputType: str
             return parseInt(itemText);
         case 'float':
             return parseFloat(itemText);
+        case 'boolean':
+            return (itemText == 'true');
         default:
             throw new Error(`Invalid output type '${outputType}' for item '${item}'`);
     }

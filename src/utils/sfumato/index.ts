@@ -2,7 +2,7 @@ import { SoundFont2 } from 'soundfont2';
 import './dsp';
 import { getSFGeneratorValue, getSFGeneratorValues, SFgenerators } from './generators';
 import { Instrument, InstrumentZone, Preset, PresetZone, Sample } from './types';
-import { normalizePermille, tc2s } from './util';
+import { normalizePermille, tc2s } from '../../../util';
 
 export * from './dsp';
 export * from './generators';
@@ -13,8 +13,6 @@ export async function loadSoundFont(url:string) {
   const buffer = await fetch(url).then((res) => res.arrayBuffer());
   // convert buffer to Uint8Array:
   const data = new Uint8Array(buffer);
-  // parse the sf2 file:
-  // return new SoundFont2(data);
   return new SoundFont2(data);
 }
 

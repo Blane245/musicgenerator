@@ -24,13 +24,13 @@ constructor(nextTrack: number) {
         });
         return t;
     }
-    appendXML(doc: XMLDocument, elem: HTMLElement): void {
+    appendXML(doc: XMLDocument, elem: Element): void {
         elem.setAttribute('name', this.name);
         elem.setAttribute('mute', this.mute.toString());
         elem.setAttribute('solo', this.solo.toString());
     }
 
-    getXML(doc: XMLDocument, elem: Element) {
+    getXML(elem: Element) {
         this.name = getAttributeValue(elem, 'name', 'string') as string;
         this.mute = (getAttributeValue(elem, 'mute', 'string') == 'true')
         this.solo = (getAttributeValue(elem, 'solo', 'string') == 'true')

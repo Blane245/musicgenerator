@@ -17,7 +17,7 @@ import GeneratorDialog from "../dialogs/generatordialog";
 export interface GeneratorIconProps {
     track: Track,
     trackIndex: number,
-    elementRef: MutableRefObject<HTMLElement[]>
+    elementRef: MutableRefObject<Element[]>
 }
 type GeneratorBox = {
     generator: CMGenerator, position: { x: number, y: number }, width: number, height: number
@@ -243,7 +243,7 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
             setSelectedTrackName(event.target.value);
             setStatus(``);
         }
-        function handleCopyOK(event: FormEvent<HTMLElement>): void {
+        function handleCopyOK(event: FormEvent<Element>): void {
             event.preventDefault();
             setCopyDialog(false);
 

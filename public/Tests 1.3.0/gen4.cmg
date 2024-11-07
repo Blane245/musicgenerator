@@ -1,0 +1,16 @@
+<fileContents name="gen4.cmg" timeLineStyle="0" tempo="120" beatsPerMeasure="4" measureUnit="4" snap="false" measureSnapUnit="3" secondSnapUnit="1" SFFileName="/src/soundfonts/TimGM6mb.sf2">
+    <compressor threshold="-14" knee="30" ratio="12" release="0.9" attack="0.194"/>
+    <equalizer gain0="-15" gain1="-12" gain2="-7" gain3="0" gain4="3" gain5="7" gain6="9" gain7="5" gain8="7" gain9="10"/>
+    <tracks>
+        <track name="T1" mute="false" solo="false">
+            <generators>
+                <generator name="G10" type="SFPG" startTime="1" stopTime="6" solo="false" mute="true" position="0" presetName="000:001:Piano 2" repeat="Beginning" midi="2" FMType="SQUARE" FMAmplitude="1" FMFrequency="2" FMPhase="3" VMType="TRIANGLE" VMCenter="51" VMFrequency="5" VMAmplitude="4" VMPhase="6" PMType="SAWTOOTH" PMCenter="0.1" PMFrequency="7" PMAmplitude="0.6" PMPhase="8">
+                    <simplereverb name="SimpleReverb" enabled="false" attack="0.002" decay="1.001" release="1.002" reverbTime="1.003"/>
+                </generator>
+            </generators>
+        </track>
+        <track name="T2" mute="false" solo="false">
+            <generators/>
+        </track>
+    </tracks>
+</fileContents>

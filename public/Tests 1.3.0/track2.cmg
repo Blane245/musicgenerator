@@ -1,0 +1,9 @@
+<fileContents name="track2.cmg" timeLineStyle="0" tempo="120" beatsPerMeasure="4" measureUnit="4" snap="false" measureSnapUnit="3" secondSnapUnit="1" SFFileName="">
+    <compressor threshold="-24" knee="30" ratio="12" release="0.25" attack="0.003"/>
+    <equalizer gain0="0" gain1="0" gain2="0" gain3="0" gain4="0" gain5="0" gain6="0" gain7="0" gain8="0" gain9="0"/>
+    <tracks>
+        <track name="T11" mute="true" solo="true">
+            <generators/>
+        </track>
+    </tracks>
+</fileContents>

@@ -8,7 +8,6 @@ html {
 }
 
 #root {
-
   max-width: 2800px;
   margin: 0;
   padding: 0;
@@ -86,7 +85,6 @@ fieldset {
   display: block;
   grid-template-columns: subgrid;
   grid-column: span 5;
-
 }
 
 .page-message {
@@ -125,7 +123,6 @@ fieldset {
   grid-template-columns: 200px repeat(11, 1fr);
   grid-template-rows: 100px;
   gap: 0;
-
 }
 
 .page-track-control {
@@ -172,7 +169,7 @@ fieldset {
   align-items: center;
   margin-right: 10px;
   margin-bottom: 10px;
-  outline: solid #5c75b8 ;
+  outline: solid #5c75b8;
 
   .title {
     line-height: normal;
@@ -202,14 +199,13 @@ fieldset {
     line-height: 10px;
     text-align: center;
   }
-  input[type=range] {
+  input[type="range"] {
     writing-mode: vertical-lr;
     direction: rtl;
-    height:90px;
-    width:30px;
+    height: 90px;
+    width: 30px;
   }
 }
-
 
 .page-footer-equalizer {
   display: block;
@@ -222,7 +218,7 @@ fieldset {
   align-items: center;
   margin-right: 10px;
   margin-bottom: 10px;
-  outline: solid #5c75b8 ;
+  outline: solid #5c75b8;
 
   .title {
     line-height: normal;
@@ -253,11 +249,11 @@ fieldset {
     line-height: 10px;
   }
 
-  input[type=range] {
+  input[type="range"] {
     writing-mode: vertical-lr;
     direction: rtl;
-    height:100px;
-    width:30px;
+    height: 100px;
+    width: 30px;
   }
 }
 
@@ -307,7 +303,7 @@ fieldset {
   border: 1px solid #888;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   animation-name: animatetop;
-  animation-duration: 0.4s
+  animation-duration: 0.4s;
 }
 
 .generator-header {
@@ -330,15 +326,15 @@ fieldset {
   position: absolute;
   z-index: 1;
   top: 50px;
-  left: 200px;
+  left: 100px;
   background-color: #fefefe;
   margin: auto;
   padding: 0;
   border: 1px solid #888;
-  width: 80%;
+  width: 90%;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   animation-name: animateleft;
-  animation-duration: 0.4s
+  animation-duration: 0.4s;
 }
 
 .modal-menu {
@@ -398,23 +394,23 @@ fieldset {
 @keyframes animatetop {
   from {
     top: -300px;
-    opacity: 0
+    opacity: 0;
   }
 
   to {
     top: 0;
-    opacity: 1
+    opacity: 1;
   }
 }
 
 @keyframes animateleft {
   from {
     left: -300px;
-    opacity: 0
+    opacity: 0;
   }
 
   to {
     top: 0;
-    opacity: 1
+    opacity: 1;
   }
 }

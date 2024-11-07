@@ -87,7 +87,7 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
             </div>
             <div className="transition-box" >
                 <p className="transition-header">Speed Transtions</p>
-                <label>Starting Value:<input name="speedT.startValue" value={formData.speedT.startValue} onChange={handleChange} type='number' min={5} max={500} step={5} /></label>
+                <label>Starting Value:<input name="speedT.startValue" value={formData.speedT.startValue} onChange={handleChange} type='number' min={5} max={500} step={5} /><span> (BPM)</span></label>
                 <br />
                 <label>Range lo:<input name="speedT.range.lo" value={formData.speedT.range.lo} onChange={handleChange} type='number' min={5} max={500} step={1} /></label>
                 <label>Range hi:<input name="speedT.range.hi" value={formData.speedT.range.hi} onChange={handleChange} type='number' min={5} max={500} step={1} /></label>
@@ -107,7 +107,7 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
             </div>
             <div className="transition-box" >
                 <p className="transition-header">Volume Transtions</p>
-                <label>Starting Value:<input name="volumeT.startValue" value={formData.volumeT.startValue} onChange={handleChange} type='number' min={0} max={100} step={10} /></label>
+                <label>Starting Value:<input name="volumeT.startValue" value={formData.volumeT.startValue} onChange={handleChange} type='number' min={0} max={100} step={10} /><span> (1 to 100 %)</span></label>
                 <br />
                 <label>Range lo:<input name="volumeT.range.lo" value={formData.volumeT.range.lo} onChange={handleChange} type='number' min={0} max={100} step={1} /></label>
                 <label>Range hi:<input name="volumeT.range.hi" value={formData.volumeT.range.hi} onChange={handleChange} type='number' min={0} max={100} step={1} /></label>
@@ -127,7 +127,7 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
             </div>
             <div className="transition-box" >
                 <p className="transition-header">Pan Transtions</p>
-                <label>Starting Value:<input name="panT.startValue" value={formData.panT.startValue} onChange={handleChange} type='number' min={-1.0} max={1.0} step={0.1} /></label>
+                <label>Starting Value:<input name="panT.startValue" value={formData.panT.startValue} onChange={handleChange} type='number' min={-1.0} max={1.0} step={0.1} /><span> (-1 to 1)</span></label>
                 <br />
                 <label>Range lo:<input name="panT.range.lo" value={formData.panT.range.lo} onChange={handleChange} type='number' min={-1} max={1} step={.1} /></label>
                 <label>Range hi:<input name="panT.range.hi" value={formData.panT.range.hi} onChange={handleChange} type='number' min={-1} max={1} step={.1} /></label>

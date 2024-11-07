@@ -1,0 +1,6 @@
+{
+    "overrides": 
+    [
+        { "files": "**/*.cmg", "options": { "parser": "xml" } }
+    ]
+}

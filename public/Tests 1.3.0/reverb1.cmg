@@ -1,0 +1,37 @@
+<fileContents name="reverb1.cmg" timeLineStyle="0" tempo="120" beatsPerMeasure="4" measureUnit="4" snap="false" measureSnapUnit="3" secondSnapUnit="1" SFFileName="/src/soundfonts/TimGM6mb.sf2">
+    <compressor threshold="-24" knee="30" ratio="12" release="0.25" attack="0.003"/>
+    <equalizer gain0="0" gain1="0" gain2="0" gain3="0" gain4="0" gain5="0" gain6="0" gain7="0" gain8="0" gain9="0"/>
+    <tracks>
+        <track name="T1" mute="false" solo="false">
+            <generators>
+                <generator name="G1" type="SFRG" startTime="0" stopTime="100" solo="false" mute="false" position="0" seed="Gsdar2445ty" presetName="000:002:Piano 3" repeat="Sample" midi="60">
+                    <simplereverb name="SimpleReverb:1" enabled="false" attack="0.001" decay="0.1" release="1" reverbTime="1"/>
+                    <midiT startValue="60">
+                        <range lo="59" hi="61" step="1"/>
+                        <same same="0" up="0.5" down="0.5"/>
+                        <up same="0" up="0.5" down="0.5"/>
+                        <down same="0" up="0.5" down="0.5"/>
+                    </midiT>
+                    <speedT startValue="20">
+                        <range lo="10" hi="100" step="1"/>
+                        <same same="1" up="0" down="0"/>
+                        <up same="1" up="0" down="0"/>
+                        <down same="1" up="0" down="0"/>
+                    </speedT>
+                    <volumeT startValue="50">
+                        <range lo="0" hi="100" step="1"/>
+                        <same same="1" up="0" down="0"/>
+                        <up same="1" up="0" down="0"/>
+                        <down same="1" up="0" down="0"/>
+                    </volumeT>
+                    <panT startValue="0">
+                        <range lo="-1" hi="1" step="0.1"/>
+                        <same same="1" up="0" down="0"/>
+                        <up same="1" up="0" down="0"/>
+                        <down same="1" up="0" down="0"/>
+                    </panT>
+                </generator>
+            </generators>
+        </track>
+    </tracks>
+</fileContents>

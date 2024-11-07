@@ -1,0 +1,128 @@
+blank file steps (Record and Preview disabled)
+    new file
+    save file1 - inspect .cmg file
+    new file
+    open file1
+    new file
+    change compressor and equalizer values
+    save file2 - inspect .cmg file
+    new file - compressor and equalizer should go to defaults
+    open file2 - compressor and equalizer setting should be as in 6
+    new file 
+    zoom time line - should zoom
+    open a soundfont file - file name shoujdl appear in select
+    save file3 - inspect cmg file
+    new file
+    open file3 - soundfont file should be selected
+track tests  (Record and Preview disabled)
+    new file
+    add new track
+    save track1 - inspect .cmg file
+    new file
+    open track1 - one track should be displayed
+    click mute and solo - buttons should switch
+    rename track - track should be renamed
+    save track2 - inspect .cmg
+    new file
+    open track2 - mute, solo, name should be as setting
+    delete first track - delete track popup should be displayed
+    click cancel - track should remain
+    delete first track - delete track popup should be displayed
+    click OK - track should disappear    
+    new file - file changed popup
+    click cancel - no change
+    new file - file changed popup
+    click ok - file name disappears from heading
+    add 2 tracks
+    save track3 - inspect cmg
+    new file
+    open track3 - two tracks should be displayed
+    move seconds track ahead of first track - tracks should switch places
+    save track4 - inspace cmg    
+    new file - clear tracks
+    open track4 - should display T2/T1
+generator tests 
+    new file
+    open file3 - soundfont should appear
+    add 2 tracks 
+    add CMG generator to T1 @ 0-5 sec
+    save gen1 - inspect cmg file
+    new file
+    open gen1 - two tracks displays with g1 on T1
+    edit gen1 changing all field to unique values - gen displayed on T1 at new times
+    edit gen1 - all fields should be as set
+    save file gen2 - inspect cmg file
+    toggle the generator's mute state - generator test should be red
+    save file gen3 - inspect cmg file - mute should be set
+    new file
+    open gen3 - generator's mute should be set
+    generator type tests
+        SFPG
+            new file
+            set the soundfont file
+            add one track
+            add a generator of type SFPG
+            change all values to something unique 
+            save as gen4 - inspect cmg file
+            new file
+            open gen4 - one track with one generator displayed
+            edit generator - values should be as set and saved
+        SFRG
+            new file
+            set the soundfont file
+            add one track
+            add a generator of type SFRG
+            change all values to something unique 
+            save as gen5 - inspect cmg file
+            new file
+            open gen5 - one track with one generator displayed
+            edit generator - values should be as set and saved
+        Noise
+            new file
+            set the soundfont file
+            add one track
+            add a generator of type Noise
+            change all values to something unique 
+            save as gen6 - inspect cmg file
+            new file
+            open gen6 - one track with one generator displayed
+            edit generator - values should be as set and saved
+    multiple generator and copy tests
+        new file
+        add two tracks
+        add two generators of any type to track 1
+        copy one of the generators to track 2
+        save file gen7 - inspacet cmg file
+        new file
+        open gen7 - two tracks, two genertors on first track, one on second
+preview tests
+
+reverb tests
+    single generator
+        new file
+        add track
+        add SFRG generator with a long sustained noises for 10 seconds and no reverb
+            preview the sound to make sure it working
+        modify the generator to enable reverb with default setting
+        save as reverb1 - inspect cmg file
+        preview the sound and listen for the reverb
+        tweak the reverb setting
+        preview the sound and listen for the effect to the reverb
+        save as reverb2 - inspect cmg file
+        new file
+        open reverb2 - check that reverb setting have been saved
+
+    
+
+
+
+
+
+
+
+
+    
+
+
+
+

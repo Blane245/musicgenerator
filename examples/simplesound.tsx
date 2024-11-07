@@ -1,4 +1,4 @@
-//curtersy https://blog.gskinner.com/archives/2019/02/reverb-web-audio-api.html
+//courtesy https://blog.gskinner.com/archives/2019/02/reverb-web-audio-api.html
 // SAFARI Polyfills
 if (!window.AudioBuffer.prototype.copyToChannel) {
 	window.AudioBuffer.prototype.copyToChannel = function copyToChannel(buffer, channel) {
@@ -123,7 +123,7 @@ export class AmpEnvelope {
 		this.start(this.context.currentTime);
 	}
 
-	off(MidiEvent) {
+	off() {
 		return this.stop(this.context.currentTime);
 	}
 
@@ -202,7 +202,7 @@ export class Voice {
 
 	init() {
 		let osc:OscillatorNode = this.context.createOscillator();
-		osc.type = this.type;
+		osc.type = (this.type as OscillatorType);
 		osc.connect(this.ampEnvelope.output);
 		osc.start(this.context.currentTime);
 		this.partials.push(osc);
@@ -216,8 +216,8 @@ export class Voice {
 		this.ampEnvelope.on(MidiEvent.velocity || MidiEvent);
 	}
 
-	off(MidiEvent) {
-		this.ampEnvelope.off(MidiEvent);
+	off() {
+		this.ampEnvelope.off();
 		this.partials.forEach((osc:AudioNode) => {
 			(osc as OscillatorNode).stop(this.context.currentTime + this.ampEnvelope.release * 4);
 		});
@@ -278,7 +278,7 @@ export class Noise extends Voice {
 		this._length = value;
 	}
 
-	init() {
+	override init() {
 		const lBuffer = new Float32Array(this.length * this.context.sampleRate);
 		const rBuffer = new Float32Array(this.length * this.context.sampleRate);
 		for (let i = 0; i < this.length * this.context.sampleRate; i++) {
@@ -299,7 +299,7 @@ export class Noise extends Voice {
 		this.partials.push(osc);
 	}
 
-	on(MidiEvent) {
+	override on(MidiEvent) {
 		this.value = MidiEvent.value;
 		this.ampEnvelope.on(MidiEvent.velocity || MidiEvent);
 	}
@@ -313,10 +313,10 @@ export class Filter extends Effect {
 		this.effect = context.createBiquadFilter();
 		(this.effect as BiquadFilterNode).frequency.value = cutoff;
 		(this.effect as BiquadFilterNode).Q.value = resonance;
-		(this.effect as BiquadFilterNode).type = biquadfiltertype.type;
+		(this.effect as BiquadFilterNode).type = (type as BiquadFilterType);
 	}
 
-	setup() {
+	override setup() {
 		this.effect = this.context.createBiquadFilter();
 		this.effect.connect(this.output);
 		this.wireUp();

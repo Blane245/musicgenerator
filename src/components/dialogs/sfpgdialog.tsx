@@ -198,10 +198,8 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
 }
 
 export function validateSFPGValues(values: SFPG): string[] {
-    const result: string[] = [];
-
+    const result:string[] = [];
     if (!values.presetName)
         result.push('PresetName must be specified')
     return result;
-
 }

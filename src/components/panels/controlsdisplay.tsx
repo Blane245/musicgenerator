@@ -73,7 +73,7 @@ export default function ControlsDisplay() {
         }
         setReadyGenerate(true);
 
-    }, [fileContents, SFFileName])
+    }, [fileContents])
 
     // load the SF when one is selected
     async function handleFileNameChange(event: ChangeEvent<HTMLSelectElement>) {

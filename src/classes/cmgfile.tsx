@@ -63,8 +63,8 @@ export default class CMGFile {
         return newFile;
     }
 
-    appendXML(doc: XMLDocument, elem: HTMLElement): void {
-        elem.setAttribute('name', this.name);
+    appendXML(doc: XMLDocument, elem: Element, name: string): void {
+        elem.setAttribute('name', name);
         elem.setAttribute('timeLineStyle', this.timeLineStyle.toString());
         elem.setAttribute('tempo', this.tempo.toString());
         elem.setAttribute('beatsPerMeasure', this.timeSignature.beatsPerMeasure.toString());
@@ -73,11 +73,11 @@ export default class CMGFile {
         elem.setAttribute('measureSnapUnit', this.measureSnapUnit.toString());
         elem.setAttribute('secondSnapUnit', this.secondSnapUnit.toString());
         elem.setAttribute('SFFileName', this.SFFileName);
-        this.compressor.appendXML(elem);
-        this.equalizer.appendXML(elem);
+        this.compressor.appendXML(doc, elem);
+        this.equalizer.appendXML(doc, elem);
     }
 
-    async getXML(doc: XMLDocument, fcElem: Element, fileName: string) {
+    async getXML(fcElem: Element, fileName: string) {
         this.name = fileName;
         this.timeLineStyle = getAttributeValue(fcElem, 'timeLineStyle', 'int') as number;
         this.tempo = getAttributeValue(fcElem, 'tempo', 'int') as number;
