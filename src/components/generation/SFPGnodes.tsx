@@ -6,9 +6,6 @@
 // chuck based on the time that the generator start until it stops.
 // these chucks are fed to the scheduler as the audiocontext advances
 
-import { frontendNodeConnections } from "../../utils/nodeconnections";
-import Compressor from "../../classes/compressor";
-import Equalizer from "../../classes/equalizer";
 import SFPG from "../../classes/sfpg";
 import { InstrumentZone } from "../../types/soundfonttypes";
 import { GeneratorData, REPEATOPTION } from "../../types/types";
@@ -19,29 +16,28 @@ import { precision } from "../../utils/util";
 let currentSampleIndex: number = 0;
 export function getBufferSourceNodesFromSFPG(
   context: AudioContext | OfflineAudioContext,
-  destination: AudioDestinationNode | MediaStreamAudioDestinationNode,
-  equalizer: Equalizer,
-  compressor: Compressor,
-  CMgenerator: SFPG,
-  deltaT: number
+  gen: SFPG,
+  deltaT: number,
+  roomConcentrator: GainNode
 ): GeneratorData[] {
   // console.log('getting SFPG sources',
-  //     'name', CMgenerator.name,
+  //     'name', gen.name,
   //     'deltaT', deltaT,
   // );
   // get the instrument zone for generator's preset
-  if (!CMgenerator.preset)
-    throw new Error(
-      `Preset '${CMgenerator.presetName}' has not been initialized.`
-    );
-  const zones: InstrumentZone[] = CMgenerator.preset.zones[0].instrument.zones;
+  if (!gen.preset)
+    throw new Error(`Preset '${gen.presetName}' has not been initialized.`);
+  const zones: InstrumentZone[] = gen.preset.zones[0].instrument.zones;
   if (zones.length == 0)
     throw new Error(
-      `Preset '${CMgenerator.presetName}' instrument zones no not exist.`
+      `Preset '${gen.presetName}' instrument zones no not exist.`
     );
 
+  // setup the instrument concentrator and passthru nodes gain node
+  const concentrator: GainNode = context.createGain();
+
   // the generator has a start and end time
-  const { startTime, stopTime } = CMgenerator;
+  const { startTime, stopTime } = gen;
   // A generator will need a number of #chucks = (stoptime-start)/CHUCKSIZE
   const chunkCount = Math.ceil((stopTime - startTime) / deltaT);
 
@@ -54,7 +50,7 @@ export function getBufferSourceNodesFromSFPG(
     if (iChunk == 0) currentSampleIndex = 0;
     // currentSampleIndex = 0;
     const time = iChunk * deltaT;
-    const { pitch, volume, pan } = CMgenerator.getCurrentValues(time);
+    const { pitch, volume, pan } = gen.getCurrentValues(time);
     if (lastPitch != pitch) {
       lastPitch = pitch;
       currentSampleIndex = 0;
@@ -78,7 +74,7 @@ export function getBufferSourceNodesFromSFPG(
 
     // get the soundfont generator values
     const generatorValues: Map<number, number> = getSFGeneratorValues(
-      CMgenerator.preset,
+      gen.preset,
       currentZone
     );
     // apply adjustments
@@ -113,7 +109,7 @@ export function getBufferSourceNodesFromSFPG(
     const floatSample: Float32Array = getNextSample(
       loopStart,
       loopEnd,
-      CMgenerator.repeat,
+      gen.repeat,
       currentZone.sample.data,
       chunkSize * playbackRate
     );
@@ -153,27 +149,32 @@ export function getBufferSourceNodesFromSFPG(
     vol.gain.value = volume / 100;
     const panner: StereoPannerNode = context.createStereoPanner();
     panner.pan.value = Math.min(Math.max(pan, -1.0), 1.0);
-    frontendNodeConnections(
-      source,
-      vol,
-      panner,
-    );
+
+    // connect make the path source->vol->panner->concentrator
+    source.connect(vol);
+    vol.connect(panner);
+    panner.connect(concentrator);
+
     // and add it to the accumulated sources
-    generatorData.push(
-        {
-          generator: CMgenerator,
-          source: source,
-          panner: panner,
-          equalizer: equalizer,
-          compressor: compressor,
-          start: precision(time + CMgenerator.startTime, 3),
-          stop: precision(time + CMgenerator.startTime + deltaT, 3),
-          lastGain: iChunk == chunkCount - 1 ? vol : null,
-          }
-  
-        )
+    generatorData.push({
+      source: source,
+      start: precision(time + gen.startTime, 3),
+      stop: precision(time + gen.startTime + deltaT, 3),
+      lastGain: iChunk == chunkCount - 1 ? vol : null,
+    });
   }
-  // console.log(times);
+
+  // make the connections
+  // concentrator->passthru->roomconcentrator
+  // optionally concentrator->inst reverb->passthru
+  const passThru: GainNode = context.createGain();
+  concentrator.connect(passThru);
+  passThru.connect(roomConcentrator);
+  if (gen.reverb.enabled && gen.reverb.effect) {
+    concentrator.connect(gen.reverb.effect);
+    gen.reverb.effect.connect(passThru);
+  }
+
   return generatorData;
 }
 // get a full chuckSize set of samples from the instrument's samples

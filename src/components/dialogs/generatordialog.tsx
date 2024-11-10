@@ -17,6 +17,7 @@ import GeneratorTypeForm from "./generatortypeform";
 import { validateNoiseValues } from "./noisedialog";
 import { validateSFPGValues } from "./sfpgdialog";
 import { validateSFRGValues } from "./sfrgdialog";
+import { bankPresettoName } from "../../utils/util";
 
 // The icon starts at the generator's start time and ends at the generators endtime
 export interface GeneratorDialogProps {
@@ -152,7 +153,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           newF.reverb = prev.reverb.copy();
           if (presets.length > 0) {
             newF.preset = presets[0];
-            newF.presetName = newF.preset.header.name;
+            newF.presetName = bankPresettoName(newF.preset);
           }
           return newF;
         }
@@ -167,7 +168,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           newF.reverb = prev.reverb.copy();
           if (presets.length > 0) {
             newF.preset = presets[0];
-            newF.presetName = newF.preset.header.name;
+            newF.presetName = bankPresettoName(newF.preset);
           }
           return newF;
         }
@@ -365,6 +366,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                 <input
                   name="startTime"
                   type="number"
+                  min={0}
                   onChange={handleChange}
                   value={formData.startTime}
                 />
@@ -373,6 +375,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                 <input
                   name="stopTime"
                   type="number"
+                  min={0}
                   onChange={handleChange}
                   value={formData.stopTime}
                 />
@@ -396,9 +399,8 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                 <label>
                   Reverberator Enabled:&nbsp;
                   <input
-                    name="reverb.enabled"
+                    name="instreverb.enabled"
                     checked={formData.reverb.enabled}
-                    // value={formData.reverb.enabled ? "true" : "false"}
                     onChange={handleChange}
                     type="checkbox"
                   />
@@ -406,7 +408,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                 <label>
                   &nbsp;Attack:&nbsp;
                   <input
-                    name="reverb.attack"
+                    name="instreverb.attack"
                     value={formData.reverb.attack}
                     onChange={handleChange}
                     type="number"
@@ -419,7 +421,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                 <label>
                   &nbsp;Decay:&nbsp;
                   <input
-                    name="reverb.decay"
+                    name="instreverb.decay"
                     value={formData.reverb.decay}
                     onChange={handleChange}
                     type="number"
@@ -432,7 +434,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                 <label>
                   &nbsp;Release:&nbsp;
                   <input
-                    name="reverb.release"
+                    name="instreverb.release"
                     value={formData.reverb.release}
                     onChange={handleChange}
                     type="number"
@@ -445,7 +447,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                 <label>
                   &nbsp;Reverb Time:&nbsp;
                   <input
-                    name="reverb.reverbTime"
+                    name="instreverb.reverbTime"
                     value={formData.reverb.reverbTime}
                     onChange={handleChange}
                     type="number"

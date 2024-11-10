@@ -4,37 +4,34 @@
 // the SFPG generatr
 // each node time starts when the last one stops as determined by the spped attribute
 
-import { frontendNodeConnections } from "../../utils/nodeconnections";
-import Compressor from "../../classes/compressor";
-import Equalizer from "../../classes/equalizer";
 import Noise from "../../classes/noise";
 import { GeneratorData } from "../../types/types";
+
 const CHUNKSIZE: number = 0.1; // seconds
 // the node's midi, volume, and pan values is plugged in from their respective chains
 export function getBufferSourceNodesFromNoise(
   context: AudioContext | OfflineAudioContext,
-  destination: AudioDestinationNode | MediaStreamAudioDestinationNode,
-  equalizer: Equalizer,
-  compressor: Compressor,
-  CMgenerator: Noise
+  gen: Noise,
+  roomConcentrator: GainNode
 ): GeneratorData[] {
   // console.log(
   //     'in getBufferSourceNodesFromNoise',
   // );
+
+  // setup the instrument concentrator and passthru nodes gain node
+  const concentrator: GainNode = context.createGain();
+
   // the generator has a start and end time
-  const { startTime, stopTime } = CMgenerator;
+  const { startTime, stopTime } = gen;
   const generatorData: GeneratorData[] = [];
 
   // move the chunk into the audio node
   const chunkCount = Math.ceil((stopTime - startTime) / CHUNKSIZE);
   for (let i = 0; i < chunkCount; i++) {
     const time: number = i * CHUNKSIZE + startTime;
-    const { sample, volume, pan } = CMgenerator.getCurrentValue(
-      time,
-      CHUNKSIZE
-    );
+    const { sample, volume, pan } = gen.getCurrentValue(time, CHUNKSIZE);
     // console.log(
-    //     'noise type', CMgenerator.noiseType,
+    //     'noise type', gen.noiseType,
     //     'startTime', time,
     //     'stopTime', time + CHUNKSIZE,
     //     'volume', volume,
@@ -45,7 +42,7 @@ export function getBufferSourceNodesFromNoise(
     const buffer: AudioBuffer = context.createBuffer(
       1,
       sample.length,
-      CMgenerator.sampleRate
+      gen.sampleRate
     );
     const channelData: Float32Array = buffer.getChannelData(0);
     channelData.set(sample);
@@ -58,23 +55,30 @@ export function getBufferSourceNodesFromNoise(
     vol.gain.value = volume / 100;
     const panner: StereoPannerNode = context.createStereoPanner();
     panner.pan.value = pan;
-    frontendNodeConnections(
-      source,
-      vol,
-      panner,
-    );
-    generatorData.push(
-      {
-        generator: CMgenerator,
-        source: source,
-        panner: panner,
-        equalizer: equalizer,
-        compressor: compressor,
-        start: time,
-        stop: time + CHUNKSIZE,
-        lastGain: i == chunkCount - 1 ? vol : null,
-        }
-      )
+
+    // connect make the path source->vol->panner->concentrator
+    source.connect(vol);
+    vol.connect(panner);
+    panner.connect(concentrator);
+
+    generatorData.push({
+      source: source,
+      start: time,
+      stop: time + CHUNKSIZE,
+      lastGain: i == chunkCount - 1 ? vol : null,
+    });
   }
+
+  // make the connections
+  // concentrator->passthru->roomconcentrator
+  // optionally concentrator->inst reverb->passthru
+  const passThru: GainNode = context.createGain();
+  concentrator.connect(passThru);
+  passThru.connect(roomConcentrator);
+  if (gen.reverb.enabled && gen.reverb.effect) {
+    concentrator.connect(gen.reverb.effect);
+    gen.reverb.effect.connect(passThru);
+  }
+
   return generatorData;
 }

@@ -6,6 +6,7 @@ import { Preset } from "../types/soundfonttypes";
 import { GENERATORTYPE, REPEATOPTION } from "../types/types";
 import { getAttributeValue } from "../utils/xmlfunctions";
 import CMG from "./cmg";
+import InstReverb from "./instreverb";
 export default class SFPG extends CMG {
   presetName: string;
   preset: Preset | undefined;
@@ -27,11 +28,12 @@ export default class SFPG extends CMG {
   PMPhase: number; // degrees
   constructor(nextGenerator: number) {
     super(nextGenerator);
+    this.type = GENERATORTYPE.SFPG;
     this.presetName = "";
     this.preset = undefined;
     this.repeat = REPEATOPTION.Sample;
     this.midi = 0;
-    this.type = GENERATORTYPE.SFPG;
+    this.reverb = new InstReverb(this.name.concat('reverb'));
     this.FMType = "SINE";
     this.FMAmplitude = 0;
     this.FMFrequency = 0;
@@ -56,11 +58,12 @@ export default class SFPG extends CMG {
     n.mute = this.mute;
     n.solo = this.solo;
     n.position = this.position;
-    n.reverb = this.reverb;
+    n.reverb = this.reverb.copy();
 
     n.presetName = this.presetName;
     n.preset = this.preset;
     n.midi = this.midi;
+    n.reverb = this.reverb;
     n.repeat = this.repeat;
     n.FMType = this.FMType;
     n.FMAmplitude = this.FMAmplitude;
@@ -139,7 +142,8 @@ export default class SFPG extends CMG {
       default:
         break;
     }
-  }
+    this.reverb.setAttribute(name, value)
+    }
 
   getCurrentValues(time: number): {
     pitch: number;
@@ -285,6 +289,7 @@ export default class SFPG extends CMG {
     elem.setAttribute("PMFrequency", this.PMFrequency.toString());
     elem.setAttribute("PMAmplitude", this.PMAmplitude.toString());
     elem.setAttribute("PMPhase", this.PMPhase.toString());
+    this.reverb.appendXML(doc, elem);
   }
 
   override getXML(elem: Element): void {
@@ -333,5 +338,6 @@ export default class SFPG extends CMG {
       "float"
     ) as number;
     this.PMPhase = getAttributeValue(elem, "PMPhase", "float") as number;
+    this.reverb.getXML(elem);
   }
 }

@@ -1,9 +1,9 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import App from './App'
-import './index.css'
 import { HelmetProvider } from 'react-helmet-async'
-import { CMGProvider, useCMGContext } from './contexts/cmgcontext';
+import App from './App'
+import { CMGProvider } from './contexts/cmgcontext'
+import './index.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -1,16 +1,1 @@
-<fileContents name="gen1.cmg" timeLineStyle="0" tempo="120" beatsPerMeasure="4" measureUnit="4" snap="false" measureSnapUnit="3" secondSnapUnit="1" SFFileName="/src/soundfonts/TimGM6mb.sf2">
-   <compressor threshold="-14" knee="30" ratio="12" release="0.9" attack="0.194"/>
-   <equalizer gain0="-15" gain1="-12" gain2="-7" gain3="0" gain4="3" gain5="7" gain6="9" gain7="5" gain8="7" gain9="10"/>
-   <tracks>
-      <track name="T1" mute="false" solo="false">
-         <generators>
-            <generator name="G1" startTime="0" stopTime="5" type="CMG" solo="false" mute="false" position="0">
-               <simplereverb name="SimpleReverb" enabled="false" attack="0.001" decay="0.1" release="1" reverbTime="1"/>
-            </generator>
-         </generators>
-      </track>
-      <track name="T2" mute="false" solo="false">
-         <generators/>
-      </track>
-   </tracks>
-</fileContents>
+<fileContents name="gen1.cmg" SFFileName="/src/soundfonts/TimGM6mb.sf2"><compressor name="NaN" attack="0.003" knee="30" ratio="12" release="0.25" threshold="-24"/><equalizer gain0="0" gain1="0" gain2="0" gain3="0" gain4="0" gain5="0" gain6="0" gain7="0" gain8="0" gain9="0"/><roomreverb name="roomreverb" enabled="true" attack="0.1" decay="0.1" predelay="0.03" release="1" reverbtime="1"/><tracks><track name="T1" mute="false" solo="false"><generators><generator name="G1" type="CMG" startTime="0" stopTime="5" solo="false" mute="false" position="0"/></generators></track><track name="T2" mute="false" solo="false"><generators/></track></tracks></fileContents>

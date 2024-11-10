@@ -1,11 +1,12 @@
-<fileContents name="gen6.cmg" timeLineStyle="0" tempo="120" beatsPerMeasure="4" measureUnit="4" snap="false" measureSnapUnit="3" secondSnapUnit="1" SFFileName="">
-    <compressor threshold="-24" knee="30" ratio="12" release="0.25" attack="0.003"/>
+<fileContents name="gen6.cmg" SFFileName="/src/soundfonts/Earthbound_NEW.sf2">
+    <compressor name="roomcompressor" attack="0.003" knee="30" ratio="12" release="0.25" threshold="-24"/>
     <equalizer gain0="0" gain1="0" gain2="0" gain3="0" gain4="0" gain5="0" gain6="0" gain7="0" gain8="0" gain9="0"/>
+    <roomreverb name="roomreverb" enabled="false" attack="0.1" decay="0.1" predelay="0.03" release="1" reverbtime="1"/>
     <tracks>
         <track name="T1" mute="false" solo="false">
             <generators>
-                <generator name="GNoise" type="Noise" startTime="2" stopTime="3" solo="false" mute="false" position="0" seed="ddd" noiseType="gaussian" mean="440.01" std="0.01" sampleRate="45000" VMType="SQUARE" VMCenter="51" VMFrequency="3" VMAmplitude="2" VMPhase="4" PMType="TRIANGLE" PMCenter="0.1" PMFrequency="5" PMAmplitude="0.3" PMPhase="6">
-                    <simplereverb name="SimpleReverb" enabled="true" attack="0.002" decay="0.101" release="1.001" reverbTime="1.002"/>
+                <generator name="G13" type="Noise" startTime="1" stopTime="6" solo="false" mute="false" position="0" seed="dfsgfsd" noiseType="white" mean="440" std="0" sampleRate="44000" VMType="SQUARE" VMCenter="49" VMFrequency="2" VMAmplitude="1" VMPhase="3" PMType="TRIANGLE" PMCenter="0.1" PMFrequency="4" PMAmplitude="0.2" PMPhase="4">
+                    <instreverb name="G13:reverb" enabled="false" attack="0.001" decay="0.1" release="1" reverbTime="1"/>
                 </generator>
             </generators>
         </track>

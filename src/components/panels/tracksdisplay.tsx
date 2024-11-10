@@ -14,7 +14,7 @@ export default function TracksDisplay() {
     useEffect(() => {
         setTracks(fileContents.tracks);
         setEnableGeneratorDialog(-1);
-        console.log('tracks changed')
+        // console.log('tracks changed')
     }, [fileContents]);
 
     function closeTrackGenerator() {

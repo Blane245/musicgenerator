@@ -2,6 +2,9 @@ import { CMGeneratorType } from "../types/types";
 import CMGFile from "../classes/cmgfile";
 import Track from "../classes/track";
 import { SoundFont2 } from "soundfont2";
+import RoomReverb from "classes/roomreverb";
+import Compressor from "classes/compressor";
+import Equalizer from "classes/equalizer";
 
 export function newFile(contents: CMGFile, setFileContents: Function): void {
   setFileContents(contents);
@@ -36,59 +39,39 @@ export function setDirty(
   }
 }
 
+export function setRoomReverb (newReverb: RoomReverb, setFileContents: Function): void {
+  setFileContents((c: CMGFile) => {
+    const newC: CMGFile = c.copy();
+    newC.dirty = true;
+    newC.reverb = newReverb;
+    return newC;
+  });
+}
+  
 export function setEqualizer(
-  index: number,
-  value: number,
+  newEqualizer: Equalizer,
   setFileContents: Function
 ): void {
   setFileContents((c: CMGFile) => {
     const newC: CMGFile = c.copy();
     newC.dirty = true;
-    newC.equalizer.setGain(index, value);
+    newC.equalizer = newEqualizer;
     return newC;
   });
 }
 
 export function setCompressor(
-  parameter: string,
-  value: number,
+  newCompressor: Compressor,
   setFileContents: Function
 ): void {
   setFileContents((c: CMGFile) => {
     const newC: CMGFile = c.copy();
     newC.dirty = true;
-    switch (parameter) {
-      case "threshold":
-        newC.compressor.setThreshold(value);
-        break;
-      case "knee":
-        newC.compressor.setKnee(value);
-        break;
-      case "ratio":
-        newC.compressor.setRatio(value);
-        break;
-      case "attack":
-        newC.compressor.setAttack(value / 1000);
-        break;
-      case "release":
-        newC.compressor.setRelease(value / 100);
-        break;
-      default:
-        throw new Error(`Invalid compressor parameter ${parameter}`);
-        break;
-    }
+    newC.compressor = newCompressor;
     return newC;
   });
 }
 
-export function clearAudioContext(setFileContents: Function) {
-  setFileContents((c: CMGFile) => {
-    const newC: CMGFile = c.copy();
-    newC.equalizer.clearContext();
-    newC.compressor.clearContext();
-    return newC;
-  });
-}
 export function addTrack(newTrack: Track, setFileContents: Function) {
   setFileContents((c: CMGFile) => {
     const newC: CMGFile = c.copy();
@@ -221,7 +204,7 @@ export function modifyGenerator(
       (g) => g.name == oldName
     );
     if (newGIndex < 0) { 
-        console.log(`modify generator couldn't find generator ${g.oldName} on track ${track.name} in file.`)
+        console.log(`modify generator couldn't find generator ${oldName} on track ${track.name} in file.`)
         return prev;
     }
 
@@ -250,7 +233,7 @@ export function deleteGenerator(
       (g) => g.name == name
     );
     if (gIndex < 0) { 
-        console.log(`delete generator couldn't find generator ${g.oldName} on track ${track.name} in file.`)
+        console.log(`delete generator couldn't find generator ${name} on track ${track.name} in file.`)
         return prev;
     }
 
@@ -274,27 +257,6 @@ export function flipGeneratorMute(
 
     const newG: CMGeneratorType = thisTrack.generators[index];
     newG.mute = !newG.mute;
-    newF.dirty = true;
-    return newF;
-  });
-}
-
-export function moveGeneratorBodyTime(
-  track: Track,
-  index: number,
-  newStart: number,
-  setFileContents: Function
-) {
-  setFileContents((prev: CMGFile) => {
-    const newF: CMGFile = prev.copy();
-    const thisTrack: Track | undefined = newF.tracks.find(
-      (t) => t.name == track.name
-    );
-    if (!thisTrack) return prev;
-
-    const newG: CMGeneratorType = thisTrack.generators[index];
-    newG.stopTime = newG.stopTime - newG.startTime + newStart;
-    newG.startTime = newStart;
     newF.dirty = true;
     return newF;
   });

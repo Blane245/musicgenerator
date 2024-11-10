@@ -1,5 +1,1 @@
-<fileContents name="file2.cmg" timeLineStyle="0" tempo="120" beatsPerMeasure="4" measureUnit="4" snap="false" measureSnapUnit="3" secondSnapUnit="1" SFFileName="">
-    <compressor threshold="-14" knee="30" ratio="12" release="0.9" attack="0.194"/>
-    <equalizer gain0="-15" gain1="-12" gain2="-7" gain3="0" gain4="3" gain5="7" gain6="9" gain7="5" gain8="7" gain9="10"/>
-    <tracks/>
-</fileContents>
+<fileContents name="file2.cmg" SFFileName=""><compressor name="NaN" attack="0.276" knee="30" ratio="12" release="0.25" threshold="-24"/><equalizer gain0="-12" gain1="-5" gain2="0" gain3="5" gain4="9" gain5="6" gain6="-1" gain7="-5" gain8="-6" gain9="-15"/><roomreverb name="roomreverb" enabled="false" attack="0" decay="3.3" predelay="0.7" release="5.9" reverbtime="4.6"/><tracks/></fileContents>

@@ -1,16 +1,14 @@
-<fileContents name="gen4.cmg" timeLineStyle="0" tempo="120" beatsPerMeasure="4" measureUnit="4" snap="false" measureSnapUnit="3" secondSnapUnit="1" SFFileName="/src/soundfonts/TimGM6mb.sf2">
-    <compressor threshold="-14" knee="30" ratio="12" release="0.9" attack="0.194"/>
-    <equalizer gain0="-15" gain1="-12" gain2="-7" gain3="0" gain4="3" gain5="7" gain6="9" gain7="5" gain8="7" gain9="10"/>
+<fileContents name="gen4.cmg" SFFileName="/src/soundfonts/Donkey Kong Country 2014.sf2">
+    <compressor name="NaN" attack="0.003" knee="30" ratio="12" release="0.25" threshold="-24"/>
+    <equalizer gain0="0" gain1="0" gain2="0" gain3="0" gain4="0" gain5="0" gain6="0" gain7="0" gain8="0" gain9="0"/>
+    <roomreverb name="roomreverb" enabled="false" attack="0.1" decay="0.1" predelay="0.03" release="1" reverbtime="1"/>
     <tracks>
         <track name="T1" mute="false" solo="false">
             <generators>
-                <generator name="G10" type="SFPG" startTime="1" stopTime="6" solo="false" mute="true" position="0" presetName="000:001:Piano 2" repeat="Beginning" midi="2" FMType="SQUARE" FMAmplitude="1" FMFrequency="2" FMPhase="3" VMType="TRIANGLE" VMCenter="51" VMFrequency="5" VMAmplitude="4" VMPhase="6" PMType="SAWTOOTH" PMCenter="0.1" PMFrequency="7" PMAmplitude="0.6" PMPhase="8">
-                    <simplereverb name="SimpleReverb" enabled="false" attack="0.002" decay="1.001" release="1.002" reverbTime="1.003"/>
+                <generator name="G1" type="SFPG" startTime="0" stopTime="5" solo="false" mute="false" position="0" presetName="000:002:Triangle" repeat="None" midi="1" FMType="SQUARE" FMAmplitude="1" FMFrequency="3" FMPhase="4" VMType="TRIANGLE" VMCenter="51" VMFrequency="6" VMAmplitude="5" VMPhase="7" PMType="SAWTOOTH" PMCenter="0.1" PMFrequency="8" PMAmplitude="0.2" PMPhase="9">
+                    <instreverb name="G1:reverb" enabled="true" attack="0.002" decay="0.099" release="1.001" reverbTime="1.002"/>
                 </generator>
             </generators>
-        </track>
-        <track name="T2" mute="false" solo="false">
-            <generators/>
         </track>
     </tracks>
 </fileContents>

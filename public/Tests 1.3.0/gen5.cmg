@@ -1,16 +1,16 @@
-<fileContents name="gen5.cmg" timeLineStyle="0" tempo="120" beatsPerMeasure="4" measureUnit="4" snap="false" measureSnapUnit="3" secondSnapUnit="1" SFFileName="/src/soundfonts/Earthbound_NEW.sf2">
-    <compressor threshold="-24" knee="30" ratio="12" release="0.25" attack="0.003"/>
+<fileContents name="gen5.cmg" SFFileName="">
+    <compressor name="roomcompressor" attack="0.003" knee="30" ratio="12" release="0.25" threshold="-24"/>
     <equalizer gain0="0" gain1="0" gain2="0" gain3="0" gain4="0" gain5="0" gain6="0" gain7="0" gain8="0" gain9="0"/>
+    <roomreverb name="roomreverb" enabled="false" attack="0.1" decay="0.1" predelay="0.03" release="1" reverbtime="1"/>
     <tracks>
         <track name="T1" mute="false" solo="false">
             <generators>
-                <generator name="SPFG" type="SFRG" startTime="1" stopTime="3" solo="false" mute="false" position="0" seed="sss" presetName="000:003:Topolla Piano" repeat="Beginning" midi="3">
-                    <simplereverb name="SimpleReverb" enabled="true" attack="0.002" decay="0.102" release="1.003" reverbTime="1.004"/>
-                    <midiT startValue="3">
+                <generator name="G1" type="SFRG" startTime="1" stopTime="7" solo="false" mute="false" position="0" seed="zxcvzx" presetName="000:002:Triangle" repeat="Sample">
+                    <midiT startValue="1">
                         <range lo="1" hi="126" step="2"/>
-                        <same same="0" up="0.4" down="0.6"/>
-                        <up same="1" up="0" down="0"/>
-                        <down same="1" up="0" down="0"/>
+                        <same same="0.97" up="0.01" down="0.02"/>
+                        <up same="0.9" up="0.03" down="0.07"/>
+                        <down same="0.8" up="0.09" down="0.11"/>
                     </midiT>
                     <speedT startValue="60">
                         <range lo="20" hi="500" step="1"/>
@@ -30,6 +30,7 @@
                         <up same="1" up="0" down="0"/>
                         <down same="1" up="0" down="0"/>
                     </panT>
+                    <instreverb name="G1:reverb" enabled="false" attack="0.001" decay="0.1" release="1" reverbTime="1"/>
                 </generator>
             </generators>
         </track>

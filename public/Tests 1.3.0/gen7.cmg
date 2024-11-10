@@ -1,22 +1,17 @@
-<fileContents name="gen7.cmg" timeLineStyle="0" tempo="120" beatsPerMeasure="4" measureUnit="4" snap="false" measureSnapUnit="3" secondSnapUnit="1" SFFileName="/src/soundfonts/GeneralUser-GS.sf2">
-    <compressor threshold="-24" knee="30" ratio="12" release="0.25" attack="0.003"/>
+<fileContents name="gen7.cmg" SFFileName="">
+    <compressor name="roomcompressor" attack="0.003" knee="30" ratio="12" release="0.25" threshold="-24"/>
     <equalizer gain0="0" gain1="0" gain2="0" gain3="0" gain4="0" gain5="0" gain6="0" gain7="0" gain8="0" gain9="0"/>
+    <roomreverb name="roomreverb" enabled="false" attack="0.1" decay="0.1" predelay="0.03" release="1" reverbtime="1"/>
     <tracks>
         <track name="T1" mute="false" solo="false">
             <generators>
-                <generator name="G1" type="CMG" startTime="0" stopTime="3" solo="false" mute="false" position="0">
-                    <simplereverb name="SimpleReverb" enabled="false" attack="0.001" decay="0.1" release="1" reverbTime="1"/>
-                </generator>
-                <generator name="G2" type="SFPG" startTime="5" stopTime="7" solo="false" mute="false" position="0" presetName="000:001:Bright Grand Piano" repeat="Sample" midi="0" FMType="SINE" FMAmplitude="0" FMFrequency="0" FMPhase="0" VMType="SINE" VMCenter="50" VMFrequency="0" VMAmplitude="0" VMPhase="0" PMType="SINE" PMCenter="0" PMFrequency="0" PMAmplitude="0" PMPhase="0">
-                    <simplereverb name="SimpleReverb" enabled="false" attack="0.001" decay="0.1" release="1" reverbTime="1"/>
-                </generator>
+                <generator name="G1" type="CMG" startTime="0" stopTime="3" solo="false" mute="false" position="0"/>
+                <generator name="G2" type="CMG" startTime="10" stopTime="20" solo="false" mute="false" position="0"/>
             </generators>
         </track>
         <track name="T2" mute="false" solo="false">
             <generators>
-                <generator name="G1" type="SFPG" startTime="5" stopTime="7" solo="false" mute="false" position="0" presetName="000:001:Bright Grand Piano" repeat="Sample" midi="0" FMType="SINE" FMAmplitude="0" FMFrequency="0" FMPhase="0" VMType="SINE" VMCenter="50" VMFrequency="0" VMAmplitude="0" VMPhase="0" PMType="SINE" PMCenter="0" PMFrequency="0" PMAmplitude="0" PMPhase="0">
-                    <simplereverb name="SimpleReverb" enabled="false" attack="0.001" decay="0.1" release="1" reverbTime="1"/>
-                </generator>
+                <generator name="G1" type="CMG" startTime="10" stopTime="20" solo="false" mute="false" position="0"/>
             </generators>
         </track>
     </tracks>

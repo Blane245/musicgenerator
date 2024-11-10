@@ -2,8 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import CMG from "../../classes/cmg";
-import Compressor from "../../classes/compressor";
-import Equalizer from "../../classes/equalizer";
 import Noise from "../../classes/noise";
 import SFPG from "../../classes/sfpg";
 import SFRG from "../../classes/sfrg";
@@ -16,18 +14,23 @@ import {
   GENERATORTYPE,
   SAMPLERATE,
 } from "../../types/types";
-import { clearAudioContext } from "../../utils/cmfiletransactions";
 import { setRandomSeed } from "../../utils/seededrandom";
-import {backendNodeConnections } from '../../utils/nodeconnections'
 import { getBufferSourceNodesFromNoise } from "./noisenodes";
 import { getBufferSourceNodesFromSFPG } from "./sfpgnodes";
 import { getBufferSourceNodesFromSFRG } from "./sfrgnodes";
-import SimpleReverb from "../../classes/reverb2";
 
 const SCHEDULEAHEADTIME: number = 0.1; // how far ahead to schedule audio (seconds)
 const LOOKAHEAD: number = 25.0; // how frequently to call the schedule function (ms)
 let timerID: number = 0; // the timer used to set the schedule
 
+// the state of the system changes here when the audio context is defined
+// the audio render graph is built
+// each of the active generators are responsible for define the needed
+// audio nodes and connecting them together.
+// the render tail for the room reverb is activated when the room reverb is
+// initialized
+// the generators are responsbile for setting start times for
+// the render tails for instrument reverbs
 // using the defined cm generators for all tracks, create a web audio
 // if a generator is provided
 export interface GeneratorProps {
@@ -37,14 +40,8 @@ export interface GeneratorProps {
 }
 export default function Generate(props: GeneratorProps) {
   const { mode, setMode, generator } = props;
-  const {
-    fileContents,
-    setFileContents,
-    setStatus,
-    playing,
-    setTimeProgress,
-    setMessage,
-  } = useCMGContext();
+  const { fileContents, setStatus, playing, setTimeProgress, setMessage } =
+    useCMGContext();
   const [error, setError] = useState<string>("");
   const recordHandle = useRef<FileSystemFileHandle | null>(null);
   const generatorStarted: boolean[] = [];
@@ -55,27 +52,34 @@ export default function Generate(props: GeneratorProps) {
   let playbackLength = 0;
   let nextTime: number = 0.0;
 
+  // all of the work of the generator is done by this hook when the
+  // mode changes to to anything but idle
   useEffect(() => {
-    ReadyGenerate();
-    if (mode == GENERATIONMODE.preview || mode == GENERATIONMODE.solo) {
-      PreviewOrRecord(mode);
-    } else if (mode == GENERATIONMODE.record) {
-      try {
-        window
-          .showSaveFilePicker({
-            types: [
-              {
-                description: "Audio file",
-                accept: { "audio/wav": [".wav"] },
-              },
-            ],
-          })
-          .then((rh: FileSystemFileHandle) => {
-            recordHandle.current = rh;
-            PreviewOrRecord(mode);
-          });
-      } catch {
-        recordHandle.current = null;
+    if (mode != GENERATIONMODE.idle) {
+      ReadyGenerate();
+      if (mode == GENERATIONMODE.preview || mode == GENERATIONMODE.solo) {
+        PreviewOrRecord(mode);
+      } else if (mode == GENERATIONMODE.record) {
+        // request a file to write to
+        // if not selected, abort the recording
+        try {
+          window
+            .showSaveFilePicker({
+              types: [
+                {
+                  description: "Audio file",
+                  accept: { "audio/wav": [".wav"] },
+                },
+              ],
+            })
+            .then((rh: FileSystemFileHandle) => {
+              recordHandle.current = rh;
+              PreviewOrRecord(mode);
+            });
+        } catch {
+          recordHandle.current = null;
+          setMode(GENERATIONMODE.idle);
+        }
       }
     }
   }, [mode]);
@@ -87,7 +91,7 @@ export default function Generate(props: GeneratorProps) {
   }
 
   function ReadyGenerate() {
-    // get the active generators for the entire file
+    // get the active generators for the entire rendering
     if (mode == GENERATIONMODE.preview || mode == GENERATIONMODE.record) {
       // find if there are any solo tracks
       let isSolo: boolean = fileContents.tracks.findIndex((t) => t.solo) >= 0;
@@ -150,18 +154,16 @@ export default function Generate(props: GeneratorProps) {
         }
       }
     }
-    if (mode != GENERATIONMODE.idle) {
-      if (
-        SFPGenerators.length == 0 &&
-        SFRGenerators.length == 0 &&
-        NoiseGenerators.length == 0
-      ) {
-        setError("No generators are available to produce any sound");
-      } else {
-        // console.log('useful generators', GENERATORTYPE.SFPG, SFPGenerators.length, GENERATORTYPE.SFRG, SFRGenerators.length, GENERATORTYPE.Noise, NoiseGenerators.length);
-      }
+    if (
+      SFPGenerators.length == 0 &&
+      SFRGenerators.length == 0 &&
+      NoiseGenerators.length == 0
+    ) {
+      setError("No generators are available to produce any sound");
+    } else {
+      // console.log('useful generators', GENERATORTYPE.SFPG, SFPGenerators.length, GENERATORTYPE.SFRG, SFRGenerators.length, GENERATORTYPE.Noise, NoiseGenerators.length);
     }
-    if (error == "" && mode != GENERATIONMODE.idle) {
+    if (error == "") {
       if (playing.current) playing.current.on = true;
     }
   }
@@ -191,18 +193,15 @@ export default function Generate(props: GeneratorProps) {
   // construct the audio sources from the selected generators
   function buildSources(
     context: AudioContext | OfflineAudioContext,
-    equalizer: Equalizer,
-    compressor: Compressor,
+    roomConcentrator: GainNode,
     chunkTime: number
   ): void {
     SFPGenerators.forEach((g) => {
       const SFPGData: GeneratorData[] = getBufferSourceNodesFromSFPG(
         context,
-        context.destination,
-        equalizer,
-        compressor,
         g,
-        chunkTime
+        chunkTime,
+        roomConcentrator
       );
       generatorData.push(...SFPGData);
       generatorStarted.push(...Array(SFPGData.length).fill(false));
@@ -213,10 +212,8 @@ export default function Generate(props: GeneratorProps) {
       setRandomSeed(g.seed);
       const SFRGData: GeneratorData[] = getBufferSourceNodesFromSFRG(
         context,
-        context.destination,
-        equalizer,
-        compressor,
-        g
+        g,
+        roomConcentrator
       );
       generatorData.push(...SFRGData);
       generatorStarted.push(...Array(SFRGData.length).fill(false));
@@ -227,10 +224,8 @@ export default function Generate(props: GeneratorProps) {
       setRandomSeed(g.seed);
       const noiseData: GeneratorData[] = getBufferSourceNodesFromNoise(
         context,
-        context.destination,
-        equalizer,
-        compressor,
-        g
+        g,
+        roomConcentrator
       );
       generatorData.push(...noiseData);
       generatorStarted.push(...Array(noiseData.length).fill(false));
@@ -275,15 +270,26 @@ export default function Generate(props: GeneratorProps) {
       if (live) (context as AudioContext).suspend();
 
       // set up the equalizer and compressor
+      fileContents.reverb.setContext(context);
       fileContents.equalizer.setContext(context);
       fileContents.compressor.setContext(context);
 
-      buildSources(
-        context,
-        fileContents.equalizer,
-        fileContents.compressor,
-        CHUNKTIME
-      );
+      // make the room level connections
+      const roomConcentrator: GainNode = context.createGain();
+      const roomPassThru: GainNode = context.createGain();
+      roomConcentrator.connect(roomPassThru);
+      roomPassThru.connect(fileContents.equalizer.front());
+      if (fileContents.compressor.effect) {
+        fileContents.equalizer.back().connect(fileContents.compressor.effect);
+        fileContents.compressor.effect.connect(context.destination);
+      } else console.log("generator: compressor missing");
+      if (fileContents.reverb.enabled)
+        if (fileContents.reverb.effect) {
+          roomConcentrator.connect(fileContents.reverb.effect);
+          fileContents.reverb.effect.connect(roomPassThru);
+        } else console.log("generator: room reverb missing");
+
+      buildSources(context, roomConcentrator, CHUNKTIME);
 
       // the preview and solo modes are done in realtime
       if (live) {
@@ -302,27 +308,8 @@ export default function Generate(props: GeneratorProps) {
                 if (aheadTime >= item.start && !generatorStarted[i]) {
                   // console.log('source', i, 'start', generatorTime[i].start, 'stop', generatorTime[i].stop, 'aheadtime', aheadTime, 'buffer length', s.buffer?.length);
                   // console.log('source', i, 'start', generatorTime[i].start, 'stop', generatorTime[i].stop);
-                  const {
-                    source,
-                    panner,
-                    equalizer,
-                    compressor,
-                    start,
-                    stop,
-                    lastGain,
-                  }: GeneratorData = item;
+                  const { source, start, stop, lastGain }: GeneratorData = item;
                   StartStop(source, start, stop, lastGain);
-                  let reverb = undefined;
-                  if (item.generator.reverb.enabled && compressor.compressorNode) {
-                    if (source.buffer && source.buffer.sampleRate) {
-                      reverb = new SimpleReverb(item.generator.name);
-                      reverb.enabled = true;
-                      reverb.reverbTime = item.generator.reverb.reverbTime;
-                      reverb.setContext(context);
-                      reverb.renderReverb(source, start);
-                    }
-                  }
-                  backendNodeConnections (panner, reverb, equalizer, compressor, context.destination)
                   generatorStarted[i] = true;
                   started = true;
                 }
@@ -349,7 +336,6 @@ export default function Generate(props: GeneratorProps) {
               (context as AudioContext).close();
             }
             setMode(GENERATIONMODE.idle);
-            clearAudioContext(setFileContents);
             setTimeProgress(0);
             setStatus(`Preview Complete`);
           }
@@ -358,27 +344,8 @@ export default function Generate(props: GeneratorProps) {
         const rh: FileSystemFileHandle = recordHandle.current;
         // and provide all source their start and stop times
         generatorData.forEach((item) => {
-          const {
-            source,
-            panner,
-            equalizer,
-            compressor,
-            start,
-            stop, 
-            lastGain,
-          }: GeneratorData = item;
+          const { source, start, stop, lastGain }: GeneratorData = item;
           StartStop(source, start, stop, lastGain);
-          let reverb = undefined;
-          if (item.generator.reverb.enabled && compressor.compressorNode) {
-            if (source.buffer && source.buffer.sampleRate) {
-              reverb = new SimpleReverb(item.generator.name);
-              reverb.enabled = true;
-              reverb.reverbTime = item.generator.reverb.reverbTime;
-              reverb.setContext(context);
-              reverb.renderReverb(source, start);
-            }
-          }
-          backendNodeConnections (panner, reverb, equalizer, compressor, context.destination)
         });
 
         // render the sources
@@ -402,10 +369,9 @@ export default function Generate(props: GeneratorProps) {
               if (playing.current) playing.current.on = false;
             });
             recordHandle.current = null;
-            clearAudioContext(setFileContents);
           });
       } else {
-        setMessage({ error: true, text: `Improper genration mode '${mode}'` });
+        setMessage({ error: true, text: `Improper generation mode '${mode}'` });
         setMode(GENERATIONMODE.idle);
         if (playing.current) playing.current.on = false;
       }

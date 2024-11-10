@@ -11,12 +11,12 @@ import {
 import CMG from "./cmg";
 import { getAttributeValue, getElementElement } from "../utils/xmlfunctions";
 import { rand } from "../utils/seededrandom";
+import InstReverb from "./instreverb";
 
 export default class SFRG extends CMG {
   presetName: string;
   preset: Preset | undefined;
   repeat: REPEATOPTION;
-  midi: number;
   seed: string;
   midiT: RandomSFTransitons; // midi
   speedT: RandomSFTransitons; // BPM
@@ -29,8 +29,8 @@ export default class SFRG extends CMG {
     this.presetName = "";
     this.preset = undefined;
     this.repeat = REPEATOPTION.Sample;
-    this.midi = 0;
     this.seed = this.name;
+    this.reverb = new InstReverb(this.name.concat('reverb'));
     this.midiT = {
       currentState: MARKOVSTATE.same,
       currentValue: 0,
@@ -77,15 +77,13 @@ export default class SFRG extends CMG {
     n.mute = this.mute;
     n.solo = this.solo;
     n.position = this.position;
-    n.reverb = this.reverb;
+    n.reverb = this.reverb.copy();
     
     n.seed = this.seed;
     n.presetName = this.presetName;
     n.preset = this.preset;
     n.repeat = this.repeat;
-    n.midi = this.midi;
-    n.mute = this.mute;
-    n.position = this.position;
+    n.reverb = this.reverb;
     n.midiT = copyTransitions(this.midiT);
     n.speedT = copyTransitions(this.speedT);
     n.volumeT = copyTransitions(this.volumeT);
@@ -131,9 +129,8 @@ export default class SFRG extends CMG {
       case "repeat":
         this.repeat = value as REPEATOPTION;
         break;
-      case "midi":
-        this.midi = parseFloat(value);
-        this.midiT.startValue = this.midi;
+      case "midiT.startValue":
+        this.midiT.startValue = parseFloat(value);
         break;
       case "midiT.range.lo":
         this.midiT.range.lo = parseFloat(value);
@@ -291,8 +288,9 @@ export default class SFRG extends CMG {
       case "panT.down.down":
         this.panT.down.down = parseFloat(value);
         break;
+      }
+      this.reverb.setAttribute(name, value)
     }
-  }
 
   getCurrentValue(): {
     midi: number;
@@ -391,11 +389,11 @@ export default class SFRG extends CMG {
     elem.setAttribute("seed", this.seed);
     elem.setAttribute("presetName", this.presetName);
     elem.setAttribute("repeat", this.repeat);
-    elem.setAttribute("midi", this.midi.toString());
     elem.appendChild(addTransitionAttributes("midiT", this.midiT));
     elem.appendChild(addTransitionAttributes("speedT", this.speedT));
     elem.appendChild(addTransitionAttributes("volumeT", this.volumeT));
     elem.appendChild(addTransitionAttributes("panT", this.panT));
+    this.reverb.appendXML(doc, elem);
 
     function addTransitionAttributes(
       name: string,
@@ -433,7 +431,6 @@ export default class SFRG extends CMG {
     this.presetName = getAttributeValue(elem, "presetName", "string") as string;
     this.repeat = getAttributeValue(elem, "repeat", "string") as REPEATOPTION;
     this.seed = getAttributeValue(elem, "seed", "string") as string;
-    this.midi = getAttributeValue(elem, "midi", "int") as number;
     const midiTElem: Element = getElementElement(elem, "midiT");
     const midiTChildren: HTMLCollection = midiTElem.children;
     const speedTElem: Element = getElementElement(elem, "speedT");
@@ -442,6 +439,7 @@ export default class SFRG extends CMG {
     const volumeTChildren: HTMLCollection = volumeTElem.children;
     const panTElem: Element = getElementElement(elem, "panT");
     const panTChildren: HTMLCollection = panTElem.children;
+    this.reverb.getXML(elem);
 
     const { midiT, speedT, volumeT, panT } = getTransitions(
       midiTChildren,

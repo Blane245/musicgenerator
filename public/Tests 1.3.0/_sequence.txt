@@ -4,7 +4,7 @@ blank file steps (Record and Preview disabled)
     new file
     open file1
     new file
-    change compressor and equalizer values
+    change reverb, compressor, and equalizer values
     save file2 - inspect .cmg file
     new file - compressor and equalizer should go to defaults
     open file2 - compressor and equalizer setting should be as in 6
@@ -37,25 +37,27 @@ track tests  (Record and Preview disabled)
     save track3 - inspect cmg
     new file
     open track3 - two tracks should be displayed
-    move seconds track ahead of first track - tracks should switch places
+    move second track ahead of first track - tracks should switch places
     save track4 - inspace cmg    
     new file - clear tracks
     open track4 - should display T2/T1
 generator tests 
-    new file
-    open file3 - soundfont should appear
-    add 2 tracks 
-    add CMG generator to T1 @ 0-5 sec
-    save gen1 - inspect cmg file
-    new file
-    open gen1 - two tracks displays with g1 on T1
-    edit gen1 changing all field to unique values - gen displayed on T1 at new times
-    edit gen1 - all fields should be as set
-    save file gen2 - inspect cmg file
-    toggle the generator's mute state - generator test should be red
-    save file gen3 - inspect cmg file - mute should be set
-    new file
-    open gen3 - generator's mute should be set
+    CMG tests
+        new file
+        open file3 - soundfont should appear
+        add 2 tracks 
+        add CMG generator to T1 @ 0-5 sec
+        move the generator's vertical position on the timeLine
+        save gen1 - inspect cmg file
+        new file
+        open gen1 - two tracks displays with g1 on T1 in the proper position
+        edit gen1 changing all field to unique values - gen displayed on T1 at new times
+        edit gen1 - all fields should be as set
+        save file gen2 - inspect cmg file
+        toggle the generator's mute state - generator test should be red
+        save file gen3 - inspect cmg file - mute should be set
+        new file
+        open gen3 - generator's mute should be set
     generator type tests
         SFPG
             new file
@@ -96,8 +98,39 @@ generator tests
         new file
         open gen7 - two tracks, two genertors on first track, one on second
 preview tests
+    SFPG
+        complex preview
+            build a rather complex SFPG file: called Preview1
+            new file
+            open Preview1
+            preview the file - all sounds should be heard
+            solo a track
+            preview - only that track should be heard
+            preview a single generator - only that generator should be heard
 
-reverb tests
+    SFRG
+
+    Noise
+
+    Mixed generators
+
+record tests
+    All generators
+        new file
+        open Preview1
+        record to file record1.wav
+        listen to record1.wav - should be the same as its preview
+        solo a track
+        record to file record2.wav
+        listen to record2.wav - should be the same as its preview
+
+room reverb tests
+
+compressor tests
+
+equalizer tests
+
+instrument reverb tests
     single generator
         new file
         add track

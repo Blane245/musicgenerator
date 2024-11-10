@@ -13,6 +13,7 @@ import { GENERATORTYPE, NOISETYPE, SAMPLERATE } from "../types/types";
 import { gaussianRandom } from "../utils/gaussianrandom";
 import { getAttributeValue } from "../utils/xmlfunctions";
 import CMG from "./cmg";
+import InstReverb from "./instreverb";
 
 export default class Noise extends CMG {
   noiseType: string;
@@ -39,6 +40,7 @@ export default class Noise extends CMG {
     this.mean = 440;
     this.std = 0;
     this.sampleRate = SAMPLERATE;
+    this.reverb = new InstReverb(this.name.concat('reverb'));
     this.VMType = "SINE";
     this.VMCenter = 50;
     this.VMFrequency = 0;
@@ -59,13 +61,14 @@ export default class Noise extends CMG {
     n.mute = this.mute;
     n.solo = this.solo;
     n.position = this.position;
-    n.reverb = this.reverb;
+    n.reverb = this.reverb.copy();
 
     n.seed = this.seed;
     n.noiseType = this.noiseType;
     n.mean = this.mean;
     n.std = this.std;
     n.sampleRate = this.sampleRate;
+    n.reverb = this.reverb;
     n.VMCenter = this.VMCenter;
     n.VMType = this.VMType;
     n.VMAmplitude = this.VMAmplitude;
@@ -82,6 +85,9 @@ export default class Noise extends CMG {
   override setAttribute(name: string, value: string): void {
     super.setAttribute(name, value);
     switch (name) {
+      case "name": // change reverb name when generator name changes
+        this.reverb.name = this.name.concat(':reverb');
+        break;
       case "type":
         this.type = GENERATORTYPE.Noise;
         break;
@@ -131,6 +137,7 @@ export default class Noise extends CMG {
         this.PMPhase = parseFloat(value);
         break;
     }
+    this.reverb.setAttribute(name, value)
   }
 
   // return noise for length of time specified
@@ -258,6 +265,7 @@ export default class Noise extends CMG {
     elem.setAttribute("PMFrequency", this.PMFrequency.toString());
     elem.setAttribute("PMAmplitude", this.PMAmplitude.toString());
     elem.setAttribute("PMPhase", this.PMPhase.toString());
+    this.reverb.appendXML(doc, elem);
   }
 
   override getXML(elem: Element): void {
@@ -294,5 +302,6 @@ export default class Noise extends CMG {
       "float"
     ) as number;
     this.PMPhase = getAttributeValue(elem, "PMPhase", "float") as number;
+    this.reverb.getXML(elem);
   }
 }

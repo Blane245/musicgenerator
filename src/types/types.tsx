@@ -1,9 +1,7 @@
-import Compressor from "../classes/compressor";
 import CMG from "../classes/cmg";
 import Noise from "../classes/noise";
 import SFPG from "../classes/sfpg";
 import SFRG from "../classes/sfrg";
-import Equalizer from "../classes/equalizer";
 
 export const SAMPLERATE: number = 44100;
 
@@ -23,40 +21,6 @@ export enum REPEATOPTION {
   "None" = "None",
   "Sample" = "Sample",
   "Beginning" = "Beginning",
-}
-
-export enum TIMELINESTYLE {
-  SECONDS_MINUTES = 0,
-  BEATS_MEASURES = 1,
-}
-
-export type TimeSignature = {
-  beatsPerMeasure: number; // 1-100
-  measureUnit: number; // 2, 4, 8, 16, 32, 64
-};
-
-export enum MEASURESNAPUNIT {
-  "Bar" = 0,
-  "1/2",
-  "1/4",
-  "1/8",
-  "1/16",
-  "1/32",
-  "1/64",
-  "1/128",
-  "1/2 triplets",
-  "1/4 triplets",
-  "1/8 triplets",
-  "1/16 triplets",
-  "1/32 triplets",
-  "1/64 triplets",
-  "1/128 triplets",
-}
-export enum SECONDSNAPUNIT {
-  "Seconds" = 1.0,
-  "Deciseconds" = 0.1,
-  "Centiseconds" = 0.01,
-  "Milliseconds" = 0.001,
 }
 
 export enum MODULATOR {
@@ -147,11 +111,7 @@ export enum MARKOVSTATE {
 }
 
 export type GeneratorData = {
-  generator: CMGeneratorType,
   source: AudioBufferSourceNode,
-  panner: StereoPannerNode,
-  equalizer: Equalizer,
-  compressor: Compressor,
   start: number;
   stop: number;
   lastGain: GainNode | null;
@@ -163,9 +123,6 @@ export type AttributeRange = {
   step: number;
 };
 
-export type KeyedType<T> = {
-  [key: string]: T;
-};
 export type MarkovProbabilities = {
   same: number;
   down: number;
@@ -194,7 +151,7 @@ export enum GENERATIONMODE {
 }
 
 export type MidiEvent = {
-  velocity: number;
-  frequency: number;
-  time: number;
+  velocity?: number;
+  frequency?: number;
+  time?: number;
 };
