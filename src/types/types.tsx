@@ -1,3 +1,4 @@
+import InstReverb from "classes/instreverb2";
 import CMG from "../classes/cmg";
 import Noise from "../classes/noise";
 import SFPG from "../classes/sfpg";
@@ -8,8 +9,6 @@ export const SAMPLERATE: number = 44100;
 export const CHUNKTIME: number = 0.1;
 
 export const EPS: number = 1e-4;
-
-export type Message = { text: string; error: boolean };
 
 export type CMGeneratorType = CMG | SFPG | SFRG | Noise;
 
@@ -110,8 +109,10 @@ export enum MARKOVSTATE {
   down = "down",
 }
 
-export type GeneratorData = {
+export type sourceData = {
+  generator: CMGeneratorType,
   source: AudioBufferSourceNode,
+  reverb: InstReverb | undefined;
   start: number;
   stop: number;
   lastGain: GainNode | null;
@@ -155,3 +156,10 @@ export type MidiEvent = {
   frequency?: number;
   time?: number;
 };
+
+export type TimelineInterval = {
+  startOffset: number;
+  endOffset: number;
+  startTime?: number;
+  endTime?: number; 
+}

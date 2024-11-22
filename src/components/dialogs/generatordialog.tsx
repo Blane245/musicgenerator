@@ -17,7 +17,7 @@ import GeneratorTypeForm from "./generatortypeform";
 import { validateNoiseValues } from "./noisedialog";
 import { validateSFPGValues } from "./sfpgdialog";
 import { validateSFRGValues } from "./sfrgdialog";
-import { bankPresettoName } from "../../utils/util";
+import { bankPresettoName, getGeneratorUID } from "../../utils/util";
 
 // The icon starts at the generator's start time and ends at the generators endtime
 export interface GeneratorDialogProps {
@@ -38,7 +38,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     open,
     setOpen,
   } = props;
-  const { setFileContents, presets, setStatus } = useCMGContext();
+  const { fileContents, setFileContents, presets, setStatus } = useCMGContext();
   const [showModal, setShowModal] = useState<boolean>(false);
   const [deleteModal, setDeleteModal] = useState<boolean>(false);
   const [oldName, setOldName] = useState<string>("");
@@ -52,16 +52,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
       // either get the generator from the track or build a new one if being added
       if (generatorIndex < 0) {
         // create a generator with a unique name
-        let next = track.generators.length + 1;
-        let found = false;
-        while (!found) {
-          const newName = "G".concat(next.toString());
-          if (track.generators.findIndex((g) => g.name == newName) < 0) {
-            found = true;
-          } else {
-            next++;
-          }
-        }
+        let next = getGeneratorUID(fileContents.tracks);
         const g = new CMG(next);
         setFormData(g);
         setOldName(g.name);
@@ -71,6 +62,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
       }
       setShowModal(true);
     }
+    setErrorMessages([]);
   }, [open]);
 
   function handleChange(
@@ -80,40 +72,37 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     setFormData((prev: CMGeneratorType) => {
       const eventName: string | null = event.target["name"];
       const eventValue: string | null = event.target["value"];
+      
+      // this code is for reverb implementation
+      // const eventType: string | null = event.target["type"].valueOf();
+      // const eventValue: string | null =
+      //   eventType == "checkbox"
+      //     ? event.target.getAttribute("checked")?.value
+      //     : event.target["value"];
+
+      if (!eventName || !eventValue) return prev;
 
       // select the proper generator type
       switch (formData.type) {
         case GENERATORTYPE.CMG: {
           const newFormData: CMG = (prev as CMG).copy();
-          if (eventName && eventValue) {
-            newFormData.setAttribute(eventName, eventValue);
-            return newFormData;
-          }
-          return prev;
+          newFormData.setAttribute(eventName, eventValue);
+          return newFormData;
         }
         case GENERATORTYPE.SFPG: {
           const newFormData: SFPG = (prev as SFPG).copy();
-          if (eventName && eventValue) {
-            newFormData.setAttribute(eventName, eventValue);
-            return newFormData;
-          }
-          return prev;
+          newFormData.setAttribute(eventName, eventValue);
+          return newFormData;
         }
         case GENERATORTYPE.SFRG: {
           const newFormData: SFRG = (prev as SFRG).copy();
-          if (eventName && eventValue) {
-            newFormData.setAttribute(eventName, eventValue);
-            return newFormData;
-          }
-          return prev;
+          newFormData.setAttribute(eventName, eventValue);
+          return newFormData;
         }
         case GENERATORTYPE.Noise: {
           const newFormData: Noise = (prev as Noise).copy();
-          if (eventName && eventValue) {
-            newFormData.setAttribute(eventName, eventValue);
-            return newFormData;
-          }
-          return prev;
+          newFormData.setAttribute(eventName, eventValue);
+          return newFormData;
         }
         default:
           console.log(
@@ -274,25 +263,28 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     setOpen(false);
     closeTrackGenerator();
     return;
+  }
 
-    function validateCMGValues(values: CMG): string[] {
-      const result: string[] = [];
-      if (values.name == "") result.push("Name must not be blank");
-      else {
-        if (values.name != oldName) {
-          const index = track.generators.findIndex(
-            (g) => g.name == values.name
-          );
-          if (index >= 0)
-            result.push("A generator with that name already exists");
+  function validateCMGValues(values: CMG): string[] {
+    const result: string[] = [];
+    if (values.name == "") result.push("Name must not be blank");
+    else {
+      if (values.name != oldName) {
+        for (let i = 0; i < fileContents.tracks.length; i++) {
+          const t = fileContents.tracks[i];
+          for (let j = 0; j < t.generators.length; j++) {
+            if (t.generators[j].name == values.name) {
+              result.push("A generator with that name already exists");
+            }
+          }
         }
       }
       if (values.startTime < 0 || values.stopTime <= values.startTime)
         result.push(
           "All times must be greater than zero and stop must be greater than start"
         );
-      return result;
     }
+    return result;
   }
 
   function handleCancelClick(event: MouseEvent<Element>) {
@@ -367,6 +359,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                   name="startTime"
                   type="number"
                   min={0}
+                  step={0.1}
                   onChange={handleChange}
                   value={formData.startTime}
                 />
@@ -376,6 +369,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                   name="stopTime"
                   type="number"
                   min={0}
+                  step={0.1}
                   onChange={handleChange}
                   value={formData.stopTime}
                 />
@@ -396,16 +390,17 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                   })}
                 </select>
                 <br />
-                <label>
-                  Reverberator Enabled:&nbsp;
-                  <input
-                    name="instreverb.enabled"
-                    checked={formData.reverb.enabled}
-                    onChange={handleChange}
-                    type="checkbox"
-                  />
-                </label>
-                <label>
+                <div hidden={true}>
+                  <label>
+                    Reverberator Enabled:&nbsp;
+                    <input
+                      name="instreverb.enabled"
+                      checked={formData.reverb.enabled}
+                      onChange={handleChange}
+                      type="checkbox"
+                    />
+                  </label>
+                  {/* <label>
                   &nbsp;Attack:&nbsp;
                   <input
                     name="instreverb.attack"
@@ -443,21 +438,22 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                     step={0.001}
                   />
                   <span>&nbsp;(sec)</span>
-                </label>
-                <label>
-                  &nbsp;Reverb Time:&nbsp;
-                  <input
-                    name="instreverb.reverbTime"
-                    value={formData.reverb.reverbTime}
-                    onChange={handleChange}
-                    type="number"
-                    min={0.001}
-                    max={10}
-                    step={0.001}
-                  />
-                  <span>&nbsp;(sec)</span>
-                </label>
-                <hr />
+                </label> */}
+                  <label>
+                    &nbsp;Reverb Time:&nbsp;
+                    <input
+                      name="instreverb.reverbTime"
+                      value={formData.reverb.reverbTime}
+                      onChange={handleChange}
+                      type="number"
+                      min={0.001}
+                      max={10}
+                      step={0.001}
+                    />
+                    <span>&nbsp;(sec)</span>
+                  </label>
+                  <hr />
+                </div>
                 <GeneratorTypeForm
                   formData={formData}
                   handleChange={handleChange}

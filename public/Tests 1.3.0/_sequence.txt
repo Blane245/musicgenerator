@@ -100,29 +100,41 @@ generator tests
 preview tests
     SFPG
         complex preview
-            build a rather complex SFPG file: called Preview1
+            build a rather complex SFPG file: called preview1
             new file
-            open Preview1
-            preview the file - all sounds should be heard
+            open preview1
+            preview the file - all sounds should be heard and genertors highlighted as performed
             solo a track
             preview - only that track should be heard
             preview a single generator - only that generator should be heard
 
     SFRG
-
+        create a SFPG generator on one track with a constant repeated single note
+        save it to preview2
+        preview the file - expect sound should be heard
     Noise
+        create two Noise generators - one white and one gaussian
+        save to preview3
+        previle file - expected sound show be heard
 
     Mixed generators
 
 record tests
     All generators
         new file
-        open Preview1
+        open preview1
         record to file record1.wav
         listen to record1.wav - should be the same as its preview
         solo a track
         record to file record2.wav
         listen to record2.wav - should be the same as its preview
+        new file
+        open preview2
+        record to file record3.wav
+        listen to record3.wav - should be the same as its preview
+        open preview3
+        record to file record4
+        listen to record4.wav - should be the same as its preview
 
 room reverb tests
 
@@ -144,6 +156,10 @@ instrument reverb tests
         save as reverb2 - inspect cmg file
         new file
         open reverb2 - check that reverb setting have been saved
+
+timeline selection tests
+
+timeline interval tests
 
     
 

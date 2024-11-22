@@ -14,11 +14,11 @@ export function getElementElement(object: Element, item: string): Element {
 }
 
 export function getAttributeValue(object: Element, item: string, outputType: string): string | number | boolean {
-    const itemElement: Element | null = object.attributes[item];
-    if (!itemElement)
+    const itemAttr: Attr | null = object.attributes.getNamedItem(item);
+    if (!itemAttr)
         throw new Error(`Item '${item}' not found in document`)
 
-    const itemText: string = itemElement.value;
+    const itemText: string = itemAttr.value;
     switch (outputType) {
         case 'string':
             return itemText;

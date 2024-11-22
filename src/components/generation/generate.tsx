@@ -10,7 +10,7 @@ import {
   CHUNKTIME,
   CMGeneratorType,
   GENERATIONMODE,
-  GeneratorData,
+  sourceData,
   GENERATORTYPE,
   SAMPLERATE,
 } from "../../types/types";
@@ -40,12 +40,18 @@ export interface GeneratorProps {
 }
 export default function Generate(props: GeneratorProps) {
   const { mode, setMode, generator } = props;
-  const { fileContents, setStatus, playing, setTimeProgress, setMessage } =
-    useCMGContext();
+  const {
+    fileContents,
+    setStatus,
+    playing,
+    setTimeProgress,
+    timeInterval,
+    setGeneratorsPlaying,
+  } = useCMGContext();
   const [error, setError] = useState<string>("");
   const recordHandle = useRef<FileSystemFileHandle | null>(null);
   const generatorStarted: boolean[] = [];
-  const generatorData: GeneratorData[] = [];
+  const sourceData: sourceData[] = [];
   const SFPGenerators: SFPG[] = [];
   const SFRGenerators: SFRG[] = [];
   const NoiseGenerators: Noise[] = [];
@@ -90,46 +96,95 @@ export default function Generate(props: GeneratorProps) {
     setStatus(``);
   }
 
+  function isSelected(
+    generator: CMGeneratorType,
+    startTime: number,
+    endTime: number
+  ): boolean {
+    if (generator.startTime >= startTime && generator.stopTime <= endTime) {
+      return true;
+    } else return false;
+  }
+
+  // find the selected generator that has the earliest start time
+  function findEarliestSelected (startTime: number, endTime: number): number {
+    let earliest: number = 1e65;
+    fileContents.tracks.forEach((t) => {
+      t.generators.forEach((g) => {
+        if (isSelected(g, startTime, endTime)) 
+          earliest = Math.min(earliest, g.startTime);
+      });
+    })
+    return earliest;
+  }
   function ReadyGenerate() {
     // get the active generators for the entire rendering
     if (mode == GENERATIONMODE.preview || mode == GENERATIONMODE.record) {
-      // find if there are any solo tracks
-      let isSolo: boolean = fileContents.tracks.findIndex((t) => t.solo) >= 0;
+      // the timeline interval overrides other filters
+      if (timeInterval.startTime != undefined && timeInterval.endTime != undefined) {
+        const startTime: number = timeInterval.startTime;
+        const endTime: number = timeInterval.endTime;
 
-      fileContents.tracks.forEach((t) => {
-        if (!t.mute) {
-          if ((isSolo && t.solo) || !isSolo) {
-            t.generators.forEach((g: CMG | SFPG | SFRG | Noise) => {
-              if (g.type == GENERATORTYPE.SFPG && !g.mute) {
-                if (!(g as SFPG).preset) {
-                  setError(
-                    `Generator '${g.name}' on track '${t.name}' does not have a preset assigned.`
-                  );
-                  return;
-                } else {
-                  SFPGenerators.push(g as SFPG);
+        // find the slected generator with the earliest start time
+        const firstGeneratorTime: number = findEarliestSelected(
+          startTime,
+          endTime
+        );
+        fileContents.tracks.forEach((t) => {
+          t.generators.forEach((g) => {
+            if (isSelected(g, startTime, endTime)) {
+              // move the generators time back to zero with the
+              // earliest selected as zero and the others following
+              const thisG = g.copy();
+              thisG.startTime = thisG.startTime - firstGeneratorTime;
+              thisG.stopTime = thisG.stopTime - firstGeneratorTime;
+              if (g.type == GENERATORTYPE.SFPG) SFPGenerators.push(thisG as SFPG);
+              if (g.type == GENERATORTYPE.SFRG) SFRGenerators.push(thisG as SFRG);
+              if (g.type == GENERATORTYPE.Noise)
+                NoiseGenerators.push(thisG as Noise);
+
+            }
+          });
+        });
+      } else {
+        // find if there are any solo tracks
+        let isSolo: boolean = fileContents.tracks.findIndex((t) => t.solo) >= 0;
+
+        fileContents.tracks.forEach((t) => {
+          if (!t.mute) {
+            if ((isSolo && t.solo) || !isSolo) {
+              t.generators.forEach((g: CMG | SFPG | SFRG | Noise) => {
+                if (g.type == GENERATORTYPE.SFPG && !g.mute) {
+                  if (!(g as SFPG).preset) {
+                    setError(
+                      `Generator '${g.name}' on track '${t.name}' does not have a preset assigned.`
+                    );
+                    return;
+                  } else {
+                    SFPGenerators.push(g as SFPG);
+                    playbackLength = Math.max(playbackLength, g.stopTime);
+                  }
+                }
+                if (g.type == GENERATORTYPE.SFRG && !g.mute) {
+                  if (!(g as SFRG).preset) {
+                    setError(
+                      `Generator '${g.name}' on track '${t.name}' does not have a preset assigned.`
+                    );
+                    return;
+                  } else {
+                    SFRGenerators.push(g as SFRG);
+                    playbackLength = Math.max(playbackLength, g.stopTime);
+                  }
+                }
+                if (g.type == GENERATORTYPE.Noise) {
+                  NoiseGenerators.push(g as Noise);
                   playbackLength = Math.max(playbackLength, g.stopTime);
                 }
-              }
-              if (g.type == GENERATORTYPE.SFRG && !g.mute) {
-                if (!(g as SFRG).preset) {
-                  setError(
-                    `Generator '${g.name}' on track '${t.name}' does not have a preset assigned.`
-                  );
-                  return;
-                } else {
-                  SFRGenerators.push(g as SFRG);
-                  playbackLength = Math.max(playbackLength, g.stopTime);
-                }
-              }
-              if (g.type == GENERATORTYPE.Noise) {
-                NoiseGenerators.push(g as Noise);
-                playbackLength = Math.max(playbackLength, g.stopTime);
-              }
-            });
+              });
+            }
           }
-        }
-      });
+        });
+      }
       // get the generator being soloed and shift its start time to zero
     } else if (mode == GENERATIONMODE.solo && generator) {
       if (!generator.mute) {
@@ -197,37 +252,37 @@ export default function Generate(props: GeneratorProps) {
     chunkTime: number
   ): void {
     SFPGenerators.forEach((g) => {
-      const SFPGData: GeneratorData[] = getBufferSourceNodesFromSFPG(
+      const SFPGData: sourceData[] = getBufferSourceNodesFromSFPG(
         context,
         g,
         chunkTime,
         roomConcentrator
       );
-      generatorData.push(...SFPGData);
+      sourceData.push(...SFPGData);
       generatorStarted.push(...Array(SFPGData.length).fill(false));
     });
 
     // build the buffers for the SFRGs
     SFRGenerators.forEach((g) => {
       setRandomSeed(g.seed);
-      const SFRGData: GeneratorData[] = getBufferSourceNodesFromSFRG(
+      const SFRGData: sourceData[] = getBufferSourceNodesFromSFRG(
         context,
         g,
         roomConcentrator
       );
-      generatorData.push(...SFRGData);
+      sourceData.push(...SFRGData);
       generatorStarted.push(...Array(SFRGData.length).fill(false));
     });
 
     // build the buffers for the SFRGs
     NoiseGenerators.forEach((g) => {
       setRandomSeed(g.seed);
-      const noiseData: GeneratorData[] = getBufferSourceNodesFromNoise(
+      const noiseData: sourceData[] = getBufferSourceNodesFromNoise(
         context,
         g,
         roomConcentrator
       );
-      generatorData.push(...noiseData);
+      sourceData.push(...noiseData);
       generatorStarted.push(...Array(noiseData.length).fill(false));
     });
   }
@@ -269,26 +324,42 @@ export default function Generate(props: GeneratorProps) {
       // hold up the speakers until all of the generators have been built
       if (live) (context as AudioContext).suspend();
 
-      // set up the equalizer and compressor
-      fileContents.reverb.setContext(context);
+      // set up the reverb, equalizer, and compressor
+      if (fileContents.reverb.enabled) {
+        console.log(
+          "generator: set roomreverb context and initializing at ",
+          context.currentTime
+        );
+        fileContents.reverb.setContext(context);
+        fileContents.reverb.init(context.currentTime);
+      }
       fileContents.equalizer.setContext(context);
       fileContents.compressor.setContext(context);
 
       // make the room level connections
+      // room concentrator -> equalizer
+      // equalizer -> compressor
+      // compressor to destination
       const roomConcentrator: GainNode = context.createGain();
-      const roomPassThru: GainNode = context.createGain();
-      roomConcentrator.connect(roomPassThru);
-      roomPassThru.connect(fileContents.equalizer.front());
+      roomConcentrator.connect(fileContents.equalizer.front());
       if (fileContents.compressor.effect) {
         fileContents.equalizer.back().connect(fileContents.compressor.effect);
         fileContents.compressor.effect.connect(context.destination);
       } else console.log("generator: compressor missing");
-      if (fileContents.reverb.enabled)
-        if (fileContents.reverb.effect) {
-          roomConcentrator.connect(fileContents.reverb.effect);
-          fileContents.reverb.effect.connect(roomPassThru);
-        } else console.log("generator: room reverb missing");
 
+      // connect the optional reverb
+      // room concentrator -> room reverb
+      // room reverb -> equalizer
+      if (fileContents.reverb.enabled)
+        if (fileContents.reverb.wet && fileContents.reverb.output && fileContents.compressor.effect) {
+          console.log(
+            "generator: connecting room concentrator -> reverb wet -> equalizer"
+          );
+          roomConcentrator.connect(fileContents.reverb.wet);
+          fileContents.reverb.output.connect(fileContents.compressor.effect);
+        } else console.log("generator: room reverb or compressor missing");
+
+      // build the generator sources and connect to the room concentrator
       buildSources(context, roomConcentrator, CHUNKTIME);
 
       // the preview and solo modes are done in realtime
@@ -301,34 +372,34 @@ export default function Generate(props: GeneratorProps) {
         function scheduler(): void {
           if (playing.current?.on) {
             const aheadTime = context.currentTime + SCHEDULEAHEADTIME;
-            // console.log('currentTIME', context.currentTime, 'nextTime', nextTime, 'aheadTime', aheadTime);
             while (nextTime < aheadTime) {
               let started: boolean = false;
-              generatorData.forEach((item, i) => {
+              const newGeneratorsPlaying:CMGeneratorType[] = [];
+              sourceData.forEach((item, i) => {
                 if (aheadTime >= item.start && !generatorStarted[i]) {
-                  // console.log('source', i, 'start', generatorTime[i].start, 'stop', generatorTime[i].stop, 'aheadtime', aheadTime, 'buffer length', s.buffer?.length);
-                  // console.log('source', i, 'start', generatorTime[i].start, 'stop', generatorTime[i].stop);
-                  const { source, start, stop, lastGain }: GeneratorData = item;
+                  const { source, reverb, start, stop, lastGain }: sourceData =
+                    item;
                   StartStop(source, start, stop, lastGain);
+                  newGeneratorsPlaying.push(item.generator);
+                  // kick off the optional instrument reverb
+                  if (reverb) {
+                    reverb.renderTail(/*start*/);
+                  }
                   generatorStarted[i] = true;
                   started = true;
                 }
+                if (newGeneratorsPlaying.length > 0) setGeneratorsPlaying(newGeneratorsPlaying);
               });
               if (started) setTimeProgress(context.currentTime);
               nextTime += CHUNKTIME;
-              // console.log(`next chunk`, nextTime)
             }
             timerID = window.setTimeout(scheduler, LOOKAHEAD);
-            // console.log('timer set');
           } else {
-            // console.log('clearing timer')
             clearTimeout(timerID);
           }
 
           // stop the playback if the current time is past all generator stop times
-          const running = generatorData.find(
-            (t) => t.stop > context.currentTime
-          );
+          const running = sourceData.find((t) => t.stop > context.currentTime);
           if (!running || !playing.current?.on) {
             if (playing.current) playing.current.on = false;
             if (context.state !== "closed") {
@@ -338,26 +409,26 @@ export default function Generate(props: GeneratorProps) {
             setMode(GENERATIONMODE.idle);
             setTimeProgress(0);
             setStatus(`Preview Complete`);
+            setGeneratorsPlaying([]);
           }
         }
       } else if (record && recordHandle.current) {
         const rh: FileSystemFileHandle = recordHandle.current;
+        
         // and provide all source their start and stop times
-        generatorData.forEach((item) => {
-          const { source, start, stop, lastGain }: GeneratorData = item;
+        sourceData.forEach((item) => {
+          const { source, reverb, start, stop, lastGain }: sourceData = item;
           StartStop(source, start, stop, lastGain);
+          if (reverb) reverb.renderTail(start);
         });
 
         // render the sources
         (context as OfflineAudioContext)
           .startRendering()
           .then((renderBuffer: AudioBuffer) => {
-            // console.log('offline render complete');
 
             // build the blob and write it to the selected file
-            // console.log('recordHandle.name', rh.name)
             rh.createWritable().then((accessHandle) => {
-              // console.log('writing wav file');
               const blob: Blob = bufferToWave(
                 renderBuffer,
                 (context as OfflineAudioContext).length
@@ -371,7 +442,7 @@ export default function Generate(props: GeneratorProps) {
             recordHandle.current = null;
           });
       } else {
-        setMessage({ error: true, text: `Improper generation mode '${mode}'` });
+        setStatus(`Improper generation mode '${mode}'`);
         setMode(GENERATIONMODE.idle);
         if (playing.current) playing.current.on = false;
       }

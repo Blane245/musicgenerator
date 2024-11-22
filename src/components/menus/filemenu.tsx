@@ -20,7 +20,6 @@ export default function FileMenu() {
   const {
     fileContents,
     setFileContents,
-    setMessage,
     setStatus,
     setFileName,
     playing,
@@ -133,29 +132,28 @@ export default function FileMenu() {
             null
           );
           const fileElem: Element = doc.createElement("fileContents");
-          fileContents.appendXML(doc, fileElem, handle.name);
+          fileContents.appendXML({doc:doc, elem:fileElem, name:handle.name});
           const tracksElem: Element = doc.createElement("tracks");
           fileContents.tracks.forEach((t: Track) => {
             const trackElem: Element = doc.createElement("track");
-            t.appendXML(doc, trackElem);
+            t.appendXML({elem:trackElem});
             tracksElem.appendChild(trackElem);
             const gensElement: Element = doc.createElement("generators");
             t.generators.forEach((g) => {
               const genElement: Element = doc.createElement("generator");
               switch (g.type) {
                 case GENERATORTYPE.CMG:
-                  (g as CMG).appendXML(doc, genElement);
+                  (g as CMG).appendXML({elem:genElement});
                   break;
                 case GENERATORTYPE.SFPG:
-                  (g as SFPG).appendXML(doc, genElement);
+                  (g as SFPG).appendXML({doc: doc, elem:genElement});
 
                   break;
                 case GENERATORTYPE.SFRG:
-                  (g as SFRG).appendXML(doc, genElement);
-                  // (g as SFRG).appendXML(doc, genElement);
+                  (g as SFRG).appendXML({doc: doc, elem:genElement});
                   break;
                 case GENERATORTYPE.Noise:
-                  (g as Noise).appendXML(doc, genElement);
+                  (g as Noise).appendXML({doc: doc, elem:genElement});
                   break;
                 default:
                   break;
@@ -180,10 +178,7 @@ export default function FileMenu() {
         });
     } catch (err) {
       const e = err as Error;
-      setMessage({
-        error: true,
-        text: `Error saving cmg file, type: '${e.name}' message: '${e.message}'`,
-      });
+      setStatus(`Error saving cmg file, type: '${e.name}' message: '${e.message}'`);
     }
   }
 
@@ -283,15 +278,13 @@ export default function FileMenu() {
 
               fc.dirty = false;
               newFile(fc, setFileContents);
+              setStatus(`File '${file.name}' loaded`);
             });
           });
         });
-    } catch (err) {
+      } catch (err) {
       const e = err as Error;
-      setMessage({
-        error: true,
-        text: `Error reading cmg file, type: '${e.name}' message: '${e.message}'`,
-      });
+      setStatus(`Error reading cmg file, type: '${e.name}' message: '${e.message}'`);
     }
   }
 }

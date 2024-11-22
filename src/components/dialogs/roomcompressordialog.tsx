@@ -11,23 +11,40 @@ export default function RoomCompressorDialog() {
 
   useEffect(() => {
     setCompressorData(fileContents.compressor);
-  }, [fileContents.compressor])
+  } ,[fileContents.compressor]);
+
   function handleChange(event: ChangeEvent<HTMLInputElement>): void {
     const eventName: string | null = event.target["name"];
     const eventValue: string | null = event.target["value"];
+    const n: Compressor = compressorData.copy();
     if (eventName && eventValue) {
-      setCompressorData((prev: Compressor) => {
-        const newCompressor = prev.copy();
-        newCompressor.setAttribute(eventName, eventValue);
-        setCompressor(newCompressor, setFileContents);
-        return newCompressor;
-      });
+      n.setAttribute(eventName, eventValue);
     }
+    setCompressor(n, setFileContents);
+  }
+  function reset() {
+    const n = compressorData.copy();
+    n.threshold = -24;
+    n.knee = 30;
+    n.ratio = 12;
+    n.attack = 0.003;
+    n.release = 0.25
+    if (n.effect) {
+      n.effect.threshold.value = n.threshold;
+      n.effect.knee.value = n.knee;
+      n.effect.ratio.value = n.ratio;
+      n.effect.attack.value = n.attack;
+      n.effect.release.value = n.attack;
+    }
+    setCompressor(n, setFileContents);
   }
   return (
     <div className="page-footer-compressor">
       <p className="title">
-        Compressor
+        Compressor Reset:&nbsp;
+        <button className='button'
+        onClick={reset}
+        >&nbsp;</button>
         {compressorData.effect
           ? ` - Current Reduction: ${compressorData.effect.reduction.toFixed(
               0

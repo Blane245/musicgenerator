@@ -41,10 +41,10 @@ export function setDirty(
 
 export function setRoomReverb (newReverb: RoomReverb, setFileContents: Function): void {
   setFileContents((c: CMGFile) => {
-    const newC: CMGFile = c.copy();
-    newC.dirty = true;
-    newC.reverb = newReverb;
-    return newC;
+    const nc:CMGFile = c.copy();
+    nc.dirty = true;
+    nc.reverb = newReverb;
+    return nc;
   });
 }
   
@@ -53,10 +53,10 @@ export function setEqualizer(
   setFileContents: Function
 ): void {
   setFileContents((c: CMGFile) => {
-    const newC: CMGFile = c.copy();
-    newC.dirty = true;
-    newC.equalizer = newEqualizer;
-    return newC;
+    const nc:CMGFile = c.copy();
+    nc.dirty = true;
+    nc.equalizer = newEqualizer;
+    return nc;
   });
 }
 
@@ -65,34 +65,40 @@ export function setCompressor(
   setFileContents: Function
 ): void {
   setFileContents((c: CMGFile) => {
-    const newC: CMGFile = c.copy();
-    newC.dirty = true;
-    newC.compressor = newCompressor;
-    return newC;
+    const nc:CMGFile = c.copy();
+    nc.dirty = true;
+    nc.compressor = newCompressor;
+    return nc;
   });
 }
 
 export function addTrack(newTrack: Track, setFileContents: Function) {
   setFileContents((c: CMGFile) => {
-    const newC: CMGFile = c.copy();
-    console.log(
-      "new track being added",
-      newTrack.name,
-      "current track count",
-      c.tracks.length
-    );
-    newC.tracks.push(newTrack);
-    newC.dirty = true;
-    return newC;
+    c.dirty = true;
+    c.tracks.push(newTrack);
+    return c;
+    // const newC: CMGFile = c.copy();
+    // console.log(
+    //   "new track being added",
+    //   newTrack.name,
+    //   "current track count",
+    //   c.tracks.length
+    // );
+    // newC.tracks.push(newTrack);
+    // newC.dirty = true;
+    // return newC;
   });
 }
 
 export function deleteTrack(index: number, setFileContents: Function) {
   setFileContents((c: CMGFile) => {
-    const newC: CMGFile = c.copy();
-    newC.tracks.splice(index, 1);
-    newC.dirty = true;
-    return newC;
+    c.dirty = true;
+    c.tracks.splice(index, 1);
+    return c;
+    // const newC: CMGFile = c.copy();
+    // newC.tracks.splice(index, 1);
+    // newC.dirty = true;
+    // return newC;
   });
 }
 
@@ -102,10 +108,13 @@ export function renameTrack(
   setFileContents: Function
 ) {
   setFileContents((c: CMGFile) => {
-    const newC: CMGFile = c.copy();
-    newC.tracks[index].name = newName;
-    newC.dirty = true;
-    return newC;
+    c.dirty = true;
+    c.tracks[index].name = newName;
+    return c;
+    // const newC: CMGFile = c.copy();
+    // newC.tracks[index].name = newName;
+    // newC.dirty = true;
+    // return newC;
   });
 }
 
@@ -115,6 +124,14 @@ export function flipTrackAttrbute(
   setFileContents: Function
 ) {
   setFileContents((c: CMGFile) => {
+    console.log('fliping track attribute', attribute);
+    // if (attribute == "mute") {
+    //   c.tracks[index].mute = !c.tracks[index].mute;
+    // } else if (attribute == "solo") {
+    //   c.tracks[index].solo = !c.tracks[index].solo;
+    // } else return c;
+    // c.dirty = true;
+    // return c;
     const newC: CMGFile = c.copy();
     if (attribute == "mute") {
       newC.tracks[index].mute = !newC.tracks[index].mute;

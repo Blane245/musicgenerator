@@ -17,6 +17,7 @@ import {
   flipGeneratorMute,
   moveGeneratorBodyPosition,
 } from "../../utils/cmfiletransactions";
+import { getGeneratorUID } from "../../utils/util";
 import GeneratorDialog from "../dialogs/generatordialog";
 
 export interface GeneratorIconProps {
@@ -29,22 +30,29 @@ type GeneratorBox = {
   position: { x: number; y: number };
   width: number;
   height: number;
+  selected: boolean;
+  playing: boolean;
 };
-
+//TODO high the generators as they are previewing
 // thanx for AWolf's option 2 answer to https://stackoverflow.com/questions/58222004/how-to-get-parent-width-height-in-react-using-hooks
 const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
   const { track, trackIndex, elementRef } = props;
-  const { setFileContents, timeLine, setStatus, fileContents, playing } =
-    useCMGContext();
+  const {
+    setFileContents,
+    timeLine,
+    setStatus,
+    fileContents,
+    playing,
+    timeInterval,
+    generatorsPlaying,
+    mouseDown,
+    setMouseDown,
+  } = useCMGContext();
   const [generatorIndex, setGeneratorIndex] = useState<number>(-1);
   const [cursorStyle, setCursorStyle] = useState<string>("cursor-default");
   const [menuEnabled, setMenuEnabled] = useState<boolean>(false);
   const [menuX, setMenuX] = useState<number>(0);
   const [menuY, setMenuY] = useState<number>(0);
-  const [mouseDown, setMouseDown] = useState<{ x: number; y: number }>({
-    x: 0,
-    y: 0,
-  });
   const [generatorBoxes, setGeneratorBoxes] = useState<GeneratorBox[]>([]);
   const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [copyDialog, setCopyDialog] = useState<boolean>(false);
@@ -57,15 +65,10 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
   const [trackHeight, setTrackHeight] = useState(100);
 
   useEffect(() => {
-    // console.log(`resizing`, elementRef.current[trackIndex]);
     const resizeObserver: ResizeObserver = new ResizeObserver(
       (event: ResizeObserverEntry[]) => {
         setTrackWidth(event[0].contentBoxSize[0].inlineSize);
         setTrackHeight(event[0].contentBoxSize[0].blockSize);
-        // console.log(
-        //   event[0].contentBoxSize[0].inlineSize,
-        //   event[0].contentBoxSize[0].blockSize
-        // );
       }
     );
     if (elementRef && elementRef.current) {
@@ -75,12 +78,11 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
 
   // set the generator icon boxes based on the generator times and timeLine
   useEffect(() => {
-    setSelectedTrackName(track.name);
     // get all of the generator boxes
+    setSelectedTrackName(track.name);
     const boxes: GeneratorBox[] = [];
-    // console.log(`Track ${track.name} generators refreshed`);
     track.generators.forEach((generator) => {
-      // is the generator out of the currently displayed current time
+      // is the generator out of the currently displayed current time?
       const timeLineStop =
         timeLine.startTime + TimeLineScales[timeLine.currentZoomLevel].extent;
       const timeLineStart = timeLine.startTime;
@@ -88,7 +90,6 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
       const generatorStop = generator.stopTime;
 
       // if either the generators start or stop time is within the timeline, display it
-
       // bound the icon's start and stop time to the timeline
       const iconStartTime: number = Math.max(generatorStart, timeLineStart);
       const iconStopTime: number = Math.min(generatorStop, timeLineStop);
@@ -110,50 +111,53 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
           position: { x: iconLeft, y: iconTop },
           width: iconWidth,
           height: iconHeight,
+          selected: isSelected(generator),
+          playing: isPlaying(generator),
         });
       }
     });
     setGeneratorBoxes(boxes);
-  }, [track.generators, timeLine, trackWidth, trackHeight]);
+  }, [
+    track.generators,
+    timeLine,
+    trackWidth,
+    timeInterval,
+    trackHeight,
+    generatorsPlaying,
+  ]);
 
   useEffect(() => {
     if (mode == GENERATIONMODE.idle) setPreview(null);
   }, [mode]);
 
+  // prepare to move the body horizontally
   function handleBodyMouseDown(
     event: MouseEvent<HTMLOrSVGElement>,
     index: number
   ) {
+    if (playing.current?.on) return;
     event.preventDefault();
+    event.stopPropagation();
+
     const button = event.button;
     if (button == 0) {
-      // console.log(
-      //   "body button down",
-      //   button,
-      //   "generator",
-      //   generatorBoxes[index].generator.name
-      // );
       setGeneratorIndex(index);
 
       //enable cursor movement
       setCursorStyle("cursor-all-scroll");
-      setMouseDown({ x: event.clientX, y: event.clientY });
+      setMouseDown(true);
       setStatus(``);
     }
   }
+
+  // enable the icon menu
   function handleTextMouseDown(
     event: MouseEvent<HTMLOrSVGElement>,
     index: number
   ) {
+    if (playing.current?.on) return;
     event.preventDefault();
     event.stopPropagation();
-    // const button = event.button;
-    // console.log(
-    //   "text button down",
-    //   button,
-    //   "generator",
-    //   generatorBoxes[index].generator.name
-    // );
     setGeneratorIndex(index);
 
     // enable generator menu
@@ -164,22 +168,37 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
     setStatus(``);
   }
 
-  function handleMouseMove(event: MouseEvent<HTMLOrSVGElement>, index: number) {
+  function handleMouseMove(event: any, index: number) {
+    if (!mouseDown) return;
     event.preventDefault();
+    event.stopPropagation();
 
-    executeIconMove(
-      { x: event.clientX, y: event.clientY },
-      generatorBoxes[index]
-    );
+    const y: number = event.nativeEvent.offsetY;
+    const deltaY: number = event.nativeEvent.movementY;
+
+    // skip if no change or output of bounds
+    if (deltaY == 0 || y < 0 || y > (2.0 * trackHeight) / 3.0) return;
+    moveGeneratorBodyPosition(track, index, y, setFileContents);
+
     setStatus(``);
   }
 
-  function handleMouseUp(event: MouseEvent<HTMLOrSVGElement>) {
-    event.preventDefault();
-    setCursorStyle("cursor-default");
-    setMouseDown({ x: 0, y: 0 });
-    setGeneratorIndex(-1);
-    setStatus(``);
+  function handleMouseEnter(e: any): void {
+    if (mouseDown || playing.current?.on) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const page = document.getElementById("page");
+    if (page) page.style.cursor = "ew-resize";
+    else console.log("handleMouseEnter page element not found");
+  }
+  // when the mouse is up change cursor back to default
+  function handleMouseLeave(e: any): void {
+    if (mouseDown || playing.current?.on) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const page = document.getElementById("page");
+    if (page) page.style.cursor = "default";
+    else console.log("handleMouseLeave page element not found");
   }
 
   // toggle the mute condition of the selected generator
@@ -233,17 +252,8 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
     // get a copy of the selected generator
     // and find a unique name for the generator
     const newG = generatorBoxes[generatorIndex].generator.copy();
-    let next = targetTrack.generators.length + 1;
-    let found = false;
-    while (!found) {
-      const newName = `G${next.toString()}`;
-      if (targetTrack.generators.findIndex((g) => g.name == newName) < 0) {
-        newG.name = newName;
-        found = true;
-      } else {
-        next++;
-      }
-    }
+    let next = getGeneratorUID(fileContents.tracks);
+    newG.name = "G".concat(next.toString());
 
     //add the generator to the track
     addGenerator(targetTrack, newG, setFileContents);
@@ -255,6 +265,34 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
   function handleCopyCancel() {
     setCopyDialog(false);
     setStatus(``);
+  }
+
+  function isSelected(generator: CMGenerator): boolean {
+    if (
+      timeInterval.startTime != undefined &&
+      timeInterval.endTime != undefined
+    ) {
+      if (
+        generator.startTime >= timeInterval.startTime &&
+        generator.stopTime <= timeInterval.endTime
+      )
+        return true;
+      else return false;
+    }
+    return false;
+  }
+
+  function isPlaying(generator: CMGenerator): boolean {
+    for (let i = 0; i < generatorsPlaying.length; i++) {
+      if (generatorsPlaying[i].name == generator.name) return true;
+    }
+    return false;
+  }
+
+  function selectClass(selected: boolean, playing: boolean): string {
+    if (playing) return "generator-playing";
+    if (selected) return "generator-selected";
+    return "generator-normal";
   }
 
   return (
@@ -271,6 +309,10 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
         {generatorBoxes.map((generatorBox, i) => (
           <>
             <rect
+              className={selectClass(
+                generatorBoxes[i].selected,
+                generatorBoxes[i].playing
+              )}
               pointerEvents={playing.current?.on ? "none" : "all"}
               x={generatorBox.position.x}
               y={generatorBox.position.y}
@@ -281,8 +323,9 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
               strokeWidth={1}
               key={"genrect-" + track.name + "-" + i}
               onMouseDown={(event) => handleBodyMouseDown(event, i)}
-              onMouseUp={handleMouseUp}
               onMouseMove={(event) => handleMouseMove(event, i)}
+              onMouseEnter={(event) => handleMouseEnter(event)}
+              onMouseLeave={(event) => handleMouseLeave(event)}
             />
             <text
               pointerEvents={playing.current?.on ? "none" : "all"}
@@ -308,7 +351,6 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
               y1={generatorBox.position.y}
               x2={generatorBox.position.x}
               y2={generatorBox.position.y + generatorBox.height}
-              onMouseMove={(event) => handleMouseMove(event, i)}
             />
             <line
               pointerEvents={playing.current?.on ? "none" : "all"}
@@ -401,81 +443,5 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
       </div>
     </>
   );
-
-  // index points to the selected generator box
-  // track is the active track element
-  // the svg parent has id track.name.concat(': Generators') and contrains the up and down movement
-  function getScalingValues(): {
-    error: boolean;
-    trackBox: { top: number; left: number; bottom: number; right: number };
-  } {
-    let trackBox = { top: 0, left: 0, bottom: 0, right: 0 };
-    let error: boolean = false;
-    // console.log("in getScalingValues");
-
-    const trackElement = document.getElementById(
-      track.name.concat(": Generators")
-    );
-    if (!trackElement) {
-      error = true;
-      console.log("can't find track element");
-      return { error, trackBox };
-    }
-
-    trackBox.top = trackElement.clientTop;
-    trackBox.left = trackElement.clientLeft;
-    trackBox.bottom = trackElement.clientTop + trackElement.clientHeight;
-    trackBox.right = trackElement.clientLeft + trackElement.clientWidth;
-    // console.log(
-    //   "trackBox",
-    //   trackBox,
-    //   "error",
-    //   error,
-    // );
-    return { error, trackBox };
-  }
-
-  // determine is a move if the icon can be made vertically and if so,
-  // set the new top coordinate
-  function MoveBodyVertical(
-    location: { x: number; y: number },
-    iconTop: number,
-    iconBottom: number,
-    boxTop: number,
-    boxBottom: number
-  ): { allowed: boolean; top: number } {
-    const deltaY = location.y - mouseDown.y;
-    const newTop = iconTop + deltaY;
-    const newBottom = iconBottom + deltaY;
-    if (newTop >= boxTop && newBottom <= boxBottom) {
-      setMouseDown({ ...location });
-      return { allowed: true, top: newTop };
-    } else return { allowed: false, top: iconTop };
-  }
-
-  // based on the mouse moves in the icon body update vertical position of the generator and its icon
-  function executeIconMove(
-    location: { x: number; y: number },
-    iconBox: GeneratorBox
-  ): void {
-    // console.log("in executeIconMove");
-    const { error, trackBox } = getScalingValues();
-    if (error) return;
-
-    // check the vertical movement
-    const { allowed, top } = MoveBodyVertical(
-      location,
-      iconBox.position.y,
-      iconBox.position.y + iconBox.height,
-      trackBox.top,
-      trackBox.bottom
-    );
-
-    //if allowed, move the generator box to the new position
-    if (allowed) {
-      // console.log("vertical move", "generatorIndex", generatorIndex);
-      moveGeneratorBodyPosition(track, generatorIndex, top, setFileContents);
-    }
-  }
 });
 export default GeneratorIcons;

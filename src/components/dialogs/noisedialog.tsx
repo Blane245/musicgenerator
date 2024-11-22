@@ -32,7 +32,7 @@ export default function NoiseDialog(props: SFPGDialogProps): JSX.Element {
                     name="sampleRate"
                     value={formData.sampleRate}
                     onChange={handleChange}
-                    type='number' min={15000} max={50000} step={1000}
+                    type='number' min={15000} max={50000} step={100}
                 /></label>
             <span> (Hz)</span>
             <label> Random Seed:

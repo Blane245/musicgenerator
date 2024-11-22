@@ -56,6 +56,7 @@ export default class Equalizer {
   setGain(band: number, value: number): void {
     this.gains[band] = value;
     if (this.context) this.effects[band].gain.value = value;
+    if (this.context) console.log(`live equalizer band ${band} set to value ${value}`)
   }
 
   getGain(band: number): number {
@@ -76,7 +77,7 @@ export default class Equalizer {
     n.context = this.context;
     n.frequencies = this.frequencies;
     n.effects = [...this.effects];
-    n.gains = this.gains;
+    n.gains = [...this.gains];
     return n;
   }
 
@@ -93,7 +94,8 @@ export default class Equalizer {
     } catch {}
   }
 
-  appendXML(doc: XMLDocument, elem: Element): void {
+  appendXML(props:{doc: XMLDocument, elem: Element}): void {
+    const {doc, elem} = props;
     const eElement: Element = doc.createElement("equalizer");
     for (let i = 0; i < BANDCOUNT; i++) {
       eElement.setAttribute(`gain${i}`, this.gains[i].toString());

@@ -6,9 +6,10 @@
 // chuck based on the time that the generator start until it stops.
 // these chucks are fed to the scheduler as the audiocontext advances
 
+import InstReverb from "../../classes/instreverb2";
 import SFPG from "../../classes/sfpg";
 import { InstrumentZone } from "../../types/soundfonttypes";
-import { GeneratorData, REPEATOPTION } from "../../types/types";
+import { sourceData, REPEATOPTION } from "../../types/types";
 import { getSFGeneratorValues } from "../../utils/soundfont2utils";
 import { precision } from "../../utils/util";
 
@@ -19,7 +20,7 @@ export function getBufferSourceNodesFromSFPG(
   gen: SFPG,
   deltaT: number,
   roomConcentrator: GainNode
-): GeneratorData[] {
+): sourceData[] {
   // console.log('getting SFPG sources',
   //     'name', gen.name,
   //     'deltaT', deltaT,
@@ -45,7 +46,7 @@ export function getBufferSourceNodesFromSFPG(
   // for each chunk and apply them to the chunk
   let currentZone: InstrumentZone | null = null;
   let lastPitch: number = -1;
-  const generatorData: GeneratorData[] = [];
+  const sourceData: sourceData[] = [];
   for (let iChunk: number = 0; iChunk < chunkCount; iChunk += 1) {
     if (iChunk == 0) currentSampleIndex = 0;
     // currentSampleIndex = 0;
@@ -155,9 +156,22 @@ export function getBufferSourceNodesFromSFPG(
     vol.connect(panner);
     panner.connect(concentrator);
 
+    // get a copy of the generator's reverb and connect it
+    let sReverb: InstReverb | undefined = undefined;
+    if (gen.reverb.enabled) {
+      sReverb = gen.reverb.copy();
+      sReverb.setContext(context);
+      if (sReverb.effect) {
+        concentrator.connect(sReverb.effect);
+        sReverb.effect.connect(roomConcentrator);
+      }
+    }
+
     // and add it to the accumulated sources
-    generatorData.push({
+    sourceData.push({
+      generator: gen,
       source: source,
+      reverb: sReverb,
       start: precision(time + gen.startTime, 3),
       stop: precision(time + gen.startTime + deltaT, 3),
       lastGain: iChunk == chunkCount - 1 ? vol : null,
@@ -165,17 +179,18 @@ export function getBufferSourceNodesFromSFPG(
   }
 
   // make the connections
-  // concentrator->passthru->roomconcentrator
-  // optionally concentrator->inst reverb->passthru
-  const passThru: GainNode = context.createGain();
-  concentrator.connect(passThru);
-  passThru.connect(roomConcentrator);
-  if (gen.reverb.enabled && gen.reverb.effect) {
-    concentrator.connect(gen.reverb.effect);
-    gen.reverb.effect.connect(passThru);
+  // concentrator->roomconcentrator
+  // optionally concentrator->instreverb->roomconcentrator
+  concentrator.connect(roomConcentrator);
+  if (gen.reverb.enabled) {
+    gen.reverb.setContext(context);
+    if (gen.reverb.effect) {
+      concentrator.connect(gen.reverb.effect);
+      gen.reverb.effect.connect(roomConcentrator);
+    }
   }
 
-  return generatorData;
+  return sourceData;
 }
 // get a full chuckSize set of samples from the instrument's samples
 // taking into account looping
@@ -199,24 +214,4 @@ function getNextSample(
     }
   }
   return floatSample;
-  // const nSam = Math.ceil(chunkSize);
-  // const sam: Float32Array = new Float32Array(nSam);
-  // let iSam: number = 0;
-  // let iLoop: number = 0;
-  // while (iSam < nSam) {
-  //     if (repeat == REPEATOPTION.None && iSam > loopEnd)
-  //         sam[iSam] = 0.0;
-  //     else
-  //         sam[iSam] = sample[iLoop] / 32768.0;
-  //     iSam++;
-  //     iLoop++;
-  //     if (iLoop > loopEnd)
-  //         if (repeat == REPEATOPTION.Sample)
-  //             iLoop = loopStart;
-  //         else if (repeat == REPEATOPTION.Beginning)
-  //             iLoop = 0;
-  //     // console.log(`loop back at ${iSam} -  ${iLoop}`)
-
-  // }
-  // return sam;
 }

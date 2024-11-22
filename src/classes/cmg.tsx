@@ -1,6 +1,6 @@
 import { CMGeneratorType, GENERATORTYPE } from "../types/types";
 import { getAttributeValue } from "../utils/xmlfunctions";
-import InstReverb from "./instreverb";
+import InstReverb from "./instreverb2";
 
 export default class CMG {
   name: string;
@@ -69,15 +69,15 @@ export default class CMG {
     this.reverb.setAttribute(name, value);
   }
 
-  appendXML(doc: XMLDocument, elem: Element): void {
-    elem.setAttribute("name", this.name);
-    elem.setAttribute("type", this.type);
-    elem.setAttribute("startTime", this.startTime.toString());
-    elem.setAttribute("stopTime", this.stopTime.toString());
-    elem.setAttribute("type", this.type);
-    elem.setAttribute("solo", this.solo.toString());
-    elem.setAttribute("mute", this.mute.toString());
-    elem.setAttribute("position", this.position.toString());
+  appendXML(props:{elem: Element} ): void {
+    props.elem.setAttribute("name", this.name);
+    props.elem.setAttribute("type", this.type);
+    props.elem.setAttribute("startTime", this.startTime.toString());
+    props.elem.setAttribute("stopTime", this.stopTime.toString());
+    props.elem.setAttribute("type", this.type);
+    props.elem.setAttribute("solo", this.solo.toString());
+    props.elem.setAttribute("mute", this.mute.toString());
+    props.elem.setAttribute("position", this.position.toString());
   }
 
   getXML(elem: Element) {

@@ -6,7 +6,7 @@ import { Preset } from "../types/soundfonttypes";
 import { GENERATORTYPE, REPEATOPTION } from "../types/types";
 import { getAttributeValue } from "../utils/xmlfunctions";
 import CMG from "./cmg";
-import InstReverb from "./instreverb";
+import InstReverb from "./instreverb2";
 export default class SFPG extends CMG {
   presetName: string;
   preset: Preset | undefined;
@@ -269,8 +269,9 @@ export default class SFPG extends CMG {
     }
     return { pitch: pitch, volume: volume, pan: pan };
   }
-  override appendXML(doc: XMLDocument, elem: Element): void {
-    super.appendXML(doc, elem);
+  override appendXML(props:{doc: XMLDocument, elem: Element}): void {
+    super.appendXML(props);
+    const {elem} = props;
     elem.setAttribute("type", GENERATORTYPE.SFPG);
     elem.setAttribute("presetName", this.presetName);
     elem.setAttribute("repeat", this.repeat);
@@ -289,7 +290,7 @@ export default class SFPG extends CMG {
     elem.setAttribute("PMFrequency", this.PMFrequency.toString());
     elem.setAttribute("PMAmplitude", this.PMAmplitude.toString());
     elem.setAttribute("PMPhase", this.PMPhase.toString());
-    this.reverb.appendXML(doc, elem);
+    this.reverb.appendXML(props);
   }
 
   override getXML(elem: Element): void {

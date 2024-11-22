@@ -11,7 +11,7 @@ import {
 import CMG from "./cmg";
 import { getAttributeValue, getElementElement } from "../utils/xmlfunctions";
 import { rand } from "../utils/seededrandom";
-import InstReverb from "./instreverb";
+import InstReverb from "./instreverb2";
 
 export default class SFRG extends CMG {
   presetName: string;
@@ -383,8 +383,9 @@ export default class SFRG extends CMG {
     };
   }
 
-  override appendXML(doc: XMLDocument, elem: Element): void {
-    super.appendXML(doc, elem);
+  override appendXML(props:{doc: XMLDocument, elem: Element}): void {
+    super.appendXML(props);
+    const {doc, elem} = props;
     elem.setAttribute("type", GENERATORTYPE.SFRG);
     elem.setAttribute("seed", this.seed);
     elem.setAttribute("presetName", this.presetName);
@@ -393,7 +394,7 @@ export default class SFRG extends CMG {
     elem.appendChild(addTransitionAttributes("speedT", this.speedT));
     elem.appendChild(addTransitionAttributes("volumeT", this.volumeT));
     elem.appendChild(addTransitionAttributes("panT", this.panT));
-    this.reverb.appendXML(doc, elem);
+    this.reverb.appendXML(props);
 
     function addTransitionAttributes(
       name: string,

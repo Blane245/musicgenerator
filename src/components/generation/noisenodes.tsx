@@ -4,8 +4,9 @@
 // the SFPG generatr
 // each node time starts when the last one stops as determined by the spped attribute
 
+import InstReverb from "../../classes/instreverb2";
 import Noise from "../../classes/noise";
-import { GeneratorData } from "../../types/types";
+import { sourceData } from "../../types/types";
 
 const CHUNKSIZE: number = 0.1; // seconds
 // the node's midi, volume, and pan values is plugged in from their respective chains
@@ -13,7 +14,7 @@ export function getBufferSourceNodesFromNoise(
   context: AudioContext | OfflineAudioContext,
   gen: Noise,
   roomConcentrator: GainNode
-): GeneratorData[] {
+): sourceData[] {
   // console.log(
   //     'in getBufferSourceNodesFromNoise',
   // );
@@ -23,7 +24,7 @@ export function getBufferSourceNodesFromNoise(
 
   // the generator has a start and end time
   const { startTime, stopTime } = gen;
-  const generatorData: GeneratorData[] = [];
+  const sourceData: sourceData[] = [];
 
   // move the chunk into the audio node
   const chunkCount = Math.ceil((stopTime - startTime) / CHUNKSIZE);
@@ -61,8 +62,21 @@ export function getBufferSourceNodesFromNoise(
     vol.connect(panner);
     panner.connect(concentrator);
 
-    generatorData.push({
+    // get a copy of the generator's reverb and connect it
+    let sReverb: InstReverb | undefined = undefined;
+    if (gen.reverb.enabled) {
+      sReverb = gen.reverb.copy();
+      sReverb.setContext(context);
+      if (sReverb.effect) {
+        concentrator.connect(sReverb.effect);
+        sReverb.effect.connect(roomConcentrator);
+      }
+    }
+
+    sourceData.push({
+      generator: gen,
       source: source,
+      reverb: sReverb,
       start: time,
       stop: time + CHUNKSIZE,
       lastGain: i == chunkCount - 1 ? vol : null,
@@ -70,15 +84,16 @@ export function getBufferSourceNodesFromNoise(
   }
 
   // make the connections
-  // concentrator->passthru->roomconcentrator
-  // optionally concentrator->inst reverb->passthru
-  const passThru: GainNode = context.createGain();
-  concentrator.connect(passThru);
-  passThru.connect(roomConcentrator);
-  if (gen.reverb.enabled && gen.reverb.effect) {
-    concentrator.connect(gen.reverb.effect);
-    gen.reverb.effect.connect(passThru);
+  // concentrator->roomconcentrator
+  // optionally concentrator->inst reverb->roomconcentrator
+  concentrator.connect(roomConcentrator);
+  if (gen.reverb.enabled) {
+    gen.reverb.setContext(context);
+    if (gen.reverb.effect) {
+      concentrator.connect(gen.reverb.effect);
+      gen.reverb.effect.connect(roomConcentrator);
+    }
   }
 
-  return generatorData;
+  return sourceData;
 }

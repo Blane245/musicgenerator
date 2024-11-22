@@ -15,7 +15,7 @@ export default function TracksDisplay() {
         setTracks(fileContents.tracks);
         setEnableGeneratorDialog(-1);
         // console.log('tracks changed')
-    }, [fileContents]);
+    }, [fileContents.tracks]);
 
     function closeTrackGenerator() {
         setEnableGeneratorDialog(-1);

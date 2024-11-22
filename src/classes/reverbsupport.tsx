@@ -16,9 +16,12 @@ export class Effect {
     this.effect = this.context.createGain();
     this.setup();
     this.wireUp();
+    console.log('effect: constructed, setup and wired')
   }
 
-  setup() {}
+  setup() {
+    this.effect = this.context.createGain();
+  }
 
   wireUp() {
     this.input.connect(this.effect);
@@ -27,6 +30,7 @@ export class Effect {
 
   connect(destination: AudioNode): void {
     this.output.connect(destination);
+    console.log('effect: output connected to ', destination);
   }
 
   copy(): Effect {
@@ -47,7 +51,8 @@ export class Effect {
     }
   }
 
-  appendXML(doc: XMLDocument, elem: Element): void {
+  appendXML(props:{doc: XMLDocument, elem: Element}): void {
+    const {doc, elem} = props;
     const eElement: Element = doc.createElement("effect");
     eElement.setAttribute("name", this.name);
     elem.appendChild(eElement);
@@ -80,14 +85,12 @@ export class Filter extends Effect {
     this.type = type;
     this.cutoff = cutoff;
     this.resonance = resonance;
-  }
-
-  override setup() {
     this.effect.type = this.type as BiquadFilterType;
     this.effect.frequency.value = this.cutoff;
     this.effect.Q.value = this.resonance;
     this.input.connect(this.effect);
     this.effect.connect(this.output);
+    console.log('filter: constructed and connected');
   }
 
   override copy(): Filter {
@@ -127,7 +130,8 @@ export class Filter extends Effect {
     }
   }
 
-  override appendXML(doc: XMLDocument, elem: Element): void {
+  override appendXML(props:{doc: XMLDocument, elem: Element}): void {
+    const {doc, elem} = props;
     const fElement: Element = doc.createElement("filter");
     fElement.setAttribute("name", this.name);
     fElement.setAttribute("type", this.type);
@@ -167,26 +171,33 @@ export class AmpEnvelope {
     this.release = 0.001; // (sec) range 0.001 - inf
     this.gain = 1; // default 1, range 0 - inf
     this.velocity = 0; // default 0, range 0 - inf
+    console.log('ampenvelope: constructed');
   }
 
   setContext(context: AudioContext | OfflineAudioContext) {
     this.context = context;
     this.effect = this.context.createGain();
     this.effect.gain.value = this.gain;
+    console.log('ampenvelope: context set');
   }
 
   on(event: MidiEvent): void {
     this.velocity = event.velocity ? event.velocity / 127 : 0;
-    if (this.context)
-      this.start(event.time ? event.time : this.context.currentTime);
+    if (this.context) {
+      const onTime: number = event.time ? event.time : this.context.currentTime;
+      console.log("ampenvelope on at", onTime);
+      this.start(onTime);
+    }
   }
 
   off(time: number): void {
     if (this.context) this.stop(time);
+    console.log('ampenvelope: off at time', time);
   }
 
   start(time: number) {
     if (this.effect) {
+      console.log('ampenvelope: start at time', time);
       this.effect.gain.value = 0;
       this.effect.gain.setValueAtTime(0, time);
       this.effect.gain.setTargetAtTime(1, time, this.attack + 0.00001);
@@ -198,8 +209,10 @@ export class AmpEnvelope {
     }
   }
 
+  // TODO this appears to be stopping too early. 
   stop(time: number) {
     if (this.effect) {
+      console.log('ampenvelope: stop at time', time);
       this.effect.gain.cancelScheduledValues(time);
       this.effect.gain.setValueAtTime(this.gain, time);
       this.effect.gain.setTargetAtTime(0, time, this.release + 0.00001);
@@ -243,7 +256,8 @@ export class AmpEnvelope {
     }
   }
 
-  appendXML(doc: XMLDocument, elem: Element): void {
+  appendXML(props:{doc: XMLDocument, elem: Element}): void {
+    const {doc, elem} = props;
     const aElement: Element = doc.createElement("ampenvelop");
     aElement.setAttribute("name", this.name);
     aElement.setAttribute("attack", this.attack.toString());
@@ -271,176 +285,125 @@ export class AmpEnvelope {
   }
 }
 
-export class Voice {
+export class ReverbNoise {
   name: string;
   context: AudioContext | OfflineAudioContext | undefined;
   type: OscillatorType;
   ampEnvelope: AmpEnvelope | undefined;
   effect: GainNode | undefined;
   gain: number;
+  osc: AudioBufferSourceNode | undefined;
   value: number;
-  partials: (OscillatorNode | AudioBufferSourceNode)[];
+  length: number; // seconds
 
-  constructor(name: string = "") {
+  constructor(name: string) {
     this.name = name;
+    this.context = undefined;
     this.type = "sawtooth";
     this.ampEnvelope = undefined;
     this.effect = undefined;
     this.gain = 0.1;
+    this.osc = undefined;
     this.value = -1;
-    this.partials = [];
+    this.length = 2;
+    console.log('reverbnoise: constructed');
   }
 
   setContext(context: AudioContext | OfflineAudioContext) {
     this.context = context;
-    this.effect = this.context.createGain();
+    this.effect = context.createGain();
     this.effect.gain.value = this.gain;
     this.ampEnvelope = new AmpEnvelope(this.name.concat(":ampenvelope"));
-    this.ampEnvelope.setContext(this.context);
+    this.ampEnvelope.setContext(context);
     if (this.ampEnvelope.effect) this.ampEnvelope.effect.connect(this.effect);
+    console.log('reverbnoise: context set and ampenvelope connected to this effect');
   }
 
   connect(destination: AudioNode): void {
-    if (this.ampEnvelope && this.ampEnvelope.effect)
+    if (this.ampEnvelope && this.ampEnvelope.effect) {
+      console.log('reverbnoise: ampenvelop effect connected to', destination);
       this.ampEnvelope.effect.connect(destination);
+    }
   }
 
   init(time: number) {
     if (this.context) {
-      const osc = this.context.createOscillator();
-      osc.type = this.type;
-      if (this.ampEnvelope && this.ampEnvelope.effect)
-        osc.connect(this.ampEnvelope.effect);
-      osc.start(time);
-      this.partials.push(osc);
+      const lBuffer = new Float32Array(this.length * this.context.sampleRate);
+      const rBuffer = new Float32Array(this.length * this.context.sampleRate);
+
+      for (let i = 0; i < this.length * this.context.sampleRate; i++) {
+        lBuffer[i] = 1 - 2 * rand();
+        rBuffer[i] = 1 - 2 * rand();
+      }
+      const buffer = this.context.createBuffer(
+        2,
+        this.length * this.context.sampleRate,
+        this.context.sampleRate
+      );
+      buffer.copyToChannel(lBuffer, 0);
+      buffer.copyToChannel(rBuffer, 1);
+
+      this.osc = this.context.createBufferSource();
+      this.osc.buffer = buffer;
+      this.osc.loop = true;
+      this.osc.loopStart = 0;
+      this.osc.loopEnd = this.length * this.context.sampleRate;
+      console.log(
+        "reverbnoise: osc buffer created and started with noise at",
+        time,
+        "length",
+        this.osc.buffer.length,
+        "loopend",
+        this.osc.loopEnd
+      );
+      this.osc.start(time);
+      if (this.ampEnvelope && this.ampEnvelope.effect) {
+        console.log('reverbnoise: oscillator connected to ampenvelope effect');
+        this.osc.connect(this.ampEnvelope.effect);
+        if (this.effect) {
+          console.log('reverbnoise: ampenvelope effect connected to noise gain');
+          this.ampEnvelope.effect.connect(this.effect);
+        }
+      }
     }
   }
 
   on(event: MidiEvent) {
-    this.partials.forEach((osc: OscillatorNode | AudioBufferSourceNode) => {
-      if (event.frequency)
-        (osc as OscillatorNode).frequency.value = event.frequency;
-    });
+    console.log('reverbnoise: on')
     if (this.ampEnvelope) this.ampEnvelope.on(event);
   }
 
   off(time: number) {
     if (this.ampEnvelope && this.context) {
+      console.log('reverbnoise: stop at', time + this.ampEnvelope.release * 4);
       this.ampEnvelope.off(time);
-      this.partials.forEach((osc: OscillatorNode | AudioBufferSourceNode) => {
-        if (this.ampEnvelope && this.context)
-          osc.stop(time + this.ampEnvelope.release * 4);
-      });
+      if (this.osc) this.osc.stop(time + this.ampEnvelope.release * 4);
     }
   }
 
-  start(time: number): void {
-    this.partials.forEach((osc: OscillatorNode | AudioBufferSourceNode) => {
-      (osc as OscillatorNode).start(time);
-    });
-  }
-
-  copy(): Voice {
-    const n = new Voice(this.name);
+  copy(): ReverbNoise {
+    const n = new ReverbNoise(this.name);
     n.context = this.context;
     n.type = this.type;
     n.ampEnvelope = this.ampEnvelope ? this.ampEnvelope.copy() : undefined;
-    n.gain = this.gain;
-    n.value = this.value;
-    n.partials = [...this.partials];
     n.effect = this.effect;
-
+    n.gain = this.gain;
+    n.osc = this.osc;
+    n.value = this.value;
+    n.length = this.length;
     return n;
   }
 
   setAttribute(name: string, value: string): void {
     switch (name) {
-      case "voice.name":
-        this.name = value;
-        break;
-      case "voice.type":
-        this.type = value as OscillatorType;
-        break;
-      case "voice.gain":
-        this.gain = parseFloat(value);
-        break;
-      case "voice.value":
-        this.value = parseFloat(value);
-        break;
-      default:
-        break;
-    }
-  }
-
-  appendXML(doc: XMLDocument, elem: Element): void {
-    const vElement: Element = doc.createElement("voice");
-    vElement.setAttribute("name", this.name);
-    vElement.setAttribute("gain", this.gain.toString());
-    vElement.setAttribute("value", this.value.toString());
-    elem.appendChild(vElement);
-  }
-
-  getXML(elem: Element): void {
-    try {
-      const vE: Element = getElementElement(elem, "voice");
-      this.name = getAttributeValue(vE, "name", "string") as string;
-      this.gain = getAttributeValue(vE, "gain", "float") as number;
-      this.value = getAttributeValue(vE, "value", "float") as number;
-    } catch {}
-  }
-}
-
-export class ReverbNoise extends Voice {
-  length: number; // seconds
-
-  constructor(name: string) {
-    super(name.concat(":noise"));
-    this.length = 2;
-  }
-
-  override setContext(context: AudioContext | OfflineAudioContext) {
-    super.setContext(context);
-  }
-
-  override init(time: number) {
-    if (this.context) {
-    const lBuffer = new Float32Array(this.length * this.context.sampleRate);
-    const rBuffer = new Float32Array(this.length * this.context.sampleRate);
-
-    for (let i = 0; i < this.length * this.context.sampleRate; i++) {
-      lBuffer[i] = 1 - 2 * rand();
-      rBuffer[i] = 1 - 2 * rand();
-    }
-    const buffer = this.context.createBuffer(
-      2,
-      this.length * this.context.sampleRate,
-      this.context.sampleRate
-    );
-    buffer.copyToChannel(lBuffer, 0);
-    buffer.copyToChannel(rBuffer, 1);
-
-    const osc: AudioBufferSourceNode = this.context.createBufferSource();
-    osc.buffer = buffer;
-    osc.loop = true;
-    osc.loopStart = 0;
-    osc.loopEnd = 2;
-    osc.start(time);
-    if (this.ampEnvelope && this.ampEnvelope.effect) osc.connect(this.ampEnvelope.effect);
-    this.partials.push(osc);
-  }
-  }
-
-  override on(event: MidiEvent) {
-    if (this.ampEnvelope) this.ampEnvelope.on(event);
-  }
-
-  // off is inherited from Voice
-
-  override setAttribute(name: string, value: string): void {
-    super.setAttribute(name, value);
-    switch (name) {
       case "noise.name":
         this.name = value;
+        break;
+      case "noise.type":
+        this.type = value as OscillatorType;
+        break;
+      case "noise.gain":
+        this.gain = parseFloat(value);
         break;
       case "noise.length":
         this.length = parseFloat(value);
@@ -450,17 +413,22 @@ export class ReverbNoise extends Voice {
     }
   }
 
-  override appendXML(doc: XMLDocument, elem: Element): void {
+  appendXML(props:{doc: XMLDocument, elem: Element}): void {
+    const {doc, elem} = props;
     const eE: Element = doc.createElement("noise");
     eE.setAttribute("name", this.name);
+    eE.setAttribute("type", this.type);
+    eE.setAttribute("gain", this.gain.toString());
     eE.setAttribute("length", this.length.toString());
     elem.appendChild(eE);
   }
 
-  override getXML(elem: Element): void {
+  getXML(elem: Element): void {
     try {
       const eE: Element = getElementElement(elem, "noise");
       this.name = getAttributeValue(eE, "name", "string") as string;
+      this.gain = getAttributeValue(eE, "gain", "float") as number;
+      this.type = getAttributeValue(eE, "type", "string") as OscillatorType;
       this.length = getAttributeValue(eE, "length", "float") as number;
     } catch {}
   }

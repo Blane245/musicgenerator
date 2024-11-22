@@ -38,6 +38,7 @@ export default class RoomReverb {
     this.context = context;
     if (this.enabled) {
       this.effect = context.createConvolver();
+      this.release = this.reverbTime / 3.0;
       this.output = context.createGain();
       this.wet = context.createGain();
       this.multitapGain = this.context.createGain();
@@ -45,6 +46,7 @@ export default class RoomReverb {
       for (let i = 2; i > 0; i--) {
         this.multitap.push(this.context.createDelay(this.reverbTime));
       }
+      console.log('roomreverb: context set');
     }
   }
 
@@ -75,14 +77,25 @@ export default class RoomReverb {
       this.preDelay.connect(this.effect);
       this.effect.connect(this.output);
     }
+    console.log('roomreverb: initialized');
+    this.renderTail(time);
   }
 
   connect(destination: AudioNode) {
-    if (this.output) this.output.connect(destination);
+    if (this.output) {
+      this.output.connect(destination);
+      console.log('roomreverb: output connected to ', destination);
+    } else {
+      console.log('roomreverb: output connect no context');
+
+    }
   }
 
-  renderTail(time: number) {
+  renderTail(time: number = -1) {
     if (this.enabled && this.context) {
+      console.log('roomreverbtail: start');
+
+      const renderTime: number = time == -1? this.context.currentTime: time;
       const tailContext = new OfflineAudioContext(
         2,
         this.context.sampleRate * this.reverbTime,
@@ -90,6 +103,13 @@ export default class RoomReverb {
       );
       tailContext.oncomplete = (buffer) => {
         (this.effect as ConvolverNode).buffer = buffer.renderedBuffer;
+        console.log(
+          'roomreverbtail: render complete at tail time', 
+          tailContext.currentTime, 
+          'context time', 
+          this.context?.currentTime, 
+          'buffer size', buffer.renderedBuffer.length
+        );
       };
       this.tailOsc = new ReverbNoise("noise");
       this.tailOsc.setContext(tailContext);
@@ -100,6 +120,7 @@ export default class RoomReverb {
         5000,
         1
       );
+      // tailLPFilter.setup();
       const tailHPFilter = new Filter(
         "highpass",
         tailContext,
@@ -107,8 +128,9 @@ export default class RoomReverb {
         500,
         1
       );
+      // tailHPFilter.setup();
 
-      this.tailOsc.init(time);
+      this.tailOsc.init(renderTime);
       this.tailOsc.connect(tailHPFilter.input);
       tailHPFilter.connect(tailLPFilter.input);
       tailLPFilter.connect(tailContext.destination);
@@ -116,12 +138,12 @@ export default class RoomReverb {
         this.tailOsc.ampEnvelope.attack = this.attack;
         this.tailOsc.ampEnvelope.decay = this.decay;
         this.tailOsc.ampEnvelope.release = this.release;
-
+        console.log('rendertail: start rendering', time);
         tailContext.startRendering();
 
-        this.tailOsc.on({ frequency: 500, velocity: 1, time: 0 });
+        this.tailOsc.on({ frequency: 500, velocity: 1, time: renderTime });
         setTimeout(() => {
-          if (this.tailOsc) this.tailOsc.off(time);
+          if (this.tailOsc) this.tailOsc.off(renderTime);
         }, 1);
       }
     }
@@ -158,7 +180,7 @@ export default class RoomReverb {
         this.name = value;
         break;
       case "roomreverb.enabled":
-        this.enabled = !this.enabled;
+        this.enabled = value == 'true';
         break;
       case "roomreverb.attack":
         this.attack = parseFloat(value);
@@ -183,7 +205,8 @@ export default class RoomReverb {
     }
   }
 
-  appendXML(doc: XMLDocument, elem: Element): void {
+  appendXML(props:{doc: XMLDocument, elem: Element}): void {
+    const {doc, elem} = props;
     const fElement: Element = doc.createElement("roomreverb");
     fElement.setAttribute("name", this.name);
     fElement.setAttribute("enabled", this.enabled ? "true" : "false");

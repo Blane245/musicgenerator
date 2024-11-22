@@ -67,6 +67,7 @@ fieldset {
   width: 100%;
   height: 100%;
   text-align: left;
+  cursor: default;
 }
 
 .page-grid {
@@ -84,13 +85,7 @@ fieldset {
 .page-title {
   display: block;
   grid-template-columns: subgrid;
-  grid-column: span 5;
-}
-
-.page-message {
-  display: block;
-  grid-template-columns: subgrid;
-  grid-column: span 6;
+  grid-column: span 11;
 }
 
 .page-menus {
@@ -168,13 +163,17 @@ fieldset {
   align-items: center;
   margin-right: 10px;
   margin-bottom: 10px;
-  outline: solid #5c75b8;
+  /* outline: solid #5c75b8; */
 
   .title {
     line-height: normal;
-    font-size: 10px;
+    font-size: 5px;
     text-align: center;
     color: black;
+
+    .button {
+      font-size: 10px;
+    }
   }
 
   .sliders {
@@ -225,6 +224,9 @@ fieldset {
     font-size: 10px;
     text-align: center;
     color: black;
+    .button {
+      font-size: 5px;
+    }
   }
 
   .sliders {
@@ -274,6 +276,9 @@ fieldset {
     font-size: 10px;
     text-align: center;
     color: black;
+    .button {
+      font-size: 5px;
+    }
   }
 
   .sliders {
@@ -371,6 +376,18 @@ fieldset {
   color: white;
 }
 
+.generator-selected {
+  fill: rgba(255, 169, 203, 0.418);
+}
+
+.generator-playing {
+  fill: rgba(255, 169, 203, 0.999);
+}
+
+.generator-normal {
+  fill: white;
+}
+
 .generator-content {
   position: absolute;
   z-index: 1;
@@ -438,6 +455,24 @@ fieldset {
   padding: 5;
   color: white;
   font-weight: bold;
+}
+
+.intervalbox {
+  stroke: black;
+  stroke-width: 1;
+  fill: rgba(169,169,169,.5);
+}
+.intervalmarker {
+  fill: black;
+}
+
+.intervaledge {
+  stroke: black;
+  stroke-width: 2;
+}
+
+.timeline {
+  fill: white;
 }
 
 @keyframes animatetop {

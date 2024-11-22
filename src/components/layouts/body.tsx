@@ -9,7 +9,6 @@ export default function Body() {
 
 
     useEffect(() => {
-        // setMessage({ error: false, text: 'Welcome' });
         setStatus('');
     }, []);
 

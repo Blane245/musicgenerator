@@ -38,7 +38,7 @@ export default class InstReverb {
   // the reverb tail will be realized at the time given
   renderTail(time: number) {
     if (this.enabled) {
-      console.log("RoomInstReverb renderTail");
+      console.log("RoomInstReverb renderTail", time, this.context);
       if (this.context) {
         const tailContext = new OfflineAudioContext(
           2,
@@ -46,6 +46,7 @@ export default class InstReverb {
           this.context.sampleRate
         );
         tailContext.oncomplete = (buffer: OfflineAudioCompletionEvent) => {
+          console.log('instrument tail buffer captured at', time);
           (this.effect as ConvolverNode).buffer = buffer.renderedBuffer;
         };
 
@@ -57,6 +58,7 @@ export default class InstReverb {
           this.tailOsc.ampEnvelope.effect &&
           this.tailOsc.effect
         ) {
+          console.log('instreverb: tailosc connectd to', tailContext.destination);
           this.tailOsc.connect(tailContext.destination);
           this.tailOsc.ampEnvelope.attack = this.attack;
           this.tailOsc.ampEnvelope.decay = this.decay;
@@ -65,8 +67,8 @@ export default class InstReverb {
           tailContext.startRendering();
 
           setTimeout(() => {
-            if (this.tailOsc) this.tailOsc.off(time);
-          }, 1);
+            if (this.tailOsc) this.tailOsc.off( time + 0.01);
+          }, 10);
         }
       }
     }
@@ -114,7 +116,8 @@ export default class InstReverb {
     }
   }
 
-  appendXML(doc: XMLDocument, elem: Element): void {
+  appendXML(props:{doc: XMLDocument, elem: Element}): void {
+    const {doc, elem} = props;
     const fElement: Element = doc.createElement("instreverb");
     fElement.setAttribute("name", this.name);
     fElement.setAttribute("enabled", this.enabled ? "true" : "false");

@@ -50,12 +50,13 @@ export default class CMGFile {
         return newFile;
     }
 
-    appendXML(doc: XMLDocument, elem: Element, name: string): void {
-        elem.setAttribute('name', name);
+    appendXML(props:{elem: Element, doc: XMLDocument, name: string}): void {
+        const {elem, doc, name} = props;
+        props.elem.setAttribute('name', name);
         elem.setAttribute('SFFileName', this.SFFileName);
-        this.compressor.appendXML(doc, elem);
-        this.equalizer.appendXML(doc, elem);
-        this.reverb.appendXML(doc, elem);
+        this.compressor.appendXML({doc:doc, elem:elem});
+        this.equalizer.appendXML({doc:doc, elem:elem});
+        this.reverb.appendXML({doc:doc, elem:elem});
     }
 
     async getXML(fcElem: Element, fileName: string) {

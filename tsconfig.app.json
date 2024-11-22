@@ -24,5 +24,6 @@
     "noImplicitAny": true,
     "noImplicitOverride": true
   },
-  "include": ["src", "types", "soundfonttypes", "classes", "util.ts", ]
+  "include": ["src"],
+  "exclude": ["public"]
 }

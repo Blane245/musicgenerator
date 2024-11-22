@@ -37,24 +37,24 @@ export default class Compressor {
         break;
       case "compress.knee":
         this.knee = parseFloat(value);
-        if (this.context && this.effect) this.effect.knee.value = this.knee;
+        if (this.effect) this.effect.knee.value = this.knee;
         break;
       case "compress.threshold":
         this.threshold = parseFloat(value);
-        if (this.context && this.effect)
+        if (this.effect)
           this.effect.threshold.value = this.threshold;
         break;
       case "compress.release":
         this.release = parseFloat(value) / 1000;
-        if (this.context && this.effect) this.effect.release.value = this.release;
+        if (this.effect) this.effect.release.value = this.release;
         break;
       case "compress.attack":
         this.attack = parseFloat(value) / 1000;
-        if (this.context && this.effect) this.effect.attack.value = this.attack;
+        if (this.effect) this.effect.attack.value = this.attack;
         break;
       case "compress.ratio":
         this.ratio = parseFloat(value);
-        if (this.context && this.effect) this.effect.ratio.value = this.ratio;
+        if (this.effect) this.effect.ratio.value = this.ratio;
         break;
       default:
         break;
@@ -85,7 +85,8 @@ export default class Compressor {
     } catch {
     }
   }
-  appendXML(doc: XMLDocument, elem: Element): void {
+  appendXML(props:{doc: XMLDocument, elem: Element}): void {
+    const {doc, elem} = props;
     const cElement: Element = doc.createElement("compressor");
     cElement.setAttribute("name", this.name);
     cElement.setAttribute("attack", this.attack.toString());

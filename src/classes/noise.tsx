@@ -13,7 +13,7 @@ import { GENERATORTYPE, NOISETYPE, SAMPLERATE } from "../types/types";
 import { gaussianRandom } from "../utils/gaussianrandom";
 import { getAttributeValue } from "../utils/xmlfunctions";
 import CMG from "./cmg";
-import InstReverb from "./instreverb";
+import InstReverb from "./instreverb2";
 
 export default class Noise extends CMG {
   noiseType: string;
@@ -205,8 +205,8 @@ export default class Noise extends CMG {
         );
         break;
     }
-    let pan: number = this.VMCenter;
-    switch (this.VMType) {
+    let pan: number = this.PMCenter;
+    switch (this.PMType) {
       case "SINE":
         pan = sineModulator(
           time,
@@ -247,8 +247,9 @@ export default class Noise extends CMG {
     return { sample: sample, volume: volume, pan: pan };
   }
 
-  override appendXML(doc: XMLDocument, elem: Element): void {
-    super.appendXML(doc, elem);
+  override appendXML(props:{doc: XMLDocument, elem: Element}): void {
+    const {elem} = props;
+    super.appendXML(props);
     elem.setAttribute("type", GENERATORTYPE.Noise);
     elem.setAttribute("seed", this.seed);
     elem.setAttribute("noiseType", this.noiseType);
@@ -265,7 +266,7 @@ export default class Noise extends CMG {
     elem.setAttribute("PMFrequency", this.PMFrequency.toString());
     elem.setAttribute("PMAmplitude", this.PMAmplitude.toString());
     elem.setAttribute("PMPhase", this.PMPhase.toString());
-    this.reverb.appendXML(doc, elem);
+    this.reverb.appendXML(props);
   }
 
   override getXML(elem: Element): void {

@@ -11,21 +11,32 @@ export default function RoomEqualizerDialog() {
 
   useEffect(() => {
     setEqualizerData(fileContents.equalizer);
-  }, [fileContents.equalizer]);
+  },[fileContents.equalizer])
 
   function handleChange(event: ChangeEvent<HTMLInputElement>, i: number): void {
     const value: number = parseInt(event.target["value"]);
-    setEqualizerData((prev: Equalizer) => {
-      const newEqualizer = prev.copy();
-      newEqualizer.setGain(i, value);
-      setEqualizer(newEqualizer, setFileContents);
-      return newEqualizer;
-    });
+    const n: Equalizer = equalizerData.copy();
+    n.setGain(i, value);
+    setEqualizer(n, setFileContents);   
+  }
+
+  function reset() {
+    const n = equalizerData.copy();
+    n.gains = Array(equalizerData.gains.length).fill(0);
+    if (equalizerData.context) {
+      for (let i = 0; i < n.gains.length; i++) {
+        n.effects[i].gain.value = 0;
+      }
+    }
+    setEqualizer(n, setFileContents);
   }
 
   return (
     <div className="page-footer-equalizer">
-      <p className="title">Equalizer (+- 15dB) Freqs (Hz)</p>
+      <p className="title">
+        Equalizer (+- 15dB) Freqs (Hz) Reset: &nbsp;
+        <button className='button' onClick={reset}>&nbsp;</button>
+        </p>
       <div className="sliders">
         {equalizerData.gains.map((g, i) => {
           return (

@@ -24,10 +24,10 @@ export default class Track {
     });
     return t;
   }
-  appendXML(doc: XMLDocument, elem: Element): void {
-    elem.setAttribute("name", this.name);
-    elem.setAttribute("mute", this.mute.toString());
-    elem.setAttribute("solo", this.solo.toString());
+  appendXML(props:{elem: Element}): void {
+    props.elem.setAttribute("name", this.name);
+    props.elem.setAttribute("mute", this.mute.toString());
+    props.elem.setAttribute("solo", this.solo.toString());
   }
 
   getXML(elem: Element) {

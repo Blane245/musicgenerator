@@ -1,9 +1,10 @@
 //
 // this follows the 4 markov chains for the midi, speed, volume, and pan attributes
 // each node time starts when the last one stops as determined by the spped attribute
+import InstReverb from "../../classes/instreverb2";
 import SFRG from "../../classes/sfrg";
 import { InstrumentZone } from "../../types/soundfonttypes";
-import { GeneratorData, REPEATOPTION } from "../../types/types";
+import { sourceData, REPEATOPTION } from "../../types/types";
 import { getSFGeneratorValues } from "../../utils/soundfont2utils";
 
 // the node's midi, volume, and pan values is plugged in from their respective chains
@@ -11,7 +12,7 @@ export function getBufferSourceNodesFromSFRG(
   context: AudioContext | OfflineAudioContext,
   gen: SFRG,
   roomConcentrator: GainNode
-): GeneratorData[] {
+): sourceData[] {
   // get the instrument zone for generator's preset
   if (!gen.preset)
     throw new Error(`Preset '${gen.presetName}' has not been initialized.`);
@@ -27,7 +28,7 @@ export function getBufferSourceNodesFromSFRG(
   // the generator has a start and end time
   const { startTime, stopTime } = gen;
   let currentTime: number = startTime;
-  const generatorData: GeneratorData[] = [];
+  const sourceData: sourceData[] = [];
 
   // initialize the current values of the generator
   gen.midiT.currentValue = gen.midiT.startValue;
@@ -158,9 +159,27 @@ export function getBufferSourceNodesFromSFRG(
     const panner: StereoPannerNode = context.createStereoPanner();
     panner.pan.value = pan;
 
+    // connect make the path source->vol->panner->concentrator
+    source.connect(vol);
+    vol.connect(panner);
+    panner.connect(concentrator);
+
+    // get a copy of the generator's reverb and connect it
+    let sReverb: InstReverb | undefined = undefined;
+    if (gen.reverb.enabled) {
+      sReverb = gen.reverb.copy();
+      sReverb.setContext(context);
+      if (sReverb.effect) {
+        concentrator.connect(sReverb.effect);
+        sReverb.effect.connect(roomConcentrator);
+      }
+    }
+
     // and add it to the accumulated sources
-    generatorData.push({
+    sourceData.push({
+      generator: gen,
       source: source,
+      reverb: sReverb,
       start: currentTime,
       stop: Math.min(stopTime, currentTime + timeStep),
       lastGain: vol,
@@ -172,15 +191,9 @@ export function getBufferSourceNodesFromSFRG(
   }
 
   // make the connections
-  // concentrator->passthru->roomconcentrator
-  // optionally concentrator->inst reverb->passthru
-  const passThru: GainNode = context.createGain();
-  concentrator.connect(passThru);
-  passThru.connect(roomConcentrator);
-  if (gen.reverb.enabled && gen.reverb.effect) {
-    concentrator.connect(gen.reverb.effect);
-    gen.reverb.effect.connect(passThru);
-  }
+  // concentrator->roomconcentrator
+  // optionally concentrator->inst reverb->roomconcentrator
+  concentrator.connect(roomConcentrator);
 
-  return generatorData;
+  return sourceData;
 }

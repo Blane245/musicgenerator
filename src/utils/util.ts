@@ -1,3 +1,4 @@
+import Track from "../classes/track";
 import { Preset } from "types/soundfonttypes";
 
 export const tokenizeNote = (note: any) => {
@@ -9,20 +10,6 @@ export const tokenizeNote = (note: any) => {
     return [];
   }
   return [pc, acc, oct ? Number(oct) : undefined];
-};
-const accs = { '#': 1, b: -1, s: 1 };
-// turns the given note into its midi number representation
-export const toMidi = (note: any): number => {
-  if (typeof note === 'number') {
-    return note;
-  }
-  const [pc, acc, oct] = tokenizeNote(note);
-  if (!pc) {
-    throw new Error('not a note: "' + note + '"');
-  }
-  const chroma = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 }[(pc as string).toLowerCase()];
-  const offset = (acc as string)?.split('').reduce((o, char) => o + accs[char], 0) || 0;
-  return (Number(oct) + 1) * 12 + (chroma as number) + offset;
 };
 
 // timecents to seconds
@@ -54,3 +41,19 @@ export function bankPresettoName(preset: Preset): string {
     .concat(':')
     .concat(preset.header.name));
 }
+
+export function getGeneratorUID (tracks: Track[]): number {
+  let next = 0;
+  let found = false;
+  while(!found) {
+    found = tracks.find((t) => {
+      return (
+        t.generators.find((g) => (g.name == 'G'.concat(next.toString())))
+      )
+    }) == undefined;
+    if (!found) next++;
+  }
+  return next;
+}
+
+// function to determine whcih generator type an object is 
