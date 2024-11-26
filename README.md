@@ -1,5 +1,7 @@
 # Rambling
 
+This work is inspired by the book [Formalized Music: Thought and Mathematics in Composition](https://en.wikipedia.org/wiki/Formalized_Music). Though the principles in that book are only patially realized here, more work may be done...
+
 I want a music generator that will play one or more voices using various note generators. The generators may be sequences random walk, or stocastic up to 3 degrees. Each voice can be assigned to a sound font file bank and preset.
 Voice controls include
 
@@ -36,7 +38,7 @@ The data structure is hierachial:
 *  Called CMGFile, this includes all attributes that apply to all other attributes. It includes a filename, the room compressor, the room equalizer, the name of the soundfont file and its contexts, and a collection of tracks.
 * Called TimeLine, this includes attributes that define the left most time to be displayed, the current zoom level, and its component's hight and width on the screen. This data element is independent of CMGFile: time line setting persist between files.
 * Called Track, this is an instance of the track collection belonging to a CMGFile. Each track has name, solo, and mute attributes and a collection of generators. This provide the means by which generators can be assigned to different tracks for origanizational purposes.
-* Call Generator, this is an instance of a generator collection and is the source of the sound that is produced by CMG. There are currently four types of generators.
+* Called Generator, this is an instance of a generator collection and is the source of the sound that is produced by CMG. There are currently four types of generators.
 
     * CMG - this generator is the parent of those below and will not generate sound. It contains the attributes that are common to all generators. This includes a name, start and end times, mute and solo flags, and a vertical position with the track's timeline. When previewing and recording it hold the audio context for the generator.
     * The three types of genrators that produce sound are listed above.
