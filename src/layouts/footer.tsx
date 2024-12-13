@@ -1,0 +1,16 @@
+import RoomCompressorDialog from "../dialogs/roomcompressordialog";
+import RoomEqualizerDialog from "../dialogs/roomequalizerdialog";
+import { useCMGContext } from "../cmgcontext";
+
+// the footer will contain the equalizer
+export default function Footer() {
+  const { status } = useCMGContext();
+
+  return (
+    <div className="page-footer">
+      <div className="page-footer-status">{status}</div>
+      <RoomCompressorDialog />
+      <RoomEqualizerDialog />
+    </div>
+  );
+}
