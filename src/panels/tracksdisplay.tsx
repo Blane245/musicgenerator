@@ -27,6 +27,7 @@ export default function TracksDisplay() {
         return (
           <>
             <TrackControlsDisplay
+              key={`track-control:${t.name}`}
               tracks={tracks}
               track={t}
               trackIndex={i}
@@ -34,8 +35,8 @@ export default function TracksDisplay() {
             />
             <div
               className="page-track-display"
-              key={"track-display:" + t.name}
-              id={"track-display:" + t.name}
+              key={`track-display:${t.name}`}
+              id={`track-display:${t.name}`}
               ref={(el: HTMLDivElement) => {
                 trackRef.current[i] = el;
                 return el;

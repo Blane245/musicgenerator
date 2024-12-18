@@ -1,6 +1,6 @@
 import CMGFile from "./classes/cmgfile";
 import TimeLine from "./classes/timeline";
-import { createContext, Dispatch, ReactNode, RefObject, SetStateAction, useContext, useRef, useState } from "react";
+import { createContext, Dispatch, MutableRefObject, ReactNode, RefObject, SetStateAction, useContext, useRef, useState } from "react";
 import { CMGeneratorType, TimelineInterval } from "./types";
 import { Preset } from "./sfcomponents/types";
 
@@ -16,7 +16,7 @@ interface CMGContextType {
     setTimeLine: Dispatch<SetStateAction<TimeLine>>;
     presets: Preset[];
     setPresets: Dispatch<SetStateAction<Preset[]>>;
-    playing: RefObject<{on:boolean}>;
+    playing: MutableRefObject<boolean>;
     timeProgress: number;
     setTimeProgress: Dispatch<SetStateAction<number>>;
     timeInterval: TimelineInterval;
@@ -36,7 +36,7 @@ export const CMGProvider = ({ children, }: { children: ReactNode }) => {
     const [fileName, setFileName] = useState<string>('');
 
     const [presets, setPresets] = useState<Preset[]>([]);
-    const playing = useRef<{on:boolean}>({on:false});
+    const playing = useRef<boolean>(false);
     const [timeProgress, setTimeProgress] = useState<number>(0);
     const [timeInterval, setTimeInterval] = useState<TimelineInterval>({startOffset: -1, endOffset: -1});
     const [mouseDown, setMouseDown] = useState(false);

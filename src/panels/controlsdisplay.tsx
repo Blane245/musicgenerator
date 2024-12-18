@@ -5,7 +5,7 @@ import SFRG from "../classes/sfrg";
 import Track from "../classes/track";
 import { useCMGContext } from "../cmgcontext";
 import Generate from "../generation/generate";
-import { bankPresettoName } from "../sfcomponents/index";
+import { bankPresettoName } from "../sfcomponents/util";
 import { Preset } from "../sfcomponents/types";
 import { CMGeneratorType, GENERATIONMODE, GENERATORTYPE } from "../types";
 import { modifyGenerator, setSoundFont } from "../utils/cmfiletransactions";
@@ -45,10 +45,8 @@ export default function ControlsDisplay() {
 
   // show the stop button when playing
   useEffect(() => {
-    if (playing.current) {
-      setShowStop(playing.current.on);
-    }
-  }, [playing.current?.on]);
+      setShowStop(playing.current);
+  }, [playing.current]);
 
   // update the SF file name when the file contents file name changes
   useEffect(() => {
@@ -121,9 +119,9 @@ export default function ControlsDisplay() {
   return (
     <>
       <div className="page-control">
-        <label htmlFor="SFfile-select">SoundFont File:</label>
+        <label htmlFor="SFfile-select">SoundFont File:&nbsp;</label>
         <select
-          disabled={playing.current?.on}
+          disabled={playing.current}
           name="SFfile-select"
           id="SFfile-select"
           value={SFFileName}
@@ -137,14 +135,14 @@ export default function ControlsDisplay() {
         </select>
         <button
           style={{ marginLeft: "1em" }}
-          disabled={!readyGenerate || playing.current?.on}
+          disabled={!readyGenerate || playing.current}
           onClick={() => setMode(GENERATIONMODE.record)}
         >
           Record
         </button>
         <button
           style={{ marginLeft: "1em" }}
-          disabled={!readyGenerate || playing.current?.on}
+          disabled={!readyGenerate || playing.current}
           onClick={() => setMode(GENERATIONMODE.preview)}
         >
           Preview
@@ -153,7 +151,7 @@ export default function ControlsDisplay() {
           style={{ marginLeft: "1em" }}
           hidden={!showStop}
           onClick={() => {
-            if (playing.current) playing.current.on = false;
+            playing.current = false;
           }}
         >
           Stop

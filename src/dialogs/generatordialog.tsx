@@ -6,7 +6,7 @@ import SFPG from "../classes/sfpg";
 import SFRG from "../classes/sfrg";
 import Track from "../classes/track";
 import { useCMGContext } from "../cmgcontext";
-import { bankPresettoName } from "../sfcomponents/index";
+import { bankPresettoName } from "../sfcomponents/util";
 import { Preset } from "../sfcomponents/types";
 import { CMGeneratorType, GENERATORTYPE } from "../types";
 import {
@@ -72,7 +72,10 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     // update the form with the new attribute value
     setFormData((prev: CMGeneratorType) => {
       const eventName: string | null = event.target["name"];
-      const eventValue: string | null = event.target["value"];
+      let eventValue: string | null = event.target["value"];
+      // handle checkboxes
+      if (event.target['checked'] != undefined) 
+        event.target['checked']? eventValue = 'true': eventValue = 'false';
       
       if (!eventName || !eventValue) return prev;
 

@@ -9,7 +9,8 @@ import Track from "../classes/track";
 import { useCMGContext } from "../cmgcontext";
 import { Preset } from "../sfcomponents/types";
 import { GENERATORTYPE } from "../types";
-import { newFile, setDirty } from "../utils/cmfiletransactions";
+import { addTrack, newFile, setDirty } from "../utils/cmfiletransactions";
+import { getTrackUID } from "../utils/gettrackuid";
 import {
   getAttributeValue,
   getDocElement,
@@ -24,18 +25,15 @@ export default function FileMenu() {
   useHotkeys(
     "ctrl+s",
     () => {
-      if (!playing.current?.on) saveFileContents();
+      if (!playing.current) saveFileContents();
     },
     { preventDefault: true }
   );
 
-  // edge insists that this is a new new tab request that can't be denied
-  // useHotkeys('ctrl+n', () => {if (!playing.current?.on) handleFileNew()},
-  // {preventDefault: true});
   useHotkeys(
     "ctrl+o",
     () => {
-      if (!playing.current?.on) handleOpen();
+      if (!playing.current) handleOpen();
     },
     { preventDefault: true }
   );
@@ -74,15 +72,29 @@ export default function FileMenu() {
       setOpen("");
     }
   }
+
   function handleFileSave() {
     saveFileContents();
   }
+  function handleNewTrack() {
+
+    // find a track number that is unique, start wiith the next number
+    const next = getTrackUID(fileContents.tracks);
+
+    // create a track with this UID;
+    const newTrack = new Track(next);
+    // and added to the file
+    addTrack(newTrack, setFileContents);
+    setStatus(`Track ${newTrack.name}' Added`);
+  }
+
 
   return (
-    <fieldset disabled={playing.current?.on} style={{ width: "30em" }}>
-      <button onClick={handleFileNew}>New File</button>
-      <button onClick={handleOpen}>Open File...</button>
-      <button onClick={handleFileSave}>Save File...</button>
+    <fieldset disabled={playing.current} /* style={{ width: "30em" }} */>
+      <button onClick={()=>handleFileNew()}>New File</button><span>&nbsp;</span>
+      <button onClick={()=>handleOpen()}>Open File...</button><span>&nbsp;</span>
+      <button onClick={()=>handleFileSave()}>Save File...</button><span>&nbsp;</span>
+      <button onClick={()=>handleNewTrack()}>New Track</button>
 
       <div
         style={{ display: open == "" ? "none" : "block" }}

@@ -83,7 +83,7 @@ export default function NoiseDialog(props: SFPGDialogProps): JSX.Element {
               onChange={handleChange}
               type="number"
               min={0}
-              max={1}
+              max={100}
               step={0.01}
             />
             <span> </span>
@@ -102,7 +102,7 @@ export default function NoiseDialog(props: SFPGDialogProps): JSX.Element {
           max={100}
           step={0.1}
         />
-        <span> (ms)</span>
+        <span> (s)</span>
       </label>
       <hr/>
       <label htmlFor="VMType"> VMType:</label>

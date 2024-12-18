@@ -6,7 +6,6 @@ import {
   MarkovProbabilities,
   MARKOVSTATE,
   RandomSFTransitons,
-  REPEATOPTION,
 } from "../types";
 import CMG from "./cmg";
 import { getAttributeValue, getElementElement } from "../utils/xmlfunctions";
@@ -15,7 +14,7 @@ import { rand } from "../utils/seededrandom";
 export default class SFRG extends CMG {
   presetName: string;
   preset: Preset | undefined;
-  repeat: REPEATOPTION;
+  isLooping: boolean;
   seed: string;
   midiT: RandomSFTransitons; // midi
   speedT: RandomSFTransitons; // BPM
@@ -27,7 +26,7 @@ export default class SFRG extends CMG {
     this.type = GENERATORTYPE.SFRG;
     this.presetName = "";
     this.preset = undefined;
-    this.repeat = REPEATOPTION.Sample;
+    this.isLooping = true;
     this.seed = this.name;
     this.midiT = {
       currentState: MARKOVSTATE.same,
@@ -79,7 +78,7 @@ export default class SFRG extends CMG {
     n.seed = this.seed;
     n.presetName = this.presetName;
     n.preset = this.preset;
-    n.repeat = this.repeat;
+    n.isLooping = this.isLooping;
     n.midiT = copyTransitions(this.midiT);
     n.speedT = copyTransitions(this.speedT);
     n.volumeT = copyTransitions(this.volumeT);
@@ -122,8 +121,8 @@ export default class SFRG extends CMG {
       case "presetName":
         this.presetName = value;
         break;
-      case "repeat":
-        this.repeat = value as REPEATOPTION;
+      case "isLooping":
+        this.isLooping = (value == 'true');
         break;
       case "midiT.startValue":
         this.midiT.startValue = parseFloat(value);
@@ -384,7 +383,7 @@ export default class SFRG extends CMG {
     elem.setAttribute("type", GENERATORTYPE.SFRG);
     elem.setAttribute("seed", this.seed);
     elem.setAttribute("presetName", this.presetName);
-    elem.setAttribute("repeat", this.repeat);
+    elem.setAttribute("isLooping", this.isLooping?'true':'false');
     elem.appendChild(addTransitionAttributes("midiT", this.midiT));
     elem.appendChild(addTransitionAttributes("speedT", this.speedT));
     elem.appendChild(addTransitionAttributes("volumeT", this.volumeT));
@@ -424,7 +423,11 @@ export default class SFRG extends CMG {
     super.getXML(elem);
     this.type = GENERATORTYPE.SFRG;
     this.presetName = getAttributeValue(elem, "presetName", "string") as string;
-    this.repeat = getAttributeValue(elem, "repeat", "string") as REPEATOPTION;
+    try {
+    this.isLooping = (getAttributeValue(elem, "isLooping", "string") as string == 'true');
+    } catch (e) {
+      this.isLooping = true;
+    }
     this.seed = getAttributeValue(elem, "seed", "string") as string;
     const midiTElem: Element = getElementElement(elem, "midiT");
     const midiTChildren: HTMLCollection = midiTElem.children;

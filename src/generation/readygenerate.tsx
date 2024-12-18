@@ -38,10 +38,10 @@ function findEarliestSelected(
 }
 
 export interface ReadyGenerateProps {
-  fileContents: CMGFile;
   mode: GENERATIONMODE;
-  timeInterval: TimelineInterval;
   generator: CMGeneratorType | null;
+  fileContents: CMGFile;
+  timeInterval: TimelineInterval;
 }
 // build the list of generators to the used
 export default function ReadyGenerate(props: ReadyGenerateProps): {
@@ -49,14 +49,16 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
   SFRGenerators: SFRG[];
   NoiseGenerators: Noise[];
   playbackLength: number;
+  offsetTime: number;
   error: string;
 } {
-  const { fileContents, mode, timeInterval, generator } = props;
+  const { mode, generator, fileContents, timeInterval} = props;
   const SFPGenerators: SFPG[] = [];
   const SFRGenerators: SFRG[] = [];
   const NoiseGenerators: Noise[] = [];
   let playbackLength: number = 0;
   let error: string = "";
+  let offsetTime:number = 0;
 
   // get the active generators for the entire rendering
   if (mode == GENERATIONMODE.preview || mode == GENERATIONMODE.record) {
@@ -74,6 +76,7 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
         startTime,
         endTime
       );
+      offsetTime = firstGeneratorTime;
       fileContents.tracks.forEach((t) => {
         t.generators.forEach((g) => {
           if (isSelected(g, startTime, endTime)) {
@@ -86,13 +89,14 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
             if (g.type == GENERATORTYPE.SFRG) SFRGenerators.push(thisG as SFRG);
             if (g.type == GENERATORTYPE.Noise)
               NoiseGenerators.push(thisG as Noise);
+            playbackLength = Math.max(g.stopTime, playbackLength);
           }
         });
       });
     } else {
       // find if there are any solo tracks
       let isSolo: boolean = fileContents.tracks.findIndex((t) => t.solo) >= 0;
-
+      
       fileContents.tracks.forEach((t) => {
         if (!t.mute) {
           if ((isSolo && t.solo) || !isSolo) {
@@ -126,6 +130,7 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
     }
     // get the generator being soloed and shift its start time to zero
   } else if (mode == GENERATIONMODE.solo && generator) {
+    offsetTime = generator.startTime;
     if (!generator.mute) {
       if (generator.type == GENERATORTYPE.SFPG) {
         const tempGen: SFPG = (generator as SFPG).copy();
@@ -162,6 +167,7 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
     SFRGenerators,
     NoiseGenerators,
     playbackLength,
+    offsetTime,
     error: "",
   };
 }

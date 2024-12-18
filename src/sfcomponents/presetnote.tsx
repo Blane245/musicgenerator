@@ -1,4 +1,4 @@
-import { NoteConnection } from "../types";
+import { CMGeneratorType, SourceData } from "../types";
 import { applyOptions } from "./applyoptions";
 import {
   generators,
@@ -10,12 +10,12 @@ import {
   InstrumentZone,
   Preset,
   PresetZone,
-  RangeGenerator,
   Sample,
 } from "./types";
 
 export function getBufferSourceFromSample(
   ctx: AudioContext | OfflineAudioContext,
+  gen: CMGeneratorType,
   destination: AudioNode,
   duration: number,
   pitchValue: number,
@@ -40,7 +40,7 @@ export function getBufferSourceFromSample(
   const source: AudioBufferSourceNode = ctx.createBufferSource();
   source.buffer = buffer;
   const theseOptions: {} = { ...header, ...options }; // merge sample header and options
-  return applyOptions(ctx, source, destination, duration, pitchValue, volumeValue, panValue, theseOptions);
+  return applyOptions(ctx, gen, source, destination, duration, pitchValue, volumeValue, panValue, theseOptions);
 }
 
 export const isActiveZone = (
@@ -63,15 +63,6 @@ export const mergeGenerators = (
   );
 };
 
-interface ActiveZoneType {
-  mergedGenerators: Object;
-  sample: Sample;
-  keyRange?: RangeGenerator | undefined;
-  modulators?: {};
-  generators: {
-    [key: number]: Generator;
-  };
-}
 export const getActiveZones = (preset: Preset, midi: number) => {
   // console.log('preset', preset);
   const activeZones = preset.zones
@@ -97,6 +88,7 @@ export const getActiveZones = (preset: Preset, midi: number) => {
 
 export const connectPresetNote = (
   ctx: AudioContext | OfflineAudioContext,
+  gen: CMGeneratorType,
   destination: AudioNode,
   preset: Preset,
   duration: number,
@@ -104,11 +96,12 @@ export const connectPresetNote = (
   volumeValue: number,
   panValue: number,
   time: number
-): NoteConnection [] => {
+): SourceData[] => {
   const zones = getActiveZones(preset, Math.round(pitchValue));
-  const result: NoteConnection[] = zones.map((zone) =>
+  const result: SourceData[] = zones.map((zone) =>
     getBufferSourceFromSample(
       ctx,
+      gen,
       destination,
       duration,
       pitchValue,
@@ -121,6 +114,5 @@ export const connectPresetNote = (
       }
     )
   );
-  // console.log('sources', sources);
   return result;
 };

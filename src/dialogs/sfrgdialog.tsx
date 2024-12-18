@@ -6,7 +6,6 @@ import {
   AttributeRange,
   EPS,
   RandomSFTransitons,
-  REPEATOPTION,
 } from "../types";
 
 // provides the form fields and validators for the sfrandom generator
@@ -55,16 +54,13 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
         </select>
       </label>
       <label>
-        &nbsp;Loop Option:&nbsp;
-        <select name="repeat" onChange={handleChange} value={formData.repeat}>
-          {Object.keys(REPEATOPTION).map((o) => {
-            return (
-              <option key={`repeat-${o}`} value={o}>
-                {o}
-              </option>
-            );
-          })}
-        </select>
+        &nbsp;Looping?:&nbsp;
+        <input
+          name="isLooping"
+          type="checkbox"
+          checked={formData.isLooping ? true : false}
+          onChange={handleChange}
+        />
       </label>
       <div className="transition-box">
         <p className="transition-header">Midi Transtions</p>

@@ -129,7 +129,7 @@ export default function TrackControlsDisplay(props: TrackControlsDisplayProps) {
   return (
     <>
       <div className="page-track-control" key={"track-control:" + track.name}>
-        <fieldset disabled={playing.current?.on} style={{ width: "inherit" }}>
+        <fieldset disabled={playing.current} style={{ width: "inherit" }}>
           <button
             className="track-button"
             id={"track-delete:" + track.name}

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import CMG2 from "../assets/CGM2.svg";
 import { useCMGContext } from "../cmgcontext";
 import FileMenu from "../menus/filemenu";
-import TrackMenu from "../menus/trackmenu";
 import ControlsDisplay from "../panels/controlsdisplay";
 
 export interface HeaderProps {
@@ -18,7 +17,8 @@ export default function Header(props: HeaderProps) {
     setIsDirty(fileContents.dirty ? "*" : "");
   }, [fileContents]);
   return (
-    <div className = 'page-header'>
+    <>
+    {/* <div className = 'page-header'> */}
       <div className="page-icon">
         <img
           src={CMG2}
@@ -33,9 +33,9 @@ export default function Header(props: HeaderProps) {
       </div>
       <div className="page-menus">
         <FileMenu />
-        <TrackMenu />
       </div>
       <ControlsDisplay />
-    </div>
+    {/* </div> */}
+    </>
   );
 }

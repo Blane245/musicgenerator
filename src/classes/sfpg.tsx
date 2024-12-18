@@ -5,13 +5,13 @@ import {
   triangleModulator,
 } from "../modulators/index";
 import { Preset } from "../sfcomponents/types";
-import { GENERATORTYPE, REPEATOPTION } from "../types";
+import { GENERATORTYPE } from "../types";
 import { getAttributeValue } from "../utils/xmlfunctions";
 import CMG from "./cmg";
 export default class SFPG extends CMG {
   presetName: string;
   preset: Preset | undefined;
-  repeat: REPEATOPTION;
+  isLooping: boolean;
   midi: number;
   duration: number; // msec
   FMType: string;
@@ -33,7 +33,7 @@ export default class SFPG extends CMG {
     this.type = GENERATORTYPE.SFPG;
     this.presetName = "";
     this.preset = undefined;
-    this.repeat = REPEATOPTION.Sample;
+    this.isLooping = true;
     this.midi = 0;
     this.duration = 0;
     this.FMType = "SINE";
@@ -64,7 +64,7 @@ export default class SFPG extends CMG {
     n.presetName = this.presetName;
     n.preset = this.preset;
     n.midi = this.midi;
-    n.repeat = this.repeat;
+    n.isLooping = this.isLooping;
     n.duration = this.duration;
     n.FMType = this.FMType;
     n.FMAmplitude = this.FMAmplitude;
@@ -92,8 +92,8 @@ export default class SFPG extends CMG {
       case "presetName":
         this.presetName = value;
         break;
-      case "repeat":
-        this.repeat = value as REPEATOPTION;
+      case "isLooping":
+        this.isLooping = (value == 'true');
         break;
       case "midi":
         this.midi = parseFloat(value);
@@ -277,7 +277,7 @@ export default class SFPG extends CMG {
     const { elem } = props;
     elem.setAttribute("type", GENERATORTYPE.SFPG);
     elem.setAttribute("presetName", this.presetName);
-    elem.setAttribute("repeat", this.repeat);
+    elem.setAttribute("isLooping", this.isLooping?'true':'false');
     elem.setAttribute("midi", this.midi.toString());
     elem.setAttribute("duration", this.duration.toString());
     elem.setAttribute("FMType", this.FMType.toString());
@@ -300,7 +300,11 @@ export default class SFPG extends CMG {
     super.getXML(elem);
     this.type = GENERATORTYPE.SFPG;
     this.presetName = getAttributeValue(elem, "presetName", "string") as string;
-    this.repeat = getAttributeValue(elem, "repeat", "string") as REPEATOPTION;
+    try {
+      this.isLooping = getAttributeValue(elem, "isLooping", "string") as string == 'true';
+    } catch(e) {
+      this.isLooping = true;
+    }
     this.midi = getAttributeValue(elem, "midi", "int") as number;
     try {
       this.duration = getAttributeValue(elem, "duration", "float") as number;

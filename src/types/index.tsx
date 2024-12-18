@@ -5,8 +5,6 @@ import SFRG from "../classes/sfrg";
 
 export const SAMPLERATE: number = 44100;
 
-export const CHUNKTIME: number = 0.1;
-
 export const EPS: number = 1e-4;
 
 export type CMGeneratorType = CMG | SFPG | SFRG | Noise;
@@ -108,9 +106,17 @@ export enum MARKOVSTATE {
   down = "down",
 }
 
-export type sourceData = {
-  generator: CMGeneratorType,
-  connections: NoteConnection[],
+// export type NoteConnection = {
+//   source: AudioBufferSourceNode,
+//   vol: GainNode,
+//   panner: StereoPannerNode,
+//   duration: number,
+// }
+export type SourceData = {
+  source: AudioBufferSourceNode,
+  gen: CMGeneratorType,
+  startTime: number,
+  duration: number,
   started: boolean;
 };
 
@@ -158,10 +164,4 @@ export type TimelineInterval = {
   endOffset: number;
   startTime?: number;
   endTime?: number; 
-}
-
-export type NoteConnection = {
-  source: AudioBufferSourceNode;
-  vol: GainNode;
-  panner: StereoPannerNode;
 }

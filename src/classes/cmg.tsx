@@ -3,7 +3,6 @@ import { getAttributeValue } from "../utils/xmlfunctions";
 
 export default class CMG {
   name: string;
-  context: AudioContext | OfflineAudioContext | undefined
   startTime: number;
   stopTime: number;
   type: GENERATORTYPE;
@@ -13,16 +12,12 @@ export default class CMG {
 
   constructor(nextGenerator: number) {
     this.name = "G".concat(nextGenerator.toString());
-    this.context = undefined;
     this.startTime = 0;
     this.stopTime = 0;
     this.type = GENERATORTYPE.CMG;
     this.mute = false;
     this.solo = false;
     this.position = 0;
-  }
-
-  setContext(context: AudioContext | OfflineAudioContext) {
   }
 
   copy(): CMGeneratorType {

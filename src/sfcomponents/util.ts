@@ -1,5 +1,5 @@
 import { Preset } from "./types";
-export const tokenizeNote = (note) => {
+export const tokenizeNote = (note: any) => {
     if (typeof note !== "string") {
         return [];
     }
@@ -9,9 +9,9 @@ export const tokenizeNote = (note) => {
     }
     return [pc, acc, oct ? Number(oct) : undefined];
 };
-const accs = { "#": 1, b: -1, s: 1 };
+const accs =  { "#": 1, "b": -1, "s": 1 };
 // turns the given note into its midi number representation
-export const toMidi = (note) => {
+export const toMidi = (note: any) => {
     if (typeof note === "number") {
         return note;
     }
@@ -20,17 +20,17 @@ export const toMidi = (note) => {
         throw new Error('not a note: "' + note + '"');
     }
     const chroma = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 }[(pc as string).toLowerCase()];
-    const offset = (acc as string)?.split("").reduce((o, char) => o + accs[char], 0) || 0;
+    const offset = (acc as string)?.split("").reduce((o, char) => o + (accs as any)[char], 0) || 0;
     return (Number(oct) + 1) * 12 + (chroma as number) + offset;
 };
 
 // timecents to seconds
-export const tc2s = (timecents) => Math.pow(2, timecents / 1200);
+export const tc2s = (timecents: number) => Math.pow(2, timecents / 1200);
 // seconds to timecents
-export const s2tc = (seconds) => Math.round(Math.log2(seconds) * 1200);
-export const normalizePermille = (permille) => permille / 1000;
+export const s2tc = (seconds: number) => Math.round(Math.log2(seconds) * 1200);
+export const normalizePermille = (permille: number) => permille / 1000;
 
-export const precision = (n, digits) => {
+export const precision = (n:number, digits: number) => {
     const factor = Math.pow(10, digits);
     return Math.round(n * factor) / factor;
 };

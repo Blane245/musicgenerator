@@ -8,7 +8,7 @@ import {
 } from "react-icons/ci";
 import TimeLine from "../classes/timeline";
 import { useCMGContext } from "../cmgcontext";
-import { precision } from "../sfcomponents/index";
+import { precision } from "../sfcomponents/util";
 import {
   TIMEFORMATS,
   TimelineInterval,
@@ -257,7 +257,7 @@ export default function TimeLineDisplay() {
   return (
     <>
       <div className="page-time-control">
-        <fieldset disabled={playing.current?.on} style={{ width: "inherit" }}>
+        <fieldset disabled={playing.current} style={{ width: "inherit" }}>
           <button
             style={{ fontSize: "15px" }}
             disabled={timeLine.currentZoomLevel == 0}
@@ -335,7 +335,7 @@ export default function TimeLineDisplay() {
   function handleMouseDown(
     e: MouseEvent<SVGRectElement | SVGPathElement>
   ): void {
-    if (!playing.current?.on) {
+    if (!playing.current) {
       e.preventDefault();
       e.stopPropagation();
       const type: string = e.currentTarget.id;
@@ -394,7 +394,7 @@ export default function TimeLineDisplay() {
   function handleMouseMove(
     e: MouseEvent<SVGRectElement | SVGPathElement>
   ): void {
-    if (mouseDown && !playing.current?.on) {
+    if (mouseDown && !playing.current) {
       e.preventDefault();
       e.stopPropagation();
       const x: number = e.nativeEvent.offsetX;
@@ -451,7 +451,7 @@ export default function TimeLineDisplay() {
   function handleMouseEnter(
     e: MouseEvent<SVGRectElement | SVGPathElement>
   ): void {
-    if (mouseDown && !playing.current?.on) return;
+    if (mouseDown && !playing.current) return;
     e.preventDefault();
     e.stopPropagation();
     const type: string = e.currentTarget.id;
@@ -483,7 +483,7 @@ export default function TimeLineDisplay() {
   function handleMouseLeave(
     e: MouseEvent<SVGRectElement | SVGPathElement>
   ): void {
-    if (mouseDown || playing.current?.on) return;
+    if (mouseDown || playing.current) return;
     e.preventDefault();
     e.stopPropagation();
     const page = document.getElementById("page");

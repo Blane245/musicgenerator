@@ -134,7 +134,7 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
     event: MouseEvent<HTMLOrSVGElement>,
     index: number
   ) {
-    if (playing.current?.on) return;
+    if (playing.current) return;
     event.preventDefault();
     event.stopPropagation();
 
@@ -154,7 +154,7 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
     event: MouseEvent<HTMLOrSVGElement>,
     index: number
   ) {
-    if (playing.current?.on) return;
+    if (playing.current) return;
     event.preventDefault();
     event.stopPropagation();
     setGeneratorIndex(index);
@@ -183,7 +183,7 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
   }
 
   function handleMouseEnter(e: MouseEvent<SVGRectElement>): void {
-    if (mouseDown || playing.current?.on) return;
+    if (mouseDown || playing.current) return;
     e.preventDefault();
     e.stopPropagation();
     const page = document.getElementById("page");
@@ -192,7 +192,7 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
   }
   // when the mouse is up change cursor back to default
   function handleMouseLeave(e: MouseEvent<SVGRectElement>): void {
-    if (mouseDown || playing.current?.on) return;
+    if (mouseDown || playing.current) return;
     e.preventDefault();
     e.stopPropagation();
     const page = document.getElementById("page");
@@ -282,10 +282,7 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
   }
 
   function isPlaying(generator: CMGenerator): boolean {
-    for (let i = 0; i < generatorsPlaying.length; i++) {
-      if (generatorsPlaying[i].name == generator.name) return true;
-    }
-    return false;
+    return (generatorsPlaying.findIndex((g) => g.name == generator.name) >= 0);
   }
 
   function selectClass(selected: boolean, playing: boolean): string {
@@ -312,7 +309,7 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
                 generatorBoxes[i].selected,
                 generatorBoxes[i].playing
               )}
-              pointerEvents={playing.current?.on ? "none" : "all"}
+              pointerEvents={playing.current ? "none" : "all"}
               x={generatorBox.position.x}
               y={generatorBox.position.y}
               width={generatorBox.width}
@@ -327,7 +324,7 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
               onMouseLeave={(event) => handleMouseLeave(event)}
             />
             <text
-              pointerEvents={playing.current?.on ? "none" : "all"}
+              pointerEvents={playing.current ? "none" : "all"}
               x={generatorBox.position.x + generatorBox.width / 2.0}
               y={generatorBox.position.y + generatorBox.height / 3.0}
               fontSize={"10pt"}
@@ -342,7 +339,7 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
                 .concat(generatorBox.generator.type)}
             </text>
             <line
-              pointerEvents={playing.current?.on ? "none" : "all"}
+              pointerEvents={playing.current ? "none" : "all"}
               key={"genstart-" + track.name + "-" + i}
               stroke="blue"
               strokeWidth={5}
@@ -352,7 +349,7 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
               y2={generatorBox.position.y + generatorBox.height}
             />
             <line
-              pointerEvents={playing.current?.on ? "none" : "all"}
+              pointerEvents={playing.current ? "none" : "all"}
               key={"genstop-" + track.name + "-" + i}
               stroke="blue"
               strokeWidth={5}

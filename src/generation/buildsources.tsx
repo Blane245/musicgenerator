@@ -1,7 +1,7 @@
 import Noise from "../classes/noise";
 import SFPG from "../classes/sfpg";
 import SFRG from "../classes/sfrg";
-import { sourceData } from "../types";
+import { SourceData } from "../types";
 import { setRandomSeed } from "../utils/seededrandom";
 import { getBufferSourceNodesFromNoise } from "./noisenodes";
 import { getBufferSourceNodesFromSFPG } from "./sfpgnodes";
@@ -13,43 +13,46 @@ export interface buildSourcesProps {
   SFPGenerators: SFPG[];
   SFRGenerators: SFRG[];
   NoiseGenerators: Noise[];
-
 }
-function buildSources(params: buildSourcesProps) : sourceData[] {
-  const {context, roomConcentrator, SFPGenerators, SFRGenerators, NoiseGenerators} = params;
-  const sourceData: sourceData[] = [];
+export function buildSources(params: buildSourcesProps): SourceData[] {
+  const {
+    context,
+    roomConcentrator,
+    SFPGenerators,
+    SFRGenerators,
+    NoiseGenerators,
+  } = params;
+  const sourceData: SourceData[] = [];
   SFPGenerators.forEach((g) => {
-    const SFPGData: sourceData[] = getBufferSourceNodesFromSFPG(
+    const SFPGData: SourceData[] = getBufferSourceNodesFromSFPG(
       context,
       g,
       roomConcentrator
     );
     sourceData.push(...SFPGData);
-    // generatorStarted.push(...Array(SFPGData.length).fill(false));
   });
 
   // build the buffers for the SFRGs
   SFRGenerators.forEach((g) => {
     setRandomSeed(g.seed);
-    const SFRGData: sourceData[] = getBufferSourceNodesFromSFRG(
+    const SFRGData: SourceData[] = getBufferSourceNodesFromSFRG(
       context,
       g,
       roomConcentrator
     );
     sourceData.push(...SFRGData);
-    // generatorStarted.push(...Array(SFRGData.length).fill(false));
   });
 
   // build the buffers for the SFRGs
   NoiseGenerators.forEach((g) => {
     setRandomSeed(g.seed);
-    const noiseData: sourceData[] = getBufferSourceNodesFromNoise(
+    const noiseData: SourceData[] = getBufferSourceNodesFromNoise(
       context,
       g,
       roomConcentrator
     );
     sourceData.push(...noiseData);
-    // generatorStarted.push(...Array(noiseData.length).fill(false));
   });
+  console.log(sourceData);
   return sourceData;
 }

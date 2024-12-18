@@ -11,7 +11,7 @@ export default function App() {
   return (
     <>
       <Helmet>
-        <title> Computer Music Generator </title>
+        <title> Computer Music Generator2 </title>
       </Helmet>
       <div className="page" id="page" onMouseUp={() => setMouseDown(false)}>
         <div className="page-grid">

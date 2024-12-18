@@ -2,7 +2,7 @@ import { ChangeEvent } from "react";
 import SFPG from "../classes/sfpg";
 import { useCMGContext } from "../cmgcontext";
 import { bankPresettoName, toNote } from "../sfcomponents/util";
-import { MODULATOR, REPEATOPTION } from "../types";
+import { MODULATOR } from "../types";
 
 // provides the form fields and validators for the sfperiodic generator
 export interface SFPGDialogProps {
@@ -40,16 +40,15 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
             );
           })}
       </select>
-      <label htmlFor="repeat"> Loop Option: </label>
-      <select name="repeat" onChange={handleChange} value={formData.repeat}>
-        {Object.keys(REPEATOPTION).map((o) => {
-          return (
-            <option key={`repeat-${o}`} value={o}>
-              {o}
-            </option>
-          );
-        })}
-      </select>
+      <label>
+        &nbsp;Looping?:&nbsp;
+        <input
+          name="isLooping"
+          type="checkbox"
+          checked={formData.isLooping ? true : false}
+          onChange={handleChange}
+        />
+      </label>
       <label htmlFor="midi"> Midi Number:</label>
       <input
         name="midi"
@@ -62,19 +61,19 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
         value={formData.midi}
       />
       <span> {formData.midi > 0 ? toNote(formData.midi) : null}</span>
-      <hr/>
+      <hr />
       <label>
         &nbsp;Duration:&nbsp;
         <input
-            name="duration"
-            value = {formData.duration}
-            onChange={handleChange}
-            type="number"
-            min={0.1}
-            max={100}
-            step={0.1}
-            />
-            <span> (ms)</span>
+          name="duration"
+          value={formData.duration}
+          onChange={handleChange}
+          type="number"
+          min={0.1}
+          max={100}
+          step={0.1}
+        />
+        <span> (ms)</span>
       </label>
       <hr />
       <label htmlFor="FMType"> FMType: </label>
