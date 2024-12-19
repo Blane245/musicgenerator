@@ -73,7 +73,7 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
           max={100}
           step={0.1}
         />
-        <span> (ms)</span>
+        <span> (s)</span>
       </label>
       <hr />
       <label htmlFor="FMType"> FMType: </label>
@@ -87,17 +87,6 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
             );
         })}
       </select>
-      <label htmlFor="FMAmplitude"> FMAmplitude: </label>
-      <input
-        name="FMAmplitude"
-        type="number"
-        min={0}
-        max={127}
-        size={1}
-        onChange={handleChange}
-        value={formData.FMAmplitude}
-      />
-      <span> (midi)</span>
       <label htmlFor="FMFrequency"> FMFrequency: </label>
       <input
         name="FMFrequency"
@@ -109,6 +98,17 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
         value={formData.FMFrequency}
       />
       <span> (mHz) </span>
+      <label htmlFor="FMAmplitude"> FMAmplitude: </label>
+      <input
+        name="FMAmplitude"
+        type="number"
+        min={0}
+        max={127}
+        size={1}
+        onChange={handleChange}
+        value={formData.FMAmplitude}
+      />
+      <span> (midi)</span>
       <label htmlFor="FMPhase"> FMPhase: </label>
       <input
         name="FMPhase"

@@ -89,7 +89,7 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
             if (g.type == GENERATORTYPE.SFRG) SFRGenerators.push(thisG as SFRG);
             if (g.type == GENERATORTYPE.Noise)
               NoiseGenerators.push(thisG as Noise);
-            playbackLength = Math.max(g.stopTime, playbackLength);
+            playbackLength = Math.max(thisG.stopTime, playbackLength);
           }
         });
       });

@@ -61,7 +61,6 @@ export default class Noise extends CMG {
     n.startTime = this.startTime;
     n.stopTime = this.stopTime;
     n.mute = this.mute;
-    n.solo = this.solo;
     n.position = this.position;
 
     n.seed = this.seed;

@@ -42,19 +42,27 @@ export default function Preview(params: PreviewProps): void {
       const aheadTime = context.currentTime + SCHEDULEAHEADTIME;
       
       while (nextTime < aheadTime) {
+        // start the tones ready to start
         sourceData.forEach((s: SourceData) => {
           if (aheadTime >= s.startTime && !s.started) {
 
             s.source.start(s.startTime, 0, s.duration);
+            // s.source.start(s.startTime);
             s.started = true;
-            // console.log('source', s,
+            // console.log('source', 
+            // s.startTime,
+            // s.duration,
             //   'currentTime', context.currentTime,
             //   'nexttime', nextTime,
             //   'aheadtime', aheadTime,
-            // )
+            // );
           }
         });
+        // stop the tones ready to stop
         nextTime += SCHEDULEAHEADTIME;
+        sourceData.forEach((s:SourceData) => {
+
+        })
       }
     }
     const done: boolean = context.currentTime > playbackLength;

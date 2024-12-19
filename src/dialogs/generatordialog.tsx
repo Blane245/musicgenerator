@@ -72,11 +72,11 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     // update the form with the new attribute value
     setFormData((prev: CMGeneratorType) => {
       const eventName: string | null = event.target["name"];
-      let eventValue: string | null = event.target["value"];
-      // handle checkboxes
-      if (event.target['checked'] != undefined) 
-        event.target['checked']? eventValue = 'true': eventValue = 'false';
-      
+      const eventValue: string =
+        event.target["type"] != "checkbox"
+          ? event.target["value"]
+          : event.target.checked.toString();
+
       if (!eventName || !eventValue) return prev;
 
       // select the proper generator type
@@ -123,7 +123,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           newF.startTime = prev.startTime;
           newF.stopTime = prev.stopTime;
           newF.mute = prev.mute;
-          newF.solo = prev.solo;
           newF.position = prev.position;
           return newF;
         }
@@ -133,7 +132,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           newF.startTime = prev.startTime;
           newF.stopTime = prev.stopTime;
           newF.mute = prev.mute;
-          newF.solo = prev.solo;
           newF.position = prev.position;
           if (presets.length > 0) {
             newF.preset = presets[0];
@@ -147,7 +145,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           newF.startTime = prev.startTime;
           newF.stopTime = prev.stopTime;
           newF.mute = prev.mute;
-          newF.solo = prev.solo;
           newF.position = prev.position;
           if (presets.length > 0) {
             newF.preset = presets[0];
@@ -161,7 +158,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           newF.startTime = prev.startTime;
           newF.stopTime = prev.stopTime;
           newF.mute = prev.mute;
-          newF.solo = prev.solo;
           newF.position = prev.position;
           return newF;
         }

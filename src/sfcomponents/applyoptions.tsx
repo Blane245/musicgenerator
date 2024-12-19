@@ -86,30 +86,49 @@ export function applyOptions(
   const vol: GainNode = ctx.createGain();
   const min = 0.001;
   const max = volumeValue;
-  const delay = Math.max(precision(tc2s(delayVolEnv), 4), 0.001);
-  const attack = Math.max(precision(tc2s(attackVolEnv), 4), 0.001);
-  const hold = duration;
-  const decay = Math.max(precision(tc2s(decayVolEnv), 4), 0.001);
-  const sustain =
-    sustainVolEnv >= 960 ? 0 : 1 - normalizePermille(sustainVolEnv);
+
+  // vol.gain.value = volumeValue;
+  // simple wave shaping. start at min, ramp to max at min of 0.1 duration or attack
+  // hold until duration
+  //ramp to min at min of 0.1 duration or release
+  const attack = precision(tc2s(attackVolEnv), 4);
   const release = precision(tc2s(releaseVolEnv), 4);
-  let t = time;
-  vol.gain.setValueAtTime(min, t);
-  // console.log('set value at', min, t);
-  vol.gain.setValueAtTime(min, (t += delay));
-  // console.log('set value at', min, t);
-  vol.gain.exponentialRampToValueAtTime(max, (t += attack));
-  // console.log('ramp value to', max, t);
-  vol.gain.setValueAtTime(max, (t += hold));
-  // console.log('set value at', max, t);
-  vol.gain.exponentialRampToValueAtTime(
-    Math.max(sustain * max, 0.0001),
-    (t += decay)
-  );
+  const t1: number = Math.max(Math.min(0.1 * duration, attack), 0.01) + time;
+  const t2: number = Math.max(Math.min(0.1 * duration, release), 0.01) + time + duration;
+
+  vol.gain.setValueAtTime(min, time);
+  vol.gain.exponentialRampToValueAtTime(max, t1);
+  vol.gain.setValueAtTime(max, t1);
+  vol.gain.setValueAtTime(max, time + duration);
+  vol.gain.exponentialRampToValueAtTime(min, t2);
+  // console.log("volume ramp", pitchValue, attack, release, time, t1, duration + time, t2);
+
+  // based origimal from sfumato
+  // const delay = Math.max(precision(tc2s(delayVolEnv), 4), 0.001);
+  // const attack = Math.max(precision(tc2s(attackVolEnv), 4), 0.001);
+  // const hold = duration;
+  // const decay = Math.max(precision(tc2s(decayVolEnv), 4), 0.001);
+  // const sustain =
+  //   sustainVolEnv >= 960 ? 0 : 1 - normalizePermille(sustainVolEnv);
+  // const release = precision(tc2s(releaseVolEnv), 4);
+  // let t = time;
+  // vol.gain.setValueAtTime(min, t);
+  // // console.log('set value at', min, t);
+  // vol.gain.setValueAtTime(min, (t += delay));
+  // // console.log('set value at', min, t);
+  // vol.gain.exponentialRampToValueAtTime(max, (t += attack));
+  // // console.log('ramp value to', max, t);
+  // vol.gain.setValueAtTime(max, (t += hold));
+  // // console.log('set value at', max, t);
+  // vol.gain.exponentialRampToValueAtTime(
+  //   Math.max(sustain * max, 0.0001),
+  //   (t += decay)
+  // );
+
   // console.log('ramp value to', Math.max(sustain* max, 0.0001), t);
-  vol.gain.cancelAndHoldAtTime(t);
+  // vol.gain.cancelAndHoldAtTime(t);
   // console.log('cancel and hold at', t);
-  vol.gain.exponentialRampToValueAtTime(min, (t += release));
+  // vol.gain.exponentialRampToValueAtTime(min, (t += release));
   // console.log('ramp value to', min, t);
   // console.log(
   //   'min', min,
@@ -130,5 +149,5 @@ export function applyOptions(
   panner.connect(destination);
   // source.start(time);
 
-  return { source, gen, duration, startTime: time, started: false};
+  return { source, gen, duration, startTime: time, started: false };
 }

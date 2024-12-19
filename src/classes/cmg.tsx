@@ -7,7 +7,6 @@ export default class CMG {
   stopTime: number;
   type: GENERATORTYPE;
   mute: boolean;
-  solo: boolean;
   position: number; // the vertical location of the generator icon on the track timeline
 
   constructor(nextGenerator: number) {
@@ -16,7 +15,6 @@ export default class CMG {
     this.stopTime = 0;
     this.type = GENERATORTYPE.CMG;
     this.mute = false;
-    this.solo = false;
     this.position = 0;
   }
 
@@ -26,7 +24,6 @@ export default class CMG {
     newCMG.startTime = this.startTime;
     newCMG.stopTime = this.stopTime;
     newCMG.mute = this.mute;
-    newCMG.solo = this.solo;
     newCMG.position = this.position;
 
     return newCMG;
@@ -49,9 +46,6 @@ export default class CMG {
       case "mute":
         this.mute = value == "true";
         break;
-      case "solo":
-        this.solo = value == "true";
-        break;
       default:
         break;
     }
@@ -63,7 +57,6 @@ export default class CMG {
     props.elem.setAttribute("startTime", this.startTime.toString());
     props.elem.setAttribute("stopTime", this.stopTime.toString());
     props.elem.setAttribute("type", this.type);
-    props.elem.setAttribute("solo", this.solo.toString());
     props.elem.setAttribute("mute", this.mute.toString());
     props.elem.setAttribute("position", this.position.toString());
   }
@@ -74,7 +67,6 @@ export default class CMG {
     this.stopTime = getAttributeValue(elem, "stopTime", "float") as number;
     this.type = getAttributeValue(elem, "type", "string") as GENERATORTYPE;
     this.mute = getAttributeValue(elem, "mute", "string") == "true";
-    this.solo = getAttributeValue(elem, "solo", "string") == "true";
     this.position = getAttributeValue(elem, "position", "int") as number;
   }
 }

@@ -53,6 +53,6 @@ export function buildSources(params: buildSourcesProps): SourceData[] {
     );
     sourceData.push(...noiseData);
   });
-  console.log(sourceData);
+  // console.log(sourceData);
   return sourceData;
 }

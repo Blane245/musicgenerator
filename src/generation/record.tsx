@@ -25,7 +25,7 @@ export default function Record(params: RecordProps): void {
       .then((rh: FileSystemFileHandle) => {
         // and provide all sources their start and duration times
         sourceData.forEach((s) => {
-          s.source.start(s.gen.startTime, 0, s.duration);
+          s.source.start(s.startTime, 0, s.duration);
         });
 
         // render the sources

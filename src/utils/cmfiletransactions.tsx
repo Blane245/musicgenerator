@@ -64,17 +64,19 @@ export function setCompressor(
 
 export function addTrack(newTrack: Track, setFileContents: Function) {
   setFileContents((c: CMGFile) => {
-    c.dirty = true;
-    c.tracks.push(newTrack);
-    return c;
+    const nc:CMGFile = c.copy();
+    nc.dirty = true;
+    nc.tracks.push(newTrack);
+    return nc;
   });
 }
 
 export function deleteTrack(index: number, setFileContents: Function) {
   setFileContents((c: CMGFile) => {
-    c.dirty = true;
-    c.tracks.splice(index, 1);
-    return c;
+    const nc:CMGFile = c.copy();
+    nc.dirty = true;
+    nc.tracks.splice(index, 1);
+    return nc;
   });
 }
 
@@ -84,9 +86,10 @@ export function renameTrack(
   setFileContents: Function
 ) {
   setFileContents((c: CMGFile) => {
-    c.dirty = true;
-    c.tracks[index].name = newName;
-    return c;
+    const nc: CMGFile = c.copy();
+    nc.dirty = true;
+    nc.tracks[index].name = newName;
+    return nc;
   });
 }
 
@@ -96,7 +99,7 @@ export function flipTrackAttrbute(
   setFileContents: Function
 ) {
   setFileContents((c: CMGFile) => {
-    console.log('fliping track attribute', attribute);
+    // console.log('fliping track attribute', attribute);
     const newC: CMGFile = c.copy();
     if (attribute == "mute") {
       newC.tracks[index].mute = !newC.tracks[index].mute;

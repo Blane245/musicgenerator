@@ -1,1 +1,14 @@
-<fileContents name="gen2.cmg" SFFileName="/src/soundfonts/TimGM6mb.sf2"><compressor name="NaN" attack="0.003" knee="30" ratio="12" release="0.25" threshold="-24"/><equalizer gain0="0" gain1="0" gain2="0" gain3="0" gain4="0" gain5="0" gain6="0" gain7="0" gain8="0" gain9="0"/><roomreverb name="roomreverb" enabled="true" attack="0.1" decay="0.1" predelay="0.03" release="1" reverbtime="1"/><tracks><track name="T1" mute="false" solo="false"><generators><generator name="G12" type="SFPG" startTime="1" stopTime="6" solo="false" mute="false" position="0" presetName="000:000:Piano 1" repeat="Sample" midi="0" FMType="SINE" FMAmplitude="0" FMFrequency="0" FMPhase="0" VMType="SINE" VMCenter="50" VMFrequency="0" VMAmplitude="0" VMPhase="0" PMType="SINE" PMCenter="0" PMFrequency="0" PMAmplitude="0" PMPhase="0"><instreverb name="G0:reverb" enabled="true" attack="0.002" decay="0.101" release="1.002" reverbTime="0.997"/></generator></generators></track><track name="T2" mute="false" solo="false"><generators/></track></tracks></fileContents>
+<fileContents name="gen2.cmg" SFFileName="SuperMarioWorld.sf2">
+    <compressor name="NaN" attack="0.599" knee="9" ratio="9" release="0.787" threshold="-100"/>
+    <equalizer gain0="-15" gain1="-8" gain2="-2" gain3="7" gain4="12" gain5="7" gain6="-4" gain7="6" gain8="-8" gain9="-12"/>
+    <tracks>
+        <track name="T0" mute="false" solo="false">
+            <generators>
+                <generator name="G0" type="CMG" startTime="10" stopTime="20" mute="false" position="0"/>
+            </generators>
+        </track>
+        <track name="T1" mute="false" solo="false">
+            <generators/>
+        </track>
+    </tracks>
+</fileContents>
