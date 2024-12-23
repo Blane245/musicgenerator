@@ -63,7 +63,7 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
       <span> {formData.midi > 0 ? toNote(formData.midi) : null}</span>
       <hr />
       <label>
-        &nbsp;Duration:&nbsp;
+        &nbsp;Interval:&nbsp;
         <input
           name="duration"
           value={formData.duration}

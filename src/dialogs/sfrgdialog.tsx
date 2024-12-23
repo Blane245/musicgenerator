@@ -404,7 +404,7 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
             type="number"
             min={0}
             max={100}
-            step={10}
+            step={1}
           />
           <span> (1 to 100 %)</span>
         </label>

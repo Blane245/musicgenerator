@@ -9,7 +9,6 @@ import { getBufferSourceNodesFromSFRG } from "./sfrgnodes";
 
 export interface buildSourcesProps {
   context: AudioContext | OfflineAudioContext;
-  roomConcentrator: GainNode;
   SFPGenerators: SFPG[];
   SFRGenerators: SFRG[];
   NoiseGenerators: Noise[];
@@ -17,7 +16,6 @@ export interface buildSourcesProps {
 export function buildSources(params: buildSourcesProps): SourceData[] {
   const {
     context,
-    roomConcentrator,
     SFPGenerators,
     SFRGenerators,
     NoiseGenerators,
@@ -27,7 +25,6 @@ export function buildSources(params: buildSourcesProps): SourceData[] {
     const SFPGData: SourceData[] = getBufferSourceNodesFromSFPG(
       context,
       g,
-      roomConcentrator
     );
     sourceData.push(...SFPGData);
   });
@@ -38,7 +35,6 @@ export function buildSources(params: buildSourcesProps): SourceData[] {
     const SFRGData: SourceData[] = getBufferSourceNodesFromSFRG(
       context,
       g,
-      roomConcentrator
     );
     sourceData.push(...SFRGData);
   });
@@ -49,10 +45,9 @@ export function buildSources(params: buildSourcesProps): SourceData[] {
     const noiseData: SourceData[] = getBufferSourceNodesFromNoise(
       context,
       g,
-      roomConcentrator
     );
     sourceData.push(...noiseData);
   });
-  // console.log(sourceData);
+  console.log('course count', sourceData.length);
   return sourceData;
 }

@@ -2,14 +2,14 @@ import { ChangeEvent } from "react";
 import Noise from "../classes/noise";
 import { MODULATOR, NOISETYPE } from "../types";
 
-// provides the form fields and validators for the sfperiodic generator
-export interface SFPGDialogProps {
+// provides the form fields and validators for the noise generator
+export interface NoiseProps {
   formData: Noise;
   handleChange: (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
 }
-export default function NoiseDialog(props: SFPGDialogProps): JSX.Element {
+export default function NoiseDialog(props: NoiseProps): JSX.Element {
   const { formData, handleChange } = props;
 
   const INPUTSIZE: number = 6;
@@ -92,7 +92,7 @@ export default function NoiseDialog(props: SFPGDialogProps): JSX.Element {
       ) : null}
       <hr />
       <label>
-        &nbsp;Duration:&nbsp;
+        &nbsp;Interval:&nbsp;
         <input
           name="duration"
           value={formData.duration}

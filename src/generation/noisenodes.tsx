@@ -12,7 +12,6 @@ import { setRandomSeed } from "../utils/seededrandom";
 export function getBufferSourceNodesFromNoise(
   context: AudioContext | OfflineAudioContext,
   gen: Noise,
-  roomConcentrator: GainNode
 ): SourceData[] {
 
   const { startTime, stopTime, duration } = gen;
@@ -48,10 +47,10 @@ export function getBufferSourceNodesFromNoise(
     panner.pan.value = pan;
 
     // connect make the path source->vol->panner->concentrator
-    source.connect(vol);
-    vol.connect(panner);
-    panner.connect(roomConcentrator);
-    sourceData.push({source, gen, duration, startTime: time, started: false});
+    // source.connect(vol);
+    // vol.connect(panner);
+    // panner.connect(roomConcentrator);
+    sourceData.push({source, gen, duration, vol, panner, startTime: time, stopTime: duration, started: false});
     console.log(
       'step', i,
       'duration', duration,

@@ -1,5 +1,6 @@
 import { CMGeneratorType, SourceData } from "../types";
 import { applyOptions } from "./applyoptions";
+import { bufferPool } from "./bufferpool";
 import {
   generators,
   getGeneratorValue,
@@ -16,7 +17,6 @@ import {
 export function getBufferSourceFromSample(
   ctx: AudioContext | OfflineAudioContext,
   gen: CMGeneratorType,
-  destination: AudioNode,
   duration: number,
   pitchValue: number,
   volumeValue: number,
@@ -24,23 +24,11 @@ export function getBufferSourceFromSample(
   sample: Sample,
   options: {} = {}
 ) {
-  const { header, data } = sample;
-  const float32: Float32Array = new Float32Array(data.length);
-  for (let i = 0; i < data.length; i++) {
-    // scale Int16Array between -1 and 1
-    float32[i] = data[i] / 32768;
-  }
-  const buffer: AudioBuffer = ctx.createBuffer(
-    1,
-    float32.length,
-    header.sampleRate
-  );
-  const channelData: Float32Array = buffer.getChannelData(0);
-  channelData.set(float32);
+  const { header } = sample;
   const source: AudioBufferSourceNode = ctx.createBufferSource();
-  source.buffer = buffer;
+  source.buffer = bufferPool (ctx, sample);
   const theseOptions: {} = { ...header, ...options }; // merge sample header and options
-  return applyOptions(ctx, gen, source, destination, duration, pitchValue, volumeValue, panValue, theseOptions);
+  return applyOptions(ctx, gen, source, duration, pitchValue, volumeValue, panValue, theseOptions);
 }
 
 export const isActiveZone = (
@@ -89,7 +77,6 @@ export const getActiveZones = (preset: Preset, midi: number) => {
 export const connectPresetNote = (
   ctx: AudioContext | OfflineAudioContext,
   gen: CMGeneratorType,
-  destination: AudioNode,
   preset: Preset,
   duration: number,
   pitchValue: number,
@@ -102,7 +89,6 @@ export const connectPresetNote = (
     getBufferSourceFromSample(
       ctx,
       gen,
-      destination,
       duration,
       pitchValue,
       volumeValue,

@@ -6,7 +6,6 @@ import { SourceData } from "../types";
 export function getBufferSourceNodesFromSFPG(
   context: AudioContext | OfflineAudioContext,
   gen: SFPG,
-  roomConcentrator: GainNode
 ): SourceData[] {
   const sourceData: SourceData[] = [];
   // the generator has a start and stop time, and a note duration
@@ -27,7 +26,6 @@ export function getBufferSourceNodesFromSFPG(
     const connections: SourceData[] = connectPresetNote(
       context,
       gen,
-      roomConcentrator,
       preset,
       duration,
       pitch,

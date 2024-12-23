@@ -7,7 +7,6 @@ import { setRandomSeed } from "../utils/seededrandom";
 export function getBufferSourceNodesFromSFRG(
   context: AudioContext | OfflineAudioContext,
   gen: SFRG,
-  roomConcentrator: GainNode
 ): SourceData[] {
   const { startTime, stopTime, preset } = gen;
   if (!preset)
@@ -32,7 +31,6 @@ export function getBufferSourceNodesFromSFRG(
     const connections: SourceData[] = connectPresetNote(
       context,
       gen,
-      roomConcentrator,
       preset,
       duration,
       midi,

@@ -27,6 +27,7 @@ export interface GeneratorIconProps {
 }
 type GeneratorBox = {
   generator: CMGenerator;
+  generatorIndex: number;
   position: { x: number; y: number };
   width: number;
   height: number;
@@ -47,6 +48,7 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
     mouseDown,
     setMouseDown,
   } = useCMGContext();
+  const [boxIndex, setBoxIndex] = useState<number>(-1);
   const [generatorIndex, setGeneratorIndex] = useState<number>(-1);
   const [cursorStyle, setCursorStyle] = useState<string>("cursor-default");
   const [menuEnabled, setMenuEnabled] = useState<boolean>(false);
@@ -80,7 +82,7 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
     // get all of the generator boxes
     setSelectedTrackName(track.name);
     const boxes: GeneratorBox[] = [];
-    track.generators.forEach((generator) => {
+    track.generators.forEach((generator, generatorIndex) => {
       // is the generator out of the currently displayed current time?
       const timeLineStop =
         timeLine.startTime + TimeLineScales[timeLine.currentZoomLevel].extent;
@@ -107,6 +109,7 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
       if (iconWidth > 0 && iconHeight > 0) {
         boxes.push({
           generator: generator,
+          generatorIndex: generatorIndex,
           position: { x: iconLeft, y: iconTop },
           width: iconWidth,
           height: iconHeight,
@@ -132,7 +135,7 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
   // prepare to move the body horizontally
   function handleBodyMouseDown(
     event: MouseEvent<HTMLOrSVGElement>,
-    index: number
+    boxIndex: number
   ) {
     if (playing.current) return;
     event.preventDefault();
@@ -140,7 +143,8 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
 
     const button = event.button;
     if (button == 0) {
-      setGeneratorIndex(index);
+      setBoxIndex(boxIndex);
+      setGeneratorIndex(generatorBoxes[boxIndex].generatorIndex);
 
       //enable cursor movement
       setCursorStyle("ew-resize");
@@ -152,12 +156,13 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
   // enable the icon menu
   function handleTextMouseDown(
     event: MouseEvent<HTMLOrSVGElement>,
-    index: number
+    boxIndex: number
   ) {
     if (playing.current) return;
     event.preventDefault();
     event.stopPropagation();
-    setGeneratorIndex(index);
+    setGeneratorIndex(generatorBoxes[boxIndex].generatorIndex);
+    setBoxIndex(boxIndex);
 
     // enable generator menu
     setCursorStyle("cursor-context-menu");
@@ -167,7 +172,7 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
     setStatus(``);
   }
 
-  function handleMouseMove(event: MouseEvent<SVGRectElement>, index: number) {
+  function handleMouseMove(event: MouseEvent<SVGRectElement>, boxIndex: number) {
     if (!mouseDown) return;
     event.preventDefault();
     event.stopPropagation();
@@ -177,7 +182,7 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
 
     // skip if no change or output of bounds
     if (deltaY == 0 || y < 0 || y > (2.0 * trackHeight) / 3.0) return;
-    moveGeneratorBodyPosition(track, index, y, setFileContents);
+    moveGeneratorBodyPosition(track, generatorBoxes[boxIndex].generatorIndex, y, setFileContents);
 
     setStatus(``);
   }
@@ -201,8 +206,8 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
   }
 
   // toggle the mute condition of the selected generator
-  function toggleGeneratorMute(index: number) {
-    flipGeneratorMute(track, index, setFileContents);
+  function toggleGeneratorMute(boxIndex: number) {
+    flipGeneratorMute(track, generatorBoxes[boxIndex].generatorIndex, setFileContents);
     setStatus(``);
   }
 
@@ -210,7 +215,7 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
     setMenuEnabled(false);
     setCursorStyle("cursor-default");
     setMode(GENERATIONMODE.solo);
-    setPreview(generatorBoxes[generatorIndex].generator);
+    setPreview(generatorBoxes[boxIndex].generator);
     setStatus(``);
   }
 
@@ -222,7 +227,7 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
   }
 
   function handleMuteClick() {
-    toggleGeneratorMute(generatorIndex);
+    toggleGeneratorMute(boxIndex);
     setMenuEnabled(false);
     setCursorStyle("cursor-default");
     setStatus(``);

@@ -1,13 +1,12 @@
 import SFPG from "../classes/sfpg";
 import SFRG from "../classes/sfrg";
 import { CMGeneratorType, SourceData } from "../types";
-import { normalizePermille, precision, tc2s } from "./util";
+import { precision, tc2s } from "./util";
 
 export function applyOptions(
   ctx: AudioContext | OfflineAudioContext,
   gen: CMGeneratorType,
   source: AudioBufferSourceNode,
-  destination: AudioNode,
   duration: number,
   pitchValue: number,
   volumeValue: number,
@@ -144,10 +143,10 @@ export function applyOptions(
   const panner = ctx.createStereoPanner();
   // console.log('pan', panValue);
   panner.pan.value = panValue;
-  source.connect(vol);
-  vol.connect(panner);
-  panner.connect(destination);
+  // source.connect(vol);
+  // vol.connect(panner);
+  // panner.connect(destination);
   // source.start(time);
 
-  return { source, gen, duration, startTime: time, started: false };
+  return { source, vol, panner, gen, duration, startTime: time, stopTime: t2, started: false };
 }

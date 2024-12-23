@@ -1,5 +1,16 @@
 // https://github.com/Blane245/musicgenerator/issues/5#issue-2550789485
 
+// TODO in order to handle large audio node graphs for both preview and recording
+// the network to built in two steps.
+// first the raw source, volume, and panner data needs to be obtained for 
+// each source of a generator's sound
+// then while previewing or recording, the subnet needs to be constructed.
+// in teh preview case, using the scheduler, the sources are constructed when 
+// their start time arrives in the scheduler and then disconnected when the stop time arrives
+// in teh recording case, recording is done in batches do the sources for 
+// the batch need to be constructed, connected, and rendered. Each rendered
+// batch is collected. when all rendering is complete, the results are 
+// added and then written 
 import { useEffect, useState } from "react";
 import { useCMGContext } from "../cmgcontext";
 import {
@@ -26,7 +37,14 @@ export interface GeneratorProps {
 }
 export default function Generate(props: GeneratorProps) {
   const { mode, setMode, generator } = props;
-  const { setStatus, playing, setTimeProgress, fileContents, timeInterval, setGeneratorsPlaying } = useCMGContext();
+  const {
+    setStatus,
+    playing,
+    setTimeProgress,
+    fileContents,
+    timeInterval,
+    setGeneratorsPlaying,
+  } = useCMGContext();
   const [error, setError] = useState<string>("");
 
   // all of the work of the generator is done by this hook when the
@@ -55,6 +73,9 @@ export default function Generate(props: GeneratorProps) {
         const live: boolean =
           mode == GENERATIONMODE.preview || mode == GENERATIONMODE.solo;
 
+        if (live) {
+        }
+
         // set the context and suspend live performance until the source data
         // is assembled
         const context: AudioContext | OfflineAudioContext = live
@@ -62,28 +83,20 @@ export default function Generate(props: GeneratorProps) {
           : new OfflineAudioContext(2, SAMPLERATE * playbackLength, SAMPLERATE);
         if (live) (context as AudioContext).suspend();
 
-        // set up the room equalizer and compressor
-        fileContents.equalizer.setContext(context);
-        fileContents.compressor.setContext(context);
-        const roomConcentrator: GainNode = context.createGain();
-        roomConcentrator.connect(fileContents.equalizer.front());
-        if (fileContents.compressor.effect) {
-          fileContents.equalizer.back().connect(fileContents.compressor.effect);
-          fileContents.compressor.effect.connect(context.destination);
-        } else console.log("generator: compressor missing");
-
-        // build the generator sources and connect to the room concentrator
-        const sourceData: SourceData[] = buildSources({
-          context,
-          roomConcentrator,
-          SFPGenerators,
-          SFRGenerators,
-          NoiseGenerators,
-        });
+          // build the generator sources
+          const sourceData: SourceData[] = buildSources({
+            context,
+            SFPGenerators,
+            SFRGenerators,
+            NoiseGenerators,
+          });
 
         if (live) {
+
           Preview({
             context: context as AudioContext,
+            compressor: fileContents.compressor,
+            equalizer: fileContents.equalizer,
             playbackLength,
             offsetTime,
             sourceData,
@@ -96,7 +109,11 @@ export default function Generate(props: GeneratorProps) {
         } else if (mode == GENERATIONMODE.record) {
           Record({
             context: context as OfflineAudioContext,
+            compressor: fileContents.compressor,
+            equalizer: fileContents.equalizer,
             sourceData,
+            sampleRate: SAMPLERATE,
+            playbackLength,
             setMode,
             setStatus,
             playing,

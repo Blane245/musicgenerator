@@ -176,39 +176,41 @@ export default function TimeLineDisplay() {
   // TODO when previewing only a few generators, the playback time goes to 0
   // when it should start at the earliest start time of the selected generators
   function updatePlayBackTime() {
-    if (ticks.scaleExtent > 0) {
-      // shift left or right if the timeprogress is the left or right of the start time
-      const extent = TimeLineScales[timeLine.currentZoomLevel].extent;
-      let startTime = timeLine.startTime;
-      if (timeProgress < timeLine.startTime) {
-        while (timeProgress < startTime) {
-          startTime = Math.max(startTime - extent / 2.0, 0);
+    if (timeProgress >= 0) {
+      if (ticks.scaleExtent > 0) {
+        // shift left or right if the timeprogress is the left or right of the start time
+        const extent = TimeLineScales[timeLine.currentZoomLevel].extent;
+        let startTime = timeLine.startTime;
+        if (timeProgress < timeLine.startTime) {
+          while (timeProgress < startTime) {
+            startTime = Math.max(startTime - extent / 2.0, 0);
+          }
+        } else if (timeProgress > timeLine.startTime + extent) {
+          let endTime = timeLine.startTime + extent;
+          while (timeProgress > endTime) {
+            endTime += extent / 2.0;
+            startTime = endTime - extent;
+          }
         }
-      } else if (timeProgress > timeLine.startTime + extent) {
-        let endTime = timeLine.startTime + extent;
-        while (timeProgress > endTime) {
-          endTime += extent / 2.0;
-          startTime = endTime - extent;
+
+        // update the timeline if it has moved
+        if (startTime != timeLine.startTime) {
+          setTimeLine((c: TimeLine) => {
+            const newC = new TimeLine(timeLine.width, timeLine.height);
+            newC.currentZoomLevel = c.currentZoomLevel;
+            newC.startTime = startTime;
+            return newC;
+          });
         }
-      }
 
-      // update the timeline if it has moved
-      if (startTime != timeLine.startTime) {
-        setTimeLine((c: TimeLine) => {
-          const newC = new TimeLine(timeLine.width, timeLine.height);
-          newC.currentZoomLevel = c.currentZoomLevel;
-          newC.startTime = startTime;
-          return newC;
-        });
-      }
-
-      // move the playback tick
-      const playbackElem = document.getElementById("playback-tick");
-      if (playbackElem) {
-        const newLoc =
-          (timeLine.width * (timeProgress - startTime)) / ticks.scaleExtent;
-        playbackElem.setAttribute("x1", newLoc.toString());
-        playbackElem.setAttribute("x2", newLoc.toString());
+        // move the playback tick
+        const playbackElem = document.getElementById("playback-tick");
+        if (playbackElem) {
+          const newLoc =
+            (timeLine.width * (timeProgress - startTime)) / ticks.scaleExtent;
+          playbackElem.setAttribute("x1", newLoc.toString());
+          playbackElem.setAttribute("x2", newLoc.toString());
+        }
       }
     }
   }

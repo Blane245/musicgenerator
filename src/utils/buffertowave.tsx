@@ -1,10 +1,9 @@
 
   // build the sound file as quickly as possible using offline context and write it to the selected wave file
   // thanx to https://russellgood.com/how-to-convert-audiobuffer-to-audio-file/
-  export function bufferToWave(aBuffer: AudioBuffer, len: number): Blob {
-    const numOfChan = aBuffer.numberOfChannels;
-    const sampleRate = aBuffer.sampleRate;
-    const length = len * numOfChan * 2 + 44;
+  export function bufferToWave(result: Float32Array[], sampleRate: number): Blob {
+    const numOfChan = result.length;
+    const length = result[0].length * numOfChan * 2 + 44;
     const buffer = new ArrayBuffer(length);
     const view: DataView = new DataView(buffer);
     let pos: number = 0;
@@ -39,15 +38,10 @@
     pos += 4; // chunk length
 
     // write the interleaved data
-    const channels: Float32Array[] = [];
-    for (let i = 0; i < aBuffer.numberOfChannels; i++) {
-      channels.push(aBuffer.getChannelData(i));
-    }
-
     let offset: number = 0;
     while (pos < length) {
       for (let i = 0; i < numOfChan; i++) {
-        let sample: number = Math.max(-1, Math.min(1, channels[i][offset])); // clamp
+        let sample: number = Math.max(-1, Math.min(1, result[i][offset])); // clamp
         sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0;
         view.setUint16(pos, sample, true); // write 16-bit sample
         pos += 2;

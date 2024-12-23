@@ -1,3 +1,4 @@
+import { Sample } from "../sfcomponents/types";
 import CMG from "../classes/cmg";
 import Noise from "../classes/noise";
 import SFPG from "../classes/sfpg";
@@ -106,20 +107,6 @@ export enum MARKOVSTATE {
   down = "down",
 }
 
-// export type NoteConnection = {
-//   source: AudioBufferSourceNode,
-//   vol: GainNode,
-//   panner: StereoPannerNode,
-//   duration: number,
-// }
-export type SourceData = {
-  source: AudioBufferSourceNode,
-  gen: CMGeneratorType,
-  startTime: number,
-  duration: number,
-  started: boolean;
-};
-
 export type AttributeRange = {
   lo: number;
   hi: number;
@@ -164,4 +151,45 @@ export type TimelineInterval = {
   endOffset: number;
   startTime?: number;
   endTime?: number; 
+}
+
+
+export type SourceData = {
+  source: AudioBufferSourceNode,
+  vol: GainNode,
+  panner: StereoPannerNode,
+  gen: CMGeneratorType,
+  startTime: number,
+  duration: number,
+  stopTime: number,
+  started: boolean,
+};
+
+export type RawSourceData = {
+  gen: CMGeneratorType,
+  source: {
+    sample: Float32Array, // the sf instrument sample converted to float32 or noise as float32
+    playbackRate: number, // sf playback rate or 1 for noise
+    loopStart: number, // sf loopstart index or 0 for noise
+    loopEnd: number, // sf loopEnd index or sample.length for noise
+    loop: boolean,  // true/false depending on sf and option or false for noise
+  },
+  panner: {
+    value: number, // pan value from generator
+  },
+  vol: {
+    attackInterval: number, // attack time from sf as limited
+    holdInterval: number, // the original note's duration minus the attack time
+    releaseInterval: number, // release time from sf as limited
+  }
+  startTime: number,
+  duration: number, // attackInterval + holdInterval + releaseInterval
+  stopTime: number, // startTime + duration
+  started: boolean,
+}
+
+export type RenderedBatch = {
+  startSample: number; // time that the sample starts
+  endSample: number; // time that the sample ends
+  buffer: AudioBuffer; // the rendered buffer
 }
