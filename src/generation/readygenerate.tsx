@@ -89,7 +89,7 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
             if (g.type == GENERATORTYPE.SFRG) SFRGenerators.push(thisG as SFRG);
             if (g.type == GENERATORTYPE.Noise)
               NoiseGenerators.push(thisG as Noise);
-            playbackLength = Math.max(thisG.stopTime, playbackLength);
+            playbackLength = Math.max(thisG.stopTime + 1, playbackLength);
           }
         });
       });
@@ -107,7 +107,7 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
                   return;
                 } else {
                   SFPGenerators.push(g as SFPG);
-                  playbackLength = Math.max(playbackLength, g.stopTime);
+                  playbackLength = Math.max(playbackLength, g.stopTime + 1);
                 }
               }
               if (g.type == GENERATORTYPE.SFRG && !g.mute) {
@@ -116,12 +116,12 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
                   return;
                 } else {
                   SFRGenerators.push(g as SFRG);
-                  playbackLength = Math.max(playbackLength, g.stopTime);
+                  playbackLength = Math.max(playbackLength, g.stopTime + 1);
                 }
               }
-              if (g.type == GENERATORTYPE.Noise) {
+              if (g.type == GENERATORTYPE.Noise && !g.mute) {
                 NoiseGenerators.push(g as Noise);
-                playbackLength = Math.max(playbackLength, g.stopTime);
+                playbackLength = Math.max(playbackLength, g.stopTime + 1);
               }
             });
           }

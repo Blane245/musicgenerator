@@ -1,13 +1,12 @@
+import { getPresetNote } from "../sfcomponents/loadpresetnote";
 import SFPG from "../classes/sfpg";
-import { connectPresetNote } from "../sfcomponents/presetnote";
-import { SourceData } from "../types";
+import { RawSourceData } from "../types";
 
 // get all of the webaudio nodes for all of the SFPG generators
 export function getBufferSourceNodesFromSFPG(
-  context: AudioContext | OfflineAudioContext,
   gen: SFPG,
-): SourceData[] {
-  const sourceData: SourceData[] = [];
+): RawSourceData[] {
+  const sourceData: RawSourceData[] = [];
   // the generator has a start and stop time, and a note duration
   const { startTime, stopTime, duration, preset } = gen;
   if (!preset) throw new Error(`Preset not defined for generator '${gen.name}`);
@@ -23,16 +22,15 @@ export function getBufferSourceNodesFromSFPG(
     // get the current pitch, volume, and pan at this time
     const { pitch, volume, pan } = gen.getCurrentValues(time);
 
-    const connections: SourceData[] = connectPresetNote(
-      context,
+    const connections: RawSourceData[] = getPresetNote(
       gen,
       preset,
       duration,
       pitch,
       volume,
       pan,
-      time + startTime
-    );
+      time + gen.startTime, 
+   );
     sourceData.push(...connections);
   }
 

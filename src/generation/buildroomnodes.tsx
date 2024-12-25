@@ -2,7 +2,7 @@ import Compressor from "classes/compressor";
 import Equalizer from "classes/equalizer";
 
 // create a room concentrator and connect the concentrator->compressor->equalizer
-export function buildRoomGraph(
+export function buildRoomNodes(
   compressor: Compressor,
   equalizer: Equalizer,
   context: AudioContext | OfflineAudioContext

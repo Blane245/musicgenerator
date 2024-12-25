@@ -1,16 +1,19 @@
 import { MutableRefObject } from "react";
-import { CMGeneratorType, GENERATIONMODE, SourceData } from "../types";
-import Compressor from "../classes/compressor";
-import Equalizer from "../classes/equalizer";
-import { buildRoomGraph } from "./buildroomgraph";
+import {
+  ActiveSource,
+  CMGeneratorType,
+  GENERATIONMODE,
+  RawSourceData,
+} from "../types";
+import { realizeSource } from "./realizesource";
+import CMGFile from "../classes/cmgfile";
+import { buildRoomNodes } from "./buildroomnodes";
 
 export interface PreviewProps {
-  context: AudioContext;
-  compressor: Compressor;
-  equalizer: Equalizer;
+  fileContents: CMGFile;
   playbackLength: number;
   offsetTime: number;
-  sourceData: SourceData[];
+  sourceData: RawSourceData[];
   setMode: Function;
   playing: MutableRefObject<boolean>;
   setTimeProgress: Function;
@@ -21,9 +24,7 @@ export interface PreviewProps {
 export default function Preview(params: PreviewProps): void {
   let { sourceData } = params;
   const {
-    context,
-    compressor,
-    equalizer,
+    fileContents,
     playbackLength,
     offsetTime,
     setMode,
@@ -33,9 +34,22 @@ export default function Preview(params: PreviewProps): void {
     setStatus,
   } = params;
 
-  // resume the audio context after the source data have been built
-  const roomConcentrator = buildRoomGraph(compressor, equalizer, context);
-  context.resume();
+  // set up the real time context
+  const context: AudioContext = new AudioContext();
+  context.suspend();
+  playing.current=true;
+  setTimeProgress(0);
+
+  // prepare the room compressor and equalizer
+  fileContents.compressor.setContext(context);
+  fileContents.equalizer.setContext(context);
+
+  // construct the room concentrator and connect to the compressor and equalizer
+  const concentrator: GainNode = buildRoomNodes(
+    fileContents.compressor,
+    fileContents.equalizer,
+    context
+  );
 
   const SCHEDULEAHEADTIME: number = 0.1; // how far ahead to schedule audio (seconds)
   const LOOKAHEAD: number = 25.0; // how frequently to call the schedule function (ms)
@@ -43,38 +57,37 @@ export default function Preview(params: PreviewProps): void {
   let nextTime: number = 0.0;
 
   // the real time scheduler
-  // the latest version will connect the source/vol/panner to the room concentrator
-  // when a source starts and then disconnect it when the duration is up.
-
+  // when a source starts, realize and connect it to the room concentrator
+  // when a source stops, disconnect and delete it when its stop time arrives
+  let activeSources: ActiveSource[] = [];
+  context.resume();
   scheduler();
   function scheduler(): void {
     if (playing.current) {
       const aheadTime = context.currentTime + SCHEDULEAHEADTIME;
+      let nStarted: number = 0;
+      let nStopped: number = 0;
       while (nextTime < aheadTime) {
         // start the tones ready to start
-        let nStarted: number = 0;
-        sourceData.forEach((s: SourceData) => {
-          if (aheadTime >= s.startTime && !s.started) {
-            s.source.connect(s.vol).connect(s.panner).connect(roomConcentrator);
-            s.source.start(s.startTime, 0, s.duration);
-            s.started = true;
+        sourceData.forEach((s: RawSourceData, i: number) => {
+          if (aheadTime >= s.source.startTime && !s.source.started) {
+            const activeSource: ActiveSource = realizeSource(
+              context,
+              s,
+              i,
+              concentrator
+            );
+            activeSource.source.start(s.source.startTime, 0, s.source.duration);
+            activeSources.push(activeSource);
+            s.source.started = true;
             nStarted++;
-            // console.log('source',
-            // s.startTime,
-            // s.duration,
-            //   'currentTime', context.currentTime,
-            //   'nexttime', nextTime,
-            //   'aheadtime', aheadTime,
-            // );
           }
         });
 
         // disconnect all of the nodes that have finished playing
-        // and deleted it
-        let nStopped: number = 0;
-        sourceData = sourceData.filter((s: SourceData) => {
-          // and delete the source
-          if (s.started && context.currentTime > s.stopTime) {
+        // and delete them
+        activeSources = activeSources.filter((s: ActiveSource) => {
+          if (context.currentTime > s.stopTime) {
             s.source.disconnect();
             s.vol.disconnect();
             s.panner.disconnect();
@@ -82,17 +95,30 @@ export default function Preview(params: PreviewProps): void {
             return false;
           } else return true;
         });
-        // console.log("at", aheadTime, nStarted, "started", nStopped, "stopped");
-        // stop the tones ready to stop
+        // advance to the next scheduled time
         nextTime += SCHEDULEAHEADTIME;
       }
+      // console.log(
+      //   "at",
+      //   context.currentTime,
+      //   nStarted,
+      //   "started",
+      //   nStopped,
+      //   "stopped",
+      //   activeSources.length,
+      //   " running",
+      // );
     }
+
+    // check if done or stopped
     const done: boolean = context.currentTime > playbackLength;
     if (!done && playing.current) {
       timerID = window.setTimeout(scheduler, LOOKAHEAD);
+      // console.log("timer set", context.currentTime);
     } else {
+      // console.log("timer cleared");
       timerID && clearTimeout(timerID);
-      playing.current = false;
+      playing.current=false;
       if (context.state !== "closed") {
         (context as AudioContext).suspend();
         (context as AudioContext).close();
@@ -112,7 +138,7 @@ export default function Preview(params: PreviewProps): void {
       // get the generators playing for highlighting
       setGeneratorsPlaying(() => {
         const newGeneratorsPlaying: CMGeneratorType[] = [];
-        sourceData.forEach((s: SourceData) => {
+        activeSources.forEach((s: ActiveSource) => {
           if (
             newGeneratorsPlaying.findIndex(
               (g: CMGeneratorType) => g.name == s.gen.name

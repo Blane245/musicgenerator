@@ -153,26 +153,20 @@ export type TimelineInterval = {
   endTime?: number; 
 }
 
-
-export type SourceData = {
-  source: AudioBufferSourceNode,
-  vol: GainNode,
-  panner: StereoPannerNode,
-  gen: CMGeneratorType,
-  startTime: number,
-  duration: number,
-  stopTime: number,
-  started: boolean,
-};
-
+// the data that is needed to realize a source and manage it during preview and record
 export type RawSourceData = {
   gen: CMGeneratorType,
   source: {
     sample: Float32Array, // the sf instrument sample converted to float32 or noise as float32
+    sampleRate: number, // hz/sec
     playbackRate: number, // sf playback rate or 1 for noise
     loopStart: number, // sf loopstart index or 0 for noise
     loopEnd: number, // sf loopEnd index or sample.length for noise
     loop: boolean,  // true/false depending on sf and option or false for noise
+    startTime: number, // start time of the source within the generator
+    duration: number, // attackInterval + holdInterval + releaseInterval
+    stopTime: number, // startTime + duration
+    started: boolean, // whether or not the source has started playing during preview
   },
   panner: {
     value: number, // pan value from generator
@@ -181,15 +175,16 @@ export type RawSourceData = {
     attackInterval: number, // attack time from sf as limited
     holdInterval: number, // the original note's duration minus the attack time
     releaseInterval: number, // release time from sf as limited
+    value:number, // the current volume value
   }
-  startTime: number,
-  duration: number, // attackInterval + holdInterval + releaseInterval
-  stopTime: number, // startTime + duration
-  started: boolean,
 }
 
-export type RenderedBatch = {
-  startSample: number; // time that the sample starts
-  endSample: number; // time that the sample ends
-  buffer: AudioBuffer; // the rendered buffer
+// the attributes of a source that is managed during preview
+export type ActiveSource = {
+  gen: CMGeneratorType,
+  source: AudioBufferSourceNode,
+  sourceIndex: number,
+  panner: StereoPannerNode,
+  vol: GainNode,
+  stopTime: number,
 }

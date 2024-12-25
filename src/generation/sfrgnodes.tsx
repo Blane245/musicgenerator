@@ -1,19 +1,18 @@
+import { getPresetNote } from "../sfcomponents/loadpresetnote";
 import SFRG from "../classes/sfrg";
-import { connectPresetNote } from "../sfcomponents/presetnote";
-import { SourceData } from "../types";
+import { RawSourceData } from "../types";
 import { setRandomSeed } from "../utils/seededrandom";
 
 // get all of the webaudio nodes for all of the SFPG generators
 export function getBufferSourceNodesFromSFRG(
-  context: AudioContext | OfflineAudioContext,
   gen: SFRG,
-): SourceData[] {
+): RawSourceData[] {
   const { startTime, stopTime, preset } = gen;
   if (!preset)
     throw new Error(`Preset not defined for generator '${gen.name}'`);
 
   let time: number = startTime;
-  const sourceData: SourceData[] = [];
+  const sourceData: RawSourceData[] = [];
 
   // initialize the current values of the generator
   setRandomSeed(gen.seed);
@@ -26,18 +25,17 @@ export function getBufferSourceNodesFromSFRG(
   let volume: number = gen.volumeT.startValue;
   let pan: number = gen.panT.startValue;
   while (time < stopTime) {
-    // deterime how long this note will play from the new speed and set its start and stop times
+    // determine how long this note will play from the new speed and set its start and stop times
     const duration = 60.0 / speed;
-    const connections: SourceData[] = connectPresetNote(
-      context,
+    const connections: RawSourceData[] = getPresetNote(
       gen,
       preset,
       duration,
       midi,
       volume,
       pan,
-      time
-    );
+      time,
+      );
 
     // and add it to the accumulated sources
     sourceData.push(...connections);

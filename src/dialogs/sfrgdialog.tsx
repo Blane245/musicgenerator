@@ -239,9 +239,9 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
             value={formData.speedT.startValue}
             onChange={handleChange}
             type="number"
-            min={5}
+            min={1}
             max={500}
-            step={5}
+            step={1}
           />
           <span> (BPM)</span>
         </label>
@@ -252,7 +252,7 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
             value={formData.speedT.range.lo}
             onChange={handleChange}
             type="number"
-            min={5}
+            min={1}
             max={500}
             step={1}
           />
@@ -264,7 +264,7 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
             value={formData.speedT.range.hi}
             onChange={handleChange}
             type="number"
-            min={5}
+            min={1}
             max={500}
             step={1}
           />

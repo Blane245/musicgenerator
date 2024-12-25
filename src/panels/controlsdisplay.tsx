@@ -19,7 +19,8 @@ import TimeLineDisplay from "./timelinedisplay";
 // time line
 
 export default function ControlsDisplay() {
-  const { fileContents, setFileContents, setStatus, playing } = useCMGContext();
+  const { fileContents, setFileContents, setStatus, playing } =
+    useCMGContext();
 
   const [SFfiles, setSFFiles] = useState<string[]>([]);
   const [SFFileName, setSFFileName] = useState<string>("");
@@ -45,7 +46,7 @@ export default function ControlsDisplay() {
 
   // show the stop button when playing
   useEffect(() => {
-      setShowStop(playing.current);
+    setShowStop(playing.current);
   }, [playing.current]);
 
   // update the SF file name when the file contents file name changes
@@ -150,9 +151,7 @@ export default function ControlsDisplay() {
         <button
           style={{ marginLeft: "1em" }}
           hidden={!showStop}
-          onClick={() => {
-            playing.current = false;
-          }}
+          onClick={() => playing.current=false}
         >
           Stop
         </button>

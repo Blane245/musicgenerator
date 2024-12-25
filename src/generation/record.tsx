@@ -1,15 +1,15 @@
 import { MutableRefObject } from "react";
-import { GENERATIONMODE, RenderedBatch, SourceData } from "../types";
-import { bufferToWave } from "../utils/buffertowave";
+import CMGFile from "../classes/cmgfile";
 import Compressor from "../classes/compressor";
-import { buildRoomGraph } from "./buildroomgraph";
 import Equalizer from "../classes/equalizer";
+import { GENERATIONMODE, RawSourceData } from "../types";
+import { bufferToWave } from "../utils/buffertowave";
+import { buildRoomNodes } from "./buildroomnodes";
+import { realizeSource } from "./realizesource";
 
 export interface RecordProps {
-  context: OfflineAudioContext;
-  compressor: Compressor;
-  equalizer: Equalizer;
-  sourceData: SourceData[];
+  fileContents: CMGFile;
+  sourceData: RawSourceData[];
   sampleRate: number;
   playbackLength: number;
   setMode: Function;
@@ -18,18 +18,21 @@ export interface RecordProps {
 }
 
 // record the generated sources using batching
-// TODO rendering can only be done once for each offline context
-// this requires that once the sources have been built in the 
-// original offline context they will have to be rebuilt in
-// batches in separate contexts and each rendered separately
-// it would be handy if a source and its volume and pan nodes 
-// could be moved from the original context to the new one in the batch
+// count the expected number of batches
+// when a new batch has been defined
+//  create a new offline context
+//  realize the room nodes
+//  realize each raw source in the batch
+//  render the batch
+// when a batch is rendered
+//  add the rendered buffer to the total result
+//  count the batch as rendered
+// when all batch have completed or playing has stopped (a timer checks this every second)
+//  write the accumulated buffer to the recording file
 export default async function Record(params: RecordProps) {
+  let { sourceData } = params;
   const {
-    context,
-    compressor,
-    equalizer,
-    sourceData,
+    fileContents,
     sampleRate,
     playbackLength,
     setStatus,
@@ -37,21 +40,10 @@ export default async function Record(params: RecordProps) {
     playing,
   } = params;
 
-  const concentrator: GainNode = buildRoomGraph(compressor, equalizer, context);
-  // pseudo code for copying the original source data to the new offline context
-  // const newContext: OfflineAudioContext = new OfflineAudioContext(2, 5000, 5000);
-  // TODO vol requires knowledge of level, attack and release times
-  // const source: AudioBufferSourceNode = newContext.createBufferSource();
-  // source.buffer = sourceData[0].source.buffer;
-  // const panner: StereoPannerNode = newContext.createStereoPanner();
-  // panner.pan.value = sourceData[0].panner.pan.value;
-  // recording is done in batches of sources which are rendered and then
-  // added together to produce the final result.
   const BATCHSIZE: number = 200;
-  const renderedBuffers: RenderedBatch[] = [];
-
   try {
-    // get the file handle for the file to be written
+    // get the file handle for the file to be written. if the sure cancels
+    // an error is thrown.
     const rh: FileSystemFileHandle = await window.showSaveFilePicker({
       types: [
         {
@@ -61,99 +53,148 @@ export default async function Record(params: RecordProps) {
       ],
     });
 
-    // sort the source data in starttime order for batching
-    // then extract a batch and render it
+    // sort the source data in start time order then count the number of batches
+    sourceData = sourceData.sort((a, b) => a.source.startTime - b.source.startTime);
+    let totalBatchCount: number = 0;
+    let currentBatchCount: number = 0;
     let nBatch: number = 0;
-    let batchedSources: SourceData[] = [];
+    sourceData.forEach((_, i) => {
+      nBatch++;
+      if (nBatch == BATCHSIZE || i == sourceData.length - 1) {
+        totalBatchCount++;
+        nBatch = 0;
+      }
+    });
+    console.log('total batch count ', totalBatchCount);
+
+    // extract each batch and render it
+    nBatch = 0;
+    let batchedSources: RawSourceData[] = [];
     let batchStart: number = 1e100;
     let batchEnd: number = 0;
-    console.log('recording size ', sourceData.length);
-    sourceData
-      .sort((a, b) => a.startTime - b.startTime)
-      .forEach(async (s, i) => {
-        nBatch++;
-        if (nBatch <= BATCHSIZE) {
-          batchedSources.push(s);
-          batchStart = Math.min(batchStart, s.startTime);
-          batchEnd = Math.max(batchEnd, s.startTime + s.duration);
-        }
+    let completedBatches: number = 0;
+    let activeContexts: OfflineAudioContext[] = [];
 
-        // when the batch is full render it offline and capture the
-        // rendered buffer
-        if (nBatch == BATCHSIZE || i == sourceData.length - 1) {
-          batchedSources.forEach((s) => {
-            s.source.connect(s.vol).connect(s.panner).connect(concentrator);
-            s.source.start(s.startTime, batchStart, s.duration);
-          });
-          const renderBuffer: AudioBuffer = await context.startRendering();
-          renderedBuffers.push({
-            startSample: batchStart,
-            endSample: batchEnd,
-            buffer: renderBuffer,
-          });
-
-          // disconnect all of the rendered sources
-          batchedSources.forEach((s) => {
-            s.source.disconnect();
-            s.vol.disconnect();
-            s.panner.disconnect();
-          });
-          console.log(
-            "render complete for batch ",
-            renderedBuffers.length,
-            " source count",
-            batchedSources.length,
-            " start time",
-            batchStart,
-            " end time ",
-            batchEnd
-          );
-
-          // prepare for next batch
-          nBatch = 0;
-          batchStart = 1e100;
-          batchEnd = 0;
-          batchedSources = [];
-        }
-      });
-
-    // all batches have been created
-    // add all of the samples for the same time together
-
+    // initialize the complete recording
     const nResult = playbackLength * sampleRate;
-    console.log("batching complete. ready to add samples", nResult);
-    const fl: Float32Array[] = [
+    const result: Float32Array[] = [
       new Float32Array(nResult).fill(0),
       new Float32Array(nResult).fill(0),
     ];
+    console.log("recording size (Mb) ", (result[0].length * 32) / 1000000);
+    playing.current=true;
 
-    // loop through each sample point adding the rendered results from the
-    // corresponding time
-    for (let i = 0; i < nResult; i++) {
-      const t = i / sampleRate;
-      renderedBuffers.forEach((s) => {
-        if (t >= s.startSample && t <= s.endSample) {
-          const thisSample = (t - s.startSample) * sampleRate;
-          fl[0][i] += s.buffer.getChannelData(0)[thisSample];
+    sourceData.forEach((s, i) => {
+      nBatch++;
+      if (nBatch <= BATCHSIZE) {
+        batchedSources.push(s);
+        batchStart = Math.min(batchStart, s.source.startTime);
+        batchEnd = Math.max(batchEnd, s.source.startTime + s.source.duration);
+      }
+
+      // when the batch is full render it offline and capture the
+      // rendered buffer
+      if (nBatch == BATCHSIZE || i == sourceData.length - 1) {
+        currentBatchCount++;
+        activeContexts.push(
+          new OfflineAudioContext(2, sampleRate * batchEnd, sampleRate)
+        );
+        const context: OfflineAudioContext =
+          activeContexts[activeContexts.length - 1];
+
+        // create a copy of the room compressor and equalizer to build the room nodes
+        const compressor: Compressor = fileContents.compressor.copy();
+        const equalizer: Equalizer = fileContents.equalizer.copy();
+        compressor.setContext(context);
+        equalizer.setContext(context);
+        const concentrator: GainNode = buildRoomNodes(
+          compressor,
+          equalizer,
+          context
+        );
+
+        // build the batch's graph, realize its sources, and start each
+        // render the batch and write it and its data to session storage
+        batchedSources.forEach((s: RawSourceData, i: number) => {
+          realizeSource(context, s, i, concentrator).source.start(
+            s.source.startTime,
+            0,
+            s.source.duration,
+          );
+        });
+        console.log(
+          "rendering for batch ",
+          currentBatchCount,
+          " source count ",
+          batchedSources.length,
+          " start time",
+          batchStart,
+          " end time ",
+          batchEnd
+        );
+
+        context.oncomplete = (ev: OfflineAudioCompletionEvent) => {
+          // add the result of this recording to the complete recording
+          const renderBuffer:AudioBuffer = ev.renderedBuffer;
+          const ctx: OfflineAudioContext =
+            ev.currentTarget as OfflineAudioContext;
+          for (let j = 0; j < 2; j++) {
+            const channelData: Float32Array = renderBuffer.getChannelData(j);
+            for (let i = 0; i < renderBuffer.length; i++) {
+              result[j][i] += channelData[i];
+            }
+          }
+          completedBatches++;
+
+          // remove the context from the active contexts
+          activeContexts = activeContexts.filter((c) => c != ctx);
+          console.log("completed batches", completedBatches, 'active batches', activeContexts.length);
+        };
+        context.startRendering();
+
+        // prepare for next batch
+        nBatch = 0;
+        batchStart = 1e100;
+        batchEnd = 0;
+        batchedSources = [];
+      }
+    });
+
+    // wait for all batches to be completed
+    let timerId: number = 0;
+    waitForCompletion();
+    function waitForCompletion() {
+      if (playing.current) {
+        if (totalBatchCount == completedBatches) {
+          // convert the result to a WAV file Blob
+          const blob: Blob = bufferToWave(result, 2, sampleRate);
+          console.log('writing wav file of size ', blob.size);
+
+          // write the Blob to the file
+          rh.createWritable().then(
+            (accessHandle: FileSystemWritableFileStream) => {
+              accessHandle.write(blob);
+              accessHandle.close();
+              setStatus(`Audio written to ${rh.name}`);
+              setMode(GENERATIONMODE.idle);
+              playing.current=false;
+              timerId && clearTimeout(timerId);
+            }
+          );
+        } else {
+          timerId = window.setTimeout(waitForCompletion, 1000);
+          console.log('waiting for completion, total=',totalBatchCount,' completed=',completedBatches);
         }
-      });
+      } else {
+        timerId && clearTimeout(timerId);
+        setMode(GENERATIONMODE.idle);
+        setStatus(`Recording stopped early`);
+      }
     }
-
-    // convert the result to a WAV file Blob
-    const blob: Blob = bufferToWave(fl, sampleRate);
-
-    // write the Blob to the file
-    const accessHandle: FileSystemWritableFileStream =
-      await rh.createWritable();
-    accessHandle.write(blob);
-    accessHandle.close();
-    setStatus(`Audio written to ${rh.name}`);
-    setMode(GENERATIONMODE.idle);
-    playing.current = false;
   } catch (e: any) {
     console.error(e);
     setMode(GENERATIONMODE.idle);
     setStatus(`Error during recording: '${e.description}`);
-    playing.current = false;
+    playing.current=false;
   }
 }

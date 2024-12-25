@@ -1,5 +1,4 @@
-export interface Sample {
-  header: {
+export interface SampleHeader {
     name: string;
     end: number;
     endLoop: number;
@@ -11,6 +10,9 @@ export interface Sample {
     startLoop: number;
     type: number;
   };
+  
+export interface Sample {
+  header: SampleHeader,
   data: Int16Array;
 }
 
