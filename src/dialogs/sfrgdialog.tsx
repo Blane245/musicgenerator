@@ -63,7 +63,7 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
         />
       </label>
       <div className="transition-box">
-        <p className="transition-header">Midi Transtions</p>
+        <p className="transition-header">Midi Transitions</p>
         <label>
           Starting Value:&nbsp;
           <input
@@ -231,7 +231,7 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
         </label>
       </div>
       <div className="transition-box">
-        <p className="transition-header">Speed Transtions</p>
+        <p className="transition-header">Speed Transitions</p>
         <label>
           Starting Value:
           <input
@@ -394,7 +394,7 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
         </label>
       </div>
       <div className="transition-box">
-        <p className="transition-header">Volume Transtions</p>
+        <p className="transition-header">Volume Transitions</p>
         <label>
           Starting Value:
           <input
@@ -403,10 +403,10 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
             onChange={handleChange}
             type="number"
             min={0}
-            max={100}
+            max={10}
             step={1}
           />
-          <span> (1 to 100 %)</span>
+          <span> (1 - 10)</span>
         </label>
         <label>
           &nbsp;Range lo:&nbsp;
@@ -416,7 +416,7 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
             onChange={handleChange}
             type="number"
             min={0}
-            max={100}
+            max={10}
             step={1}
           />
         </label>
@@ -428,7 +428,7 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
             onChange={handleChange}
             type="number"
             min={0}
-            max={100}
+            max={10}
             step={1}
           />
         </label>
@@ -440,7 +440,7 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
             onChange={handleChange}
             type="number"
             min={0}
-            max={100}
+            max={10}
             step={1}
           />
         </label>
@@ -557,7 +557,7 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
         </label>
       </div>
       <div className="transition-box">
-        <p className="transition-header">Pan Transtions</p>
+        <p className="transition-header">Pan Transitions</p>
         <label>
           Starting Value:&nbsp;
           <input

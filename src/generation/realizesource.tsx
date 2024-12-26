@@ -2,6 +2,11 @@
 
 import { ActiveSource, RawSourceData } from "../types";
 
+// convert volume setting to gain
+// volume of 10 has a unity gain
+const v2g = (v: number): number => {
+  return Math.max(Math.pow(2, v - 10), 0.001);
+}
 // connect it to the destination
 export function realizeSource(
   ctx: AudioContext | OfflineAudioContext,
@@ -28,7 +33,7 @@ export function realizeSource(
   // build gain
   const vol: GainNode = ctx.createGain();
   const min = 0.001;
-  const max: number = RawSourceData.vol.value;
+  const max: number = v2g(RawSourceData.vol.value);
   const t0: number = RawSourceData.source.startTime;
   const t1: number = RawSourceData.vol.attackInterval + t0;
   const t2: number = RawSourceData.vol.holdInterval + t1;

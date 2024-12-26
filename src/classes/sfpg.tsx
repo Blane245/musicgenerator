@@ -41,7 +41,7 @@ export default class SFPG extends CMG {
     this.FMFrequency = 0;
     this.FMPhase = 0;
     this.VMType = "SINE";
-    this.VMCenter = 50;
+    this.VMCenter = 5;
     this.VMFrequency = 0;
     this.VMAmplitude = 0;
     this.VMPhase = 0;

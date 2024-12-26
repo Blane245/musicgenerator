@@ -121,23 +121,23 @@ export default function NoiseDialog(props: NoiseProps): JSX.Element {
         name="VMCenter"
         type="number"
         min={0}
-        max={100}
+        max={10}
         step={1}
         onChange={handleChange}
         value={formData.VMCenter}
       />
-      <span> (%)</span>
+      <span> (0-10)</span>
       <label htmlFor="VMAmplitude"> VMAmplitude:</label>
       <input
         name="VMAmplitude"
         type="number"
         min={0}
-        max={100}
+        max={10}
         step={1}
         onChange={handleChange}
         value={formData.VMAmplitude}
       />
-      <span> (%) </span>
+      <span> (0-10)</span>
       <label htmlFor="VMFrequency"> VMFrequency:</label>
       <input
         name="VMFrequency"
@@ -223,6 +223,7 @@ export default function NoiseDialog(props: NoiseProps): JSX.Element {
   );
 }
 
+// all values are validated by range checks
 export function validateNoiseValues(values: Noise): string[] {
   const result: string[] = [];
   return result;

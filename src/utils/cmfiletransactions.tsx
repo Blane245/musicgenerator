@@ -4,6 +4,7 @@ import Track from "../classes/track";
 import { SoundFont2 } from "soundfont2";
 import Compressor from "../classes/compressor";
 import Equalizer from "../classes/equalizer";
+import Volume from "classes/volume";
 
 export function newFile(contents: CMGFile, setFileContents: Function): void {
   setFileContents(contents);
@@ -61,6 +62,17 @@ export function setCompressor(
     return nc;
   });
 }
+
+export function setVolume(
+  newVolume: Volume,
+  setFileContents: Function) : void {
+    setFileContents((c: CMGFile) => {
+      const nc:CMGFile = c.copy();
+      nc.dirty = true;
+      nc.volume = newVolume;
+      return nc;
+    });
+  }
 
 export function addTrack(newTrack: Track, setFileContents: Function) {
   setFileContents((c: CMGFile) => {

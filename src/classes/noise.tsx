@@ -44,7 +44,7 @@ export default class Noise extends CMG {
     this.sampleRate = SAMPLERATE;
     this.duration = 0;
     this.VMType = "SINE";
-    this.VMCenter = 50;
+    this.VMCenter = 5;
     this.VMFrequency = 0;
     this.VMAmplitude = 0;
     this.VMPhase = 0;

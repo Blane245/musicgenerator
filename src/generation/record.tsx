@@ -6,6 +6,7 @@ import { GENERATIONMODE, RawSourceData } from "../types";
 import { bufferToWave } from "../utils/buffertowave";
 import { buildRoomNodes } from "./buildroomnodes";
 import { realizeSource } from "./realizesource";
+import Volume from "classes/volume";
 
 export interface RecordProps {
   fileContents: CMGFile;
@@ -105,11 +106,11 @@ export default async function Record(params: RecordProps) {
         // create a copy of the room compressor and equalizer to build the room nodes
         const compressor: Compressor = fileContents.compressor.copy();
         const equalizer: Equalizer = fileContents.equalizer.copy();
-        compressor.setContext(context);
-        equalizer.setContext(context);
+        const volume: Volume = fileContents.volume.copy();
         const concentrator: GainNode = buildRoomNodes(
           compressor,
           equalizer,
+          volume,
           context
         );
 

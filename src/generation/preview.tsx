@@ -48,6 +48,7 @@ export default function Preview(params: PreviewProps): void {
   const concentrator: GainNode = buildRoomNodes(
     fileContents.compressor,
     fileContents.equalizer,
+    fileContents.volume,
     context
   );
 

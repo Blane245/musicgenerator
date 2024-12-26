@@ -5,11 +5,13 @@ import { getAttributeValue } from "../utils/xmlfunctions";
 import Track from "./track";
 import Compressor from "./compressor";
 import Equalizer from "./equalizer";
+import Volume from "./volume";
 export default class CMGFile {
     dirty: boolean; // if the contents of the file has been changed since loaded, it is marked dirty
     name: string; // the name of the file on the disk or null if not saved
     compressor: Compressor;
     equalizer: Equalizer;
+    volume: Volume;
     tracks: Track[];
     SFFileName: string; // the file name of the soundfont
     SoundFont: SoundFont2 | null; // the soundfont selected for this file
@@ -19,6 +21,7 @@ export default class CMGFile {
         this.name = '';
         this.compressor = new Compressor('roomcompressor');
         this.equalizer = new Equalizer('roomequalizer');
+        this.volume = new Volume('roomvolume');
         this.tracks = [];
         this.SFFileName = '';
         this.SoundFont = null;
@@ -52,6 +55,7 @@ export default class CMGFile {
         elem.setAttribute('SFFileName', this.SFFileName);
         this.compressor.appendXML({doc:doc, elem:elem});
         this.equalizer.appendXML({doc:doc, elem:elem});
+        this.volume.appendXML({doc: doc, elem: elem});
     }
 
     async getXML(fcElem: Element, fileName: string) {
@@ -62,5 +66,6 @@ export default class CMGFile {
         }
         this.compressor.getXML(fcElem);
         this.equalizer.getXML(fcElem);
+        this.volume.getXML(fcElem);
     }
 }

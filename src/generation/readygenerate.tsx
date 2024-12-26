@@ -137,19 +137,19 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
         tempGen.stopTime = tempGen.stopTime - tempGen.startTime;
         tempGen.startTime = 0;
         SFPGenerators.push(tempGen);
-        playbackLength = tempGen.stopTime;
+        playbackLength = tempGen.stopTime + 1;
       } else if (generator.type == GENERATORTYPE.SFRG) {
         const tempGen: SFRG = (generator as SFRG).copy();
         tempGen.stopTime = tempGen.stopTime - tempGen.startTime;
         tempGen.startTime = 0;
         SFRGenerators.push(tempGen);
-        playbackLength = tempGen.stopTime;
+        playbackLength = tempGen.stopTime + 1;
       } else if (generator.type == GENERATORTYPE.Noise) {
         const tempGen: Noise = (generator as Noise).copy();
         tempGen.stopTime = tempGen.stopTime - tempGen.startTime;
         tempGen.startTime = 0;
         NoiseGenerators.push(tempGen);
-        playbackLength = tempGen.stopTime;
+        playbackLength = tempGen.stopTime + 1;
       }
     }
   }
