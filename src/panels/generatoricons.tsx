@@ -191,18 +191,14 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
     if (mouseDown || playing.current) return;
     e.preventDefault();
     e.stopPropagation();
-    const page = document.getElementById("page");
-    if (page) page.style.cursor = "cursor-ew-resize";
-    else console.log("handleMouseEnter page element not found");
+    e.currentTarget.classList.add('cursor-ns-resize')
   }
   // when the mouse is up change cursor back to default
   function handleMouseLeave(e: MouseEvent<SVGRectElement>): void {
     if (mouseDown || playing.current) return;
     e.preventDefault();
     e.stopPropagation();
-    const page = document.getElementById("page");
-    if (page) page.style.cursor = "default";
-    else console.log("handleMouseLeave page element not found");
+    e.currentTarget.classList.remove('cursor-ns-resize')
   }
 
   // toggle the mute condition of the selected generator
