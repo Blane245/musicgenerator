@@ -52,6 +52,10 @@ fieldset {
   }
 }
 
+.waiting * {
+  cursor: wait;
+}
+
 .card {
   padding: 2em;
 }
@@ -70,12 +74,17 @@ fieldset {
   cursor: default;
 }
 
+[inert] > * {
+  opacity: 0.5;
+}
+
 .page-header {
   position: fixed;
   top: 0;
   left:0;
   width: 100%;
   z-index: 999;
+  cursor: inherit;
 }
 
 .page-grid {
@@ -83,6 +92,7 @@ fieldset {
   grid-template-columns: 200px repeat(11, 1fr);
   grid-template-rows: 40px 40px 40px 40px 2000fr 40px;
   gap: 0;
+  cursor: inherit;
 }
 
 .page-header {
@@ -91,40 +101,47 @@ fieldset {
   left:0;
   width: 100%;
   z-index: 999;
+  cursor: inherit;
 }
 
 .page-icon {
   display: block;
   grid-template-columns: subgrid;
+  cursor: inherit;
 }
 
 .page-title {
   display: block;
   grid-template-columns: subgrid;
   grid-column: span 11;
+  cursor: inherit;
 }
 
 .page-menus {
   display: block;
   grid-template-columns: subgrid;
   grid-column: span 12;
+  cursor: inherit;
 }
 
 .page-control {
   display: block;
   grid-template-columns: subgrid;
   grid-column: span 12;
+  cursor: inherit;
 }
 
 .page-time-control {
   grid-template-columns: subgrid;
   display: block;
+  cursor: inherit;
 }
 
 .page-time-timeline {
   grid-template-columns: subgrid;
   display: block;
   grid-column: span 11;
+  cursor: inherit;
 }
 
 .page-body {
@@ -135,6 +152,7 @@ fieldset {
   grid-template-rows: 100px;
   gap: 0;
   overflow: hidden;
+  cursor: inherit;
 }
 
 .page-track-control {
@@ -143,6 +161,7 @@ fieldset {
   grid-column: span 1;
   border: 1px black solid;
   height: 100px;
+  cursor: inherit;
 }
 
 .page-track-display {
@@ -152,6 +171,7 @@ fieldset {
   border: 1px black solid;
   height: 100px;
   width: 100%;
+  cursor: inherit;
 }
 
 .page-footer {
@@ -161,6 +181,7 @@ fieldset {
   top: auto;
   bottom: 0;
   width: 100%;
+  cursor: inherit;
 }
 
 .page-footer-status {
@@ -168,6 +189,7 @@ fieldset {
   grid-column: span 1;
   align-self: flex-end;
   margin-bottom: 5px;
+  cursor: inherit;
 }
 
 .page-footer-compressor {
@@ -182,12 +204,14 @@ fieldset {
   margin-right: 10px;
   margin-bottom: 10px;
   outline: solid #5c75b8;
+  cursor: inherit;
 
   .title {
     line-height: normal;
     font-size: 10px;
     text-align: center;
     color: black;
+    cursor: inherit;
     .button {
       font-size: 5px;
     }
@@ -195,6 +219,7 @@ fieldset {
 
   .sliders {
     display: flex;
+    cursor: inherit;
   }
 }
 .compressor-slider {
@@ -207,18 +232,21 @@ fieldset {
   justify-content: space-between;
   padding: 0;
   margin: 0;
+  cursor: inherit;
 
   .param {
     color: black;
     font-size: 10px;
     line-height: 10px;
     text-align: center;
+    cursor: inherit;
   }
   input[type="range"] {
     writing-mode: vertical-lr;
     direction: rtl;
     height: 90px;
     width: 30px;
+    cursor: inherit;
   }
 }
 
@@ -234,6 +262,7 @@ fieldset {
   margin-right: 10px;
   margin-bottom: 10px;
   outline: solid #5c75b8;
+  cursor: inherit;
 
   .title {
     line-height: normal;
@@ -243,10 +272,12 @@ fieldset {
     .button {
       font-size: 5px;
     }
+    cursor: inherit;
   }
 
   .sliders {
     display: flex;
+    cursor: inherit;
   }
 }
 
@@ -262,12 +293,14 @@ fieldset {
   margin-right: 10px;
   margin-bottom: 10px;
   outline: solid #5c75b8;
+  cursor: inherit;
 
   .title {
     line-height: normal;
     font-size: 10px;
     text-align: center;
     color: black;
+    cursor: inherit;
   }
 }
 
@@ -281,11 +314,13 @@ fieldset {
   justify-content: space-between;
   padding: 0;
   margin: 0;
+  cursor: inherit;
 
   .param {
     color: black;
     font-size: 10px;
     line-height: 10px;
+    cursor: inherit;
   }
 
   input[type="range"] {
@@ -293,6 +328,7 @@ fieldset {
     direction: rtl;
     height: 100px;
     width: 30px;
+    cursor: inherit;
   }
 }
 .volume-slider {
@@ -305,11 +341,13 @@ fieldset {
   justify-content: space-between;
   padding: 0;
   margin: 0;
+  cursor: inherit;
 
   .param {
     color: black;
     font-size: 10px;
     line-height: 10px;
+    cursor: inherit;
   }
 
   input[type="range"] {
@@ -319,6 +357,7 @@ fieldset {
     width: 30px;
     margin-top: 55px;
     margin-left: 20px;
+    cursor: inherit;
   }
 }
 
@@ -327,6 +366,7 @@ fieldset {
   width: 60px;
   height: 30px;
   font-size: 8pt;
+  cursor: inherit;
 }
 
 .track-name-button {
@@ -335,17 +375,20 @@ fieldset {
   height: 30px;
   text-align: left;
   font-size: 8pt;
+  cursor: inherit;
 }
 
 .modal-header {
   padding: 2px 16px;
   background-color: #5cb85c;
   color: white;
+  cursor: inherit;
 }
 
 /* Modal Body */
 .modal-body {
   padding: 2px 16px;
+  cursor: inherit;
 }
 
 /* Modal Footer */
@@ -353,6 +396,7 @@ fieldset {
   padding: 2px 16px;
   background-color: #5cb85c;
   color: white;
+  cursor: inherit;
 }
 
 /* Modal Content */
@@ -369,34 +413,41 @@ fieldset {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   animation-name: animatetop;
   animation-duration: 0.4s;
+  cursor: inherit;
 }
 
 .generator-header {
   padding: 2px 16px;
   background-color: #5c75b8;
   color: white;
+  cursor: inherit;
 }
 
 .generator-body {
   padding: 2px 16px;
+  cursor: inherit;
 }
 
 .generator-footer {
   padding: 2px 16px;
   background-color: #5c75b8;
   color: white;
+  cursor: inherit;
 }
 
 .generator-selected {
   fill: rgba(255, 169, 203, 0.418);
+  cursor: inherit;
 }
 
 .generator-playing {
   fill: rgba(255, 169, 203, 0.999);
+  cursor: inherit;
 }
 
 .generator-normal {
   fill: white;
+  cursor: inherit;
 }
 
 .generator-content {
@@ -412,14 +463,16 @@ fieldset {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   animation-name: animateleft;
   animation-duration: 0.4s;
+  cursor: inherit;
 }
 
 .modal-menu {
   background: rgba(219, 215, 208, 0.9);
+  cursor: inherit;
 }
 
 .cursor-default {
-  cursor: auto;
+  cursor: default;
 }
 
 .cursor-all-scroll {
@@ -428,6 +481,10 @@ fieldset {
 
 .cursor-ew-resize {
   cursor: ew-resize;
+}
+
+.cursor-ns-resize {
+  cursor: ns-resize;
 }
 
 .cursor-context-menu {
@@ -444,11 +501,13 @@ fieldset {
 
 .transition-box {
   border: 1px solid black;
+  cursor: inherit;
 }
 
 .transition-header {
   text-align: center;
   stroke: blue;
+  cursor: inherit;
 }
 
 .progress-container {
@@ -457,6 +516,7 @@ fieldset {
   background-color: #e0e0de;
   border-radius: 50;
   margin: 50;
+  cursor: inherit;
 }
 
 .progress-filler {
@@ -464,30 +524,36 @@ fieldset {
   background-color: #00695c;
   border-radius: inherit;
   text-align: right;
+  cursor: inherit;
 }
 
 .progress-labels {
   padding: 5;
   color: white;
   font-weight: bold;
+  cursor: inherit;
 }
 
 .intervalbox {
   stroke: black;
   stroke-width: 1;
   fill: rgba(169,169,169,.5);
+  cursor: inherit;
 }
 .intervalmarker {
   fill: black;
+  cursor: inherit;
 }
 
 .intervaledge {
   stroke: black;
   stroke-width: 2;
+  cursor: inherit;
 }
 
 .timeline {
   fill: white;
+  cursor: inherit;
 }
 
 @keyframes animatetop {

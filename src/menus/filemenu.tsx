@@ -197,6 +197,8 @@ export default function FileMenu() {
   }
 
   function readFileContents() {
+    const page = document.getElementById('page');
+
     try {
       window
         .showOpenFilePicker({
@@ -209,6 +211,15 @@ export default function FileMenu() {
         })
         .then((handle) => {
           handle[0].getFile().then((file) => {
+
+            // set the wait cursor on the page and make it inert
+            if (page) {
+              page.style.cursor="wait";
+              page.inert = true;
+            }
+            // document.body.classList.add('waiting');
+            // document.documentElement.style.cursor = 'wait';
+            // document.documentElement.inert = true;
             setFileName(file.name);
             file.text().then(async (xmlString) => {
               const parser = new DOMParser();
@@ -294,6 +305,13 @@ export default function FileMenu() {
               newFile(fc, setFileContents);
               setStatus(`File '${file.name}' loaded`);
             });
+            if (page) {
+              // document.body.classList.remove('waiting');
+              // document.documentElement.style.cursor = 'default';
+              // document.documentElement.inert = false;
+              page.style.cursor="default";
+              page.inert = false;
+            }
           });
         });
     } catch (err) {
@@ -301,6 +319,13 @@ export default function FileMenu() {
       setStatus(
         `Error reading cmg file, type: '${e.name}' message: '${e.message}'`
       );
-    }
+      if (page) {
+        // document.body.classList.remove('waiting');
+        // document.documentElement.inert = false;
+        // document.documentElement.style.cursor = 'default';
+        page.style.cursor="default";
+        page.inert = false;
+}
+}
   }
 }

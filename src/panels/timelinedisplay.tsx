@@ -457,20 +457,20 @@ export default function TimeLineDisplay() {
     e.preventDefault();
     e.stopPropagation();
     const type: string = e.currentTarget.id;
-    const page = document.getElementById("page");
-    if (page) {
+    // const page = document.getElementById("page");
+    // if (page) {
       switch (type) {
         case "timeline": {
-          page.style.cursor = "crosshair";
+          e.currentTarget.style.cursor = 'crosshair';
           break;
         }
         case "intervalbox": {
-          page.style.cursor = "grab";
+          e.currentTarget.style.cursor =  "grab";
           break;
         }
         case "intervalleftedge":
         case "intervalrightedge": {
-          page.style.cursor = "ew-resize";
+          e.currentTarget.style.cursor =  "ew-resize";
           break;
         }
         default: {
@@ -478,7 +478,7 @@ export default function TimeLineDisplay() {
           break;
         }
       }
-    } else console.log("handleMouseEnter page element not found");
+    // } else console.log("handleMouseEnter page element not found");
   }
 
   // when the mouse is up change cursor back to default
@@ -488,9 +488,10 @@ export default function TimeLineDisplay() {
     if (mouseDown || playing.current) return;
     e.preventDefault();
     e.stopPropagation();
-    const page = document.getElementById("page");
-    if (page) page.style.cursor = "default";
-    else console.log("handleMouseLeave page element not found");
+    e.currentTarget.style.cursor = "default";
+    // const page = document.getElementById("page");
+    // if (page) page.style.cursor = "default";
+    // else console.log("handleMouseLeave page element not found");
   }
 
   interface DisplayIntervalProps {
