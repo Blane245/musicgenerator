@@ -60,16 +60,16 @@ export default function FileMenu() {
       setFileName("");
       setStatus("New file started");
     } else {
-      readFileContents();
       setOpen("");
+      readFileContents();
     }
   }
 
   function handleOpen() {
     if (fileContents.dirty) setOpen("open");
     else {
-      readFileContents();
       setOpen("");
+      readFileContents();
     }
   }
 
@@ -77,7 +77,6 @@ export default function FileMenu() {
     saveFileContents();
   }
   function handleNewTrack() {
-
     // find a track number that is unique, start wiith the next number
     const next = getTrackUID(fileContents.tracks);
 
@@ -88,13 +87,15 @@ export default function FileMenu() {
     setStatus(`Track ${newTrack.name}' Added`);
   }
 
-
   return (
     <fieldset disabled={playing.current} /* style={{ width: "30em" }} */>
-      <button onClick={()=>handleFileNew()}>New File</button><span>&nbsp;</span>
-      <button onClick={()=>handleOpen()}>Open File...</button><span>&nbsp;</span>
-      <button onClick={()=>handleFileSave()}>Save File...</button><span>&nbsp;</span>
-      <button onClick={()=>handleNewTrack()}>New Track</button>
+      <button onClick={() => handleFileNew()}>New File</button>
+      <span>&nbsp;</span>
+      <button onClick={() => handleOpen()}>Open File...</button>
+      <span>&nbsp;</span>
+      <button onClick={() => handleFileSave()}>Save File...</button>
+      <span>&nbsp;</span>
+      <button onClick={() => handleNewTrack()}>New Track</button>
 
       <div
         style={{ display: open == "" ? "none" : "block" }}
@@ -196,124 +197,112 @@ export default function FileMenu() {
     }
   }
 
-  function readFileContents() {
-    const page = document.getElementById('page');
+  async function readFileContents() {
+    const page = document.getElementById("page");
 
     try {
-      window
-        .showOpenFilePicker({
-          types: [
-            {
-              description: "Computer Music Generator File",
-              accept: { "application/cmg": [".cmg"] },
-            },
-          ],
-        })
-        .then((handle) => {
-          handle[0].getFile().then((file) => {
+      const handle: FileSystemFileHandle[] = await window.showOpenFilePicker({
+        types: [
+          {
+            description: "Computer Music Generator File",
+            accept: { "application/cmg": [".cmg"] },
+          },
+        ],
+      });
+      const file: File = await handle[0].getFile();
 
-            // set the wait cursor on the page and make it inert
-            if (page) {
-              page.style.cursor="wait";
-              page.inert = true;
+      // set the wait cursor on the page and make it inert
+      if (page) {
+        // page.style.cursor = "wait";
+        page.inert = true;
+      }
+      // document.body.classList.add('waiting');
+      // document.documentElement.style.cursor = 'wait';
+      // document.documentElement.inert = true;
+      setFileName(file.name);
+      const xmlString: string = await file.text();
+      const parser = new DOMParser();
+      const xmlDoc: XMLDocument = parser.parseFromString(xmlString, "text/xml");
+      const fc = new CMGFile();
+      const fcElem: Element = getDocElement(xmlDoc, "fileContents");
+      fc.name = file.name;
+      await fc.getXML(fcElem, file.name);
+      const tracksElem: Element = getDocElement(xmlDoc, "tracks");
+      const tracksChildren: HTMLCollection = tracksElem.children;
+      fc.tracks = [];
+      for (let i = 0; i < tracksChildren.length; i++) {
+        const track = new Track(0);
+        const child = tracksChildren[i];
+        track.getXML(child);
+        const gensElem = getElementElement(child, "generators");
+        const gensChildren: HTMLCollection = gensElem.children;
+        for (let j = 0; j < gensChildren.length; j++) {
+          const gchild = gensChildren[j];
+          const type = getAttributeValue(gchild, "type", "string") as string;
+          switch (type as string) {
+            case GENERATORTYPE.CMG: {
+              const gen = new CMG(0);
+              gen.getXML(gchild);
+              track.generators.push(gen);
+              break;
             }
-            // document.body.classList.add('waiting');
-            // document.documentElement.style.cursor = 'wait';
-            // document.documentElement.inert = true;
-            setFileName(file.name);
-            file.text().then(async (xmlString) => {
-              const parser = new DOMParser();
-              const xmlDoc: XMLDocument = parser.parseFromString(
-                xmlString,
-                "text/xml"
-              );
-              const fc = new CMGFile();
-              const fcElem: Element = getDocElement(xmlDoc, "fileContents");
-              fc.name = file.name;
-              await fc.getXML(fcElem, file.name);
-              const tracksElem: Element = getDocElement(xmlDoc, "tracks");
-              const tracksChildren: HTMLCollection = tracksElem.children;
-              fc.tracks = [];
-              for (let i = 0; i < tracksChildren.length; i++) {
-                const track = new Track(0);
-                const child = tracksChildren[i];
-                track.getXML(child);
-                const gensElem = getElementElement(child, "generators");
-                const gensChildren: HTMLCollection = gensElem.children;
-                for (let j = 0; j < gensChildren.length; j++) {
-                  const gchild = gensChildren[j];
-                  const type = getAttributeValue(
-                    gchild,
-                    "type",
-                    "string"
-                  ) as string;
-                  switch (type as string) {
-                    case GENERATORTYPE.CMG: {
-                      const gen = new CMG(0);
-                      gen.getXML(gchild);
-                      track.generators.push(gen);
-                      break;
-                    }
-                    case GENERATORTYPE.SFPG: {
-                      const gen = new SFPG(0);
-                      gen.getXML(gchild);
-                      // load the preset if soundfont file and presetname is defined
-                      const pn: string = gen.presetName.split(":")[2];
-                      if (pn != "" && fc.SoundFont) {
-                        gen.preset = fc.SoundFont.presets.find(
-                          (p) => p.header.name == pn
-                        ) as Preset;
-                        if (gen.preset == undefined)
-                          throw new Error(
-                            `Preset '${pn} not in soundfont file '${fc.SFFileName}'`
-                          );
-                      }
-                      track.generators.push(gen);
-                      break;
-                    }
-                    case GENERATORTYPE.SFRG: {
-                      const gen = new SFRG(0);
-                      gen.getXML(gchild);
-                      // load the preset if soundfont file and presetname is defined
-                      const pn: string = gen.presetName.split(":")[2];
-                      if (pn != "" && fc.SoundFont) {
-                        gen.preset = fc.SoundFont.presets.find(
-                          (p) => p.header.name == pn
-                        ) as Preset;
-                        if (gen.preset == undefined)
-                          throw new Error(
-                            `Preset '${pn} not in soundfont file '${fc.SFFileName}'`
-                          );
-                      }
-                      track.generators.push(gen);
-                      break;
-                    }
-                    case GENERATORTYPE.Noise: {
-                      const gen = new Noise(0);
-                      gen.getXML(gchild);
-                      track.generators.push(gen);
-                      break;
-                    }
-                    default:
-                      break;
-                  }
-                }
-                fc.tracks.push(track);
+            case GENERATORTYPE.SFPG: {
+              const gen = new SFPG(0);
+              gen.getXML(gchild);
+              // load the preset if soundfont file and presetname is defined
+              const pn: string = gen.presetName.split(":")[2];
+              if (pn != "" && fc.SoundFont) {
+                gen.preset = fc.SoundFont.presets.find(
+                  (p) => p.header.name == pn
+                ) as Preset;
+                if (gen.preset == undefined)
+                  throw new Error(
+                    `Preset '${pn} not in soundfont file '${fc.SFFileName}'`
+                  );
               }
-
-              fc.dirty = false;
-              newFile(fc, setFileContents);
-              setStatus(`File '${file.name}' loaded`);
-            });
-            if (page) {
-              // document.body.classList.remove('waiting');
-              // document.documentElement.style.cursor = 'default';
-              // document.documentElement.inert = false;
-              page.style.cursor="default";
-              page.inert = false;
+              track.generators.push(gen);
+              break;
             }
-          });
-        });
+            case GENERATORTYPE.SFRG: {
+              const gen = new SFRG(0);
+              gen.getXML(gchild);
+              // load the preset if soundfont file and presetname is defined
+              const pn: string = gen.presetName.split(":")[2];
+              if (pn != "" && fc.SoundFont) {
+                gen.preset = fc.SoundFont.presets.find(
+                  (p) => p.header.name == pn
+                ) as Preset;
+                if (gen.preset == undefined)
+                  throw new Error(
+                    `Preset '${pn} not in soundfont file '${fc.SFFileName}'`
+                  );
+              }
+              track.generators.push(gen);
+              break;
+            }
+            case GENERATORTYPE.Noise: {
+              const gen = new Noise(0);
+              gen.getXML(gchild);
+              track.generators.push(gen);
+              break;
+            }
+            default:
+              break;
+          }
+        }
+        fc.tracks.push(track);
+      }
+
+      fc.dirty = false;
+      newFile(fc, setFileContents);
+      setStatus(`File '${file.name}' loaded`);
+      if (page) {
+        // document.body.classList.remove('waiting');
+        // document.documentElement.style.cursor = 'default';
+        // document.documentElement.inert = false;
+        // page.style.cursor = "default";
+        page.inert = false;
+      }
     } catch (err) {
       const e = err as Error;
       setStatus(
@@ -323,9 +312,9 @@ export default function FileMenu() {
         // document.body.classList.remove('waiting');
         // document.documentElement.inert = false;
         // document.documentElement.style.cursor = 'default';
-        page.style.cursor="default";
+        // page.style.cursor = "default";
         page.inert = false;
-}
-}
+      }
+    }
   }
 }

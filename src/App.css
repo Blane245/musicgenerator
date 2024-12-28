@@ -76,6 +76,7 @@ fieldset {
 
 [inert] > * {
   opacity: 0.5;
+  cursor: wait;
 }
 
 .page-header {
