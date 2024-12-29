@@ -1,11 +1,11 @@
 {
   "name": "musicgenerator2",
   "private": true,
-  "version": "2.0.0",
+  "version": "2.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build --base=/cmg2",
+    "build": "vite build --base=/cmg",
     "lint": "eslint .",
     "preview": "vite preview"
   },

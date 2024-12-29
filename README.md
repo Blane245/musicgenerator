@@ -128,29 +128,35 @@ Generation has the process:
 
 Special thanks to various people
 
-- My son, Ryan Lane, that got me into web-based programming
-- [sfumato](https://github.com/felixroos/sfumato) - who revealed the complexities of soundfont signal processing
-- WebAudio documentation, particularly the authors of the page [Advanced techniques: Creating and sequencing audio](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Advanced_techniques)
-- Russell Good for his blog [How to Convert an AudioBuffer to an Audio File with JavaScript](https://russellgood.com/how-to-convert-audiobuffer-to-audio-file/)
-- Mathew Willox for his blog [Making Reverb with the Web Audio API](https://blog.gskinner.com/archives/2019/02/reverb-web-audio-api.html)
-- Duckduckgo search engine that helped me hack my way through this
+- My son, Ryan Lane, that got me into web-based programming and provides a sounding board for problems when I am having them. One of his web sites is a monitor of [his weather station](https://wx.mc-lane.com/).
+- [sfumato](https://github.com/felixroos/sfumato) - who revealed to me the complexities of soundfont signal processing
+- WebAudio documentation, particularly the authors of the page [Advanced techniques: Creating and sequencing audio](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Advanced_techniques).
+- Russell Good for his blog [How to Convert an AudioBuffer to an Audio File with JavaScript](https://russellgood.com/how-to-convert-audiobuffer-to-audio-file/).
+- Mathew Willox for his blog [Making Reverb with the Web Audio API](https://blog.gskinner.com/archives/2019/02/reverb-web-audio-api.html). I have yet to make reverberatio work, but haven't given up on it yet.
+- The Duckduckgo search engine that helped me hack my way through this.
 
 # Versions - Changes
 
 Version 2 implements 
 1. higher quality sound by using all instruments in a preset and using some of the gain envelope generators from the preset (specifically attack and release). 
 2. Performance enhancement by keeping a sample pool to reduce memory utilization and dynamically modifying the audio graph during execution.
+3. Overall room volume control.
 
 ## Remaining things to do
 
 - room and instrument reverbs are a dream
 - create echo effect
-- add a fade out of about 1 second at the end of the piece.
+- add a generator that reads an audio file and plays it as part of a composition.
 
 # Development and Installation
 
+This application was developed in Visual Code, using a vite/typescript project. The the README file for details.
+
 ## Typescript and Vite build tweaks
 
+I removed the typescript verification call from the build script because of the problems typescript is having with the way the SF generators are loaded. Maybe I'll fix this someday.
+
+Note to self: The base for the build is set to /cmg.
 I am running a nginx ubuntu server for access to the CMG client. After building the application (npm run build), move the contents of the build folder (dist) to /var/www/lanedb.hopto.org/cmg via scp. The nginx configuration for the path lanedb.hopto.org/cmg is root /var/www/lanedb.hopto.org. The build index file points to /assets/... get the the app. I had to change it to /cmg/assets. Also, the assets directory had to have its mode changed via <code>sudo chmod 755 assets</code>.
 
 

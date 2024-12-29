@@ -177,7 +177,7 @@ fieldset {
 
 .page-footer {
   display: grid;
-  grid-template-columns: 7.2fr 1.5fr 2fr 0.3fr;
+  grid-template-columns: 8.1fr 1.1fr 1.5fr 0.3fr;
   position: fixed;
   top: auto;
   bottom: 0;
