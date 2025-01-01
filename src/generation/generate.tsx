@@ -7,8 +7,8 @@ import { useCMGContext } from "../cmgcontext";
 import {
   CMGeneratorType,
   GENERATIONMODE,
-  SAMPLERATE,
   RawSourceData,
+  SAMPLERATE,
 } from "../types";
 import { buildSources } from "./buildsources";
 import Preview from "./preview";
@@ -24,10 +24,11 @@ import Record from "./record";
 export interface GeneratorProps {
   mode: GENERATIONMODE;
   setMode: Function;
+  recordFormat: string;
   generator: CMGeneratorType | null;
 }
 export default function Generate(props: GeneratorProps) {
-  const { mode, setMode, generator } = props;
+  const { mode, setMode, recordFormat, generator } = props;
   const {
     setStatus,
     playing,
@@ -40,8 +41,14 @@ export default function Generate(props: GeneratorProps) {
 
   // all of the work of the generator is done by this hook when the
   // mode changes to to anything but idle
+  const [sourceData, setSourceData] = useState<RawSourceData[]>([]);
+  const [recordLength, setRecordLength] = useState<number>(0);
+  const [recordHandle, setRecordHandle] = useState<FileSystemFileHandle | null>(null);
   useEffect(() => {
-    if (mode == GENERATIONMODE.idle) return;
+    if (mode == GENERATIONMODE.idle) {
+      setRecordHandle(null);
+      return;
+    }
 
     // determine the selected generators and make sure they are ready to generate sound
     const {
@@ -62,12 +69,14 @@ export default function Generate(props: GeneratorProps) {
     // console.log('playback length ', playbackLength);
 
     // build the generator sources
-    const sourceData: RawSourceData[] = buildSources({
+    setRecordLength(playbackLength);
+    setSourceData(buildSources({
       SFPGenerators,
       SFRGenerators,
       NoiseGenerators,
-    });
+    }));
 
+    playing.current = true;
     // select either preview or recording
     if (mode == GENERATIONMODE.preview || mode == GENERATIONMODE.solo)
       Preview({
@@ -81,16 +90,14 @@ export default function Generate(props: GeneratorProps) {
         setGeneratorsPlaying,
         setStatus,
       });
-    else
-      Record({
-        fileContents,
-        sourceData,
-        sampleRate: SAMPLERATE,
-        playbackLength,
-        setMode,
-        setStatus,
-        playing,
-      });
+    if (mode == GENERATIONMODE.record) {
+      const types:FilePickerAcceptType[] =
+      recordFormat == "mp3"
+        ? [{ description: "MP3 file", accept: { "audio/mp3": [".mp3"] } }]
+        : [{ description: "WAV file", accept: { "audio/wav": [".wav"] } }];
+      window.showSaveFilePicker({types:types})
+      .then((rh) => setRecordHandle(rh));
+    }
   }, [mode]);
 
   function handleErrorClose() {
@@ -101,24 +108,37 @@ export default function Generate(props: GeneratorProps) {
 
   // the only thing displayed by this function is an error popup
   return (
-    <div
-      style={{ display: error == "" ? "none" : "block" }}
-      className="modal-content"
-    >
-      <div className="modal-header">
-        <span className="close" onClick={handleErrorClose}>
-          &times;
-        </span>
-        <h2>Error occurred during audio generation</h2>
+    <>
+      {mode == GENERATIONMODE.record && recordHandle ? 
+        <Record
+        recordHandle={recordHandle}
+          sourceData={sourceData}
+          sampleRate={SAMPLERATE}
+          playbackLength={recordLength}
+          recordFormat={recordFormat}
+          setMode={setMode}
+        />
+       : null}
+
+      <div
+        style={{ display: error == "" ? "none" : "block" }}
+        className="modal-content"
+      >
+        <div className="modal-header">
+          <span className="close" onClick={handleErrorClose}>
+            &times;
+          </span>
+          <h2>Error occurred during audio generation</h2>
+        </div>
+        <div className="modal-body">
+          <p>{error}</p>
+        </div>
+        <div className="modal-footer">
+          <button id={"generator-error"} onClick={handleErrorClose}>
+            OK
+          </button>
+        </div>
       </div>
-      <div className="modal-body">
-        <p>{error}</p>
-      </div>
-      <div className="modal-footer">
-        <button id={"generator-error"} onClick={handleErrorClose}>
-          OK
-        </button>
-      </div>
-    </div>
+    </>
   );
 }

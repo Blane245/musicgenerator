@@ -37,7 +37,6 @@ export default function Preview(params: PreviewProps): void {
   // set up the real time context
   const context: AudioContext = new AudioContext();
   context.suspend();
-  playing.current=true;
   setTimeProgress(0);
 
   // prepare the room compressor and equalizer

@@ -1,7 +1,11 @@
   // build the sound file as quickly as possible using offline context and write it to the selected wave file
+
+import { float32ToUint16 } from "./float32toint";
+
   // thanx to https://russellgood.com/how-to-convert-audiobuffer-to-audio-file/
-  export function bufferToWave(waveForm: Float32Array[], ChannelCount: number, sampleRate: number): Blob {
-    const length = waveForm[0].length * ChannelCount * 2 + 44;
+  export function bufferToWav(waveForm: Float32Array[], sampleRate: number): Blob {
+    const channelCount: number = 2;
+    const length = waveForm[0].length * channelCount * 2 + 44;
     const buffer = new ArrayBuffer(length);
     const view: DataView = new DataView(buffer);
     let pos: number = 0;
@@ -20,13 +24,13 @@
     pos += 4; // length = 16
     view.setUint16(pos, 1, true);
     pos += 2; // PCM (uncompressed)
-    view.setUint16(pos, ChannelCount, true);
+    view.setUint16(pos, channelCount, true);
     pos += 2;
     view.setUint32(pos, sampleRate, true);
     pos += 4;
-    view.setUint32(pos, (sampleRate * bitsPerSample * ChannelCount) / 8, true);
+    view.setUint32(pos, (sampleRate * bitsPerSample * channelCount) / 8, true);
     pos += 4; // bytes/sec
-    view.setUint16(pos, (bitsPerSample * ChannelCount) / 8, true);
+    view.setUint16(pos, (bitsPerSample * channelCount) / 8, true);
     pos += 2; // 16-bit stereo
     view.setUint16(pos, bitsPerSample, true);
     pos += 2; // 16-bit samples
@@ -38,10 +42,8 @@
     // write the interleaved data
     let offset: number = 0;
     while (pos < length) {
-      for (let i = 0; i < ChannelCount; i++) {
-        let sample: number = Math.max(-1, Math.min(1, waveForm[i][offset])); // clamp
-        sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0;
-        view.setUint16(pos, sample, true); // write 16-bit sample
+      for (let i = 0; i < channelCount; i++) {
+        view.setUint16(pos, float32ToUint16(waveForm[i][offset]), true); // write 16-bit sample
         pos += 2;
       }
       offset++;
