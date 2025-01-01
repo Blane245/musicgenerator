@@ -18,7 +18,8 @@ export default function Header(props: HeaderProps) {
   }, [fileContents]);
   return (
     <>
-    {/* <div className = 'page-header'> */}
+    <div className = 'page-header'>
+      <div className = 'page-grid'>
       <div className="page-icon">
         <img
           src={CMG2}
@@ -35,7 +36,8 @@ export default function Header(props: HeaderProps) {
         <FileMenu />
       </div>
       <ControlsDisplay />
-    {/* </div> */}
+    </div>
+    </div>
     </>
   );
 }

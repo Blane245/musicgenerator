@@ -52,7 +52,7 @@ The features of the CMG include:
 
 An example of a composition in progress is shown here with the various areas of the screen notated:
 
-![alt text](images/exampleinterface.png)
+![Example Composition](images/exampleinterface.png)
 
 <a id="HandlingCMGFiles"></a>
 # Handling CMG Files 
@@ -408,7 +408,9 @@ If there are no generators that pass these tests a panel is displayed
 <a id='Recording'></a>
 ## Recording
 
-When the *Record* button is clicked, you will be prompted to provide a file name and location where the result .wav file will be placed. Once that has been identified, the selected generators are rendered and the wave file is written. 
+When the *Record* button is clicked, you will be prompted to provide a file name and location where the result audio file will be placed. The audio file may be either a WAV or a MP3 file. Once that has been identified, the selected generators are rendered and the wave file is written. 
+
+A progress bar is displayed while the recording is being constructed. 
 
 <a id='Previewing'></a>
 ## Previewing

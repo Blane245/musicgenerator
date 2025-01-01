@@ -14,14 +14,12 @@ export default function App() {
         <title> Computer Music Generator </title>
       </Helmet>
       <div className="page" id="page" onMouseUp={() => setMouseDown(false)}>
-        <div className="page-grid">
           <Header
             appName="Computer Music Generator"
             appVersion={import.meta.env.PACKAGE_VERSION}
           />
           <Body />
           <Footer />
-        </div>
       </div>
     </>
   );

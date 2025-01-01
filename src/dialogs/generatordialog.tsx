@@ -323,11 +323,11 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
               <span className="close" onClick={handleCancelClick}>
                 &times;
               </span>
-              <h2>
+              <span>
                 {generatorIndex < 0
-                  ? "New Generator"
-                  : "Generator: " + formData.name}
-              </h2>
+                  ? "  New Generator"
+                  : "  Generator: " + formData.name}
+              </span>
             </div>
             <div className="generator-body">
               <form

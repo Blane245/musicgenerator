@@ -147,6 +147,7 @@ export default function ControlsDisplay() {
           name='recordformat'
           id='recordformat'
           value={recordFormat}
+          style={{marginLeft:'5px'}}
           onChange={(event) => setRecordFormat(event.target.value)}
         >
           <option key={'r-mp3'} value='mp3'>mp3</option>

@@ -105,24 +105,38 @@ The footer includes areas for a status message, equalizer, and compressor attrib
 
 This is the business end of this application and most of the user interaction function is disabled when in either of these modes. The only interaction allowed is to stop the preview or record, or adjust the equalizer and compressor parameters while previewing. 
 
-Generation has the process:
+Whether previewing or recording is being done, filters are applied to determine which sources will be used to build the audio routing graph. These filters take into account the presence of a timeline interval, and track and generator solo and mute settings. An array of source is constructed that contains all of the information needed to construct the audio routing graph.
 
-1. Determine which generators will be used to build the audio routing graph, taking into account all tracks and generator mute and solo attributes. If a generator is running in preview mode, only it is selected.
-2. If recording, request the user of the file name and location for the generated **.wav** file
-3. Set the audio context based on the preview or record. If in preview, suspend the destination until all is ready to go.
-3. Create the room concentrator for this context.
-4. Set the context for the room equalizer and compressor, and make the necessary connections from the room concentrator to the compressor to the equalizer to the destination.
-4. Build all of the sources for all of the selected generators. For each generator this includes:
+Generation involves the build of the audio routing graph for the composition. There could be several thousand sources and related audio nodes in the full composition. Trying to realize the entire graph for preview or record is problematic as the memory required may be excessive. A scheme has been developed to only realize a portion of the graph, discard that portion and realize another portion. The algorithm is different for preview and record.
 
-    2. Looping through the various 'chunks' of the generator over time
+### Preview Realization
 
-        1. Get the current values for the generator
-        1. get the tone or noise sample, and, if a soundfont preset is being used, determine the soundfont generator values that affect each instrument in the preset. These affect the sample and volume attributes.
-        1. Create the source for the chunk for that time
-        2. Apply the volume and pan values for that time
+1. An audio context is constructed to hold the dynamically changing routing graph.
+2. The room level nodes are constructed and connected to the context destination (system speakers). These include a room concentrator with unity gain, and the compressor, equalizer, and volume as defined by the composition. When the sources are placed on the graph they are connected to room concentrator.
+3. A scheduler is run that triggers every 25.0 milliseconds. This scheduler does the following every cycle.
+    - All sources that are to be started within the next 100 milliseconds of the current context time, are collected into an array. They are then realized as audio nodes along with their effects, connected to the room concentrator, and started.
+    - All running sources that have their stop time prior to the curren time are disconnect from the routing graph.
+    - When the current time is before the playback length of the composition, the next 25 milliseconds cycle is initiated. 
 
-5. When in preview mode, a portion of the audio graph is constructed for sources whose start times are about to occur using a scheduler. This connects the source, volume, and panner to the room concentrator and starts to source for the appropriate duration. All started sources are then checked to see if their stop time has been past. If so, they are disconnected from the audio graph and removed from source data array. 
-6. When in record mode, ... 
+While the composition is being previewed, the generators that are playing are identified so that they can be highlighted on the track display.
+
+### Record Realization
+
+Recording involves the rendering of portions of the audio routing graph in blocks, called batches, which are group together to enable simultaneous rendering. As each completes the resulting buffer is added to the total. When all batches are complete, the total is encoded to the selected audio file type, either WAV or MP3. Currently a batch consists of up to 200 sources, and up to 10 batches are dispatched for simultaneous rendering.
+
+Before recording can begin, the user is asked to identify the file that is to contain the encoded audio.
+
+1. The source are sorted in start time order.
+2. The result array is constructed for left and right channels and the number of samples making up the entire playback length.
+3. The number of batches is counted so it will be known when all batches have been completed.
+4. A timer is used to construct up to 10 batches in for simultaneous rendering when the previous group of batches has completed. 
+5. When the batches are identified the following occurs for each
+    - an offline audio context is created for the batch
+    - a copy of the room compressor, equalizer and volume is created and connected to the a room concentrator and offline context destination
+    - the sources in teh batch are realized and connected to the room concentrator
+    - rendering is started for the context. When complete, the rendered buffer to added to the total, sample by sample. The number of batches completed is incremented.
+6. When all batches are completed, the total is encoded to the audio file and the timer is stopped.
+7. Another timer is used to update a progress bar than displayed the percentage of buffers completed or the total required. 
 
 # Thanks
 
