@@ -5,8 +5,8 @@ import SFRG from "../classes/sfrg";
 import Track from "../classes/track";
 import { useCMGContext } from "../cmgcontext";
 import Generate from "../generation/generate";
-import { bankPresettoName } from "../sfcomponents/util";
 import { Preset } from "../sfcomponents/types";
+import { bankPresettoName } from "../sfcomponents/util";
 import { CMGeneratorType, GENERATIONMODE, GENERATORTYPE } from "../types";
 import { modifyGenerator, setSoundFont } from "../utils/cmfiletransactions";
 import fetchData from "../utils/fetchdata";
@@ -28,6 +28,7 @@ export default function ControlsDisplay() {
   const [mode, setMode] = useState<GENERATIONMODE>(GENERATIONMODE.idle);
   const [showStop, setShowStop] = useState<boolean>(false);
   const [errors, setErrors] = useState<string[]>([]);
+  const [recordFormat, setRecordFormat] = useState<string>('mp3');
 
   // load the soundfont file list from the server at start up
   useEffect(() => {
@@ -141,6 +142,17 @@ export default function ControlsDisplay() {
         >
           Record
         </button>
+        <select
+          disabled={playing.current}
+          name='recordformat'
+          id='recordformat'
+          value={recordFormat}
+          onChange={(event) => setRecordFormat(event.target.value)}
+        >
+          <option key={'r-mp3'} value='mp3'>mp3</option>
+          <option key={'r-wav'} value='wav'>wav</option>
+          
+        </select>
         <button
           style={{ marginLeft: "1em" }}
           disabled={!readyGenerate || playing.current}
@@ -158,7 +170,7 @@ export default function ControlsDisplay() {
       </div>
 
       <TimeLineDisplay />
-      <Generate mode={mode} setMode={setMode} generator={null} />
+      <Generate mode={mode} setMode={setMode} recordFormat={recordFormat} generator={null} />
       {/* error popup */}
       <div
         className="modal-content"
