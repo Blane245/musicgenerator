@@ -18,10 +18,9 @@ export interface RecordProps {
   recordFormat: string;
 }
 
-// the below algorithm causes all of the batches to start rendering before a single one is
-// rendered. Thus all of the rendering has to fight for resources causing performance
-// problems. I better approach would be to dispatch a certain number of batches
-// for rendering, wait for them to finish, and the dispatch the next group.
+// a group of source batches is dispatched for rendering.
+// When that group is complete, the next group is assembled and
+// dispatched.
 
 // the group processing algorithm (in dispatchGroup)
 // record the generated sources using batching
@@ -34,12 +33,18 @@ export interface RecordProps {
 // when a batch is rendered
 //  add the rendered buffer to the total result
 //  count the batch as rendered
+//
 // when all batch have completed or playing has stopped (in waitForCompletion)
 //  write the accumulated buffer to the recording file
 export default function Record(params: RecordProps) {
-  let { sourceData } = params;
-  const { recordHandle, sampleRate, playbackLength, recordFormat, setMode } =
-    params;
+  const {
+    sourceData,
+    recordHandle,
+    sampleRate,
+    playbackLength,
+    recordFormat,
+    setMode,
+  } = params;
   const { fileContents, setStatus, playing } = useCMGContext();
   const BATCHSIZE: number = 200; // the number of sources in a batch
   const GROUPSIZE: number = 10; // the number of batches that will be rendered as a group
@@ -51,7 +56,9 @@ export default function Record(params: RecordProps) {
     new Float32Array(Math.ceil(playbackLength * sampleRate)).fill(0),
   ]);
   // group and batch tracking data and counters
-  const sortedSources = useRef<RawSourceData[]>([]);
+  const sortedSources = useRef<RawSourceData[]>(sourceData.sort(
+    (a, b) => a.source.startTime - b.source.startTime
+  ));
   const totalBatchCount = useRef<number>(0);
   const completedBatches = useRef<number>(0);
   const nextSource = useRef<number>(0);
@@ -81,11 +88,6 @@ export default function Record(params: RecordProps) {
       );
       try {
         startTime = new Date();
-        // make the page inert while recording
-        // const page = document.getElementById("page");
-        // if (page) page.inert = true;
-        // const progress = document.getElementById("progress");
-        // if (progress) progress.inert = false;
         // zeroize all counters and data
         recordingActive.current = true;
         totalBatchCount.current = 0;
@@ -96,10 +98,7 @@ export default function Record(params: RecordProps) {
         groupTimerId.current = 0;
         group.current = [];
 
-        // sort the source data in start time order then count the number of batches
-        sortedSources.current = sourceData.sort(
-          (a, b) => a.source.startTime - b.source.startTime
-        );
+        // count the number of sorted batches 
         let nBatch: number = 0;
         sortedSources.current.forEach((_, i) => {
           nBatch++;
@@ -115,6 +114,7 @@ export default function Record(params: RecordProps) {
 
         // start dispatching the groups of batches
         dispatchGroup();
+
         // wait for all batches to be completed
         waitForCompletion();
       } catch (e: any) {
@@ -156,8 +156,6 @@ export default function Record(params: RecordProps) {
             playing.current = false;
             completeTimerId.current && clearTimeout(completeTimerId.current);
             recordingActive.current = false;
-            // const page = document.getElementById("page");
-            // if (page) page.inert = false;
           });
       } else {
         completeTimerId.current = window.setTimeout(waitForCompletion, 1000);
@@ -174,8 +172,6 @@ export default function Record(params: RecordProps) {
     } else {
       completeTimerId.current && clearTimeout(completeTimerId.current);
       recordingActive.current = false;
-      // const page = document.getElementById("page");
-      // if (page) page.inert = false;
       setMode(GENERATIONMODE.idle);
       setStatus(`Recording stopped early`);
     }

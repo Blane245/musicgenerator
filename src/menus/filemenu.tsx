@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+import AudioFile from "../classes/audiofile";
 import CMG from "../classes/cmg";
 import CMGFile from "../classes/cmgfile";
 import Noise from "../classes/noise";
@@ -11,6 +12,7 @@ import { Preset } from "../sfcomponents/types";
 import { GENERATORTYPE } from "../types";
 import { addTrack, newFile, setDirty } from "../utils/cmfiletransactions";
 import { getTrackUID } from "../utils/gettrackuid";
+import setCursor from "../utils/setcursor";
 import {
   getAttributeValue,
   getDocElement,
@@ -120,6 +122,7 @@ export default function FileMenu() {
       </div>
     </fieldset>
   );
+
   function saveFileContents() {
     try {
       // save the xml data
@@ -168,6 +171,15 @@ export default function FileMenu() {
                 case GENERATORTYPE.Noise:
                   (g as Noise).appendXML({ doc: doc, elem: genElement });
                   break;
+                case GENERATORTYPE.AudioFile:
+                  {
+                    async function asyncAppend() {
+                      await (g as AudioFile).appendXML({ elem: genElement });
+                      console.log("audiofile appended ", genElement);
+                    }
+                    asyncAppend();
+                  }
+                  break;
                 default:
                   break;
               }
@@ -212,13 +224,9 @@ export default function FileMenu() {
       const file: File = await handle[0].getFile();
 
       // set the wait cursor on the page and make it inert
-      if (page) {
-        // page.style.cursor = "wait";
-        page.inert = true;
-      }
-      // document.body.classList.add('waiting');
-      // document.documentElement.style.cursor = 'wait';
-      // document.documentElement.inert = true;
+      if (page) page.inert = true;
+      setCursor("wait");
+
       setFileName(file.name);
       const xmlString: string = await file.text();
       const parser = new DOMParser();
@@ -297,10 +305,7 @@ export default function FileMenu() {
       newFile(fc, setFileContents);
       setStatus(`File '${file.name}' loaded`);
       if (page) {
-        // document.body.classList.remove('waiting');
-        // document.documentElement.style.cursor = 'default';
-        // document.documentElement.inert = false;
-        // page.style.cursor = "default";
+        page.style.cursor = "default";
         page.inert = false;
       }
     } catch (err) {
@@ -309,10 +314,7 @@ export default function FileMenu() {
         `Error reading cmg file, type: '${e.name}' message: '${e.message}'`
       );
       if (page) {
-        // document.body.classList.remove('waiting');
-        // document.documentElement.inert = false;
-        // document.documentElement.style.cursor = 'default';
-        // page.style.cursor = "default";
+        page.style.cursor = "default";
         page.inert = false;
       }
     }

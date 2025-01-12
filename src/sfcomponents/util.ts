@@ -32,7 +32,7 @@ export const normalizePermille = (permille: number) => permille / 1000;
 
 export const precision = (n:number, digits: number) => {
     const factor = Math.pow(10, digits);
-    return Math.round(n * factor) / factor;
+    return Math.ceil(n * factor) / factor;
 };
 
 const noteNames: string[] = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];

@@ -456,7 +456,7 @@ fieldset {
   margin: auto;
   padding: 0;
   border: 1px solid #888;
-  width: 90%;
+  width: 70%;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   animation-name: animateleft;
   animation-duration: 0.4s;
@@ -497,14 +497,28 @@ fieldset {
 }
 
 .transition-box {
-  border: 1px solid black;
+  display: grid;
+  grid-template-areas: 
+  "header content";
+  grid-template-columns: 1fr 6fr;
+  gap: 1px;
+  padding: 1px;
+  background-color: black;
   cursor: inherit;
 }
 
-.transition-header {
-  text-align: center;
-  stroke: blue;
-  cursor: inherit;
+.transition-box > div {
+  background-color: rgba(255,255,255,1.0);
+  padding: 10px;
+}
+
+.transition-box > div.header {
+  grid-area: header;
+  text-align: left;
+}
+
+.transition-box > div.content {
+  grid-area: content;
 }
 
 .progress-container {

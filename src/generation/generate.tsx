@@ -2,7 +2,7 @@
 
 // turn the sound generators into a preview or recording based on
 // which generators are selected
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCMGContext } from "../cmgcontext";
 import {
   CMGeneratorType,
@@ -24,11 +24,12 @@ import Record from "./record";
 export interface GeneratorProps {
   mode: GENERATIONMODE;
   setMode: Function;
-  recordFormat: string;
+  recordFormat?: string;
+  recordHandle?: FileSystemFileHandle | null;
   generator: CMGeneratorType | null;
 }
 export default function Generate(props: GeneratorProps) {
-  const { mode, setMode, recordFormat, generator } = props;
+  const { mode, setMode, recordFormat, recordHandle, generator } = props;
   const {
     setStatus,
     playing,
@@ -41,12 +42,10 @@ export default function Generate(props: GeneratorProps) {
 
   // all of the work of the generator is done by this hook when the
   // mode changes to to anything but idle
-  const [sourceData, setSourceData] = useState<RawSourceData[]>([]);
-  const [recordLength, setRecordLength] = useState<number>(0);
-  const [recordHandle, setRecordHandle] = useState<FileSystemFileHandle | null>(null);
+  const sourceData = useRef<RawSourceData[]>([]);
+  const recordLength = useRef<number>(0);
   useEffect(() => {
     if (mode == GENERATIONMODE.idle) {
-      setRecordHandle(null);
       return;
     }
 
@@ -55,6 +54,7 @@ export default function Generate(props: GeneratorProps) {
       SFPGenerators,
       SFRGenerators,
       NoiseGenerators,
+      AudioFileGenerators,
       playbackLength,
       offsetTime,
       error,
@@ -66,15 +66,16 @@ export default function Generate(props: GeneratorProps) {
     });
     setError(error);
     if (error != "") return;
-    // console.log('playback length ', playbackLength);
+    console.log("playback length ", playbackLength);
 
     // build the generator sources
-    setRecordLength(playbackLength);
-    setSourceData(buildSources({
+    recordLength.current = playbackLength;
+    sourceData.current = buildSources({
       SFPGenerators,
       SFRGenerators,
       NoiseGenerators,
-    }));
+      AudioFileGenerators
+    });
 
     playing.current = true;
     // select either preview or recording
@@ -83,21 +84,14 @@ export default function Generate(props: GeneratorProps) {
         fileContents,
         playbackLength,
         offsetTime,
-        sourceData,
+        sourceData: sourceData.current,
         setMode,
         playing,
         setTimeProgress,
         setGeneratorsPlaying,
         setStatus,
       });
-    if (mode == GENERATIONMODE.record) {
-      const types:FilePickerAcceptType[] =
-      recordFormat == "mp3"
-        ? [{ description: "MP3 file", accept: { "audio/mp3": [".mp3"] } }]
-        : [{ description: "WAV file", accept: { "audio/wav": [".wav"] } }];
-      window.showSaveFilePicker({types:types})
-      .then((rh) => setRecordHandle(rh));
-    }
+      console.log('mode is', mode, 'record handle is ', recordHandle);
   }, [mode]);
 
   function handleErrorClose() {
@@ -109,16 +103,16 @@ export default function Generate(props: GeneratorProps) {
   // the only thing displayed by this function is an error popup
   return (
     <>
-      {mode == GENERATIONMODE.record && recordHandle ? 
+      {mode == GENERATIONMODE.record && recordHandle ? (
         <Record
-        recordHandle={recordHandle}
-          sourceData={sourceData}
+          recordHandle={recordHandle}
+          sourceData={sourceData.current}
           sampleRate={SAMPLERATE}
-          playbackLength={recordLength}
-          recordFormat={recordFormat}
+          playbackLength={recordLength.current}
+          recordFormat={recordFormat as string}
           setMode={setMode}
         />
-       : null}
+      ) : null}
 
       <div
         style={{ display: error == "" ? "none" : "block" }}

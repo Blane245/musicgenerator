@@ -1,3 +1,4 @@
+import AudioFile from "../classes/audiofile";
 import Noise from "../classes/noise";
 import SFPG from "../classes/sfpg";
 import SFRG from "../classes/sfrg";
@@ -6,14 +7,16 @@ import { setRandomSeed } from "../utils/seededrandom";
 import { getBufferSourceNodesFromNoise } from "./noisenodes";
 import { getBufferSourceNodesFromSFPG } from "./sfpgnodes";
 import { getBufferSourceNodesFromSFRG } from "./sfrgnodes";
+import { getBufferSourceNodesFromAudioFile } from "./audiofilenodes";
 
 export interface buildSourcesProps {
   SFPGenerators: SFPG[];
   SFRGenerators: SFRG[];
   NoiseGenerators: Noise[];
+  AudioFileGenerators: AudioFile[];
 }
 export function buildSources(params: buildSourcesProps): RawSourceData[] {
-  const { SFPGenerators, SFRGenerators, NoiseGenerators } = params;
+  const { SFPGenerators, SFRGenerators, NoiseGenerators, AudioFileGenerators } = params;
   const sourceData: RawSourceData[] = [];
   SFPGenerators.forEach((g) => {
     const SFPGData: RawSourceData[] = getBufferSourceNodesFromSFPG(g);
@@ -27,12 +30,18 @@ export function buildSources(params: buildSourcesProps): RawSourceData[] {
     sourceData.push(...SFRGData);
   });
 
-  // build the buffers for the SFRGs
+  // build the buffers for the Noises
   NoiseGenerators.forEach((g) => {
     setRandomSeed(g.seed);
     const noiseData: RawSourceData[] = getBufferSourceNodesFromNoise(g);
     sourceData.push(...noiseData);
   });
-  console.log("raw source count", sourceData.length);
+
+  // build the buffers for the AudioFiles
+  AudioFileGenerators.forEach((g) => {
+    const AudioFileData: RawSourceData[] = getBufferSourceNodesFromAudioFile(g);
+    sourceData.push(...AudioFileData);
+  })
+  // console.log("raw source count", sourceData.length);
   return sourceData;
 }

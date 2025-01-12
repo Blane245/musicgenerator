@@ -29,7 +29,7 @@ export function getBufferSourceNodesFromNoise(
     sourceData.push({
       gen,
       source:{
-        sample,
+        sample: [sample],
         sampleRate:gen.sampleRate,
         playbackRate:1.0,
         loopStart:0,

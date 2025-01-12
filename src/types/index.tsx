@@ -1,14 +1,14 @@
-import { Sample } from "../sfcomponents/types";
 import CMG from "../classes/cmg";
 import Noise from "../classes/noise";
 import SFPG from "../classes/sfpg";
 import SFRG from "../classes/sfrg";
+import AudioFile from "classes/audiofile";
 
 export const SAMPLERATE: number = 44100;
 
 export const EPS: number = 1e-4;
 
-export type CMGeneratorType = CMG | SFPG | SFRG | Noise;
+export type CMGeneratorType = CMG | SFPG | SFRG | Noise | AudioFile;
 
 export type SFFile = { name: string };
 
@@ -99,6 +99,7 @@ export enum GENERATORTYPE {
   "SFPG" = "SFPG",
   "SFRG" = "SFRG",
   "Noise" = "Noise",
+  "AudioFile" = "AudioFile",
 }
 
 export enum MARKOVSTATE {
@@ -157,7 +158,7 @@ export type TimelineInterval = {
 export type RawSourceData = {
   gen: CMGeneratorType,
   source: {
-    sample: Float32Array, // the sf instrument sample converted to float32 or noise as float32
+    sample: Float32Array[], // the sf instrument sample converted to float32 or noise as float32
     sampleRate: number, // hz/sec
     playbackRate: number, // sf playback rate or 1 for noise
     loopStart: number, // sf loopstart index or 0 for noise

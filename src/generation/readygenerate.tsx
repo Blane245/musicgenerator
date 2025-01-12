@@ -1,5 +1,6 @@
 // determine if everything is ready for generation
 
+import AudioFile from "../classes/audiofile";
 import CMGFile from "../classes/cmgfile";
 import Noise from "../classes/noise";
 import SFPG from "../classes/sfpg";
@@ -48,17 +49,19 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
   SFPGenerators: SFPG[];
   SFRGenerators: SFRG[];
   NoiseGenerators: Noise[];
+  AudioFileGenerators: AudioFile[];
   playbackLength: number;
   offsetTime: number;
   error: string;
 } {
-  const { mode, generator, fileContents, timeInterval} = props;
+  const { mode, generator, fileContents, timeInterval } = props;
   const SFPGenerators: SFPG[] = [];
   const SFRGenerators: SFRG[] = [];
   const NoiseGenerators: Noise[] = [];
+  const AudioFileGenerators: AudioFile[] = [];
   let playbackLength: number = 0;
   let error: string = "";
-  let offsetTime:number = 0;
+  let offsetTime: number = 0;
 
   // get the active generators for the entire rendering
   if (mode == GENERATIONMODE.preview || mode == GENERATIONMODE.record) {
@@ -89,6 +92,8 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
             if (g.type == GENERATORTYPE.SFRG) SFRGenerators.push(thisG as SFRG);
             if (g.type == GENERATORTYPE.Noise)
               NoiseGenerators.push(thisG as Noise);
+            if (g.type == GENERATORTYPE.AudioFile)
+              AudioFileGenerators.push(thisG as AudioFile);
             playbackLength = Math.max(thisG.stopTime + 1, playbackLength);
           }
         });
@@ -96,31 +101,34 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
     } else {
       // find if there are any solo tracks
       let isSolo: boolean = fileContents.tracks.findIndex((t) => t.solo) >= 0;
-      
+
       fileContents.tracks.forEach((t) => {
         if (!t.mute) {
           if ((isSolo && t.solo) || !isSolo) {
             t.generators.forEach((g: CMGeneratorType) => {
-              if (g.type == GENERATORTYPE.SFPG && !g.mute) {
-                if (!(g as SFPG).preset) {
-                    error= `Generator '${g.name}' on track '${t.name}' does not have a preset assigned.`;
-                  return;
-                } else {
-                  SFPGenerators.push(g as SFPG);
-                  playbackLength = Math.max(playbackLength, g.stopTime + 1);
+              if (!g.mute) {
+                if (g.type == GENERATORTYPE.SFPG) {
+                  if (!(g as SFPG).preset) {
+                    error = `Generator '${g.name}' on track '${t.name}' does not have a preset assigned.`;
+                    return;
+                  } else {
+                    SFPGenerators.push(g as SFPG);
+                  }
                 }
-              }
-              if (g.type == GENERATORTYPE.SFRG && !g.mute) {
-                if (!(g as SFRG).preset) {
-                    error= `Generator '${g.name}' on track '${t.name}' does not have a preset assigned.`;
-                  return;
-                } else {
-                  SFRGenerators.push(g as SFRG);
-                  playbackLength = Math.max(playbackLength, g.stopTime + 1);
+                if (g.type == GENERATORTYPE.SFRG) {
+                  if (!(g as SFRG).preset) {
+                    error = `Generator '${g.name}' on track '${t.name}' does not have a preset assigned.`;
+                    return;
+                  } else {
+                    SFRGenerators.push(g as SFRG);
+                  }
                 }
-              }
-              if (g.type == GENERATORTYPE.Noise && !g.mute) {
-                NoiseGenerators.push(g as Noise);
+                if (g.type == GENERATORTYPE.Noise) {
+                  NoiseGenerators.push(g as Noise);
+                }
+                if (g.type == GENERATORTYPE.AudioFile) {
+                  AudioFileGenerators.push(g as AudioFile);
+                }
                 playbackLength = Math.max(playbackLength, g.stopTime + 1);
               }
             });
@@ -150,6 +158,12 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
         tempGen.startTime = 0;
         NoiseGenerators.push(tempGen);
         playbackLength = tempGen.stopTime + 1;
+      } else if (generator.type == GENERATORTYPE.AudioFile) {
+        const tempGen: AudioFile = (generator as AudioFile).copy();
+        tempGen.stopTime = tempGen.stopTime - tempGen.startTime;
+        tempGen.startTime = 0;
+        AudioFileGenerators.push(tempGen);
+        playbackLength = tempGen.stopTime + 1;
       }
     }
   }
@@ -159,13 +173,13 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
     NoiseGenerators.length == 0 &&
     error == ""
   ) {
-
     error = "No generators are available to produce any sound";
   }
   return {
     SFPGenerators,
     SFRGenerators,
     NoiseGenerators,
+    AudioFileGenerators,
     playbackLength,
     offsetTime,
     error: "",

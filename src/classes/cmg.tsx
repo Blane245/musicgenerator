@@ -38,7 +38,9 @@ export default class CMG {
         this.type = GENERATORTYPE.CMG;
         break;
       case "startTime":
+        const interval: number = this.stopTime - this.startTime;
         this.startTime = parseFloat(value);
+        this.stopTime = this.startTime + interval;
         break;
       case "stopTime":
         this.stopTime = parseFloat(value);

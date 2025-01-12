@@ -94,7 +94,7 @@ export const getPresetNote = (
     return {
       gen,
       source: {
-        sample,
+        sample:[sample],
         sampleRate,
         playbackRate,
         loopStart,

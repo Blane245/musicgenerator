@@ -8,6 +8,8 @@ import { CMGeneratorType, GENERATORTYPE } from "../types";
 import NoiseDialog from "./noisedialog";
 import SFPGDialog from "./sfpgdialog";
 import SFRGDialog from "./sfrgdialog";
+import AudioFile from "../classes/audiofile";
+import AudioFileDialog from "./audiofiledialog";
 
 export interface GeneratorTypeFormProps {
   formData: CMGeneratorType;
@@ -30,6 +32,9 @@ export default function GeneratorTypeForm(
       ) : null}
       {formData.type == GENERATORTYPE.Noise ? (
         <NoiseDialog formData={formData as Noise} handleChange={handleChange} />
+      ) : null}
+      {formData.type == GENERATORTYPE.AudioFile ? (
+        <AudioFileDialog formData={formData as AudioFile} handleChange={handleChange} />
       ) : null}
     </>
   );

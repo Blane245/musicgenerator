@@ -1,13 +1,14 @@
 // provides CRUD for all types of generators
 import { ChangeEvent, FormEvent, MouseEvent, useEffect, useState } from "react";
+import AudioFile from "../classes/audiofile";
 import CMG from "../classes/cmg";
 import Noise from "../classes/noise";
 import SFPG from "../classes/sfpg";
 import SFRG from "../classes/sfrg";
 import Track from "../classes/track";
 import { useCMGContext } from "../cmgcontext";
-import { bankPresettoName } from "../sfcomponents/util";
 import { Preset } from "../sfcomponents/types";
+import { bankPresettoName, precision } from "../sfcomponents/util";
 import { CMGeneratorType, GENERATORTYPE } from "../types";
 import {
   addGenerator,
@@ -15,6 +16,7 @@ import {
   modifyGenerator,
 } from "../utils/cmfiletransactions";
 import { getGeneratorUID } from "../utils/getgeneratoruid";
+import { validateAudioFileValues } from "./audiofiledialog";
 import GeneratorTypeForm from "./generatortypeform";
 import { validateNoiseValues } from "./noisedialog";
 import { validateSFPGValues } from "./sfpgdialog";
@@ -45,9 +47,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
   const [oldName, setOldName] = useState<string>("");
   const [generatorName, setGeneratorName] = useState<string>("");
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [formData, setFormData] = useState<CMG | SFPG | SFRG | Noise>(
-    new CMG(0)
-  );
+  const [formData, setFormData] = useState<CMGeneratorType>(new CMG(0));
   useEffect(() => {
     if (open) {
       // either get the generator from the track or build a new one if being added
@@ -98,6 +98,11 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
         }
         case GENERATORTYPE.Noise: {
           const newFormData: Noise = (prev as Noise).copy();
+          newFormData.setAttribute(eventName, eventValue);
+          return newFormData;
+        }
+        case GENERATORTYPE.AudioFile: {
+          const newFormData: AudioFile = (prev as AudioFile).copy();
           newFormData.setAttribute(eventName, eventValue);
           return newFormData;
         }
@@ -161,6 +166,15 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           newF.position = prev.position;
           return newF;
         }
+        case GENERATORTYPE.AudioFile: {
+          const newF = new AudioFile(0);
+          newF.name = prev.name;
+          newF.startTime = prev.startTime;
+          newF.stopTime = prev.stopTime;
+          newF.mute = prev.mute;
+          newF.position = prev.position;
+          return newF;
+        }
         default:
           return prev;
       }
@@ -175,10 +189,8 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
         {
           const newMessages = validateCMGValues(formData as CMG);
           msgs.push(...newMessages);
-          if (msgs.length > 0) {
-            setErrorMessages(msgs);
-            return;
-          }
+          setErrorMessages(msgs);
+          if (msgs.length > 0) return;
         }
         break;
       case GENERATORTYPE.SFPG:
@@ -187,16 +199,15 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           msgs.push(...newMessages);
           newMessages = validateSFPGValues(formData as SFPG);
           msgs.push(...newMessages);
-          if (msgs.length > 0) {
-            setErrorMessages(msgs);
-            return;
-          }
+          setErrorMessages(msgs);
+          if (msgs.length > 0) return;
+
           const pn: string = (formData as SFPG).presetName.split(":")[2];
           (formData as SFPG).preset = presets.find(
             (p: Preset) => pn == p.header.name
           );
           if (!(formData as SFPG).preset)
-            console.log(`generator dialog: can't find preset nammed ${pn}`);
+            console.log(`generator dialog: can't find preset named ${pn}`);
         }
         break;
       case GENERATORTYPE.SFRG:
@@ -205,16 +216,14 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           msgs.push(...newMessages);
           newMessages = validateSFRGValues(formData as SFRG);
           msgs.push(...newMessages);
-          if (msgs.length > 0) {
-            setErrorMessages(msgs);
-            return;
-          }
+          setErrorMessages(msgs);
+
           const pn: string = (formData as SFRG).presetName.split(":")[2];
           (formData as SFPG).preset = presets.find(
             (p: Preset) => pn == p.header.name
           );
           if (!(formData as SFPG).preset)
-            console.log(`generator dialog: can't find preset nammed ${pn}`);
+            console.log(`generator dialog: can't find preset named ${pn}`);
         }
         break;
       case GENERATORTYPE.Noise:
@@ -223,10 +232,18 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           msgs.push(...newMessages);
           newMessages = validateNoiseValues(formData as Noise);
           msgs.push(...newMessages);
-          if (msgs.length > 0) {
-            setErrorMessages(msgs);
-            return;
-          }
+          setErrorMessages(msgs);
+          if (msgs.length > 0) return;
+        }
+        break;
+      case GENERATORTYPE.AudioFile:
+        {
+          let newMessages = validateCMGValues(formData as CMG);
+          msgs.push(...newMessages);
+          newMessages = validateAudioFileValues(formData as AudioFile);
+          msgs.push(...newMessages);
+          setErrorMessages(msgs);
+          if (msgs.length > 0) return;
         }
         break;
       default: {
@@ -236,22 +253,26 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
       }
     }
 
-    if (generatorIndex < 0) {
-      // add a new generator to the current track
-      addGenerator(track, formData, setFileContents);
-      setStatus(`Generator '${formData.name}' added to track '${track.name}'`);
-    } else {
-      // this is a modify. change the generator on the active track
-      modifyGenerator(track, formData, oldName, setFileContents);
-      setStatus(
-        `Generator '${formData.name}' modified on track '${track.name}'`
-      );
-    }
+    // TODO hold this up if an audiofile is loading
+    if (msgs.length == 0) {
+      if (generatorIndex < 0) {
+        // add a new generator to the current track
+        addGenerator(track, formData, setFileContents);
+        setStatus(
+          `Generator '${formData.name}' added to track '${track.name}'`
+        );
+      } else {
+        // this is a modify. change the generator on the active track
+        modifyGenerator(track, formData, oldName, setFileContents);
+        setStatus(
+          `Generator '${formData.name}' modified on track '${track.name}'`
+        );
+      }
 
-    setShowModal(false);
-    setOpen(false);
-    closeTrackGenerator();
-    return;
+      setShowModal(false);
+      setOpen(false);
+      closeTrackGenerator();
+    }
   }
 
   function validateCMGValues(values: CMG): string[] {
@@ -350,7 +371,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                   min={0}
                   step={0.1}
                   onChange={handleChange}
-                  value={formData.startTime}
+                  value={precision(formData.startTime, 1)}
                 />
                 <span> (sec) </span>
                 <label htmlFor="stopTime">Stop Time: </label>
@@ -360,7 +381,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                   min={0}
                   step={0.1}
                   onChange={handleChange}
-                  value={formData.stopTime}
+                  value={precision(formData.stopTime, 1)}
                 />
                 <span> (sec) </span>
                 <label htmlFor="type">Type: </label>

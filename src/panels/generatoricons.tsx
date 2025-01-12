@@ -19,6 +19,7 @@ import {
 } from "../utils/cmfiletransactions";
 import { getGeneratorUID } from "../utils/getgeneratoruid";
 import GeneratorDialog from "../dialogs/generatordialog";
+import setCursor from "../utils/setcursor";
 
 export interface GeneratorIconProps {
   track: Track;
@@ -50,7 +51,6 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
   } = useCMGContext();
   const [boxIndex, setBoxIndex] = useState<number>(-1);
   const [generatorIndex, setGeneratorIndex] = useState<number>(-1);
-  const [cursorStyle, setCursorStyle] = useState<string>("cursor-default");
   const [menuEnabled, setMenuEnabled] = useState<boolean>(false);
   const [menuX, setMenuX] = useState<number>(0);
   const [menuY, setMenuY] = useState<number>(0);
@@ -146,8 +146,6 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
       setBoxIndex(boxIndex);
       setGeneratorIndex(generatorBoxes[boxIndex].generatorIndex);
 
-      //enable cursor movement
-      setCursorStyle("ew-resize");
       setMouseDown(true);
       setStatus(``);
     }
@@ -165,51 +163,62 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
     setBoxIndex(boxIndex);
 
     // enable generator menu
-    setCursorStyle("cursor-context-menu");
     setMenuX(event.clientX);
     setMenuY(event.clientY);
     setMenuEnabled(true);
     setStatus(``);
   }
 
-  function handleMouseMove(event: MouseEvent<SVGRectElement>, boxIndex: number) {
+  function handleMouseMove(
+    event: MouseEvent<SVGRectElement>,
+    boxIndex: number
+  ) {
     if (!mouseDown) return;
     event.preventDefault();
     event.stopPropagation();
 
-    const y: number = event.nativeEvent.offsetY;
+    // skip if no change or output is bounds
     const deltaY: number = event.nativeEvent.movementY;
+    if (deltaY != 0) {
+      const moveTo: number = generatorBoxes[boxIndex].position.y + deltaY;
+      if (moveTo < 0 || moveTo > (2 * trackHeight) / 3) return;
+      moveGeneratorBodyPosition(
+        track,
+        generatorBoxes[boxIndex].generatorIndex,
+        moveTo,
+        setFileContents
+      );
 
-    // skip if no change or output of bounds
-    if (deltaY == 0 || y < 0 || y > (2.0 * trackHeight) / 3.0) return;
-    moveGeneratorBodyPosition(track, generatorBoxes[boxIndex].generatorIndex, y, setFileContents);
-
-    setStatus(``);
+      setStatus(``);
+    }
   }
 
   function handleMouseEnter(e: MouseEvent<SVGRectElement>): void {
     if (mouseDown || playing.current) return;
     e.preventDefault();
     e.stopPropagation();
-    e.currentTarget.classList.add('cursor-ns-resize')
+    setCursor("ns-resize");
   }
   // when the mouse is up change cursor back to default
   function handleMouseLeave(e: MouseEvent<SVGRectElement>): void {
     if (mouseDown || playing.current) return;
     e.preventDefault();
     e.stopPropagation();
-    e.currentTarget.classList.remove('cursor-ns-resize')
+    setCursor("default");
   }
 
   // toggle the mute condition of the selected generator
   function toggleGeneratorMute(boxIndex: number) {
-    flipGeneratorMute(track, generatorBoxes[boxIndex].generatorIndex, setFileContents);
+    flipGeneratorMute(
+      track,
+      generatorBoxes[boxIndex].generatorIndex,
+      setFileContents
+    );
     setStatus(``);
   }
 
   function handlePreviewClick() {
     setMenuEnabled(false);
-    setCursorStyle("cursor-default");
     setMode(GENERATIONMODE.solo);
     setPreview(generatorBoxes[boxIndex].generator);
     setStatus(``);
@@ -218,14 +227,14 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
   function handleEditClick() {
     setOpenDialog(true);
     setMenuEnabled(false);
-    setCursorStyle("cursor-default");
+    setCursor("default");
     setStatus(``);
   }
 
   function handleMuteClick() {
     toggleGeneratorMute(boxIndex);
     setMenuEnabled(false);
-    setCursorStyle("cursor-default");
+    setCursor("default");
     setStatus(``);
   }
 
@@ -283,7 +292,7 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
   }
 
   function isPlaying(generator: CMGenerator): boolean {
-    return (generatorsPlaying.findIndex((g) => g.name == generator.name) >= 0);
+    return generatorsPlaying.findIndex((g) => g.name == generator.name) >= 0;
   }
 
   function selectClass(selected: boolean, playing: boolean): string {
@@ -295,7 +304,6 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
   return (
     <>
       <svg
-        className={cursorStyle}
         id={track.name.concat(": Generators")}
         key={track.name.concat(": Generators")}
         xmlns="http://www.w3.org/2000/svg"
@@ -329,6 +337,7 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
               x={generatorBox.position.x + generatorBox.width / 2.0}
               y={generatorBox.position.y + generatorBox.height / 3.0}
               fontSize={"10pt"}
+              fontWeight={"200"}
               textAnchor="middle"
               dominantBaseline="hanging"
               key={"gentext-" + track.name + "-" + i}
@@ -369,7 +378,7 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
         style={{
           display: menuEnabled ? "block" : "none",
           position: "absolute",
-          top: menuY.toString() + "px",
+          top: (menuY - 160).toString() + "px",
           left: menuX.toString() + "px",
           zIndex: 99,
         }}

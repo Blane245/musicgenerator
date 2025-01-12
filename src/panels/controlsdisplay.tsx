@@ -19,8 +19,7 @@ import TimeLineDisplay from "./timelinedisplay";
 // time line
 
 export default function ControlsDisplay() {
-  const { fileContents, setFileContents, setStatus, playing } =
-    useCMGContext();
+  const { fileContents, setFileContents, setStatus, playing } = useCMGContext();
 
   const [SFfiles, setSFFiles] = useState<string[]>([]);
   const [SFFileName, setSFFileName] = useState<string>("");
@@ -28,7 +27,10 @@ export default function ControlsDisplay() {
   const [mode, setMode] = useState<GENERATIONMODE>(GENERATIONMODE.idle);
   const [showStop, setShowStop] = useState<boolean>(false);
   const [errors, setErrors] = useState<string[]>([]);
-  const [recordFormat, setRecordFormat] = useState<string>('mp3');
+  const [recordFormat, setRecordFormat] = useState<string>("mp3");
+  const [recordHandle, setRecordHandle] = useState<FileSystemFileHandle | null>(
+    null
+  );
 
   // load the soundfont file list from the server at start up
   useEffect(() => {
@@ -86,7 +88,11 @@ export default function ControlsDisplay() {
             (g as SFRG).midiT.startValue <= 127
           ) {
             goodGeneratorCount++;
-          } else if (g.type == GENERATORTYPE.Noise) goodGeneratorCount++;
+          } else if (g.type == GENERATORTYPE.Noise) {
+             goodGeneratorCount++;
+          } else if (g.type == GENERATORTYPE.AudioFile) {
+            goodGeneratorCount++;
+          }
         }
       });
     });
@@ -118,6 +124,18 @@ export default function ControlsDisplay() {
     }
   }
 
+  function handleRecord() {
+    setMode(GENERATIONMODE.record);
+    const types: FilePickerAcceptType[] =
+      recordFormat == "mp3"
+        ? [{ description: "MP3 file", accept: { "audio/mp3": [".mp3"] } }]
+        : [{ description: "WAV file", accept: { "audio/wav": [".wav"] } }];
+    window.showSaveFilePicker({ types: types }).then((rh) => {
+      setRecordHandle(rh);
+      console.log("setting record handle");
+    });
+  }
+
   return (
     <>
       <div className="page-control">
@@ -138,21 +156,24 @@ export default function ControlsDisplay() {
         <button
           style={{ marginLeft: "1em" }}
           disabled={!readyGenerate || playing.current}
-          onClick={() => setMode(GENERATIONMODE.record)}
+          onClick={() => handleRecord()}
         >
           Record
         </button>
         <select
-          disabled={playing.current}
-          name='recordformat'
-          id='recordformat'
+          disabled={!readyGenerate || playing.current}
+          name="recordformat"
+          id="recordformat"
           value={recordFormat}
-          style={{marginLeft:'5px'}}
+          style={{ marginLeft: "5px" }}
           onChange={(event) => setRecordFormat(event.target.value)}
         >
-          <option key={'r-mp3'} value='mp3'>mp3</option>
-          <option key={'r-wav'} value='wav'>wav</option>
-          
+          <option key={"r-mp3"} value="mp3">
+            mp3
+          </option>
+          <option key={"r-wav"} value="wav">
+            wav
+          </option>
         </select>
         <button
           style={{ marginLeft: "1em" }}
@@ -164,14 +185,20 @@ export default function ControlsDisplay() {
         <button
           style={{ marginLeft: "1em" }}
           hidden={!showStop}
-          onClick={() => playing.current=false}
+          onClick={() => (playing.current = false)}
         >
           Stop
         </button>
       </div>
 
       <TimeLineDisplay />
-      <Generate mode={mode} setMode={setMode} recordFormat={recordFormat} generator={null} />
+      <Generate
+        mode={mode}
+        setMode={setMode}
+        recordFormat={recordFormat}
+        recordHandle={recordHandle}
+        generator={null}
+      />
       {/* error popup */}
       <div
         className="modal-content"
