@@ -41,8 +41,7 @@ export default class Compressor {
         break;
       case "compress.threshold":
         this.threshold = parseFloat(value);
-        if (this.effect)
-          this.effect.threshold.value = this.threshold;
+        if (this.effect) this.effect.threshold.value = this.threshold;
         break;
       case "compress.release":
         this.release = parseFloat(value) / 1000;
@@ -82,8 +81,7 @@ export default class Compressor {
       this.ratio = getAttributeValue(cElem, "ratio", "float") as number;
       this.release = getAttributeValue(cElem, "release", "float") as number;
       this.threshold = getAttributeValue(cElem, "threshold", "float") as number;
-    } catch {
-    }
+    } catch {}
   }
   appendXML(doc: XMLDocument, elem: Element): void {
     const cElement: Element = doc.createElement("compressor");

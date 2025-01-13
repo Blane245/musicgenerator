@@ -1,3 +1,5 @@
+// Display the generator icons for all generators on a track
+// Handle icon positioning and menu selection
 import {
   ChangeEvent,
   FormEvent,
@@ -9,8 +11,9 @@ import {
 } from "react";
 import CMGenerator from "../classes/cmg";
 import Track from "../classes/track";
-import Generate from "../generation/generate";
 import { useCMGContext } from "../cmgcontext";
+import GeneratorDialog from "../dialogs/generatordialog";
+import Generate from "../generation/generate";
 import { GENERATIONMODE, TimeLineScales } from "../types";
 import {
   addGenerator,
@@ -18,7 +21,6 @@ import {
   moveGeneratorBodyPosition,
 } from "../utils/cmfiletransactions";
 import { getGeneratorUID } from "../utils/getgeneratoruid";
-import GeneratorDialog from "../dialogs/generatordialog";
 import setCursor from "../utils/setcursor";
 
 export interface GeneratorIconProps {
@@ -35,6 +37,7 @@ type GeneratorBox = {
   selected: boolean;
   playing: boolean;
 };
+
 // thanx for AWolf's option 2 answer to https://stackoverflow.com/questions/58222004/how-to-get-parent-width-height-in-react-using-hooks
 const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
   const { track, trackIndex, elementRef } = props;
@@ -59,11 +62,9 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
   const [copyDialog, setCopyDialog] = useState<boolean>(false);
   const [selectedTrackName, setSelectedTrackName] = useState<string>("");
   const [preview, setPreview] = useState<CMGenerator | null>(null);
-  // const preview = useRef<CMGenerator | null>();
   const [mode, setMode] = useState<GENERATIONMODE>(GENERATIONMODE.idle);
-
-  const [trackWidth, setTrackWidth] = useState(100);
-  const [trackHeight, setTrackHeight] = useState(100);
+  const [trackWidth, setTrackWidth] = useState<number>(100);
+  const [trackHeight, setTrackHeight] = useState<number>(100);
 
   useEffect(() => {
     const resizeObserver: ResizeObserver = new ResizeObserver(
@@ -77,8 +78,10 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
     }
   }, [elementRef]);
 
-  // set the generator icon boxes based on the generator times and timeLine
+  // set the visible generator icon boxes based on the generator times and timeLine
+  // handle highlighting from timeline interval selection and preview playing
   useEffect(() => {
+
     // get all of the generator boxes
     setSelectedTrackName(track.name);
     const boxes: GeneratorBox[] = [];
@@ -169,6 +172,8 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
     setStatus(``);
   }
 
+  // move the icon vertically
+  // this is a bit sloppy, but so be it
   function handleMouseMove(
     event: MouseEvent<SVGRectElement>,
     boxIndex: number

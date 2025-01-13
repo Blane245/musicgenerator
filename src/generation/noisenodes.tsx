@@ -1,18 +1,15 @@
 //
-// this genertors a random sample for the duration the generator
+// this prepares for playing a random sample
 // and the modulated the volume and pan rules similarly to
 // the SFPG generatr
-// each node time starts when the last one stops as determined by the spped attribute
+// each node time starts when the last one stops as determined by the duration attribute
 
 import Noise from "../classes/noise";
 import { RawSourceData } from "../types";
 import { setRandomSeed } from "../utils/seededrandom";
 
 // the node's midi, volume, and pan values is plugged in from their respective chains
-export function getBufferSourceNodesFromNoise(
-  gen: Noise,
-): RawSourceData[] {
-
+export function getBufferSourceNodesFromNoise(gen: Noise): RawSourceData[] {
   const { startTime, stopTime, duration } = gen;
   const sourceData: RawSourceData[] = [];
 
@@ -22,35 +19,34 @@ export function getBufferSourceNodesFromNoise(
     const time: number = i * duration + startTime;
     const { sample, volume, pan } = gen.getCurrentValues(time, duration);
 
-    const attackInterval = Math.max(Math.min(0.1*duration,0.01), 0.01);
-    const releaseInterval = Math.max(Math.min(0.1*duration,0.01),0.01);
-    const holdInterval = duration-attackInterval;
-    const newDuration = attackInterval+holdInterval+releaseInterval;
+    const attackInterval = Math.max(Math.min(0.1 * duration, 0.01), 0.01);
+    const releaseInterval = Math.max(Math.min(0.1 * duration, 0.01), 0.01);
+    const holdInterval = duration - attackInterval;
+    const newDuration = attackInterval + holdInterval + releaseInterval;
     sourceData.push({
       gen,
-      source:{
+      source: {
         sample: [sample],
-        sampleRate:gen.sampleRate,
-        playbackRate:1.0,
-        loopStart:0,
-        loopEnd:0,
-        loop:false,
+        sampleRate: gen.sampleRate,
+        playbackRate: 1.0,
+        loopStart: 0,
+        loopEnd: 0,
+        loop: false,
         startTime: time,
         duration: newDuration,
         stopTime: time + newDuration,
         started: false,
       },
-      panner:{
+      panner: {
         value: pan,
       },
-      vol:{
+      vol: {
         attackInterval,
         holdInterval,
         releaseInterval,
-        value:volume,
+        value: volume,
       },
-    }
-    );
+    });
   }
-  return (sourceData);
+  return sourceData;
 }

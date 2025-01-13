@@ -104,7 +104,7 @@ export default function NoiseDialog(props: NoiseProps): JSX.Element {
         />
         <span> (s)</span>
       </label>
-      <hr/>
+      <hr />
       <label htmlFor="VMType"> VMType:</label>
       <select name="VMType" onChange={handleChange} value={formData.VMType}>
         {Object.keys(MODULATOR).map((t) => {
@@ -224,7 +224,7 @@ export default function NoiseDialog(props: NoiseProps): JSX.Element {
 }
 
 // all values are validated by range checks
-export function validateNoiseValues(values: Noise): string[] {
+export function validateNoiseValues(_: Noise): string[] {
   const result: string[] = [];
   return result;
 }

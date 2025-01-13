@@ -25,7 +25,7 @@ export function bufferToMp3(
   sampleRate: number
 ): Blob {
   const encoder = new lamejs.Mp3Encoder(2, sampleRate, 256);
-  const mp3Data:Uint8Array[] = [];
+  const mp3Data: Uint8Array[] = [];
   const length: number = waveform[0].length;
   for (let i = 0; i < length; i += BLOCKSIZE) {
     const blockLength: number = Math.min(BLOCKSIZE, length - i);
@@ -33,8 +33,8 @@ export function bufferToMp3(
       const left: Int16Array = new Int16Array(blockLength);
       const right: Int16Array = new Int16Array(blockLength);
       for (let j = 0; j < blockLength; j++) {
-        left[j] = float32ToInt16(waveform[0][i+j]);
-        right[j] = float32ToInt16(waveform[1][i+j]);
+        left[j] = float32ToInt16(waveform[0][i + j]);
+        right[j] = float32ToInt16(waveform[1][i + j]);
       }
       const buffer: Uint8Array = encoder.encodeBuffer(left, right);
       if (buffer.length > 0) mp3Data.push(buffer);

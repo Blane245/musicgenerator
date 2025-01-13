@@ -1,3 +1,7 @@
+// file-level controls
+// includes the soundfont file selector, record button, record format selector
+// preview button, stop button
+// timeline controls and timeline
 import { ChangeEvent, useEffect, useState } from "react";
 import { SoundFont2 } from "soundfont2";
 import SFPG from "../classes/sfpg";
@@ -13,14 +17,8 @@ import fetchData from "../utils/fetchdata";
 import { loadSoundFont } from "../utils/loadsoundfont";
 import TimeLineDisplay from "./timelinedisplay";
 
-// display of the CGM file contents, and controls
-// main controls
-// SF File, record, preview, stop buttons
-// time line
-
 export default function ControlsDisplay() {
   const { fileContents, setFileContents, setStatus, playing } = useCMGContext();
-
   const [SFfiles, setSFFiles] = useState<string[]>([]);
   const [SFFileName, setSFFileName] = useState<string>("");
   const [readyGenerate, setReadyGenerate] = useState<boolean>(true);
@@ -58,7 +56,8 @@ export default function ControlsDisplay() {
   }, [fileContents.SFFileName]);
 
   // control the record and preview buttons
-  // only enabled when a soundfont file is defined and all generators have presets and midi numbers assigned
+  // only enabled when a soundfont file is defined
+  // and all SFPG and SFRG generators have presets and midi numbers assigned
   useEffect(() => {
     if (!fileContents) {
       setReadyGenerate(false);
@@ -89,7 +88,7 @@ export default function ControlsDisplay() {
           ) {
             goodGeneratorCount++;
           } else if (g.type == GENERATORTYPE.Noise) {
-             goodGeneratorCount++;
+            goodGeneratorCount++;
           } else if (g.type == GENERATORTYPE.AudioFile) {
             goodGeneratorCount++;
           }
@@ -115,7 +114,7 @@ export default function ControlsDisplay() {
         setStatus(`Soundfont file '${fileName}' loaded`);
       } catch (e) {
         setStatus(
-          `controlsdisplay: error file reading soundfont file '${fileName}'`
+          `controlsdisplay: error file reading soundfont file '${fileName}':, ${e}`
         );
       }
     } else {
@@ -132,7 +131,7 @@ export default function ControlsDisplay() {
         : [{ description: "WAV file", accept: { "audio/wav": [".wav"] } }];
     window.showSaveFilePicker({ types: types }).then((rh) => {
       setRecordHandle(rh);
-      console.log("setting record handle");
+      // console.log("setting record handle");
     });
   }
 
@@ -199,7 +198,6 @@ export default function ControlsDisplay() {
         recordHandle={recordHandle}
         generator={null}
       />
-      {/* error popup */}
       <div
         className="modal-content"
         style={{ display: errors.length != 0 ? "block" : "none" }}

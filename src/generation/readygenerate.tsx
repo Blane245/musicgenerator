@@ -1,4 +1,5 @@
-// determine if everything is ready for generation
+// determine what is to be scheduled for generator based on
+// proper definition and selection filters
 
 import AudioFile from "../classes/audiofile";
 import CMGFile from "../classes/cmgfile";
@@ -12,6 +13,7 @@ import {
   TimelineInterval,
 } from "../types";
 
+// timeline interval selector
 function isSelected(
   generator: CMGeneratorType,
   startTime: number,
@@ -23,12 +25,13 @@ function isSelected(
 }
 
 // find the selected generator that has the earliest start time
+// used to shift all generators to the left in time
 function findEarliestSelected(
   fileContents: CMGFile,
   startTime: number,
   endTime: number
 ): number {
-  let earliest: number = 1e65;
+  let earliest: number = Number.MAX_VALUE;
   fileContents.tracks.forEach((t) => {
     t.generators.forEach((g) => {
       if (isSelected(g, startTime, endTime))
@@ -85,7 +88,7 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
           if (isSelected(g, startTime, endTime)) {
             // move the generators time back to zero with the
             // earliest selected as zero and the others following
-            const thisG = g.copy();
+            const thisG:CMGeneratorType = g.copy();
             thisG.startTime = thisG.startTime - firstGeneratorTime;
             thisG.stopTime = thisG.stopTime - firstGeneratorTime;
             if (g.type == GENERATORTYPE.SFPG) SFPGenerators.push(thisG as SFPG);

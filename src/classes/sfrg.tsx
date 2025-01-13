@@ -1,3 +1,4 @@
+import { SoundFont2 } from "soundfont2";
 import { Preset } from "../sfcomponents/types";
 import {
   AttributeRange,
@@ -7,9 +8,9 @@ import {
   MARKOVSTATE,
   RandomSFTransitons,
 } from "../types";
-import CMG from "./cmg";
-import { getAttributeValue, getElementElement } from "../utils/xmlfunctions";
 import { rand } from "../utils/seededrandom";
+import { getAttributeValue, getElementElement } from "../utils/xmlfunctions";
+import CMG from "./cmg";
 
 export default class SFRG extends CMG {
   presetName: string;
@@ -422,7 +423,7 @@ export default class SFRG extends CMG {
     }
   }
 
-  static override async getXML(elem: Element): Promise<SFRG> {
+  static override async getXML(elem: Element, soundFont: SoundFont2 | null): Promise<SFRG> {
     try {
       const g: SFRG = new SFRG(0);
       g.name = getAttributeValue(elem, "name", "string") as string;
@@ -433,6 +434,8 @@ export default class SFRG extends CMG {
       g.position = getAttributeValue(elem, "position", "int") as number;
 
       g.presetName = getAttributeValue(elem, "presetName", "string") as string;
+      const pn: string = g.presetName.split(":")[2];
+      g.preset = soundFont? soundFont.presets.find((p) => p.header.name == pn) as Preset : undefined;
       g.isLooping =
         (getAttributeValue(elem, "isLooping", "string") as string) == "true";
       g.seed = getAttributeValue(elem, "seed", "string") as string;

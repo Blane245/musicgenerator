@@ -1,3 +1,4 @@
+// get a UID for a track is that different from all other exiting tracks
 import Track from "../classes/track";
 export function getTrackUID(tracks: Track[]): number {
   let next = 0;

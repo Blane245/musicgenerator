@@ -1,12 +1,11 @@
-import { getPresetNote } from "../sfcomponents/loadpresetnote";
+// buil teh SFRG nodes from playing
 import SFRG from "../classes/sfrg";
+import { getPresetNote } from "../sfcomponents/loadpresetnote";
 import { RawSourceData } from "../types";
 import { setRandomSeed } from "../utils/seededrandom";
 
 // get all of the webaudio nodes for all of the SFPG generators
-export function getBufferSourceNodesFromSFRG(
-  gen: SFRG,
-): RawSourceData[] {
+export function getBufferSourceNodesFromSFRG(gen: SFRG): RawSourceData[] {
   const { startTime, stopTime, preset } = gen;
   if (!preset)
     throw new Error(`Preset not defined for generator '${gen.name}'`);
@@ -34,8 +33,8 @@ export function getBufferSourceNodesFromSFRG(
       midi,
       volume,
       pan,
-      time,
-      );
+      time
+    );
 
     // and add it to the accumulated sources
     sourceData.push(...connections);

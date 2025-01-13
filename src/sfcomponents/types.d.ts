@@ -1,18 +1,18 @@
 export interface SampleHeader {
-    name: string;
-    end: number;
-    endLoop: number;
-    link: number;
-    originalPitch: number;
-    pitchCorrection: number;
-    sampleRate: number;
-    start: number;
-    startLoop: number;
-    type: number;
-  };
-  
+  name: string;
+  end: number;
+  endLoop: number;
+  link: number;
+  originalPitch: number;
+  pitchCorrection: number;
+  sampleRate: number;
+  start: number;
+  startLoop: number;
+  type: number;
+}
+
 export interface Sample {
-  header: SampleHeader,
+  header: SampleHeader;
   data: Int16Array;
 }
 

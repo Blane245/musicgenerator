@@ -29,6 +29,8 @@ There are three type of sound generators in this version.
 
 3. A Noise Generator (**Noise**). This generator will create white or gaussian noise from the start to stop time. It is broken up into 0.1 second duration sources for this interval to provide for volume and pan changes to occur during this period. Gaussian noise have a center frequency (Hz) and standard deviation that is applied to the amplitude of the noise. Volume and pan values have center, amplitude, frequency, and phase values and have the same repetitive types as SFPG.
 
+4. An Audio File Generator (**AudioFile**). This generator contains the samples from an existing audio file, as long as the web browser audio conversion exists for the audio file type. The start time is controlable, bu the stop time is set based on the duration of the audio file. Only the volume can be adjusted as it is assumed that panning is handled in the file itself. 
+
 # CMG Data Structure
 
 The data structure is hierarchial:
@@ -39,7 +41,7 @@ The data structure is hierarchial:
 * Called *Generator*, this is an instance of a generator collection and is the source of the sound that is produced by CMG. There are currently four types of generators.
 
     * **CMG** - this generator is the parent of sound generators and does not generate sound. It contains the attributes that are common to all generators. This includes a name, start and end times, mute flag, and a vertical position with the track's timeline. 
-    * The three types of generators that produce sound are listed above.
+    * The threefour types of generators that produce sound are listed above.
 
 # Web Audio Routing Graph
 
@@ -160,11 +162,10 @@ Version 2 implements
 
 - room and instrument reverbs are a dream
 - create echo effect
-- add a generator that reads an audio file and plays it as part of a composition.
 
 # Development and Installation
 
-This application was developed in Visual Code, using a vite/typescript project. The the README file for details.
+This application was developed in Visual Code, using a vite/typescript project.
 
 ## Typescript and Vite build tweaks
 

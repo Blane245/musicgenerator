@@ -56,7 +56,8 @@ export default class Equalizer {
   setGain(band: number, value: number): void {
     this.gains[band] = value;
     if (this.context) this.effects[band].gain.value = value;
-    if (this.context) console.log(`live equalizer band ${band} set to value ${value}`)
+    if (this.context)
+      console.log(`live equalizer band ${band} set to value ${value}`);
   }
 
   getGain(band: number): number {

@@ -1,14 +1,21 @@
+// preview the selected source nodes
+// as current time progresses, add near pending nodes to the 
+// audio node graph. As they complete disconnect them
+// this keeps the audio node graph as small as possible
+// preventing menory and CPU overload
 import { MutableRefObject } from "react";
+import CMGFile from "../classes/cmgfile";
 import {
   ActiveSource,
   CMGeneratorType,
   GENERATIONMODE,
   RawSourceData,
 } from "../types";
-import { realizeSource } from "./realizesource";
-import CMGFile from "../classes/cmgfile";
 import { buildRoomNodes } from "./buildroomnodes";
+import { realizeSource } from "./realizesource";
 
+// as this function is non-reactive, many of its props 
+// are CMG context variables
 export interface PreviewProps {
   fileContents: CMGFile;
   playbackLength: number;
@@ -34,7 +41,8 @@ export default function Preview(params: PreviewProps): void {
     setStatus,
   } = params;
 
-  // set up the real time context
+  // set up the real time context and hold up the playback
+  // undtile the room nodes can be built
   const context: AudioContext = new AudioContext();
   context.suspend();
   setTimeProgress(0);
@@ -118,7 +126,7 @@ export default function Preview(params: PreviewProps): void {
     } else {
       // console.log("timer cleared");
       timerID && clearTimeout(timerID);
-      playing.current=false;
+      playing.current = false;
       if (context.state !== "closed") {
         (context as AudioContext).suspend();
         (context as AudioContext).close();
@@ -129,7 +137,7 @@ export default function Preview(params: PreviewProps): void {
     }
   }
 
-  // time progress clicker
+  // time progress clicker for updating the time progress widget
   let progressId: number = 0;
   timeProgress();
   function timeProgress(): void {

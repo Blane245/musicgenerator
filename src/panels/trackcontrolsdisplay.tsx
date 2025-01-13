@@ -1,3 +1,6 @@
+// Display and interact with a track's controls,
+// including delete, rename, mute, solo, move up, move down
+// and add generator
 import { ChangeEvent, FormEvent, MouseEvent, useState } from "react";
 import {
   AiFillCaretDown,
@@ -110,12 +113,9 @@ export default function TrackControlsDisplay(props: TrackControlsDisplayProps) {
     }
   }
 
-  // this is the input business end of this app. Generators will
-  // come in different shapes and sizes. There CRUD will be handled by modals
-  // that appear in a different component
   function handleAddGenerator(event: MouseEvent<Element>, index: number): void {
     event.preventDefault();
-    console.log("index", index);
+    // console.log("index", index);
     setEnableGeneratorDialog(index);
   }
 

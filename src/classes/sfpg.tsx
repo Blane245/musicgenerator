@@ -1,3 +1,4 @@
+import { SoundFont2 } from "soundfont2";
 import {
   sawtoothModulator,
   sineModulator,
@@ -299,7 +300,7 @@ export default class SFPG extends CMG {
     }
   }
 
-  static override async getXML(elem: Element): Promise<SFPG> {
+  static override async getXML(elem: Element, soundFont: SoundFont2 | null): Promise<SFPG> {
     try {
       const g: SFPG = new SFPG(0);
       g.name = getAttributeValue(elem, "name", "string") as string;
@@ -311,6 +312,9 @@ export default class SFPG extends CMG {
 
       g.type = GENERATORTYPE.SFPG;
       g.presetName = getAttributeValue(elem, "presetName", "string") as string;
+      const pn: string = g.presetName.split(":")[2];
+      g.preset = soundFont? soundFont.presets.find((p) => p.header.name == pn) as Preset : undefined;
+
       g.isLooping =
         (getAttributeValue(elem, "isLooping", "string") as string) == "true";
       g.midi = getAttributeValue(elem, "midi", "int") as number;

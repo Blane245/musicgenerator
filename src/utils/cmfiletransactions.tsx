@@ -1,10 +1,12 @@
-import { CMGeneratorType } from "../types";
-import CMGFile from "../classes/cmgfile";
-import Track from "../classes/track";
+// Update various parts of the CMGFile based
+// various transactions within the system
+import Volume from "classes/volume";
 import { SoundFont2 } from "soundfont2";
+import CMGFile from "../classes/cmgfile";
 import Compressor from "../classes/compressor";
 import Equalizer from "../classes/equalizer";
-import Volume from "classes/volume";
+import Track from "../classes/track";
+import { CMGeneratorType } from "../types";
 
 export function newFile(contents: CMGFile, setFileContents: Function): void {
   setFileContents(contents);
@@ -38,13 +40,13 @@ export function setDirty(
     });
   }
 }
-  
+
 export function setEqualizer(
   newEqualizer: Equalizer,
   setFileContents: Function
 ): void {
   setFileContents((c: CMGFile) => {
-    const nc:CMGFile = c.copy();
+    const nc: CMGFile = c.copy();
     nc.dirty = true;
     nc.equalizer = newEqualizer;
     return nc;
@@ -56,27 +58,25 @@ export function setCompressor(
   setFileContents: Function
 ): void {
   setFileContents((c: CMGFile) => {
-    const nc:CMGFile = c.copy();
+    const nc: CMGFile = c.copy();
     nc.dirty = true;
     nc.compressor = newCompressor;
     return nc;
   });
 }
 
-export function setVolume(
-  newVolume: Volume,
-  setFileContents: Function) : void {
-    setFileContents((c: CMGFile) => {
-      const nc:CMGFile = c.copy();
-      nc.dirty = true;
-      nc.volume = newVolume;
-      return nc;
-    });
-  }
+export function setVolume(newVolume: Volume, setFileContents: Function): void {
+  setFileContents((c: CMGFile) => {
+    const nc: CMGFile = c.copy();
+    nc.dirty = true;
+    nc.volume = newVolume;
+    return nc;
+  });
+}
 
 export function addTrack(newTrack: Track, setFileContents: Function) {
   setFileContents((c: CMGFile) => {
-    const nc:CMGFile = c.copy();
+    const nc: CMGFile = c.copy();
     nc.dirty = true;
     nc.tracks.push(newTrack);
     return nc;
@@ -85,7 +85,7 @@ export function addTrack(newTrack: Track, setFileContents: Function) {
 
 export function deleteTrack(index: number, setFileContents: Function) {
   setFileContents((c: CMGFile) => {
-    const nc:CMGFile = c.copy();
+    const nc: CMGFile = c.copy();
     nc.dirty = true;
     nc.tracks.splice(index, 1);
     return nc;
@@ -165,9 +165,9 @@ export function addGenerator(
     const thisTrack: Track | undefined = newF.tracks.find(
       (t) => t.name == track.name
     );
-    if (!thisTrack) { 
-        console.log(`add generator couldn't find track ${track.name} in file.`)
-        return prev;
+    if (!thisTrack) {
+      console.log(`add generator couldn't find track ${track.name} in file.`);
+      return prev;
     }
 
     thisTrack.generators.push(generator.copy());
@@ -187,17 +187,21 @@ export function modifyGenerator(
     const thisTrack: Track | undefined = newF.tracks.find(
       (t) => t.name == track.name
     );
-    if (!thisTrack) { 
-        console.log(`modify generator couldn't find track ${track.name} in file.`)
-        return prev;
+    if (!thisTrack) {
+      console.log(
+        `modify generator couldn't find track ${track.name} in file.`
+      );
+      return prev;
     }
 
     const newGIndex: number = thisTrack.generators.findIndex(
       (g) => g.name == oldName
     );
-    if (newGIndex < 0) { 
-        console.log(`modify generator couldn't find generator ${oldName} on track ${track.name} in file.`)
-        return prev;
+    if (newGIndex < 0) {
+      console.log(
+        `modify generator couldn't find generator ${oldName} on track ${track.name} in file.`
+      );
+      return prev;
     }
 
     thisTrack.generators[newGIndex] = generator.copy();
@@ -217,16 +221,20 @@ export function deleteGenerator(
     const thisTrack: Track | undefined = newF.tracks.find(
       (t) => t.name == track.name
     );
-    if (!thisTrack) { 
-        console.log(`delete generator couldn't find track ${track.name} in file.`)
-        return prev;
+    if (!thisTrack) {
+      console.log(
+        `delete generator couldn't find track ${track.name} in file.`
+      );
+      return prev;
     }
     const gIndex: number = thisTrack.generators.findIndex(
       (g) => g.name == name
     );
-    if (gIndex < 0) { 
-        console.log(`delete generator couldn't find generator ${name} on track ${track.name} in file.`)
-        return prev;
+    if (gIndex < 0) {
+      console.log(
+        `delete generator couldn't find generator ${name} on track ${track.name} in file.`
+      );
+      return prev;
     }
 
     thisTrack.generators.splice(gIndex, 1);

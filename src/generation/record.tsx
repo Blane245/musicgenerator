@@ -1,3 +1,22 @@
+// record the selected nodes
+// a group of source batches is dispatched for rendering.
+// When that group is complete, the next group is assembled and
+// dispatched.
+
+// the group processing algorithm (in dispatchGroup)
+// record the generated sources using batching
+// count the expected number of batches
+// when a new batch has been defined
+//  create a new offline context
+//  realize the room nodes
+//  realize each raw source in the batch
+//  render the batch
+// when a batch is rendered
+//  add the rendered buffer to the total result
+//  count the batch as rendered
+//
+// when all batches have completed or playing has stopped (in waitForCompletion)
+//  write the accumulated buffer to the recording file
 import { useEffect, useRef, useState } from "react";
 import Compressor from "../classes/compressor";
 import Equalizer from "../classes/equalizer";
@@ -18,24 +37,6 @@ export interface RecordProps {
   recordFormat: string;
 }
 
-// a group of source batches is dispatched for rendering.
-// When that group is complete, the next group is assembled and
-// dispatched.
-
-// the group processing algorithm (in dispatchGroup)
-// record the generated sources using batching
-// count the expected number of batches
-// when a new batch has been defined
-//  create a new offline context
-//  realize the room nodes
-//  realize each raw source in the batch
-//  render the batch
-// when a batch is rendered
-//  add the rendered buffer to the total result
-//  count the batch as rendered
-//
-// when all batch have completed or playing has stopped (in waitForCompletion)
-//  write the accumulated buffer to the recording file
 export default function Record(params: RecordProps) {
   const {
     sourceData,
@@ -56,9 +57,9 @@ export default function Record(params: RecordProps) {
     new Float32Array(Math.ceil(playbackLength * sampleRate)).fill(0),
   ]);
   // group and batch tracking data and counters
-  const sortedSources = useRef<RawSourceData[]>(sourceData.sort(
-    (a, b) => a.source.startTime - b.source.startTime
-  ));
+  const sortedSources = useRef<RawSourceData[]>(
+    sourceData.sort((a, b) => a.source.startTime - b.source.startTime)
+  );
   const totalBatchCount = useRef<number>(0);
   const completedBatches = useRef<number>(0);
   const nextSource = useRef<number>(0);
@@ -79,13 +80,13 @@ export default function Record(params: RecordProps) {
   let startTime: Date = new Date();
 
   // what is happening is that dev is activating the effect twice and recording
-  // happening twice. Need to prevent this
+  // happening twice. This is prevented by the recording active reference variable
   useEffect(() => {
     if (playing.current && !recordingActive.current) {
-      console.log(
-        "recording size (Mb) ",
-        (result.current[0].length * 32) / 1000000
-      );
+      // console.log(
+      //   "recording size (Mb) ",
+      //   (result.current[0].length * 32) / 1000000
+      // );
       try {
         startTime = new Date();
         // zeroize all counters and data
@@ -98,17 +99,17 @@ export default function Record(params: RecordProps) {
         groupTimerId.current = 0;
         group.current = [];
 
-        // count the number of sorted batches 
+        // count the number of sorted batches
         let nBatch: number = 0;
         sortedSources.current.forEach((_, i) => {
           nBatch++;
           if (nBatch == BATCHSIZE || i == sortedSources.current.length - 1) {
             totalBatchCount.current++;
-            console.log("batch ", totalBatchCount.current, " size ", nBatch);
+            // console.log("batch ", totalBatchCount.current, " size ", nBatch);
             nBatch = 0;
           }
         });
-        console.log("total batch count ", totalBatchCount.current);
+        // console.log("total batch count ", totalBatchCount.current);
 
         playing.current = true;
 
@@ -159,12 +160,12 @@ export default function Record(params: RecordProps) {
           });
       } else {
         completeTimerId.current = window.setTimeout(waitForCompletion, 1000);
-        console.log(
-          "waiting for completion, total=",
-          totalBatchCount.current,
-          " completed=",
-          completedBatches.current
-        );
+        // console.log(
+        //   "waiting for completion, total=",
+        //   totalBatchCount.current,
+        //   " completed=",
+        //   completedBatches.current
+        // );
         setCompleted(
           Math.floor((100 * completedBatches.current) / totalBatchCount.current)
         );
@@ -194,7 +195,7 @@ export default function Record(params: RecordProps) {
         nextSource.current < sortedSources.current.length - 1
       ) {
         // assemble the next batch
-        let batchStart: number = 1e100;
+        let batchStart: number = Number.MAX_VALUE;
         let batchEnd: number = 0;
         let sourceStart: number = nextSource.current;
         let sourceCount: number = 0;
@@ -208,12 +209,12 @@ export default function Record(params: RecordProps) {
           nextSource.current++;
           sourceCount++;
         }
-        console.log(
-          "batch assembled, source count ",
-          sourceCount,
-          "next source",
-          nextSource.current
-        );
+        // console.log(
+        //   "batch assembled, source count ",
+        //   sourceCount,
+        //   "next source",
+        //   nextSource.current
+        // );
 
         // if there is anything in the batch, push it and its start and end time on
         // on the group queue
@@ -225,21 +226,21 @@ export default function Record(params: RecordProps) {
             batchStart,
             batchEnd,
           });
-          console.log(
-            "batch added to group,",
-            "source start",
-            sourceStart,
-            "source count ",
-            sourceCount,
-            "batch start",
-            batchStart,
-            "batch end",
-            batchEnd
-          );
+          // console.log(
+          //   "batch added to group,",
+          //   "source start",
+          //   sourceStart,
+          //   "source count ",
+          //   sourceCount,
+          //   "batch start",
+          //   batchStart,
+          //   "batch end",
+          //   batchEnd
+          // );
         }
       }
       // there is now a group of batches that need to rendered
-      console.log("rendering ", group.current.length, " batches");
+      // console.log("rendering ", group.current.length, " batches");
       activeContexts.current = [];
       group.current.forEach(
         (g: {
@@ -248,7 +249,7 @@ export default function Record(params: RecordProps) {
           batchStart: number;
           batchEnd: number;
         }) => {
-          const { sourceStart, sourceEnd, batchStart, batchEnd } = g;
+          const { sourceStart, sourceEnd, batchEnd } = g;
           currentBatchCount.current++;
           const context: OfflineAudioContext = new OfflineAudioContext(
             2,
@@ -279,18 +280,18 @@ export default function Record(params: RecordProps) {
               s.source.duration
             );
           }
-          console.log(
-            "rendering for batch ",
-            currentBatchCount.current,
-            " source start ",
-            sourceStart,
-            " source end ",
-            sourceEnd,
-            " start time",
-            batchStart,
-            " end time ",
-            batchEnd
-          );
+          // console.log(
+          //   "rendering for batch ",
+          //   currentBatchCount.current,
+          //   " source start ",
+          //   sourceStart,
+          //   " source end ",
+          //   sourceEnd,
+          //   " start time",
+          //   batchStart,
+          //   " end time ",
+          //   batchEnd
+          // );
 
           // when rendering is complete add the batch's rendered buffer to the
           // result
@@ -308,14 +309,14 @@ export default function Record(params: RecordProps) {
 
               // count the group as complete
               groupCount.current--;
-              console.log(
-                "completed batches",
-                completedBatches.current,
-                "active contexts",
-                activeContexts.current.length,
-                "active batches",
-                group.current.length
-              );
+              // console.log(
+              //   "completed batches",
+              //   completedBatches.current,
+              //   "active contexts",
+              //   activeContexts.current.length,
+              //   "active batches",
+              //   group.current.length
+              // );
             };
 
           // start rendering this batch
@@ -332,15 +333,16 @@ export default function Record(params: RecordProps) {
       totalBatchCount.current == completedBatches.current ||
       !playing.current
     ) {
-      console.log("all batch rendering complete");
+      // console.log("all batch rendering complete");
       groupTimerId.current && clearTimeout(groupTimerId.current);
     } else {
       //otherwise we need to check to see if it is time to start another group
       groupTimerId.current = window.setTimeout(dispatchGroup, 1000);
-      console.log("wait to start rendering next group");
+      // console.log("wait to start rendering next group");
     }
   }
 
+  // styles for the progress bar
   const containerStyles = {
     height: 20,
     width: "100%",

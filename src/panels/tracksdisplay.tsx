@@ -1,10 +1,12 @@
-//TODO implement defining a generator by click/dragging in the timeline
+// display a track's controls and time line
+// the time line contains the visible generator icons
 import { useEffect, useRef, useState } from "react";
 import Track from "../classes/track";
+import { useCMGContext } from "../cmgcontext";
 import GeneratorDialog from "../dialogs/generatordialog";
 import GeneratorIcons from "./generatoricons";
-import { useCMGContext } from "../cmgcontext";
 import TrackControlsDisplay from "./trackcontrolsdisplay";
+
 export default function TracksDisplay() {
   const { fileContents } = useCMGContext();
   const [tracks, setTracks] = useState<Track[]>([]);

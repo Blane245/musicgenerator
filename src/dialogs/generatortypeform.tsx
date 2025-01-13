@@ -1,15 +1,15 @@
 // provides the tie to the form fields and validators for all generators
 
 import { ChangeEvent } from "react";
+import AudioFile from "../classes/audiofile";
 import Noise from "../classes/noise";
 import SFPG from "../classes/sfpg";
 import SFRG from "../classes/sfrg";
 import { CMGeneratorType, GENERATORTYPE } from "../types";
+import AudioFileDialog from "./audiofiledialog";
 import NoiseDialog from "./noisedialog";
 import SFPGDialog from "./sfpgdialog";
 import SFRGDialog from "./sfrgdialog";
-import AudioFile from "../classes/audiofile";
-import AudioFileDialog from "./audiofiledialog";
 
 export interface GeneratorTypeFormProps {
   formData: CMGeneratorType;
@@ -34,7 +34,10 @@ export default function GeneratorTypeForm(
         <NoiseDialog formData={formData as Noise} handleChange={handleChange} />
       ) : null}
       {formData.type == GENERATORTYPE.AudioFile ? (
-        <AudioFileDialog formData={formData as AudioFile} handleChange={handleChange} />
+        <AudioFileDialog
+          formData={formData as AudioFile}
+          handleChange={handleChange}
+        />
       ) : null}
     </>
   );

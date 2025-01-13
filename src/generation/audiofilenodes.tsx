@@ -1,13 +1,9 @@
-//
-// this genertors a random sample for the duration the generator
-// and the modulated the volume and pan rules similarly to
-// the SFPG generatr
-// each node time starts when the last one stops as determined by the spped attribute
+// this prepares for playing a loaded audiofile without any modulation other than
+// a volume setting
 
 import AudioFile from "../classes/audiofile";
 import { RawSourceData } from "../types";
 
-// the node's midi, volume, and pan values is plugged in from their respective chains
 export function getBufferSourceNodesFromAudioFile(gen: AudioFile): RawSourceData[] {
   const { startTime, stopTime, volume, samples, duration, sampleRate } = gen;
   const sourceData: RawSourceData[] = [];

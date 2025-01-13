@@ -14,23 +14,13 @@
 // When all track promises are complete, the file driver collects their
 // promises and builds the file level XML.
 // The XML is then written to the provided file.
+//
+// reading decomposes the file's XML into its various
+// components. First, the file contents, and then the 
+// tracks and thie generators asynchornously and in paralle
 
-// framework for XML builders. It adds its XML to the provided
-// element adding chilren from teh document if necessary
-// async function appendXML(doc: Document, elem: Element): Promise<Element> {
-//   try {
-//     const thisElement: Element = elem;
-//     // build XML on thisElement
-//     // invoke asynchronous chidren appendXML builders
-//     // resolve all promises of children
-//     return Promise.resolve(thisElement);
-//   } catch (e: any) {
-//     return Promise.reject(e);
-//   }
-// }
-
-import Track from "../classes/track";
 import CMGFile from "../classes/cmgfile";
+import Track from "../classes/track";
 import { getDocElement } from "../utils/xmlfunctions";
 
 //
@@ -57,7 +47,7 @@ export async function writeFile(
     // build the file XML and added the track children
     const fileElem: Element = doc.createElement("fileContents");
     fileContents.appendXML(doc, fileElem, handle.name);
-    const tracksElem: Element = doc.createElement('tracks');
+    const tracksElem: Element = doc.createElement("tracks");
     if (trackPromises.length > 0) {
       const trackXML: Element[] = await Promise.all(trackPromises);
 
@@ -84,26 +74,29 @@ export async function writeFile(
   }
 }
 
-export async function loadXML(xmlDoc: XMLDocument, fileName: string): Promise<CMGFile> {
-    try{ 
-        const fileContents = new CMGFile();
-    const fcElem: Element = getDocElement(xmlDoc, 'fileContents');
+export async function loadXML(
+  xmlDoc: XMLDocument,
+  fileName: string
+): Promise<CMGFile> {
+  try {
+    const fileContents = new CMGFile();
+    const fcElem: Element = getDocElement(xmlDoc, "fileContents");
     await fileContents.getXML(fcElem, fileName);
-    const tracksElem: Element = getDocElement(xmlDoc, 'tracks');
+    const tracksElem: Element = getDocElement(xmlDoc, "tracks");
     const tracksChildren: HTMLCollection = tracksElem.children;
     const trackPromises: Promise<Track>[] = [];
     for (let child of tracksChildren) {
-        const track: Track = new Track(0);
-        const trackPromise: Promise<Track> = track.getXML(child);
-        trackPromises.push(trackPromise);
+      const track: Track = new Track(0);
+      const trackPromise: Promise<Track> = track.getXML(child, fileContents.SoundFont);
+      trackPromises.push(trackPromise);
     }
 
     if (trackPromises.length > 0) {
-        const tracks: Track[] = await Promise.all(trackPromises);
-        fileContents.tracks = tracks;
+      const tracks: Track[] = await Promise.all(trackPromises);
+      fileContents.tracks = tracks;
     }
-    return Promise.resolve(fileContents)
-    } catch (e) {
-        return Promise.reject(e);
-    }
+    return Promise.resolve(fileContents);
+  } catch (e) {
+    return Promise.reject(e);
+  }
 }

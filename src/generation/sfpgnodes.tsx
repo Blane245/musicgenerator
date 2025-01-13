@@ -1,11 +1,10 @@
-import { getPresetNote } from "../sfcomponents/loadpresetnote";
+// build the source data from SFPG nodes for playing 
 import SFPG from "../classes/sfpg";
+import { getPresetNote } from "../sfcomponents/loadpresetnote";
 import { RawSourceData } from "../types";
 
 // get all of the webaudio nodes for all of the SFPG generators
-export function getBufferSourceNodesFromSFPG(
-  gen: SFPG,
-): RawSourceData[] {
+export function getBufferSourceNodesFromSFPG(gen: SFPG): RawSourceData[] {
   const sourceData: RawSourceData[] = [];
   // the generator has a start and stop time, and a note duration
   const { startTime, stopTime, duration, preset } = gen;
@@ -29,8 +28,8 @@ export function getBufferSourceNodesFromSFPG(
       pitch,
       volume,
       pan,
-      time + gen.startTime, 
-   );
+      time + gen.startTime
+    );
     sourceData.push(...connections);
   }
 

@@ -53,13 +53,21 @@ export const getPresetNote = (
     const { startLoop, endLoop, originalPitch, pitchCorrection, sampleRate } =
       header;
     const {
+      // @ts-ignore
       overridingRootKey,
+      // @ts-ignore
       fineTune = 0,
+      // @ts-ignore
       startloopAddrsOffset = 0,
+      // @ts-ignore
       startloopAddrsCoarseOffset = 0,
+      // @ts-ignore
       endloopAddrsOffset = 0,
+      // @ts-ignore
       endloopAddrsCoarseOffset = 0,
+      // @ts-ignore
       attackVolEnv = -12000,
+      // @ts-ignore
       releaseVolEnv = -12000,
     } = zone.mergedGenerators;
 

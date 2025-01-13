@@ -1,23 +1,12 @@
+// The file menu handles creating new files, opening existing ones,
+// saving current ones, and adding tracks to current ones
 import { useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import AudioFile from "../classes/audiofile";
-import CMG from "../classes/cmg";
 import CMGFile from "../classes/cmgfile";
-import Noise from "../classes/noise";
-import SFPG from "../classes/sfpg";
-import SFRG from "../classes/sfrg";
 import Track from "../classes/track";
 import { useCMGContext } from "../cmgcontext";
-import { Preset } from "../sfcomponents/types";
-import { GENERATORTYPE } from "../types";
 import { addTrack, newFile, setDirty } from "../utils/cmfiletransactions";
 import { getTrackUID } from "../utils/gettrackuid";
-import setCursor from "../utils/setcursor";
-import {
-  getAttributeValue,
-  getDocElement,
-  getElementElement,
-} from "../utils/xmlfunctions";
 import { loadXML, writeFile } from "./filehandlers";
 
 export default function FileMenu() {
@@ -25,6 +14,7 @@ export default function FileMenu() {
     useCMGContext();
   const [open, setOpen] = useState<string>("");
 
+  // a couple of hot keys are supported for faile saving and opening
   useHotkeys(
     "ctrl+s",
     () => {
@@ -41,6 +31,9 @@ export default function FileMenu() {
     { preventDefault: true }
   );
 
+  // handle request to create a new file
+  // If the curretn one is 'dirty' the user is
+  // prompted to confirm overwrite
   function handleFileNew() {
     if (fileContents.dirty) setOpen("new");
     else {
@@ -51,6 +44,7 @@ export default function FileMenu() {
       setOpen("");
     }
   }
+
   function handleCancel() {
     setOpen("");
   }
@@ -68,6 +62,8 @@ export default function FileMenu() {
     }
   }
 
+  // handle request to open a file.
+  // if the current one is 'dirty' the user is asked to confirm over-write
   function handleOpen() {
     if (fileContents.dirty) setOpen("open");
     else {
@@ -91,7 +87,7 @@ export default function FileMenu() {
   }
 
   return (
-    <fieldset disabled={playing.current} /* style={{ width: "30em" }} */>
+    <fieldset disabled={playing.current}>
       <button onClick={() => handleFileNew()}>New File</button>
       <span>&nbsp;</span>
       <button onClick={() => handleOpen()}>Open File...</button>
@@ -186,15 +182,12 @@ export default function FileMenu() {
       newFile(fileContents, setFileContents);
       setStatus(`File '${file.name}' loaded`);
       if (page) page.inert = false;
-
     } catch (err) {
       const e = err as Error;
       setStatus(
         `Error reading cmg file, type: '${e.name}' message: '${e.message}'`
       );
-      if (page) {
-        page.inert = false;
-      }
+      if (page) page.inert = false;
     }
   }
 }

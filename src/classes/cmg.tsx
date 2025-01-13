@@ -1,3 +1,4 @@
+import { SoundFont2 } from "soundfont2";
 import { CMGeneratorType, GENERATORTYPE } from "../types";
 import { getAttributeValue } from "../utils/xmlfunctions";
 
@@ -69,7 +70,7 @@ export default class CMG {
     }
   }
 
-  static async getXML(elem: Element): Promise<CMG> {
+  static async getXML(elem: Element, _?: SoundFont2 | null): Promise<CMG> {
     try {
       const g: CMG = new CMG(0);
       g.name = getAttributeValue(elem, "name", "string") as string;

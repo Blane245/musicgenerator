@@ -1,3 +1,6 @@
+// a seedable random number generator in javascript
+// since there is not one within the specification
+// comes from somewhere that I forgot
 var seed: number[] = cyrb128(Date.now().toString());
 
 function cyrb128(str: string): number[] {
@@ -40,9 +43,6 @@ return function () {
         return (t >>> 0) / 4294967296;
     }
 }
-// export function rand(): number {
-//     return sfc32(seed[0], seed[1], seed[2], seed[3])();}
 export function rand(): number {
     return sfc32()();
-    // return Math.random();
 }

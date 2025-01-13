@@ -1,13 +1,15 @@
+// Construct the data from each active generator that will be used to
+// realize them when they are inserted into the audio node graph
 import AudioFile from "../classes/audiofile";
 import Noise from "../classes/noise";
 import SFPG from "../classes/sfpg";
 import SFRG from "../classes/sfrg";
 import { RawSourceData } from "../types";
 import { setRandomSeed } from "../utils/seededrandom";
+import { getBufferSourceNodesFromAudioFile } from "./audiofilenodes";
 import { getBufferSourceNodesFromNoise } from "./noisenodes";
 import { getBufferSourceNodesFromSFPG } from "./sfpgnodes";
 import { getBufferSourceNodesFromSFRG } from "./sfrgnodes";
-import { getBufferSourceNodesFromAudioFile } from "./audiofilenodes";
 
 export interface buildSourcesProps {
   SFPGenerators: SFPG[];
@@ -16,7 +18,8 @@ export interface buildSourcesProps {
   AudioFileGenerators: AudioFile[];
 }
 export function buildSources(params: buildSourcesProps): RawSourceData[] {
-  const { SFPGenerators, SFRGenerators, NoiseGenerators, AudioFileGenerators } = params;
+  const { SFPGenerators, SFRGenerators, NoiseGenerators, AudioFileGenerators } =
+    params;
   const sourceData: RawSourceData[] = [];
   SFPGenerators.forEach((g) => {
     const SFPGData: RawSourceData[] = getBufferSourceNodesFromSFPG(g);
@@ -41,7 +44,7 @@ export function buildSources(params: buildSourcesProps): RawSourceData[] {
   AudioFileGenerators.forEach((g) => {
     const AudioFileData: RawSourceData[] = getBufferSourceNodesFromAudioFile(g);
     sourceData.push(...AudioFileData);
-  })
+  });
   // console.log("raw source count", sourceData.length);
   return sourceData;
 }

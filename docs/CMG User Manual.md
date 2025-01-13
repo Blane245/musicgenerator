@@ -46,7 +46,7 @@ The features of the CMG include:
 - Retention of defined sound generation files between working sessions,
 - The use of SoundFont files to produce Midi sounds,
 - The separation of sound generator into tracks that mimics the parts in a music score,
-- Three types of sound generators,
+- Four types of sound generators,
 - Room level sound compression, equalization, and volume controls, and
 - Previewing and recording of generated compositions.
 
@@ -133,7 +133,7 @@ The control section displays the name of the track and provides several track le
 
 Generators are the heart of CMG. There can be as many generators in a CMG file 
 as is needed to produce the composition desired. T
-here are four types of generators: one place holder and three sound producers.
+here are four types of generators: one place holder and four sound producers.
 
 Two of the generators use a SoundFont presets. 
 Each preset has a bank, channel number, and name. 
@@ -183,13 +183,16 @@ depends on the length of the generator time
 and the time frame of each random interval. 
 Starting notes are taken from a SoundFont file preset. 
 
-3. Noise Generator (**Noise**). 
+4. Noise Generator (**Noise**). 
 This generator will create white or Gaussian noise from the start to stop time. 
 It is broken up into a user-specified interval number of seconds 
 sources for this interval to provide for volume, and pan changes to occur 
 during this period. 
 Gaussian noise have a center frequency (Hz), and standard deviation (gain) 
 that is applied to the amplitude of the noise. Volume and pan values have center, amplitude, frequency, and phase values and have the same repetitive types as SFPG using the user-defined interval.
+
+5. Audio File Generator (**AudioFile**).
+This is not really a generator as it will play a saved audio file rather tahn generate a new sound. The user specifies the start time of the playback and its volume. The entire audio file is then played from beginning to end. 
 
 <a id="TracksandGenerators"></a>
 ## Tracks and Generators
@@ -285,7 +288,7 @@ All variables have three transition probabilities. What remains to describe are 
 
 #### Volume Transitions
 
-- **Starting Value:** This is the volume (in percent) where the sequence of volumes starts. It must be between 0 and 10 with a step size of 1. 
+- **Starting Value:** This is the volume where the sequence of volumes starts. It must be between 0 and 10 with a step size of 1. 
 - **Range lo:** This is the lowest value that can be assigned to a volume. It must be between 0 and 10 with a step size of 1.
 - **Range hi:** This is the highest value that can be assigned to a volume. It must be between 0 and 10 with a step size of 1.
 - **Range step:** This is number to add or subtract from the current volume to determine the next volume when a state is changed. It must be less than or equal to the difference between *range hi* and *range lo* and value from 0 to 10 with a step size of 1.
@@ -317,6 +320,14 @@ The Gaussian nose generator has a couple of addition fields that define the cent
 - **Standard Deviation:** The standard deviation of the amplitude (gain) of the Gaussian noise. It must be between 0 and 1 with a step size of 0.01.
 
 The rest of the fields for the Noise generator are the same as those for the SFPG generator as defined [here](#commonfields)
+
+## AudioFile
+
+The Audiofile generator has a volume setting and a button which allows the selection of a recording audio file. 
+- **Volume:** The is the volume at which the audio file will be played back. It must be between 0 and 10 with a step size of 1. The default value is 5.
+- **Audio File:** All files are displayed and the one selected will be read. If it is not an valid audio file, at error message will be display and the file will not be loaded. The stop time an the information about the audio file (sample rate, duration, and number of channels) is not updated until the volume is changed or the next time the generator is viewed.
+
+![alt text](./images/AudioFileGenerator.png)
 
 <a id="GeneratorPulldownMenu"></a>
 ## Generator Pulldown Menu
@@ -426,7 +437,7 @@ When previewing, the current time of the soundtrack is shown by a moving <span s
 
 <a id="Glossary"></a>
 # Glossary
-The definition of many of the terms used in this manual can be found online, particularly at Wikipedia. 
+The definition of many of the terms used in this manual can be found online, particularly at [Wikipedia](https://en.wikipedia.org/wiki/SoundFont). 
 | Term | Meaning |
 | ----------- | ----------- |
 | SoundFont File | SoundFont files contain sample-based synthesize sounds that are most frequently used by MIDI (Musical Instrument Digital Interface) devices. More information about SoundFont files can be found in [Wikipedia](https://en.wikipedia.org/wiki/SoundFont). |

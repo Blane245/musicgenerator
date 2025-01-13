@@ -32,11 +32,14 @@ export default class TimeLine {
   }
 
   shiftLeft(): void {
-    this.startTime = Math.max(0, this.startTime - this.timeLineScale.extent / 2.0);
+    this.startTime = Math.max(
+      0,
+      this.startTime - this.timeLineScale.extent / 2.0
+    );
   }
 
   shiftRight(): void {
-    this.startTime+= this.timeLineScale.extent / 2.0;
+    this.startTime += this.timeLineScale.extent / 2.0;
   }
 
   copy(): TimeLine {

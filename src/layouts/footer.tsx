@@ -1,3 +1,4 @@
+// The CMG page footer containing the status message and room modulators
 import { useCMGContext } from "../cmgcontext";
 import RoomCompressorDialog from "../dialogs/roomcompressordialog";
 import RoomEqualizerDialog from "../dialogs/roomequalizerdialog";

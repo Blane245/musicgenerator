@@ -1,3 +1,4 @@
+import { SoundFont2 } from "soundfont2";
 import { CMGeneratorType } from "../types";
 import { getAttributeValue, getElementElement } from "../utils/xmlfunctions";
 import AudioFile from "./audiofile";
@@ -30,26 +31,28 @@ export default class Track {
     return t;
   }
   async appendXML(doc: XMLDocument, elem: Element): Promise<Element> {
-
     // request a promose from each of the generators in the track
     const generatorPromises: Promise<Element>[] = [];
     const generatorElements: Element[] = [];
     // for each generator, create a child element and build upon it
     this.generators.forEach((generator: CMGeneratorType) => {
-      const generatorElement = doc.createElement('generator');
+      const generatorElement = doc.createElement("generator");
       generatorElements.push(generatorElement);
-      const generatorPromise: Promise<Element> = generator.appendXML(doc, generatorElement);
+      const generatorPromise: Promise<Element> = generator.appendXML(
+        doc,
+        generatorElement
+      );
       generatorPromises.push(generatorPromise);
     });
 
     // wait for all of the generator promises to resolve, if there are any
     try {
       // build the track XML and add generator children
-      const generatorsElem: Element = doc.createElement('generators');
+      const generatorsElem: Element = doc.createElement("generators");
       const trackElem: Element = elem;
       trackElem.setAttribute("name", this.name);
       trackElem.setAttribute("mute", this.mute.toString());
-      trackElem.setAttribute("solo", this.solo.toString()); 
+      trackElem.setAttribute("solo", this.solo.toString());
       if (generatorPromises.length > 0) {
         const generatorXML: Element[] = await Promise.all(generatorPromises);
         generatorXML.forEach((gElem: Element) => {
@@ -58,70 +61,70 @@ export default class Track {
       }
       trackElem.appendChild(generatorsElem);
       return Promise.resolve(trackElem);
-
-    } catch (e:any) {
-      console.log('file writing error on track', this.name);
+    } catch (e: any) {
+      console.log("file writing error on track", this.name);
       return Promise.reject(e);
     }
   }
 
-  async getXML(elem: Element): Promise<Track> {
-
+  async getXML(elem: Element, soundFont: SoundFont2 | null): Promise<Track> {
     try {
-    // load the base attributes of the track
-    this.name = getAttributeValue(elem, "name", "string") as string;
-    this.mute = getAttributeValue(elem, "mute", "string") == "true";
-    this.solo = getAttributeValue(elem, "solo", "string") == "true";
+      // load the base attributes of the track
+      this.name = getAttributeValue(elem, "name", "string") as string;
+      this.mute = getAttributeValue(elem, "mute", "string") == "true";
+      this.solo = getAttributeValue(elem, "solo", "string") == "true";
 
-    // load the generators for this track
-    const generatorsElem: Element = getElementElement(elem, 'generators')
-    const generatorChildren: HTMLCollection = generatorsElem.children;
-    const generatorPromises: Promise<CMGeneratorType>[] = [];
-    for (let child of generatorChildren) {
-
-      // read ahead the type to identify the XML loader
-      const type = child.getAttribute('type');
-      switch (type) {
-        case 'CMG': {
-          const generatorPromise:Promise<CMG> = CMG.getXML(child);
-          generatorPromises.push(generatorPromise);
+      // load the generators for this track
+      const generatorsElem: Element = getElementElement(elem, "generators");
+      const generatorChildren: HTMLCollection = generatorsElem.children;
+      const generatorPromises: Promise<CMGeneratorType>[] = [];
+      for (let child of generatorChildren) {
+        // read ahead the type to identify the XML loader
+        const type = child.getAttribute("type");
+        switch (type) {
+          case "CMG":
+            {
+              const generatorPromise: Promise<CMG> = CMG.getXML(child);
+              generatorPromises.push(generatorPromise);
+            }
+            break;
+          case "AudioFile":
+            {
+              const generatorPromise: Promise<AudioFile> =
+                AudioFile.getXML(child);
+              generatorPromises.push(generatorPromise);
+            }
+            break;
+          case "Noise":
+            {
+              const generatorPromise: Promise<Noise> = Noise.getXML(child);
+              generatorPromises.push(generatorPromise);
+            }
+            break;
+          case "SFPG":
+            {
+              const generatorPromise: Promise<SFPG> = SFPG.getXML(child, soundFont);
+              generatorPromises.push(generatorPromise);
+            }
+            break;
+          case "SFRG":
+            {
+              const generatorPromise: Promise<SFRG> = SFRG.getXML(child, soundFont);
+              generatorPromises.push(generatorPromise);
+            }
+            break;
         }
-        break;
-        case 'AudioFile': {
-          const generatorPromise:Promise<AudioFile> = AudioFile.getXML(child);
-          generatorPromises.push(generatorPromise);
-
-        }
-        break;
-        case 'Noise': {
-          const generatorPromise:Promise<Noise> = Noise.getXML(child);
-          generatorPromises.push(generatorPromise);
-
-        }
-        break;
-        case 'SFPG': {
-          const generatorPromise:Promise<SFPG> = SFPG.getXML(child);
-          generatorPromises.push(generatorPromise);
-
-        }
-        break;
-        case 'SFRG': {
-          const generatorPromise:Promise<SFRG> = SFRG.getXML(child);
-          generatorPromises.push(generatorPromise);
-
-        }
-        break;
       }
-    }
 
-    // attach the generators to the track
-    if (generatorPromises.length > 0) {
-      const generators:CMGeneratorType[] = await Promise.all(generatorPromises);
-      this.generators = generators;
-    }
+      // attach the generators to the track
+      if (generatorPromises.length > 0) {
+        const generators: CMGeneratorType[] = await Promise.all(
+          generatorPromises
+        );
+        this.generators = generators;
+      }
 
-    return Promise.resolve(this);
-
+      return Promise.resolve(this);
     } catch (e) {
       return Promise.reject(e);
     }

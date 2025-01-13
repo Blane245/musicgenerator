@@ -1,4 +1,4 @@
-import { getAttributeValue, getElementElement } from "../utils/xmlfunctions";
+import { getAttributeValue } from "../utils/xmlfunctions";
 
 // room volume
 export default class Volume {
@@ -38,13 +38,13 @@ export default class Volume {
 
   getXML(fcElem: Element): void {
     try {
-      this.volume = getAttributeValue(fcElem, 'volume', 'float') as number;
+      this.volume = getAttributeValue(fcElem, "volume", "float") as number;
     } catch {
       this.volume = 0;
     }
   }
 
-  appendXML(doc: XMLDocument, elem: Element): void {
-    elem.setAttribute('volume', this.volume.toString());
+  appendXML(_: XMLDocument, elem: Element): void {
+    elem.setAttribute("volume", this.volume.toString());
   }
 }

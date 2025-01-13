@@ -1,3 +1,6 @@
+// display the time line based on the current start time and
+// zoom level
+// handle time line interval editing
 import numeral from "numeral";
 import { MouseEvent, useEffect, useRef, useState } from "react";
 import {
@@ -291,9 +294,9 @@ export default function TimeLineDisplay() {
       );
       return newInterval;
     } else {
-      console.log(
-        "getTimes: attempt to complete interval before definition is complete"
-      );
+      // console.log(
+      //   "getTimes: attempt to complete interval before definition is complete"
+      // );
       return interval;
     }
   }
@@ -378,7 +381,7 @@ export default function TimeLineDisplay() {
         break;
       }
       default: {
-        console.log("handleMouseEnter mouse enter not handled");
+        // console.log("handleMouseEnter mouse enter not handled");
         break;
       }
     }
