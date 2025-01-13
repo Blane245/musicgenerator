@@ -2,7 +2,8 @@
 export async function compressAndConvertToString(data: ArrayBuffer): Promise<string> {
   const compressedData: ArrayBuffer = await compressData(data);
   const base64String:string = arrayBufferToBase64(compressedData);
-  return base64String;
+  const jsonString: string = createJsonObject(base64String)
+  return jsonString;
 
   async function compressData(data: ArrayBuffer): Promise<ArrayBuffer> {
     const cs: CompressionStream = new CompressionStream("gzip");
@@ -62,4 +63,9 @@ export async function convertFromJsonAndDecompress(
     ).arrayBuffer();
     return decompressedArrayBuffer;
   }
+
 }
+function createJsonObject(base64String:string) {
+  return JSON.stringify(base64String);
+}
+

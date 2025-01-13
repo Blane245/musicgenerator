@@ -44,8 +44,7 @@ export default class Volume {
     }
   }
 
-  appendXML(props:{doc: XMLDocument, elem: Element}): void {
-    const {doc, elem} = props;
+  appendXML(doc: XMLDocument, elem: Element): void {
     elem.setAttribute('volume', this.volume.toString());
   }
 }

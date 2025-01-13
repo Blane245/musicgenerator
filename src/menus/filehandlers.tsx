@@ -17,20 +17,21 @@
 
 // framework for XML builders. It adds its XML to the provided
 // element adding chilren from teh document if necessary
-async function appendXML(doc: Document, elem: Element): Promise<Element> {
-  try {
-    const thisElement: Element = elem;
-    // build XML on thisElement
-    // invoke asynchronous chidren appendXML builders
-    // resolve all promises of children
-    return Promise.resolve(thisElement);
-  } catch (e: any) {
-    return Promise.reject(e);
-  }
-}
+// async function appendXML(doc: Document, elem: Element): Promise<Element> {
+//   try {
+//     const thisElement: Element = elem;
+//     // build XML on thisElement
+//     // invoke asynchronous chidren appendXML builders
+//     // resolve all promises of children
+//     return Promise.resolve(thisElement);
+//   } catch (e: any) {
+//     return Promise.reject(e);
+//   }
+// }
 
 import Track from "../classes/track";
 import CMGFile from "../classes/cmgfile";
+import { getDocElement } from "../utils/xmlfunctions";
 
 //
 export async function writeFile(
@@ -39,7 +40,6 @@ export async function writeFile(
 ): Promise<boolean> {
   // create the XML document and file element
   const doc: XMLDocument = document.implementation.createDocument("", "", null);
-  const fileElem: Element = doc.createElement("fileContexts");
 
   // request a promise from each of the tracks in the file
   const trackPromises: Promise<Element>[] = [];
@@ -54,16 +54,20 @@ export async function writeFile(
 
   // wait for all of the track promises to resolve, if there are any
   try {
+    // build the file XML and added the track children
+    const fileElem: Element = doc.createElement("fileContents");
+    fileContents.appendXML(doc, fileElem, handle.name);
+    const tracksElem: Element = doc.createElement('tracks');
     if (trackPromises.length > 0) {
       const trackXML: Element[] = await Promise.all(trackPromises);
 
-      // build the file XML and added the track children
-      fileContents.appendXML(doc, fileElem, handle.name);
       // add the track children
       trackXML.forEach((tElem: Element) => {
-        fileElem.appendChild(tElem);
+        tracksElem.appendChild(tElem);
       });
     }
+    fileElem.append(tracksElem);
+    doc.appendChild(fileElem);
 
     // write the file
     const serializer = new XMLSerializer();
@@ -75,7 +79,31 @@ export async function writeFile(
     });
     return Promise.resolve(true);
   } catch (e: any) {
-    console.log("file writing");
+    console.log("file writing error", e);
     return Promise.reject(false);
   }
+}
+
+export async function loadXML(xmlDoc: XMLDocument, fileName: string): Promise<CMGFile> {
+    try{ 
+        const fileContents = new CMGFile();
+    const fcElem: Element = getDocElement(xmlDoc, 'fileContents');
+    await fileContents.getXML(fcElem, fileName);
+    const tracksElem: Element = getDocElement(xmlDoc, 'tracks');
+    const tracksChildren: HTMLCollection = tracksElem.children;
+    const trackPromises: Promise<Track>[] = [];
+    for (let child of tracksChildren) {
+        const track: Track = new Track(0);
+        const trackPromise: Promise<Track> = track.getXML(child);
+        trackPromises.push(trackPromise);
+    }
+
+    if (trackPromises.length > 0) {
+        const tracks: Track[] = await Promise.all(trackPromises);
+        fileContents.tracks = tracks;
+    }
+    return Promise.resolve(fileContents)
+    } catch (e) {
+        return Promise.reject(e);
+    }
 }

@@ -359,7 +359,7 @@ export default function TimeLineDisplay() {
   function handleMouseEnter(
     e: MouseEvent<SVGRectElement | SVGPathElement>
   ): void {
-    if (mouseDown && !playing.current) return;
+    if (mouseDown || playing.current) return;
     e.preventDefault();
     e.stopPropagation();
     const type: string = e.currentTarget.id;

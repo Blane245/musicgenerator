@@ -18,6 +18,7 @@ import {
   getDocElement,
   getElementElement,
 } from "../utils/xmlfunctions";
+import { loadXML, writeFile } from "./filehandlers";
 
 export default function FileMenu() {
   const { fileContents, setFileContents, setStatus, setFileName, playing } =
@@ -125,6 +126,7 @@ export default function FileMenu() {
 
   function saveFileContents() {
     try {
+      const page: HTMLElement | null = document.getElementById("page");
       // save the xml data
       window
         .showSaveFilePicker({
@@ -135,80 +137,26 @@ export default function FileMenu() {
             },
           ],
         })
-        .then((handle) => {
+        .then(async (handle) => {
+          if (page) page.inert = true;
           // build the xml for the file contents
           setFileName(handle.name);
-          const doc: XMLDocument = document.implementation.createDocument(
-            "",
-            "",
-            null
-          );
-          const fileElem: Element = doc.createElement("fileContents");
-          fileContents.appendXML({
-            doc: doc,
-            elem: fileElem,
-            name: handle.name,
-          });
-          const tracksElem: Element = doc.createElement("tracks");
-          fileContents.tracks.forEach((t: Track) => {
-            const trackElem: Element = doc.createElement("track");
-            t.appendXML({ elem: trackElem });
-            tracksElem.appendChild(trackElem);
-            const gensElement: Element = doc.createElement("generators");
-            t.generators.forEach((g) => {
-              const genElement: Element = doc.createElement("generator");
-              switch (g.type) {
-                case GENERATORTYPE.CMG:
-                  (g as CMG).appendXML({ elem: genElement });
-                  break;
-                case GENERATORTYPE.SFPG:
-                  (g as SFPG).appendXML({ doc: doc, elem: genElement });
 
-                  break;
-                case GENERATORTYPE.SFRG:
-                  (g as SFRG).appendXML({ doc: doc, elem: genElement });
-                  break;
-                case GENERATORTYPE.Noise:
-                  (g as Noise).appendXML({ doc: doc, elem: genElement });
-                  break;
-                case GENERATORTYPE.AudioFile:
-                  {
-                    async function asyncAppend() {
-                      await (g as AudioFile).appendXML({ elem: genElement });
-                      console.log("audiofile appended ", genElement);
-                    }
-                    asyncAppend();
-                  }
-                  break;
-                default:
-                  break;
-              }
-              gensElement.appendChild(genElement);
-            });
-            trackElem.appendChild(gensElement);
-          });
-          fileElem.appendChild(tracksElem);
-          doc.appendChild(fileElem);
-
-          // serialize the HTML to XML
-          const serializer = new XMLSerializer();
-          const xmlString = serializer.serializeToString(doc);
-
-          handle.createWritable().then(async (writeable) => {
-            await writeable.write(xmlString);
-            await writeable.close();
-          });
-          setDirty(false, fileContents, setFileContents);
-          setStatus(`File '${handle.name}' saved`);
+          try {
+            await writeFile(fileContents, handle);
+            setDirty(false, fileContents, setFileContents);
+            setStatus(`File '${handle.name}' saved`);
+            if (page) page.inert = false;
+          } catch (err) {
+            if (page) page.inert = false;
+            const e = err as Error;
+            setStatus(
+              `Error saving cmg file, type: '${e.name}' message: '${e.message}'`
+            );
+          }
         });
-    } catch (err) {
-      const e = err as Error;
-      setStatus(
-        `Error saving cmg file, type: '${e.name}' message: '${e.message}'`
-      );
-    }
+    } catch (_) {}
   }
-
   async function readFileContents() {
     const page = document.getElementById("page");
 
@@ -225,96 +173,26 @@ export default function FileMenu() {
 
       // set the wait cursor on the page and make it inert
       if (page) page.inert = true;
-      setCursor("wait");
 
+      // read the XML from the .cmg file
       setFileName(file.name);
       const xmlString: string = await file.text();
       const parser = new DOMParser();
       const xmlDoc: XMLDocument = parser.parseFromString(xmlString, "text/xml");
-      const fc = new CMGFile();
-      const fcElem: Element = getDocElement(xmlDoc, "fileContents");
-      fc.name = file.name;
-      await fc.getXML(fcElem, file.name);
-      const tracksElem: Element = getDocElement(xmlDoc, "tracks");
-      const tracksChildren: HTMLCollection = tracksElem.children;
-      fc.tracks = [];
-      for (let i = 0; i < tracksChildren.length; i++) {
-        const track = new Track(0);
-        const child = tracksChildren[i];
-        track.getXML(child);
-        const gensElem = getElementElement(child, "generators");
-        const gensChildren: HTMLCollection = gensElem.children;
-        for (let j = 0; j < gensChildren.length; j++) {
-          const gchild = gensChildren[j];
-          const type = getAttributeValue(gchild, "type", "string") as string;
-          switch (type as string) {
-            case GENERATORTYPE.CMG: {
-              const gen = new CMG(0);
-              gen.getXML(gchild);
-              track.generators.push(gen);
-              break;
-            }
-            case GENERATORTYPE.SFPG: {
-              const gen = new SFPG(0);
-              gen.getXML(gchild);
-              // load the preset if soundfont file and presetname is defined
-              const pn: string = gen.presetName.split(":")[2];
-              if (pn != "" && fc.SoundFont) {
-                gen.preset = fc.SoundFont.presets.find(
-                  (p) => p.header.name == pn
-                ) as Preset;
-                if (gen.preset == undefined)
-                  throw new Error(
-                    `Preset '${pn} not in soundfont file '${fc.SFFileName}'`
-                  );
-              }
-              track.generators.push(gen);
-              break;
-            }
-            case GENERATORTYPE.SFRG: {
-              const gen = new SFRG(0);
-              gen.getXML(gchild);
-              // load the preset if soundfont file and presetname is defined
-              const pn: string = gen.presetName.split(":")[2];
-              if (pn != "" && fc.SoundFont) {
-                gen.preset = fc.SoundFont.presets.find(
-                  (p) => p.header.name == pn
-                ) as Preset;
-                if (gen.preset == undefined)
-                  throw new Error(
-                    `Preset '${pn} not in soundfont file '${fc.SFFileName}'`
-                  );
-              }
-              track.generators.push(gen);
-              break;
-            }
-            case GENERATORTYPE.Noise: {
-              const gen = new Noise(0);
-              gen.getXML(gchild);
-              track.generators.push(gen);
-              break;
-            }
-            default:
-              break;
-          }
-        }
-        fc.tracks.push(track);
-      }
 
-      fc.dirty = false;
-      newFile(fc, setFileContents);
+      // load the file contents from the XML
+      const fileContents = await loadXML(xmlDoc, file.name);
+      fileContents.dirty = false;
+      newFile(fileContents, setFileContents);
       setStatus(`File '${file.name}' loaded`);
-      if (page) {
-        page.style.cursor = "default";
-        page.inert = false;
-      }
+      if (page) page.inert = false;
+
     } catch (err) {
       const e = err as Error;
       setStatus(
         `Error reading cmg file, type: '${e.name}' message: '${e.message}'`
       );
       if (page) {
-        page.style.cursor = "default";
         page.inert = false;
       }
     }

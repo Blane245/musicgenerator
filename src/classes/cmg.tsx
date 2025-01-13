@@ -53,22 +53,34 @@ export default class CMG {
     }
   }
 
-  appendXML(props:{elem: Element} ): void {
-    props.elem.setAttribute("name", this.name);
-    props.elem.setAttribute("type", this.type);
-    props.elem.setAttribute("startTime", this.startTime.toString());
-    props.elem.setAttribute("stopTime", this.stopTime.toString());
-    props.elem.setAttribute("type", this.type);
-    props.elem.setAttribute("mute", this.mute.toString());
-    props.elem.setAttribute("position", this.position.toString());
+  async appendXML(_: XMLDocument, elem: Element): Promise<Element> {
+    try {
+      const returnElement: Element = elem;
+      returnElement.setAttribute("name", this.name);
+      returnElement.setAttribute("type", this.type);
+      returnElement.setAttribute("startTime", this.startTime.toString());
+      returnElement.setAttribute("stopTime", this.stopTime.toString());
+      returnElement.setAttribute("type", this.type);
+      returnElement.setAttribute("mute", this.mute.toString());
+      returnElement.setAttribute("position", this.position.toString());
+      return Promise.resolve(returnElement);
+    } catch (e: any) {
+      return Promise.reject(e);
+    }
   }
 
-  getXML(elem: Element) {
-    this.name = getAttributeValue(elem, "name", "string") as string;
-    this.startTime = getAttributeValue(elem, "startTime", "float") as number;
-    this.stopTime = getAttributeValue(elem, "stopTime", "float") as number;
-    this.type = getAttributeValue(elem, "type", "string") as GENERATORTYPE;
-    this.mute = getAttributeValue(elem, "mute", "string") == "true";
-    this.position = getAttributeValue(elem, "position", "int") as number;
+  static async getXML(elem: Element): Promise<CMG> {
+    try {
+      const g: CMG = new CMG(0);
+      g.name = getAttributeValue(elem, "name", "string") as string;
+      g.startTime = getAttributeValue(elem, "startTime", "float") as number;
+      g.stopTime = getAttributeValue(elem, "stopTime", "float") as number;
+      g.type = getAttributeValue(elem, "type", "string") as GENERATORTYPE;
+      g.mute = getAttributeValue(elem, "mute", "string") == "true";
+      g.position = getAttributeValue(elem, "position", "int") as number;
+      return Promise.resolve(g);
+    } catch (e) {
+      return Promise.reject(e);
+    }
   }
 }

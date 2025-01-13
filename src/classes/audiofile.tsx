@@ -93,58 +93,84 @@ export default class AudioFile extends CMG {
     }
   }
 
-  override async appendXML(props: { elem: Element }) {
-    props.elem.setAttribute("fileName", this.fileName);
-    props.elem.setAttribute("volume", this.volume.toString());
-    props.elem.setAttribute("duration", this.duration.toString());
-    props.elem.setAttribute("sampleRate", this.sampleRate.toString());
-    const numberOfChannels: number = this.samples.length;
-    props.elem.setAttribute("numberOfChannels", numberOfChannels.toString());
-
-    // parallelize the compression of the samples
-    const promises: Promise<string>[] = this.samples.map(
-      (sample: Float32Array) => {
-        const promise: Promise<string> = compressAndConvertToString(
+  override async appendXML(doc: XMLDocument, elem: Element): Promise<Element> {
+    try {
+      // start any compression of audio samples necessary
+      // should be one for each channel
+      const audioPromises: Promise<string>[] = [];
+      this.samples.forEach((sample: Float32Array) => {
+        const samplePromise: Promise<string> = compressAndConvertToString(
           sample.buffer
         );
-        return promise;
-      }
-    );
-    const compressedSamples: string[] = await Promise.all(promises);
+        audioPromises.push(samplePromise);
+      });
 
-    // add the compressed samples to the document
-    compressedSamples.map((cs: string, i: number) => {
-      props.elem.setAttribute(`sample${i}`, cs);
-      console.log('added compressed sample', i)
-    });
+      // write the general attributes and wait for the sample promises to resolve, if there are any
+      const returnElem: Element = await super.appendXML(doc, elem);
+      returnElem.setAttribute("fileName", this.fileName);
+      returnElem.setAttribute("volume", this.volume.toString());
+      returnElem.setAttribute("duration", this.duration.toString());
+      returnElem.setAttribute("sampleRate", this.sampleRate.toString());
+      returnElem.setAttribute(
+        "numberOfChannels",
+        this.samples.length.toString()
+      );
+
+      if (audioPromises.length > 0) {
+        const sampleStrings: string[] = await Promise.all(audioPromises);
+        sampleStrings.forEach((s: string, i: number) => {
+          returnElem.setAttribute(`sample${i}`, s);
+        });
+      }
+      return Promise.resolve(returnElem);
+    } catch (e: any) {
+      return Promise.reject(e);
+    }
   }
 
-  override getXML(elem: Element) {
-    this.fileName = getAttributeValue(elem, "fileName", "string") as string;
-    this.volume = getAttributeValue(elem, "volume", "float") as number;
-    this.duration = getAttributeValue(elem, "duration", "float") as number;
-    this.sampleRate = getAttributeValue(elem, "sampleRate", "float") as number;
-    this.volume = getAttributeValue(elem, "volume", "float") as number;
-    const numberOfChannels = getAttributeValue(
-      elem,
-      "numberOfChannels",
-      "int"
-    ) as number;
-    const samples: Float32Array[] = [];
-    async function getAndDecompressSample(sampleString: string) {
-      const sample: Float32Array = await convertFromJsonAndDecompress(
-        sampleString
-      );
-      samples.push(sample);
-    }
-    for (let i = 0; i < numberOfChannels; i++) {
-      const sampleString: string = getAttributeValue(
+  static override async getXML(elem: Element): Promise<AudioFile> {
+    try {
+      const g: AudioFile = new AudioFile(0);
+      g.name = getAttributeValue(elem, "name", "string") as string;
+      g.startTime = getAttributeValue(elem, "startTime", "float") as number;
+      g.stopTime = getAttributeValue(elem, "stopTime", "float") as number;
+      g.type = getAttributeValue(elem, "type", "string") as GENERATORTYPE;
+      g.mute = getAttributeValue(elem, "mute", "string") == "true";
+      g.position = getAttributeValue(elem, "position", "int") as number;
+
+      g.fileName = getAttributeValue(elem, "fileName", "string") as string;
+      g.volume = getAttributeValue(elem, "volume", "float") as number;
+      g.duration = getAttributeValue(elem, "duration", "float") as number;
+      g.sampleRate = getAttributeValue(elem, "sampleRate", "float") as number;
+      g.volume = getAttributeValue(elem, "volume", "float") as number;
+      const numberOfChannels = getAttributeValue(
         elem,
-        `sample${i}}`,
-        "string"
-      ) as string;
-      getAndDecompressSample(sampleString);
+        "numberOfChannels",
+        "int"
+      ) as number;
+
+      // decompress the samples
+      const samplePromises: Promise<Float32Array>[] = [];
+      for (let i = 0; i < numberOfChannels; i++) {
+        const sampleString: string = getAttributeValue(
+          elem,
+          `sample${i}`,
+          "string"
+        ) as string;
+        const samplePromise: Promise<Float32Array> =
+          convertFromJsonAndDecompress(sampleString);
+        samplePromises.push(samplePromise);
+      }
+
+      // load the decompressed samples
+      if (samplePromises.length > 0) {
+        const samples: Float32Array[] = await Promise.all(samplePromises);
+        g.samples = samples;
+      }
+
+      return Promise.resolve(g);
+    } catch (e) {
+      return Promise.reject(e);
     }
-    this.samples = samples;
   }
 }

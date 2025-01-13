@@ -94,8 +94,7 @@ export default class Equalizer {
     } catch {}
   }
 
-  appendXML(props:{doc: XMLDocument, elem: Element}): void {
-    const {doc, elem} = props;
+  appendXML(doc: XMLDocument, elem: Element): void {
     const eElement: Element = doc.createElement("equalizer");
     for (let i = 0; i < BANDCOUNT; i++) {
       eElement.setAttribute(`gain${i}`, this.gains[i].toString());

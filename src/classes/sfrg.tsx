@@ -73,7 +73,7 @@ export default class SFRG extends CMG {
     n.stopTime = this.stopTime;
     n.mute = this.mute;
     n.position = this.position;
-    
+
     n.seed = this.seed;
     n.presetName = this.presetName;
     n.preset = this.preset;
@@ -121,7 +121,7 @@ export default class SFRG extends CMG {
         this.presetName = value;
         break;
       case "isLooping":
-        this.isLooping = (value == 'true');
+        this.isLooping = value == "true";
         break;
       case "midiT.startValue":
         this.midiT.startValue = parseFloat(value);
@@ -282,8 +282,8 @@ export default class SFRG extends CMG {
       case "panT.down.down":
         this.panT.down.down = parseFloat(value);
         break;
-      }
     }
+  }
 
   getCurrentValues(): {
     midi: number;
@@ -376,18 +376,22 @@ export default class SFRG extends CMG {
     };
   }
 
-  override appendXML(props:{doc: XMLDocument, elem: Element}): void {
-    super.appendXML(props);
-    const {doc, elem} = props;
-    elem.setAttribute("type", GENERATORTYPE.SFRG);
-    elem.setAttribute("seed", this.seed);
-    elem.setAttribute("presetName", this.presetName);
-    elem.setAttribute("isLooping", this.isLooping?'true':'false');
-    elem.appendChild(addTransitionAttributes("midiT", this.midiT));
-    elem.appendChild(addTransitionAttributes("speedT", this.speedT));
-    elem.appendChild(addTransitionAttributes("volumeT", this.volumeT));
-    elem.appendChild(addTransitionAttributes("panT", this.panT));
-    
+  override async appendXML(doc: XMLDocument, elem: Element): Promise<Element> {
+    try {
+      const returnElem: Element = await super.appendXML(doc, elem);
+      returnElem.setAttribute("type", GENERATORTYPE.SFRG);
+      returnElem.setAttribute("seed", this.seed);
+      returnElem.setAttribute("presetName", this.presetName);
+      returnElem.setAttribute("isLooping", this.isLooping ? "true" : "false");
+      returnElem.appendChild(addTransitionAttributes("midiT", this.midiT));
+      returnElem.appendChild(addTransitionAttributes("speedT", this.speedT));
+      returnElem.appendChild(addTransitionAttributes("volumeT", this.volumeT));
+      returnElem.appendChild(addTransitionAttributes("panT", this.panT));
+      return Promise.resolve(returnElem);
+    } catch (e: any) {
+      return Promise.reject(e);
+    }
+
     function addTransitionAttributes(
       name: string,
       transition: RandomSFTransitons
@@ -418,264 +422,271 @@ export default class SFRG extends CMG {
     }
   }
 
-  override getXML(elem: Element): void {
-    super.getXML(elem);
-    this.type = GENERATORTYPE.SFRG;
-    this.presetName = getAttributeValue(elem, "presetName", "string") as string;
+  static override async getXML(elem: Element): Promise<SFRG> {
     try {
-    this.isLooping = (getAttributeValue(elem, "isLooping", "string") as string == 'true');
+      const g: SFRG = new SFRG(0);
+      g.name = getAttributeValue(elem, "name", "string") as string;
+      g.startTime = getAttributeValue(elem, "startTime", "float") as number;
+      g.stopTime = getAttributeValue(elem, "stopTime", "float") as number;
+      g.type = getAttributeValue(elem, "type", "string") as GENERATORTYPE;
+      g.mute = getAttributeValue(elem, "mute", "string") == "true";
+      g.position = getAttributeValue(elem, "position", "int") as number;
+
+      g.presetName = getAttributeValue(elem, "presetName", "string") as string;
+      g.isLooping =
+        (getAttributeValue(elem, "isLooping", "string") as string) == "true";
+      g.seed = getAttributeValue(elem, "seed", "string") as string;
+      const midiTElem: Element = getElementElement(elem, "midiT");
+      const midiTChildren: HTMLCollection = midiTElem.children;
+      const speedTElem: Element = getElementElement(elem, "speedT");
+      const speedTChildren: HTMLCollection = speedTElem.children;
+      const volumeTElem: Element = getElementElement(elem, "volumeT");
+      const volumeTChildren: HTMLCollection = volumeTElem.children;
+      const panTElem: Element = getElementElement(elem, "panT");
+      const panTChildren: HTMLCollection = panTElem.children;
+
+      const { midiT, speedT, volumeT, panT } = getTransitions(
+        midiTChildren,
+        speedTChildren,
+        volumeTChildren,
+        panTChildren
+      );
+      g.midiT = midiT;
+      g.midiT.startValue = getAttributeValue(
+        midiTElem,
+        "startValue",
+        "float"
+      ) as number;
+      g.speedT = speedT;
+      g.speedT.startValue = getAttributeValue(
+        speedTElem,
+        "startValue",
+        "float"
+      ) as number;
+      g.volumeT = volumeT;
+      g.volumeT.startValue = getAttributeValue(
+        volumeTElem,
+        "startValue",
+        "float"
+      ) as number;
+      g.panT = panT;
+      g.panT.startValue = getAttributeValue(
+        panTElem,
+        "startValue",
+        "float"
+      ) as number;
+      return Promise.resolve(g);
+      function getTransitions(
+        midiTChildren: HTMLCollection,
+        speedTChildren: HTMLCollection,
+        volumeTChildren: HTMLCollection,
+        panTChildren: HTMLCollection
+      ): {
+        midiT: RandomSFTransitons;
+        speedT: RandomSFTransitons;
+        volumeT: RandomSFTransitons;
+        panT: RandomSFTransitons;
+      } {
+        const midiT: RandomSFTransitons = {
+          currentState: MARKOVSTATE.same,
+          currentValue: 0,
+          startValue: 0,
+          range: { lo: 0, hi: 0, step: 0 },
+          same: { same: 1.0, up: 0.0, down: 0.0 },
+          up: { same: 1.0, up: 0.0, down: 0.0 },
+          down: { same: 1.0, up: 0.0, down: 0.0 },
+        };
+        const speedT: RandomSFTransitons = {
+          currentState: MARKOVSTATE.same,
+          currentValue: 0,
+          startValue: 0,
+          range: { lo: 0, hi: 0, step: 0 },
+          same: { same: 1.0, up: 0.0, down: 0.0 },
+          up: { same: 1.0, up: 0.0, down: 0.0 },
+          down: { same: 1.0, up: 0.0, down: 0.0 },
+        };
+        const volumeT: RandomSFTransitons = {
+          currentState: MARKOVSTATE.same,
+          currentValue: 0,
+          startValue: 0,
+          range: { lo: 0, hi: 0, step: 0 },
+          same: { same: 1.0, up: 0.0, down: 0.0 },
+          up: { same: 1.0, up: 0.0, down: 0.0 },
+          down: { same: 1.0, up: 0.0, down: 0.0 },
+        };
+        const panT: RandomSFTransitons = {
+          currentState: MARKOVSTATE.same,
+          currentValue: 0,
+          startValue: 0,
+          range: { lo: 0, hi: 0, step: 0 },
+          same: { same: 1.0, up: 0.0, down: 0.0 },
+          up: { same: 1.0, up: 0.0, down: 0.0 },
+          down: { same: 1.0, up: 0.0, down: 0.0 },
+        };
+        function getRangeValues(child: Element): AttributeRange {
+          const lo: number = getAttributeValue(child, "lo", "float") as number;
+          const hi: number = getAttributeValue(child, "hi", "float") as number;
+          const step: number = getAttributeValue(
+            child,
+            "step",
+            "float"
+          ) as number;
+          return { lo, hi, step };
+        }
+        function getTransitionValues(child: Element): MarkovProbabilities {
+          const same: number = getAttributeValue(
+            child,
+            "same",
+            "float"
+          ) as number;
+          const up: number = getAttributeValue(child, "up", "float") as number;
+          const down: number = getAttributeValue(
+            child,
+            "down",
+            "float"
+          ) as number;
+          return { same, up, down };
+        }
+        for (let i = 0; i < midiTChildren.length; i++) {
+          const child = midiTChildren[i];
+          switch (child.tagName) {
+            case "range":
+              const { lo, hi, step } = getRangeValues(child);
+              midiT.range.lo = lo;
+              midiT.range.hi = hi;
+              midiT.range.step = step;
+              break;
+            case "same":
+              {
+                const { same, up, down } = getTransitionValues(child);
+                midiT.same.same = same;
+                midiT.same.up = up;
+                midiT.same.down = down;
+              }
+              break;
+            case "up":
+              {
+                const { same, up, down } = getTransitionValues(child);
+                midiT.up.same = same;
+                midiT.up.up = up;
+                midiT.up.down = down;
+              }
+              break;
+            case "down": {
+              const { same, up, down } = getTransitionValues(child);
+              midiT.down.same = same;
+              midiT.down.up = up;
+              midiT.down.down = down;
+              break;
+            }
+          }
+        }
+        for (let i = 0; i < speedTChildren.length; i++) {
+          const child = speedTChildren[i];
+          switch (child.tagName) {
+            case "range":
+              const { lo, hi, step } = getRangeValues(child);
+              speedT.range.lo = lo;
+              speedT.range.hi = hi;
+              speedT.range.step = step;
+              break;
+            case "same":
+              {
+                const { same, up, down } = getTransitionValues(child);
+                speedT.same.same = same;
+                speedT.same.up = up;
+                speedT.same.down = down;
+              }
+              break;
+            case "up":
+              {
+                const { same, up, down } = getTransitionValues(child);
+                speedT.up.same = same;
+                speedT.up.up = up;
+                speedT.up.down = down;
+              }
+              break;
+            case "down": {
+              const { same, up, down } = getTransitionValues(child);
+              speedT.down.same = same;
+              speedT.down.up = up;
+              speedT.down.down = down;
+              break;
+            }
+          }
+        }
+        for (let i = 0; i < volumeTChildren.length; i++) {
+          const child = volumeTChildren[i];
+          switch (child.tagName) {
+            case "range":
+              const { lo, hi, step } = getRangeValues(child);
+              volumeT.range.lo = lo;
+              volumeT.range.hi = hi;
+              volumeT.range.step = step;
+              break;
+            case "same":
+              {
+                const { same, up, down } = getTransitionValues(child);
+                volumeT.same.same = same;
+                volumeT.same.up = up;
+                volumeT.same.down = down;
+              }
+              break;
+            case "up":
+              {
+                const { same, up, down } = getTransitionValues(child);
+                volumeT.up.same = same;
+                volumeT.up.up = up;
+                volumeT.up.down = down;
+              }
+              break;
+            case "down": {
+              const { same, up, down } = getTransitionValues(child);
+              volumeT.down.same = same;
+              volumeT.down.up = up;
+              volumeT.down.down = down;
+              break;
+            }
+          }
+        }
+        for (let i = 0; i < panTChildren.length; i++) {
+          const child = panTChildren[i];
+          switch (child.tagName) {
+            case "range":
+              const { lo, hi, step } = getRangeValues(child);
+              panT.range.lo = lo;
+              panT.range.hi = hi;
+              panT.range.step = step;
+              break;
+            case "same":
+              {
+                const { same, up, down } = getTransitionValues(child);
+                panT.same.same = same;
+                panT.same.up = up;
+                panT.same.down = down;
+              }
+              break;
+            case "up":
+              {
+                const { same, up, down } = getTransitionValues(child);
+                panT.up.same = same;
+                panT.up.up = up;
+                panT.up.down = down;
+              }
+              break;
+            case "down": {
+              const { same, up, down } = getTransitionValues(child);
+              panT.down.same = same;
+              panT.down.up = up;
+              panT.down.down = down;
+              break;
+            }
+          }
+        }
+        return { midiT, speedT, volumeT, panT };
+      }
     } catch (e) {
-      this.isLooping = true;
-    }
-    this.seed = getAttributeValue(elem, "seed", "string") as string;
-    const midiTElem: Element = getElementElement(elem, "midiT");
-    const midiTChildren: HTMLCollection = midiTElem.children;
-    const speedTElem: Element = getElementElement(elem, "speedT");
-    const speedTChildren: HTMLCollection = speedTElem.children;
-    const volumeTElem: Element = getElementElement(elem, "volumeT");
-    const volumeTChildren: HTMLCollection = volumeTElem.children;
-    const panTElem: Element = getElementElement(elem, "panT");
-    const panTChildren: HTMLCollection = panTElem.children;
-
-    const { midiT, speedT, volumeT, panT } = getTransitions(
-      midiTChildren,
-      speedTChildren,
-      volumeTChildren,
-      panTChildren
-    );
-    this.midiT = midiT;
-    this.midiT.startValue = getAttributeValue(
-      midiTElem,
-      "startValue",
-      "float"
-    ) as number;
-    this.speedT = speedT;
-    this.speedT.startValue = getAttributeValue(
-      speedTElem,
-      "startValue",
-      "float"
-    ) as number;
-    this.volumeT = volumeT;
-    this.volumeT.startValue = getAttributeValue(
-      volumeTElem,
-      "startValue",
-      "float"
-    ) as number;
-    this.panT = panT;
-    this.panT.startValue = getAttributeValue(
-      panTElem,
-      "startValue",
-      "float"
-    ) as number;
-
-    function getTransitions(
-      midiTChildren: HTMLCollection,
-      speedTChildren: HTMLCollection,
-      volumeTChildren: HTMLCollection,
-      panTChildren: HTMLCollection
-    ): {
-      midiT: RandomSFTransitons;
-      speedT: RandomSFTransitons;
-      volumeT: RandomSFTransitons;
-      panT: RandomSFTransitons;
-    } {
-      const midiT: RandomSFTransitons = {
-        currentState: MARKOVSTATE.same,
-        currentValue: 0,
-        startValue: 0,
-        range: { lo: 0, hi: 0, step: 0 },
-        same: { same: 1.0, up: 0.0, down: 0.0 },
-        up: { same: 1.0, up: 0.0, down: 0.0 },
-        down: { same: 1.0, up: 0.0, down: 0.0 },
-      };
-      const speedT: RandomSFTransitons = {
-        currentState: MARKOVSTATE.same,
-        currentValue: 0,
-        startValue: 0,
-        range: { lo: 0, hi: 0, step: 0 },
-        same: { same: 1.0, up: 0.0, down: 0.0 },
-        up: { same: 1.0, up: 0.0, down: 0.0 },
-        down: { same: 1.0, up: 0.0, down: 0.0 },
-      };
-      const volumeT: RandomSFTransitons = {
-        currentState: MARKOVSTATE.same,
-        currentValue: 0,
-        startValue: 0,
-        range: { lo: 0, hi: 0, step: 0 },
-        same: { same: 1.0, up: 0.0, down: 0.0 },
-        up: { same: 1.0, up: 0.0, down: 0.0 },
-        down: { same: 1.0, up: 0.0, down: 0.0 },
-      };
-      const panT: RandomSFTransitons = {
-        currentState: MARKOVSTATE.same,
-        currentValue: 0,
-        startValue: 0,
-        range: { lo: 0, hi: 0, step: 0 },
-        same: { same: 1.0, up: 0.0, down: 0.0 },
-        up: { same: 1.0, up: 0.0, down: 0.0 },
-        down: { same: 1.0, up: 0.0, down: 0.0 },
-      };
-      function getRangeValues(child: Element): AttributeRange {
-        const lo: number = getAttributeValue(child, "lo", "float") as number;
-        const hi: number = getAttributeValue(child, "hi", "float") as number;
-        const step: number = getAttributeValue(
-          child,
-          "step",
-          "float"
-        ) as number;
-        return { lo, hi, step };
-      }
-      function getTransitionValues(child: Element): MarkovProbabilities {
-        const same: number = getAttributeValue(
-          child,
-          "same",
-          "float"
-        ) as number;
-        const up: number = getAttributeValue(child, "up", "float") as number;
-        const down: number = getAttributeValue(
-          child,
-          "down",
-          "float"
-        ) as number;
-        return { same, up, down };
-      }
-      for (let i = 0; i < midiTChildren.length; i++) {
-        const child = midiTChildren[i];
-        switch (child.tagName) {
-          case "range":
-            const { lo, hi, step } = getRangeValues(child);
-            midiT.range.lo = lo;
-            midiT.range.hi = hi;
-            midiT.range.step = step;
-            break;
-          case "same":
-            {
-              const { same, up, down } = getTransitionValues(child);
-              midiT.same.same = same;
-              midiT.same.up = up;
-              midiT.same.down = down;
-            }
-            break;
-          case "up":
-            {
-              const { same, up, down } = getTransitionValues(child);
-              midiT.up.same = same;
-              midiT.up.up = up;
-              midiT.up.down = down;
-            }
-            break;
-          case "down": {
-            const { same, up, down } = getTransitionValues(child);
-            midiT.down.same = same;
-            midiT.down.up = up;
-            midiT.down.down = down;
-            break;
-          }
-        }
-      }
-      for (let i = 0; i < speedTChildren.length; i++) {
-        const child = speedTChildren[i];
-        switch (child.tagName) {
-          case "range":
-            const { lo, hi, step } = getRangeValues(child);
-            speedT.range.lo = lo;
-            speedT.range.hi = hi;
-            speedT.range.step = step;
-            break;
-          case "same":
-            {
-              const { same, up, down } = getTransitionValues(child);
-              speedT.same.same = same;
-              speedT.same.up = up;
-              speedT.same.down = down;
-            }
-            break;
-          case "up":
-            {
-              const { same, up, down } = getTransitionValues(child);
-              speedT.up.same = same;
-              speedT.up.up = up;
-              speedT.up.down = down;
-            }
-            break;
-          case "down": {
-            const { same, up, down } = getTransitionValues(child);
-            speedT.down.same = same;
-            speedT.down.up = up;
-            speedT.down.down = down;
-            break;
-          }
-        }
-      }
-      for (let i = 0; i < volumeTChildren.length; i++) {
-        const child = volumeTChildren[i];
-        switch (child.tagName) {
-          case "range":
-            const { lo, hi, step } = getRangeValues(child);
-            volumeT.range.lo = lo;
-            volumeT.range.hi = hi;
-            volumeT.range.step = step;
-            break;
-          case "same":
-            {
-              const { same, up, down } = getTransitionValues(child);
-              volumeT.same.same = same;
-              volumeT.same.up = up;
-              volumeT.same.down = down;
-            }
-            break;
-          case "up":
-            {
-              const { same, up, down } = getTransitionValues(child);
-              volumeT.up.same = same;
-              volumeT.up.up = up;
-              volumeT.up.down = down;
-            }
-            break;
-          case "down": {
-            const { same, up, down } = getTransitionValues(child);
-            volumeT.down.same = same;
-            volumeT.down.up = up;
-            volumeT.down.down = down;
-            break;
-          }
-        }
-      }
-      for (let i = 0; i < panTChildren.length; i++) {
-        const child = panTChildren[i];
-        switch (child.tagName) {
-          case "range":
-            const { lo, hi, step } = getRangeValues(child);
-            panT.range.lo = lo;
-            panT.range.hi = hi;
-            panT.range.step = step;
-            break;
-          case "same":
-            {
-              const { same, up, down } = getTransitionValues(child);
-              panT.same.same = same;
-              panT.same.up = up;
-              panT.same.down = down;
-            }
-            break;
-          case "up":
-            {
-              const { same, up, down } = getTransitionValues(child);
-              panT.up.same = same;
-              panT.up.up = up;
-              panT.up.down = down;
-            }
-            break;
-          case "down": {
-            const { same, up, down } = getTransitionValues(child);
-            panT.down.same = same;
-            panT.down.up = up;
-            panT.down.down = down;
-            break;
-          }
-        }
-      }
-      return { midiT, speedT, volumeT, panT };
+      return Promise.reject(e);
     }
   }
 }

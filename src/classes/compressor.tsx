@@ -85,8 +85,7 @@ export default class Compressor {
     } catch {
     }
   }
-  appendXML(props:{doc: XMLDocument, elem: Element}): void {
-    const {doc, elem} = props;
+  appendXML(doc: XMLDocument, elem: Element): void {
     const cElement: Element = doc.createElement("compressor");
     cElement.setAttribute("name", this.name);
     cElement.setAttribute("attack", this.attack.toString());

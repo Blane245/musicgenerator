@@ -92,7 +92,7 @@ export default class SFPG extends CMG {
         this.presetName = value;
         break;
       case "isLooping":
-        this.isLooping = (value == 'true');
+        this.isLooping = value == "true";
         break;
       case "midi":
         this.midi = parseFloat(value);
@@ -271,85 +271,69 @@ export default class SFPG extends CMG {
     }
     return { pitch: pitch, volume: volume, pan: pan };
   }
-  override appendXML(props: { doc: XMLDocument; elem: Element }): void {
-    super.appendXML(props);
-    const { elem } = props;
-    elem.setAttribute("type", GENERATORTYPE.SFPG);
-    elem.setAttribute("presetName", this.presetName);
-    elem.setAttribute("isLooping", this.isLooping?'true':'false');
-    elem.setAttribute("midi", this.midi.toString());
-    elem.setAttribute("duration", this.duration.toString());
-    elem.setAttribute("FMType", this.FMType.toString());
-    elem.setAttribute("FMAmplitude", this.FMAmplitude.toString());
-    elem.setAttribute("FMFrequency", this.FMFrequency.toString());
-    elem.setAttribute("FMPhase", this.FMPhase.toString());
-    elem.setAttribute("VMType", this.VMType.toString());
-    elem.setAttribute("VMCenter", this.VMCenter.toString());
-    elem.setAttribute("VMFrequency", this.VMFrequency.toString());
-    elem.setAttribute("VMAmplitude", this.VMAmplitude.toString());
-    elem.setAttribute("VMPhase", this.VMPhase.toString());
-    elem.setAttribute("PMType", this.PMType.toString());
-    elem.setAttribute("PMCenter", this.PMCenter.toString());
-    elem.setAttribute("PMFrequency", this.PMFrequency.toString());
-    elem.setAttribute("PMAmplitude", this.PMAmplitude.toString());
-    elem.setAttribute("PMPhase", this.PMPhase.toString());
+  override async appendXML(doc: XMLDocument, elem: Element): Promise<Element> {
+    try {
+      const returnElem: Element = await super.appendXML(doc, elem);
+      returnElem.setAttribute("type", GENERATORTYPE.SFPG);
+      returnElem.setAttribute("presetName", this.presetName);
+      returnElem.setAttribute("isLooping", this.isLooping ? "true" : "false");
+      returnElem.setAttribute("midi", this.midi.toString());
+      returnElem.setAttribute("duration", this.duration.toString());
+      returnElem.setAttribute("FMType", this.FMType.toString());
+      returnElem.setAttribute("FMAmplitude", this.FMAmplitude.toString());
+      returnElem.setAttribute("FMFrequency", this.FMFrequency.toString());
+      returnElem.setAttribute("FMPhase", this.FMPhase.toString());
+      returnElem.setAttribute("VMType", this.VMType.toString());
+      returnElem.setAttribute("VMCenter", this.VMCenter.toString());
+      returnElem.setAttribute("VMFrequency", this.VMFrequency.toString());
+      returnElem.setAttribute("VMAmplitude", this.VMAmplitude.toString());
+      returnElem.setAttribute("VMPhase", this.VMPhase.toString());
+      returnElem.setAttribute("PMType", this.PMType.toString());
+      returnElem.setAttribute("PMCenter", this.PMCenter.toString());
+      returnElem.setAttribute("PMFrequency", this.PMFrequency.toString());
+      returnElem.setAttribute("PMAmplitude", this.PMAmplitude.toString());
+      returnElem.setAttribute("PMPhase", this.PMPhase.toString());
+      return Promise.resolve(returnElem);
+    } catch (e: any) {
+      return Promise.reject(e);
+    }
   }
 
-  override getXML(elem: Element): void {
-    super.getXML(elem);
-    this.type = GENERATORTYPE.SFPG;
-    this.presetName = getAttributeValue(elem, "presetName", "string") as string;
+  static override async getXML(elem: Element): Promise<SFPG> {
     try {
-      this.isLooping = getAttributeValue(elem, "isLooping", "string") as string == 'true';
-    } catch(e) {
-      this.isLooping = true;
-    }
-    this.midi = getAttributeValue(elem, "midi", "int") as number;
-    try {
-      this.duration = getAttributeValue(elem, "duration", "float") as number;
-    } catch (error) {
-      this.duration = 0.1;
-    } finally {
-      this.mute = getAttributeValue(elem, "mute", "string") == "true";
-      this.position = getAttributeValue(elem, "position", "int") as number;
-      this.FMType = getAttributeValue(elem, "FMType", "string") as string;
-      this.FMAmplitude = getAttributeValue(
-        elem,
-        "FMAmplitude",
-        "float"
-      ) as number;
-      this.FMFrequency = getAttributeValue(
-        elem,
-        "FMFrequency",
-        "float"
-      ) as number;
-      this.FMPhase = getAttributeValue(elem, "FMPhase", "float") as number;
-      this.VMCenter = getAttributeValue(elem, "VMCenter", "float") as number;
-      this.VMType = getAttributeValue(elem, "VMType", "string") as string;
-      this.VMAmplitude = getAttributeValue(
-        elem,
-        "VMAmplitude",
-        "float"
-      ) as number;
-      this.VMFrequency = getAttributeValue(
-        elem,
-        "VMFrequency",
-        "float"
-      ) as number;
-      this.VMPhase = getAttributeValue(elem, "VMPhase", "float") as number;
-      this.PMCenter = getAttributeValue(elem, "PMCenter", "float") as number;
-      this.PMType = getAttributeValue(elem, "PMType", "string") as string;
-      this.PMAmplitude = getAttributeValue(
-        elem,
-        "PMAmplitude",
-        "float"
-      ) as number;
-      this.PMFrequency = getAttributeValue(
-        elem,
-        "PMFrequency",
-        "float"
-      ) as number;
-      this.PMPhase = getAttributeValue(elem, "PMPhase", "float") as number;
+      const g: SFPG = new SFPG(0);
+      g.name = getAttributeValue(elem, "name", "string") as string;
+      g.startTime = getAttributeValue(elem, "startTime", "float") as number;
+      g.stopTime = getAttributeValue(elem, "stopTime", "float") as number;
+      g.type = getAttributeValue(elem, "type", "string") as GENERATORTYPE;
+      g.mute = getAttributeValue(elem, "mute", "string") == "true";
+      g.position = getAttributeValue(elem, "position", "int") as number;
+
+      g.type = GENERATORTYPE.SFPG;
+      g.presetName = getAttributeValue(elem, "presetName", "string") as string;
+      g.isLooping =
+        (getAttributeValue(elem, "isLooping", "string") as string) == "true";
+      g.midi = getAttributeValue(elem, "midi", "int") as number;
+      g.duration = getAttributeValue(elem, "duration", "float") as number;
+      g.mute = getAttributeValue(elem, "mute", "string") == "true";
+      g.position = getAttributeValue(elem, "position", "int") as number;
+      g.FMType = getAttributeValue(elem, "FMType", "string") as string;
+      g.FMAmplitude = getAttributeValue(elem, "FMAmplitude", "float") as number;
+      g.FMFrequency = getAttributeValue(elem, "FMFrequency", "float") as number;
+      g.FMPhase = getAttributeValue(elem, "FMPhase", "float") as number;
+      g.VMCenter = getAttributeValue(elem, "VMCenter", "float") as number;
+      g.VMType = getAttributeValue(elem, "VMType", "string") as string;
+      g.VMAmplitude = getAttributeValue(elem, "VMAmplitude", "float") as number;
+      g.VMFrequency = getAttributeValue(elem, "VMFrequency", "float") as number;
+      g.VMPhase = getAttributeValue(elem, "VMPhase", "float") as number;
+      g.PMCenter = getAttributeValue(elem, "PMCenter", "float") as number;
+      g.PMType = getAttributeValue(elem, "PMType", "string") as string;
+      g.PMAmplitude = getAttributeValue(elem, "PMAmplitude", "float") as number;
+      g.PMFrequency = getAttributeValue(elem, "PMFrequency", "float") as number;
+      g.PMPhase = getAttributeValue(elem, "PMPhase", "float") as number;
+      return Promise.resolve(g);
+    } catch (e) {
+      return Promise.reject(e);
     }
   }
 }

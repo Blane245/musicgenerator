@@ -246,67 +246,62 @@ export default class Noise extends CMG {
     return { sample: sample, volume: volume, pan: pan };
   }
 
-  override appendXML(props: { doc: XMLDocument; elem: Element }): void {
-    const { elem } = props;
-    super.appendXML(props);
-    elem.setAttribute("type", GENERATORTYPE.Noise);
-    elem.setAttribute("seed", this.seed);
-    elem.setAttribute("noiseType", this.noiseType);
-    elem.setAttribute("mean", this.mean.toString());
-    elem.setAttribute("std", this.std.toString());
-    elem.setAttribute("sampleRate", this.sampleRate.toString());
-    elem.setAttribute("duration", this.duration.toString());
-    elem.setAttribute("VMType", this.VMType.toString());
-    elem.setAttribute("VMCenter", this.VMCenter.toString());
-    elem.setAttribute("VMFrequency", this.VMFrequency.toString());
-    elem.setAttribute("VMAmplitude", this.VMAmplitude.toString());
-    elem.setAttribute("VMPhase", this.VMPhase.toString());
-    elem.setAttribute("PMType", this.PMType.toString());
-    elem.setAttribute("PMCenter", this.PMCenter.toString());
-    elem.setAttribute("PMFrequency", this.PMFrequency.toString());
-    elem.setAttribute("PMAmplitude", this.PMAmplitude.toString());
-    elem.setAttribute("PMPhase", this.PMPhase.toString());
+  override async appendXML(doc: XMLDocument, elem: Element): Promise<Element> {
+    try {
+      const returnElement: Element = await super.appendXML(doc, elem);
+      super.appendXML(doc, returnElement);
+      returnElement.setAttribute("type", GENERATORTYPE.Noise);
+      returnElement.setAttribute("seed", this.seed);
+      returnElement.setAttribute("noiseType", this.noiseType);
+      returnElement.setAttribute("mean", this.mean.toString());
+      returnElement.setAttribute("std", this.std.toString());
+      returnElement.setAttribute("sampleRate", this.sampleRate.toString());
+      returnElement.setAttribute("duration", this.duration.toString());
+      returnElement.setAttribute("VMType", this.VMType.toString());
+      returnElement.setAttribute("VMCenter", this.VMCenter.toString());
+      returnElement.setAttribute("VMFrequency", this.VMFrequency.toString());
+      returnElement.setAttribute("VMAmplitude", this.VMAmplitude.toString());
+      returnElement.setAttribute("VMPhase", this.VMPhase.toString());
+      returnElement.setAttribute("PMType", this.PMType.toString());
+      returnElement.setAttribute("PMCenter", this.PMCenter.toString());
+      returnElement.setAttribute("PMFrequency", this.PMFrequency.toString());
+      returnElement.setAttribute("PMAmplitude", this.PMAmplitude.toString());
+      returnElement.setAttribute("PMPhase", this.PMPhase.toString());
+      return Promise.resolve(returnElement);
+    } catch (e: any) {
+      return Promise.reject(e);
+    }
   }
 
-  override getXML(elem: Element): void {
-    super.getXML(elem);
-    this.type = GENERATORTYPE.Noise;
-    this.noiseType = getAttributeValue(elem, "noiseType", "string") as string;
-    this.seed = getAttributeValue(elem, "seed", "string") as string;
-    this.mean = getAttributeValue(elem, "mean", "float") as number;
-    this.std = getAttributeValue(elem, "std", "float") as number;
-    this.sampleRate = getAttributeValue(elem, "sampleRate", "float") as number;
+  static override async getXML(elem: Element): Promise<Noise> {
     try {
-      this.duration = getAttributeValue(elem, "duration", "float") as number;
-    } catch (error) {
-      this.duration - 0.1;
-    } finally {
-      this.VMCenter = getAttributeValue(elem, "VMCenter", "float") as number;
-      this.VMType = getAttributeValue(elem, "VMType", "string") as string;
-      this.VMAmplitude = getAttributeValue(
-        elem,
-        "VMAmplitude",
-        "float"
-      ) as number;
-      this.VMFrequency = getAttributeValue(
-        elem,
-        "VMFrequency",
-        "float"
-      ) as number;
-      this.VMPhase = getAttributeValue(elem, "VMPhase", "float") as number;
-      this.PMCenter = getAttributeValue(elem, "PMCenter", "float") as number;
-      this.PMType = getAttributeValue(elem, "PMType", "string") as string;
-      this.PMAmplitude = getAttributeValue(
-        elem,
-        "PMAmplitude",
-        "float"
-      ) as number;
-      this.PMFrequency = getAttributeValue(
-        elem,
-        "PMFrequency",
-        "float"
-      ) as number;
-      this.PMPhase = getAttributeValue(elem, "PMPhase", "float") as number;
+      const g = new Noise(0);
+      g.name = getAttributeValue(elem, "name", "string") as string;
+      g.startTime = getAttributeValue(elem, "startTime", "float") as number;
+      g.stopTime = getAttributeValue(elem, "stopTime", "float") as number;
+      g.type = getAttributeValue(elem, "type", "string") as GENERATORTYPE;
+      g.mute = getAttributeValue(elem, "mute", "string") == "true";
+      g.position = getAttributeValue(elem, "position", "int") as number;
+
+      g.noiseType = getAttributeValue(elem, "noiseType", "string") as string;
+      g.seed = getAttributeValue(elem, "seed", "string") as string;
+      g.mean = getAttributeValue(elem, "mean", "float") as number;
+      g.std = getAttributeValue(elem, "std", "float") as number;
+      g.sampleRate = getAttributeValue(elem, "sampleRate", "float") as number;
+      g.duration = getAttributeValue(elem, "duration", "float") as number;
+      g.VMCenter = getAttributeValue(elem, "VMCenter", "float") as number;
+      g.VMType = getAttributeValue(elem, "VMType", "string") as string;
+      g.VMAmplitude = getAttributeValue(elem, "VMAmplitude", "float") as number;
+      g.VMFrequency = getAttributeValue(elem, "VMFrequency", "float") as number;
+      g.VMPhase = getAttributeValue(elem, "VMPhase", "float") as number;
+      g.PMCenter = getAttributeValue(elem, "PMCenter", "float") as number;
+      g.PMType = getAttributeValue(elem, "PMType", "string") as string;
+      g.PMAmplitude = getAttributeValue(elem, "PMAmplitude", "float") as number;
+      g.PMFrequency = getAttributeValue(elem, "PMFrequency", "float") as number;
+      g.PMPhase = getAttributeValue(elem, "PMPhase", "float") as number;
+      return Promise.resolve(g);
+    } catch (e) {
+      return Promise.reject(e);
     }
   }
 }
