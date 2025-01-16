@@ -47,6 +47,7 @@ export default function Generate(props: GeneratorProps) {
       SFRGenerators,
       NoiseGenerators,
       AudioFileGenerators,
+      WienerGenerators,
       playbackLength,
       offsetTime,
       error,
@@ -67,6 +68,7 @@ export default function Generate(props: GeneratorProps) {
       SFRGenerators,
       NoiseGenerators,
       AudioFileGenerators,
+      WienerGenerators,
     });
 
     // let the system know that playing if entered

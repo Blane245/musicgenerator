@@ -6,6 +6,7 @@ import CMG from "./cmg";
 import Noise from "./noise";
 import SFPG from "./sfpg";
 import SFRG from "./sfrg";
+import Wiener from "./wiener";
 export default class Track {
   name: string;
   mute: boolean;
@@ -103,13 +104,28 @@ export default class Track {
             break;
           case "SFPG":
             {
-              const generatorPromise: Promise<SFPG> = SFPG.getXML(child, soundFont);
+              const generatorPromise: Promise<SFPG> = SFPG.getXML(
+                child,
+                soundFont
+              );
               generatorPromises.push(generatorPromise);
             }
             break;
           case "SFRG":
             {
-              const generatorPromise: Promise<SFRG> = SFRG.getXML(child, soundFont);
+              const generatorPromise: Promise<SFRG> = SFRG.getXML(
+                child,
+                soundFont
+              );
+              generatorPromises.push(generatorPromise);
+            }
+            break;
+          case "Wiener":
+            {
+              const generatorPromise: Promise<Wiener> = Wiener.getXML(
+                child,
+                soundFont
+              );
               generatorPromises.push(generatorPromise);
             }
             break;

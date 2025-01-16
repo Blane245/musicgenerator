@@ -11,6 +11,16 @@ import { CMGeneratorType } from "../types";
 export function newFile(contents: CMGFile, setFileContents: Function): void {
   setFileContents(contents);
 }
+
+export function setFileComment(comment: string, setFileContents: Function): void {
+  setFileContents((prev:CMGFile) => {
+    const n:CMGFile = prev.copy();
+    n.comment = comment;
+    n.dirty = true;
+    return n;
+  });
+}
+
 export function setSoundFont(
   fileName: string,
   sf: SoundFont2,

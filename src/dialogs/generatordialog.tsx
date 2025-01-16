@@ -6,6 +6,7 @@ import Noise from "../classes/noise";
 import SFPG from "../classes/sfpg";
 import SFRG from "../classes/sfrg";
 import Track from "../classes/track";
+import Wiener from "../classes/wiener";
 import { useCMGContext } from "../cmgcontext";
 import { Preset } from "../sfcomponents/types";
 import { bankPresettoName, precision } from "../sfcomponents/util";
@@ -21,6 +22,7 @@ import GeneratorTypeForm from "./generatortypeform";
 import { validateNoiseValues } from "./noisedialog";
 import { validateSFPGValues } from "./sfpgdialog";
 import { validateSFRGValues } from "./sfrgdialog";
+import { validateWienerValues } from "./wienerdialog";
 
 // The icon starts at the generator's start time and ends at the generators endtime
 export interface GeneratorDialogProps {
@@ -106,6 +108,11 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           newFormData.setAttribute(eventName, eventValue);
           return newFormData;
         }
+        case GENERATORTYPE.Wiener: {
+          const newFormData: Wiener = (prev as Wiener).copy();
+          newFormData.setAttribute(eventName, eventValue);
+          return newFormData;
+        }
         default:
           console.log(
             `generator dialog: improper generator type ${formData.type}`
@@ -175,6 +182,15 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           newF.position = prev.position;
           return newF;
         }
+        case GENERATORTYPE.Wiener: {
+          const newF = new Wiener(0);
+          newF.name = prev.name;
+          newF.startTime = prev.startTime;
+          newF.stopTime = prev.stopTime;
+          newF.mute = prev.mute;
+          newF.position = prev.position;
+          return newF;
+        }
         default:
           return prev;
       }
@@ -199,15 +215,15 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           msgs.push(...newMessages);
           newMessages = validateSFPGValues(formData as SFPG);
           msgs.push(...newMessages);
-          setErrorMessages(msgs);
-          if (msgs.length > 0) return;
 
           const pn: string = (formData as SFPG).presetName.split(":")[2];
           (formData as SFPG).preset = presets.find(
             (p: Preset) => pn == p.header.name
           );
           if (!(formData as SFPG).preset)
-            console.log(`generator dialog: can't find preset named ${pn}`);
+            msgs.push(`generator dialog: can't find preset named ${pn}`);
+          setErrorMessages(msgs);
+          if (msgs.length > 0) return;
         }
         break;
       case GENERATORTYPE.SFRG:
@@ -216,14 +232,15 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           msgs.push(...newMessages);
           newMessages = validateSFRGValues(formData as SFRG);
           msgs.push(...newMessages);
-          setErrorMessages(msgs);
 
           const pn: string = (formData as SFRG).presetName.split(":")[2];
-          (formData as SFPG).preset = presets.find(
+          (formData as SFRG).preset = presets.find(
             (p: Preset) => pn == p.header.name
           );
-          if (!(formData as SFPG).preset)
-            console.log(`generator dialog: can't find preset named ${pn}`);
+          if (!(formData as SFRG).preset)
+            msgs.push(`generator dialog: can't find preset named ${pn}`);
+          setErrorMessages(msgs);
+          if (msgs.length > 0) return;
         }
         break;
       case GENERATORTYPE.Noise:
@@ -246,6 +263,23 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           if (msgs.length > 0) return;
         }
         break;
+      case GENERATORTYPE.Wiener:
+        {
+          let newMessages = validateCMGValues(formData as CMG);
+          msgs.push(...newMessages);
+          newMessages = validateWienerValues(formData as Wiener);
+          msgs.push(...newMessages);
+
+          const pn: string = (formData as Wiener).presetName.split(":")[2];
+          (formData as Wiener).preset = presets.find(
+            (p: Preset) => pn == p.header.name
+          );
+          if (!(formData as Wiener).preset)
+            msgs.push(`generator dialog: can't find preset named ${pn}`);
+          setErrorMessages(msgs);
+          if (msgs.length > 0) return;
+        }
+        break;
       default: {
         msgs.push(`Invalid generator type ${formData.type}`);
         setErrorMessages(msgs);
@@ -253,7 +287,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
       }
     }
 
-    // TODO hold this up if an audiofile is loading
     if (msgs.length == 0) {
       if (generatorIndex < 0) {
         // add a new generator to the current track

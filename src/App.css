@@ -107,7 +107,13 @@ fieldset {
 .page-title {
   display: block;
   grid-template-columns: subgrid;
-  grid-column: span 11;
+  grid-column: span 9;
+  cursor: inherit;
+}
+.page-comment {
+  display: block;
+  grid-template-columns: subgrid;
+  grid-column: span 2;
   cursor: inherit;
 }
 

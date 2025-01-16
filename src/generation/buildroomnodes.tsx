@@ -13,11 +13,16 @@ export function buildRoomNodes(
   compressor.setContext(context);
   volume.setContext(context);
   const concentrator: GainNode = context.createGain();
-  concentrator
-    .connect(compressor.effect as DynamicsCompressorNode)
+  // concentrator
+  //   .connect(compressor.effect as DynamicsCompressorNode)
+  //   .connect(equalizer.front());
+  // if (volume.effect)
+  //   equalizer.back().connect(volume.effect).connect(context.destination);
+  // else throw new Error("room volume to realized");
+  concentrator.connect(volume.effect as GainNode)
     .connect(equalizer.front());
-  if (volume.effect)
-    equalizer.back().connect(volume.effect).connect(context.destination);
-  else throw new Error("room volume to realized");
+    equalizer.back()
+      .connect(compressor.effect as DynamicsCompressorNode)
+      .connect(context.destination);
   return concentrator;
 }

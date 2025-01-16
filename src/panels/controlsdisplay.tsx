@@ -7,6 +7,7 @@ import { SoundFont2 } from "soundfont2";
 import SFPG from "../classes/sfpg";
 import SFRG from "../classes/sfrg";
 import Track from "../classes/track";
+import Wiener from "../classes/wiener";
 import { useCMGContext } from "../cmgcontext";
 import Generate from "../generation/generate";
 import { Preset } from "../sfcomponents/types";
@@ -90,6 +91,12 @@ export default function ControlsDisplay() {
           } else if (g.type == GENERATORTYPE.Noise) {
             goodGeneratorCount++;
           } else if (g.type == GENERATORTYPE.AudioFile) {
+            goodGeneratorCount++;
+          } else if (g.type == GENERATORTYPE.Wiener&&
+            (g as Wiener).presetName != "" &&
+            (g as Wiener).preset &&
+            (g as Wiener).pitch.initialValue >= 0 &&
+            (g as Wiener).pitch.initialValue <= 127) {
             goodGeneratorCount++;
           }
         }

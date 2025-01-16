@@ -5,11 +5,13 @@ import AudioFile from "../classes/audiofile";
 import Noise from "../classes/noise";
 import SFPG from "../classes/sfpg";
 import SFRG from "../classes/sfrg";
+import Wiener from "../classes/wiener";
 import { CMGeneratorType, GENERATORTYPE } from "../types";
 import AudioFileDialog from "./audiofiledialog";
 import NoiseDialog from "./noisedialog";
 import SFPGDialog from "./sfpgdialog";
 import SFRGDialog from "./sfrgdialog";
+import WienerDialog from "./wienerdialog";
 
 export interface GeneratorTypeFormProps {
   formData: CMGeneratorType;
@@ -36,6 +38,12 @@ export default function GeneratorTypeForm(
       {formData.type == GENERATORTYPE.AudioFile ? (
         <AudioFileDialog
           formData={formData as AudioFile}
+          handleChange={handleChange}
+        />
+      ) : null}
+      {formData.type == GENERATORTYPE.Wiener ? (
+        <WienerDialog
+          formData={formData as Wiener}
           handleChange={handleChange}
         />
       ) : null}

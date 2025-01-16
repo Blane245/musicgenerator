@@ -6,13 +6,17 @@ export function sawtoothModulator(
   amplitude: number,
   phase: number
 ): number {
-  const period: number = 1000 / frequency;
-  const tPhase: number = (period * phase) / 360;
-  const t0: number = (time + tPhase) % period;
-  const tOffset: number = t0 < period / 2 ? t0 : t0 - period / 2;
-  const result: number =
-    baseValue + amplitude / 2 - (2 * amplitude * tOffset) / period;
-  return result;
+  if (frequency != 0 && amplitude != 0) {
+    const period: number = 1000 / frequency;
+    const tPhase: number = (period * phase) / 360;
+    const t0: number = (time + tPhase) % period;
+    const tOffset: number = t0 < period / 2 ? t0 : t0 - period / 2;
+    const result: number =
+      baseValue + amplitude / 2 - (2 * amplitude * tOffset) / period;
+    return result;
+  } else {
+    return baseValue;
+  }
 }
 
 export function sineModulator(
@@ -42,13 +46,17 @@ export function squareModulator(
   amplitude: number,
   phase: number
 ): number {
-  const currentPhase: number =
-    ((frequency / 1000.0) * time * 360.0 + phase) % 360.0;
-  const result: number =
-    currentPhase < 180.0
-      ? baseValue + amplitude / 2.0
-      : baseValue - amplitude / 2.0;
-  return result;
+  if (frequency != 0 && amplitude != 0) {
+    const currentPhase: number =
+      ((frequency / 1000.0) * time * 360.0 + phase) % 360.0;
+    const result: number =
+      currentPhase < 180.0
+        ? baseValue + amplitude / 2.0
+        : baseValue - amplitude / 2.0;
+    return result;
+  } else {
+    return baseValue;
+  }
 }
 
 export function triangleModulator(
@@ -58,11 +66,15 @@ export function triangleModulator(
   amplitude: number,
   phase: number
 ): number {
-  const currentPhase: number =
-    ((frequency / 1000.0) * time * 360.0 + phase) % 360.0;
-  const result: number =
-    currentPhase < 180.0
-      ? baseValue + (amplitude * (currentPhase - 90.0)) / 180.0
-      : baseValue - (amplitude * (currentPhase - 270.0)) / 180.0;
-  return result;
+  if (frequency != 0 && amplitude != 0) {
+    const currentPhase: number =
+      ((frequency / 1000.0) * time * 360.0 + phase) % 360.0;
+    const result: number =
+      currentPhase < 180.0
+        ? baseValue + (amplitude * (currentPhase - 90.0)) / 180.0
+        : baseValue - (amplitude * (currentPhase - 270.0)) / 180.0;
+    return result;
+  } else {
+    return baseValue;
+  }
 }

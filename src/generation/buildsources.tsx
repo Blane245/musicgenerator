@@ -4,21 +4,24 @@ import AudioFile from "../classes/audiofile";
 import Noise from "../classes/noise";
 import SFPG from "../classes/sfpg";
 import SFRG from "../classes/sfrg";
+import Wiener from "../classes/wiener";
 import { RawSourceData } from "../types";
 import { setRandomSeed } from "../utils/seededrandom";
 import { getBufferSourceNodesFromAudioFile } from "./audiofilenodes";
 import { getBufferSourceNodesFromNoise } from "./noisenodes";
 import { getBufferSourceNodesFromSFPG } from "./sfpgnodes";
 import { getBufferSourceNodesFromSFRG } from "./sfrgnodes";
+import { getBufferSourceNodesFromWiener } from "./weinernodes";
 
 export interface buildSourcesProps {
   SFPGenerators: SFPG[];
   SFRGenerators: SFRG[];
   NoiseGenerators: Noise[];
   AudioFileGenerators: AudioFile[];
+  WienerGenerators: Wiener[];
 }
 export function buildSources(params: buildSourcesProps): RawSourceData[] {
-  const { SFPGenerators, SFRGenerators, NoiseGenerators, AudioFileGenerators } =
+  const { SFPGenerators, SFRGenerators, NoiseGenerators, AudioFileGenerators, WienerGenerators } =
     params;
   const sourceData: RawSourceData[] = [];
   SFPGenerators.forEach((g) => {
@@ -44,6 +47,12 @@ export function buildSources(params: buildSourcesProps): RawSourceData[] {
   AudioFileGenerators.forEach((g) => {
     const AudioFileData: RawSourceData[] = getBufferSourceNodesFromAudioFile(g);
     sourceData.push(...AudioFileData);
+  });
+
+  // build the buffers for the Wiener
+  WienerGenerators.forEach((g) => {
+    const WienerData: RawSourceData[] = getBufferSourceNodesFromWiener(g);
+    sourceData.push(...WienerData);
   });
   // console.log("raw source count", sourceData.length);
   return sourceData;

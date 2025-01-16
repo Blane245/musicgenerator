@@ -15,6 +15,7 @@ export default class CMGFile {
   tracks: Track[];
   SFFileName: string; // the file name of the soundfont
   SoundFont: SoundFont2 | null; // the soundfont selected for this file
+  comment: string;
 
   constructor() {
     this.dirty = false;
@@ -25,6 +26,7 @@ export default class CMGFile {
     this.tracks = [];
     this.SFFileName = "";
     this.SoundFont = null;
+    this.comment = "";
   }
 
   copy(): CMGFile {
@@ -46,12 +48,14 @@ export default class CMGFile {
     newFile.tracks = newTracks;
     newFile.SFFileName = this.SFFileName;
     newFile.SoundFont = this.SoundFont;
+    newFile.comment = this.comment;
     return newFile;
   }
 
   appendXML(doc: XMLDocument, elem: Element, name: string): void {
     elem.setAttribute("name", name);
     elem.setAttribute("SFFileName", this.SFFileName);
+    elem.setAttribute("comment", this.comment);
     this.compressor.appendXML(doc, elem);
     this.equalizer.appendXML(doc, elem);
     this.volume.appendXML(doc, elem);
@@ -66,6 +70,11 @@ export default class CMGFile {
     ) as string;
     if (this.SFFileName != "") {
       this.SoundFont = await loadSoundFont(this.SFFileName);
+    }
+    try {
+      this.comment = getAttributeValue(fcElem, "comment", "string") as string;
+    } catch {
+      this.comment = "";
     }
     this.compressor.getXML(fcElem);
     this.equalizer.getXML(fcElem);

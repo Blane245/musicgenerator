@@ -231,7 +231,7 @@ export default class SFPG extends CMG {
         );
         break;
     }
-    let pan: number = this.VMCenter;
+    let pan: number = this.PMCenter;
     switch (this.VMType) {
       case "SINE":
         pan = sineModulator(

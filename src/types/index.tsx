@@ -1,3 +1,4 @@
+import Weiner from "../classes/wiener";
 import CMG from "../classes/cmg";
 import Noise from "../classes/noise";
 import SFPG from "../classes/sfpg";
@@ -8,7 +9,7 @@ export const SAMPLERATE: number = 44100;
 
 export const EPS: number = 1e-4;
 
-export type CMGeneratorType = CMG | SFPG | SFRG | Noise | AudioFile;
+export type CMGeneratorType = CMG | SFPG | SFRG | Noise | AudioFile | Weiner;
 
 export type SFFile = { name: string };
 
@@ -100,6 +101,7 @@ export enum GENERATORTYPE {
   "SFRG" = "SFRG",
   "Noise" = "Noise",
   "AudioFile" = "AudioFile",
+  "Wiener" = "Wiener",
 }
 
 export enum MARKOVSTATE {
@@ -129,6 +131,13 @@ export type RandomSFTransitons = {
   down: MarkovProbabilities;
 };
 
+export type WienerParameters = {
+  initialValue: number;
+  alpha: number;
+  sigma: number;
+  lo: number;
+  hi: number;
+}
 export enum NOISETYPE {
   white = "white",
   gaussian = "gaussian",
