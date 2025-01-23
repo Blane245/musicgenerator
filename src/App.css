@@ -179,7 +179,7 @@ fieldset {
 
 .page-footer {
   display: grid;
-  grid-template-columns: 8.1fr 1.1fr 1.5fr 0.3fr;
+  grid-template-columns: 8fr 1.1fr 1.5fr 0.4fr;
   position: fixed;
   top: auto;
   bottom: 0;
@@ -358,8 +358,6 @@ fieldset {
     direction: rtl;
     height: 100px;
     width: 30px;
-    margin-top: 55px;
-    margin-left: 20px;
     cursor: inherit;
   }
 }
@@ -379,6 +377,23 @@ fieldset {
   text-align: left;
   font-size: 8pt;
   cursor: inherit;
+}
+
+.wiener-table {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(4, 40px);
+  gap: 0;
+  cursor:inherit;
+  .param {
+    color: black;
+    font-size: 20px;
+    line-height: 20px;
+    text-align: left;
+    cursor: inherit; 
+    margin-right: 2px;  
+  }
+  
 }
 
 .modal-header {

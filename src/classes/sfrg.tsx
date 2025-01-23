@@ -49,9 +49,9 @@ export default class SFRG extends CMG {
     };
     this.volumeT = {
       currentState: MARKOVSTATE.same,
-      currentValue: 5,
-      startValue: 5,
-      range: { lo: 0, hi: 10, step: 1 },
+      currentValue: 0,
+      startValue: 0,
+      range: { lo: -5, hi: 5, step: 1 },
       same: { same: 1.0, up: 0.0, down: 0.0 },
       up: { same: 1.0, up: 0.0, down: 0.0 },
       down: { same: 1.0, up: 0.0, down: 0.0 },

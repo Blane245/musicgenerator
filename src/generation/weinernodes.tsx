@@ -15,7 +15,8 @@ export function getBufferSourceNodesFromWiener(gen: Wiener): RawSourceData[] {
   // a step forward in time based on the next value of speed
   let time: number = 0;
   setRandomSeed(gen.seed);
-  while (time < stopTime - startTime) {
+  const duration: number = stopTime - startTime;
+  while (time < duration) {
     const values = gen.getCurrentValues(time);
 
     const connections: RawSourceData[] = getPresetNote(

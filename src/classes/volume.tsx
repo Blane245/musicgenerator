@@ -1,4 +1,5 @@
 import { getAttributeValue } from "../utils/xmlfunctions";
+import { v2g } from "../utils/v2g";
 
 // room volume
 export default class Volume {
@@ -19,13 +20,13 @@ export default class Volume {
 
     // create all of the effects
     this.effect = context.createGain();
-    this.effect.gain.value = Math.pow(2, this.volume);
+    this.effect.gain.value = v2g(this.volume);
   }
 
   // volume scale is -5 to 5
   setVolume(value: number): void {
     this.volume = value;
-    if (this.effect) this.effect.gain.value = Math.pow(2, value);
+    if (this.effect) this.effect.gain.value = v2g(value);
   }
 
   copy(): Volume {

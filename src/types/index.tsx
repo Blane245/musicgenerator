@@ -182,9 +182,13 @@ export type RawSourceData = {
     value: number, // pan value from generator
   },
   vol: {
+    delayInterval: number, 
     attackInterval: number, // attack time from sf as limited
     holdInterval: number, // the original note's duration minus the attack time
+    decayInterval: number, 
+    sustainInterval: number,
     releaseInterval: number, // release time from sf as limited
+    sustainLevel: number
     value:number, // the current volume value
   }
 }

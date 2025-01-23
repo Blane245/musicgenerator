@@ -22,7 +22,7 @@ export default class AudioFile extends CMG {
     this.samples = [];
     this.sampleRate = 0;
     this.duration = 0;
-    this.volume = 5;
+    this.volume = 0;
   }
 
   override copy(): AudioFile {

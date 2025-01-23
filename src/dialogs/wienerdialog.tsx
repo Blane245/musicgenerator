@@ -1,7 +1,8 @@
-import { ChangeEvent } from "react";
+import { ChangeEvent, ChangeEventHandler } from "react";
 import Wiener from "../classes/wiener";
 import { useCMGContext } from "../cmgcontext";
-import { bankPresettoName, toNote } from "../sfcomponents/util";
+import { bankPresettoName } from "../sfcomponents/util";
+import { WienerParameters } from "types";
 
 // provides the form fields and validators for the sfperiodic generator
 export interface WienerDialogProps {
@@ -18,14 +19,15 @@ export default function WienerDialog(props: WienerDialogProps): JSX.Element {
 
   return (
     <>
-    <label>
-      Random Seed:&nbsp;
-      <input 
-      name='seed'
-      type='text'
-      onChange={handleChange}
-      value={formData.seed}/>
-    </label>
+      <label>
+        Random Seed:&nbsp;
+        <input
+          name="seed"
+          type="text"
+          onChange={handleChange}
+          value={formData.seed}
+        />
+      </label>
       <label htmlFor="presetName">&nbsp;Preset:&nbsp;</label>
       <select
         name="presetName"
@@ -57,267 +59,46 @@ export default function WienerDialog(props: WienerDialogProps): JSX.Element {
         />
       </label>
       <hr />
-      <label>
-        Pitch - Initial Value:&nbsp;
-        <input
-          name="pitch.initialValue"
-          size={INPUTSIZE}
-          type="number"
+      <div className="wiener-table">
+        <div className="param">&nbsp;</div>
+        <div className="param">Initial Value</div>
+        <div className="param">Trend (1/sec)</div>
+        <div className="param">Dispersion (1/sqrt(sec))</div>
+        <div className="param">Low</div>
+        <div className="param">High</div>
+        <WienerInput
+          name={"pitch"}
+          parameters={formData.pitch}
           min={0}
           max={127}
-          onChange={handleChange}
-          value={formData.pitch.initialValue}
+          step={0.01}
+          handleChange={handleChange}
         />
-        <span>
-          {" "}
-          {formData.pitch.initialValue > 0
-            ? '('.concat(toNote(formData.pitch.initialValue)).concat(')')
-            : null}
-        </span>
-      </label>
-      <label>
-        &nbsp;Alpha:&nbsp;
-        <input
-          name="pitch.alpha"
-          size={INPUTSIZE}
-          type="number"
-          onChange={handleChange}
-          value={formData.pitch.alpha}
-        />
-        <span> (midi/sec) </span>
-      </label>
-      <label>
-        &nbsp;Sigma:&nbsp;
-        <input
-          name="pitch.sigma"
-          size={INPUTSIZE}
-          type="number"
-          onChange={handleChange}
-          value={formData.pitch.sigma}
-        />
-        <span> (midi/sqrt(sec)) </span>
-      </label>
-      <label>
-        &nbsp;Low:&nbsp;
-        <input
-          name="pitch.lo"
-          size={INPUTSIZE}
-          type="number"
-          min={0}
-          max={127}
-          onChange={handleChange}
-          value={formData.pitch.lo}
-        />
-        <span>
-          {" "}
-          {formData.pitch.lo >= 0 ? '('.concat(toNote(formData.pitch.lo)).concat(')') : null}
-        </span>
-      </label>
-      <label>
-        &nbsp;High:&nbsp;
-        <input
-          name="pitch.hi"
-          size={INPUTSIZE}
-          type="number"
-          min={0}
-          max={127}
-          onChange={handleChange}
-          value={formData.pitch.hi}
-        />
-        <span>
-          {" "}
-          {formData.pitch.lo >= 0 ? '('.concat(toNote(formData.pitch.hi)).concat(')') : null}
-        </span>
-      </label>
-      <br />
-      <label>
-        Speed - Initial Value:&nbsp;
-        <input
-          name="speed.initialValue"
-          size={INPUTSIZE}
-          type="number"
+        <WienerInput
+          name={"speed"}
+          parameters={formData.speed}
           min={1}
           max={1000}
-          onChange={handleChange}
-          value={formData.speed.initialValue}
+          step={1}
+          handleChange={handleChange}
         />
-        <span> (BPM)</span>
-      </label>
-      <label>
-        &nbsp;Alpha:&nbsp;
-        <input
-          name="speed.alpha"
-          size={INPUTSIZE}
-          type="number"
-          onChange={handleChange}
-          value={formData.speed.alpha}
+        <WienerInput
+          name={"volume"}
+          parameters={formData.volume}
+          min={-5}
+          max={5}
+          step={.1}
+          handleChange={handleChange}
         />
-        <span> (BPM/sec) </span>
-      </label>
-      <label>
-        &nbsp;Sigma:&nbsp;
-        <input
-          name="speed.sigma"
-          size={INPUTSIZE}
-          type="number"
-          onChange={handleChange}
-          value={formData.speed.sigma}
-        />
-        <span> (BPM/sqrt(sec)) </span>
-      </label>
-      <label>
-        &nbsp;Low:&nbsp;
-        <input
-          name="speed.lo"
-          size={INPUTSIZE}
-          type="number"
-          min={1}
-          max={1000}
-          onChange={handleChange}
-          value={formData.speed.lo}
-        />
-        <span> (BPM) </span>
-      </label>
-      <label>
-        &nbsp;High:&nbsp;
-        <input
-          name="speed.hi"
-          size={INPUTSIZE}
-          type="number"
-          min={1}
-          max={1000}
-          onChange={handleChange}
-          value={formData.speed.hi}
-        />
-        <span> (BPM) </span>
-      </label>
-      <br />
-      <label>
-        Volume - Initial Value:&nbsp;
-        <input
-          name="volume.initialValue"
-          size={INPUTSIZE}
-          type="number"
-          min={0}
-          max={10}
-          onChange={handleChange}
-          value={formData.volume.initialValue}
-        />
-        <span> (1-10) </span>
-      </label>
-      <label>
-        &nbsp;Alpha:&nbsp;
-        <input
-          name="volume.alpha"
-          size={INPUTSIZE}
-          type="number"
-          onChange={handleChange}
-          value={formData.volume.alpha}
-        />
-        <span> (1/sec) </span>
-      </label>
-      <label>
-        &nbsp;Sigma:&nbsp;
-        <input
-          name="volume.sigma"
-          size={INPUTSIZE}
-          type="number"
-          onChange={handleChange}
-          value={formData.volume.sigma}
-        />
-        <span> (1/sqrt(sec)) </span>
-      </label>
-      <label>
-        &nbsp;Low:&nbsp;
-        <input
-          name="volume.lo"
-          size={INPUTSIZE}
-          type="number"
-          min={0}
-          max={10}
-          onChange={handleChange}
-          value={formData.volume.lo}
-        />
-        <span> (1-10) </span>
-      </label>
-      <label>
-        &nbsp;High:&nbsp;
-        <input
-          name="volume.hi"
-          size={INPUTSIZE}
-          type="number"
-          min={0}
-          max={10}
-          onChange={handleChange}
-          value={formData.volume.hi}
-        />
-        <span> (1-10) </span>
-      </label>
-      <br />
-      <label>
-        Pan - Initial Value:&nbsp;
-        <input
-          name="pan.initialValue"
-          size={INPUTSIZE}
-          type="number"
+        <WienerInput
+          name={"pan"}
+          parameters={formData.pan}
           min={-1}
           max={1}
-          step={0.1}
-          onChange={handleChange}
-          value={formData.pan.initialValue}
+          step={0.01}
+          handleChange={handleChange}
         />
-        <span> (-1 - 1) </span>
-      </label>
-      <label>
-        &nbsp;Alpha:&nbsp;
-        <input
-          name="pan.alpha"
-          size={INPUTSIZE}
-          type="number"
-          onChange={handleChange}
-          value={formData.pan.alpha}
-        />
-        <span> (1/sec) </span>
-      </label>
-      <label>
-        &nbsp;Sigma:&nbsp;
-        <input
-          name="pan.sigma"
-          size={INPUTSIZE}
-          type="number"
-          onChange={handleChange}
-          value={formData.pan.sigma}
-        />
-        <span> (1/sqrt(sec)) </span>
-      </label>
-      <label>
-        &nbsp;Low:&nbsp;
-        <input
-          name="pan.lo"
-          size={INPUTSIZE}
-          type="number"
-          min={-1}
-          max={1}
-          step={0.1}
-          onChange={handleChange}
-          value={formData.pan.lo}
-        />
-        <span> (-1 - 1) </span>
-      </label>
-      <label>
-        &nbsp;High:&nbsp;
-        <input
-          name="pan.hi"
-          size={INPUTSIZE}
-          type="number"
-          min={-1}
-          max={1}
-          step={0.1}
-          onChange={handleChange}
-          value={formData.pan.hi}
-        />
-        <span> (-1 - 1) </span>
-      </label>
+      </div>
     </>
   );
 }
@@ -336,7 +117,7 @@ export function validateWienerValues(values: Wiener): string[] {
       "Speed low must be nonnegative and speed high must be greater than speed low"
     );
   if (values.volume.sigma < 0) result.push("Volume sigma must be nonnegative");
-  if (values.volume.lo < 0 || values.volume.hi <= values.volume.lo)
+  if (values.volume.lo < -5 || values.volume.hi <= values.volume.lo)
     result.push(
       "Volume low must be nonnegative and volume high must be greater than volume low"
     );
@@ -347,4 +128,76 @@ export function validateWienerValues(values: Wiener): string[] {
     );
 
   return result;
+}
+
+interface WienerInputProps {
+  name: string;
+  parameters: WienerParameters;
+  min: number;
+  max: number;
+  step?: number;
+  handleChange: ChangeEventHandler<HTMLInputElement>;
+}
+function WienerInput(props: WienerInputProps) {
+  const { name, parameters, min, max, step, handleChange } = props;
+  return (
+    <>
+      <div className="param">{name.toUpperCase()}</div>
+      <div className="param">
+        <input
+          name={name.concat(".initialValue")}
+          size={INPUTSIZE}
+          type="number"
+          min={min}
+          max={max}
+          step={step}
+          onChange={handleChange}
+          value={parameters.initialValue}
+        />
+      </div>
+      <div className="param">
+        <input
+          name={name.concat(".alpha")}
+          size={INPUTSIZE}
+          type="number"
+          onChange={handleChange}
+          value={parameters.alpha}
+        />
+      </div>
+      <div className="param">
+        <input
+          name={name.concat(".sigma")}
+          size={INPUTSIZE}
+          type="number"
+          step={step}
+          onChange={handleChange}
+          value={parameters.sigma}
+        />
+      </div>
+      <div className="param">
+        <input
+          name={name.concat(".lo")}
+          size={INPUTSIZE}
+          type="number"
+          min={min}
+          max={max}
+          step={step}
+          onChange={handleChange}
+          value={parameters.lo}
+        />
+      </div>
+      <div className="param">
+        <input
+          name={name.concat(".hi")}
+          size={INPUTSIZE}
+          type="number"
+          min={min}
+          max={max}
+          step={step}
+          onChange={handleChange}
+          value={parameters.hi}
+        />
+      </div>
+    </>
+  );
 }

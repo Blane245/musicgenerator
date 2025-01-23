@@ -30,7 +30,12 @@ export function getBufferSourceNodesFromAudioFile(gen: AudioFile): RawSourceData
       attackInterval: 0,
       holdInterval,
       releaseInterval:0,
+      delayInterval: 0.001,
+      decayInterval: 0.001,
+      sustainInterval: 0.001,
+      sustainLevel: 0.001,
       value: volume,
+
     },
   });
   return sourceData;

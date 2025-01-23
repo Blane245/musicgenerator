@@ -409,11 +409,11 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
               value={formData.volumeT.startValue}
               onChange={handleChange}
               type="number"
-              min={0}
-              max={10}
-              step={1}
+              min={-5}
+              max={5}
+              step={.1}
             />
-            <span> (1 - 10)</span>
+            <span> (-5 to +5dB)</span>
           </label>
           <label>
             &nbsp;Range lo:&nbsp;
@@ -422,9 +422,9 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
               value={formData.volumeT.range.lo}
               onChange={handleChange}
               type="number"
-              min={0}
-              max={10}
-              step={1}
+              min={-5}
+              max={5}
+              step={.1}
             />
           </label>
           <label>
@@ -434,9 +434,9 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
               value={formData.volumeT.range.hi}
               onChange={handleChange}
               type="number"
-              min={0}
-              max={10}
-              step={1}
+              min={-5}
+              max={5}
+              step={.1}
             />
           </label>
           <label>
@@ -448,7 +448,7 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
               type="number"
               min={0}
               max={10}
-              step={1}
+              step={.1}
             />
           </label>
           <br />

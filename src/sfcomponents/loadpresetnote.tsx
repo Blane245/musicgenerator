@@ -42,9 +42,10 @@ export const getPresetNote = (
   pitchValue: number,
   volumeValue: number,
   panValue: number,
-  time: number,
+  time: number
 ): RawSourceData[] => {
   const zones = getActiveZones(preset, Math.round(pitchValue));
+  console.log("zones", zones);
   const result: RawSourceData[] = zones.map((zone) => {
     // get the sample
     const { sample, header } = samplePool(zone.sample);
@@ -66,7 +67,15 @@ export const getPresetNote = (
       // @ts-ignore
       endloopAddrsCoarseOffset = 0,
       // @ts-ignore
+      delayVolEnv = -12000,
+      // @ts-ignore
       attackVolEnv = -12000,
+      // @ts-ignore
+      holdVolEnv = -12000,
+      // @ts-ignore
+      decayVolEnv = -12000,
+      // @ts-ignore
+      sustainVolEnv = 0,
       // @ts-ignore
       releaseVolEnv = -12000,
     } = zone.mergedGenerators;
@@ -87,42 +96,58 @@ export const getPresetNote = (
       endLoop + endloopAddrsOffset + endloopAddrsCoarseOffset * 32768;
     const loop = (gen as SFPG | SFRG).isLooping;
 
-    // get the attack, hold, and release intervals
+    // get the delay, attack, hold, decay, sustain, and release intervals
+    const delay = precision(tc2s(delayVolEnv), 4);
     const attack = precision(tc2s(attackVolEnv), 4);
+    const hold = precision(tc2s(holdVolEnv), 4);
+    const decay = precision(tc2s(decayVolEnv), 4);
     const release = precision(tc2s(releaseVolEnv), 4);
-    const attackInterval: number = Math.max(
-      Math.min(0.1 * interval, attack),
-      0.01
+    const delayInterval: number = delay;
+    const attackInterval: number = attack;
+    const holdInterval: number = hold;
+    const decayInterval: number = decay;
+    const sustainInterval: number = Math.max(
+      0,
+      interval - delay - attack - hold - decay
     );
-    const releaseInterval: number = Math.max(
-      Math.min(0.1 * interval, release),
-      0.01
-    );
-    const holdInterval: number = interval - attackInterval;
-    return {
+    const releaseInterval: number = release;
+    const duration: number = interval + release;
+    // sustain level multiplier has some special cases
+    // When it is <= 0, there is decay and the multiplier is 1
+    // When it is > 0, and less that 960, the multiplier is between 1 and 0.040
+    // When it is >= 960, multipler is 0
+    let sustainLevel = sustainVolEnv;
+    
+    const aResult: RawSourceData = {
       gen,
       source: {
-        sample:[sample],
+        sample: [sample],
         sampleRate,
         playbackRate,
         loopStart,
         loopEnd,
         loop,
         startTime: time,
-        duration: attackInterval + holdInterval + releaseInterval,
-        stopTime: time + attackInterval + holdInterval + releaseInterval,
+        duration,
+        stopTime: time + duration,
         started: false,
-        },
+      },
       panner: {
         value: panValue,
       },
       vol: {
+        delayInterval,
         attackInterval,
         holdInterval,
+        decayInterval,
+        sustainInterval,
         releaseInterval,
+        sustainLevel,
         value: volumeValue,
       },
     };
+    console.log("loadpresetnote result vol", aResult.vol, 'interval', interval);
+    return aResult;
   });
   return result;
 };

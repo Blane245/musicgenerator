@@ -137,13 +137,13 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
       <input
         name="VMCenter"
         type="number"
-        min={0}
-        max={10}
-        step={1}
+        min={-5}
+        max={5}
+        step={.1}
         onChange={handleChange}
         value={formData.VMCenter}
       />
-      <span> (0-10) </span>
+      <span> (-5 to +5dB) </span>
       <label htmlFor="VMAmplitude"> VMAmplitude: </label>
       <input
         name="VMAmplitude"
@@ -154,7 +154,7 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
         onChange={handleChange}
         value={formData.VMAmplitude}
       />
-      <span> (0-10) </span>
+      <span> (0-10dB) </span>
       <label htmlFor="VMFrequency"> VMFrequency: </label>
       <input
         name="VMFrequency"

@@ -154,9 +154,10 @@ Special thanks to various people
 # Versions - Changes
 
 Version 2 implements 
-1. higher quality sound by using all instruments in a preset and using some of the gain envelope generators from the preset (specifically attack and release). 
+1. higher quality sound by using all instruments in a preset and using some of the gain envelope generators from the preset. Full use cases for delay, attack, hold, decay, sustain, and release have been implemented.
 2. Performance enhancement by keeping a sample pool to reduce memory utilization and dynamically modifying the audio graph during execution.
 3. Overall room volume control.
+4. User interface improvements.
 
 ## Remaining things to do
 

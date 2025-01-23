@@ -20,16 +20,22 @@ export default function RoomVolumeDialog() {
 
   return (
     <div className="page-footer-volume">
-      <p className="title">{`Volume ${volumeData.volume}`}</p>
-      <div className="volume-slider" key={`roomvolume`}>
-        <input
-          type="range"
-          min="-5"
-          max="5"
-          step="1"
-          value={volumeData.volume}
-          onChange={(event) => handleChange(event)}
-        />
+      <p className="title">{`Volume`}</p>
+      <div className="sliders">
+        <div className="volume-slider" key={`roomvolume`}>
+          <span className="param">
+            {"dB"}
+          </span>
+          <span className="param">{volumeData.volume.toString()}</span>
+          <input
+            type="range"
+            min={-5}
+            max={5}
+            step={1}
+            value={volumeData.volume}
+            onChange={(event) => handleChange(event)}
+          />
+        </div>
       </div>
     </div>
   );

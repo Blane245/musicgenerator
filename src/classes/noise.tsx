@@ -26,10 +26,10 @@ export default class Noise extends CMG {
   VMType: string;
   VMCenter: number; // 0 100
   VMFrequency: number; // mHz
-  VMAmplitude: number; // 0 - 100
+  VMAmplitude: number; // -5, +5
   VMPhase: number; // degrees
   PMType: string;
-  PMCenter: number; // -1, 1
+  PMCenter: number; // -1, +1
   PMFrequency: number; // mHz
   PMAmplitude: number; // 0 1 (center applied, center +- amplitude cannot be outside -1, 1)
   PMPhase: number; // degrees
@@ -44,7 +44,7 @@ export default class Noise extends CMG {
     this.sampleRate = SAMPLERATE;
     this.duration = 0;
     this.VMType = "SINE";
-    this.VMCenter = 5;
+    this.VMCenter = 0;
     this.VMFrequency = 0;
     this.VMAmplitude = 0;
     this.VMPhase = 0;

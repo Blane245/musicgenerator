@@ -86,6 +86,7 @@ export default function Preview(params: PreviewProps): void {
               concentrator
             );
             activeSource.source.start(s.source.startTime, 0, s.source.duration);
+            console.log('source started at ', context.currentTime, 'starttime', s.source.startTime);
             activeSources.push(activeSource);
             s.source.started = true;
             nStarted++;

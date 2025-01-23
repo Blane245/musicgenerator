@@ -22,7 +22,7 @@ export default class SFPG extends CMG {
   VMType: string;
   VMCenter: number; // 0 100
   VMFrequency: number; // mHz
-  VMAmplitude: number; // 0 - 100
+  VMAmplitude: number; // -5, 5
   VMPhase: number; // degrees
   PMType: string;
   PMCenter: number; // -1, 1
@@ -42,7 +42,7 @@ export default class SFPG extends CMG {
     this.FMFrequency = 0;
     this.FMPhase = 0;
     this.VMType = "SINE";
-    this.VMCenter = 5;
+    this.VMCenter = 0;
     this.VMFrequency = 0;
     this.VMAmplitude = 0;
     this.VMPhase = 0;

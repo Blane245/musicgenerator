@@ -41,8 +41,12 @@ export function getBufferSourceNodesFromNoise(gen: Noise): RawSourceData[] {
         value: pan,
       },
       vol: {
+        delayInterval: 0.001,
         attackInterval,
         holdInterval,
+        decayInterval: 0.001,
+        sustainInterval: 0.001,
+        sustainLevel: 0.001,
         releaseInterval,
         value: volume,
       },
