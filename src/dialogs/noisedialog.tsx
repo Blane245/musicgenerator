@@ -120,13 +120,13 @@ export default function NoiseDialog(props: NoiseProps): JSX.Element {
       <input
         name="VMCenter"
         type="number"
-        min={-5}
-        max={5}
-        step={1}
+        min={-20}
+        max={20}
+        step={.1}
         onChange={handleChange}
         value={formData.VMCenter}
       />
-      <span> (-5 to +5dB) </span>
+      <span> (-20 to +20dB) </span>
       <label htmlFor="VMAmplitude"> VMAmplitude:</label>
       <input
         name="VMAmplitude"

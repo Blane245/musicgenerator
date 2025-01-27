@@ -87,7 +87,7 @@ export async function loadXML(
     const trackPromises: Promise<Track>[] = [];
     for (let child of tracksChildren) {
       const track: Track = new Track(0);
-      const trackPromise: Promise<Track> = track.getXML(child, fileContents.SoundFont);
+      const trackPromise: Promise<Track> = track.getXML(child, fileContents.SoundFont, fileContents.version);
       trackPromises.push(trackPromise);
     }
 

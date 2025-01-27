@@ -15,6 +15,210 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
   const { formData, handleChange } = props;
   const { presets } = useCMGContext();
 
+  type TransitionBoxProps = {
+    title: string;
+    units: string;
+    name: string; // midiT, etc.
+    startValueSuffix: Function;
+    min: number;
+    max: number;
+    step: number;
+    transitions: RandomSFTransitons;
+  };
+  function TransitionBox(props: TransitionBoxProps): JSX.Element {
+    const {
+      title,
+      units,
+      name,
+      min,
+      max,
+      step,
+      transitions,
+      startValueSuffix,
+    } = props;
+    return (
+      <div className="sfrg-table">
+        <div className="title">
+          <h3>{title}</h3>
+          <h4>{'('.concat(units).concat(')')}</h4>
+        </div>
+        <div className="start">
+          <label>
+            Start:&nbsp;
+            <input
+              name={name.concat(".startValue")}
+              type="number"
+              min={min}
+              max={max}
+              step={step}
+              onChange={handleChange}
+              value={transitions.startValue}
+            />
+            <span>{startValueSuffix(transitions.startValue)}</span>
+          </label>
+        </div>
+        <div className="lo">
+          <label>
+            &nbsp;Lo:&nbsp;
+            <input
+              name={name.concat(".range.lo")}
+              type="number"
+              min={min}
+              max={max}
+              step={step}
+              onChange={handleChange}
+              value={transitions.range.lo}
+            />
+          </label>
+        </div>
+        <div className="hi">
+          <label>
+            &nbsp;Hi:&nbsp;
+            <input
+              name={name.concat(".range.hi")}
+              type="number"
+              min={min}
+              max={max}
+              step={step}
+              onChange={handleChange}
+              value={transitions.range.hi}
+            />
+          </label>
+        </div>
+        <div className="step">
+          <label>
+            &nbsp;Step:&nbsp;
+            <input
+              name={name.concat(".range.step")}
+              type="number"
+              min={min}
+              max={max}
+              step={step}
+              onChange={handleChange}
+              value={transitions.range.step}
+            />
+          </label>
+        </div>
+        <div className="transition">from\to</div>
+        <div className="tosame">same</div>
+        <div className="toup">up</div>
+        <div className="todown">down</div>
+        <div className="fromsame">same</div>
+        <div className="fromup">up</div>
+        <div className="fromdown">down</div>
+        <div className="ss">
+          <input
+            name={name.concat(".same.same")}
+            type="number"
+            min={0}
+            max={1}
+            step={0.01}
+            value={transitions.same.same}
+            onChange={handleChange}
+          />
+        </div>
+        <div className="ss">
+          <input
+            name={name.concat(".same.same")}
+            type="number"
+            min={0}
+            max={1}
+            step={0.01}
+            value={transitions.same.same}
+            onChange={handleChange}
+          />
+        </div>
+        <div className="su">
+          <input
+            name={name.concat(".same.up")}
+            type="number"
+            min={0}
+            max={1}
+            step={0.01}
+            value={transitions.same.up}
+            onChange={handleChange}
+          />
+        </div>
+        <div className="sd">
+          <input
+            name={name.concat(".same.down")}
+            type="number"
+            min={0}
+            max={1}
+            step={0.01}
+            value={transitions.same.down}
+            onChange={handleChange}
+          />
+        </div>
+        <div className="us">
+          <input
+            name={name.concat(".up.same")}
+            type="number"
+            min={0}
+            max={1}
+            step={0.01}
+            value={transitions.up.same}
+            onChange={handleChange}
+          />
+        </div>
+        <div className="uu">
+          <input
+            name={name.concat(".up.up")}
+            type="number"
+            min={0}
+            max={1}
+            step={0.01}
+            value={transitions.up.up}
+            onChange={handleChange}
+          />
+        </div>
+        <div className="ud">
+          <input
+            name={name.concat(".up.down")}
+            type="number"
+            min={0}
+            max={1}
+            step={0.01}
+            value={transitions.up.down}
+            onChange={handleChange}
+          />
+        </div>
+        <div className="ds">
+          <input
+            name={name.concat(".down.same")}
+            type="number"
+            min={0}
+            max={1}
+            step={0.01}
+            value={transitions.down.same}
+            onChange={handleChange}
+          />
+        </div>
+        <div className="du">
+          <input
+            name={name.concat(".down.up")}
+            type="number"
+            min={0}
+            max={1}
+            step={0.01}
+            value={transitions.down.up}
+            onChange={handleChange}
+          />
+        </div>
+        <div className="dd">
+          <input
+            name={name.concat(".down.down")}
+            type="number"
+            min={0}
+            max={1}
+            step={0.01}
+            value={transitions.down.down}
+            onChange={handleChange}
+          />
+        </div>
+      </div>
+    );
+  }
   return (
     <>
       <label>
@@ -58,679 +262,49 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
           onChange={handleChange}
         />
       </label>
-      <div className="transition-box">
-        <div className="header">
-          <h2>Midi Transitions</h2>
-        </div>
-        <div className="content">
-          <label>
-            Starting Value:&nbsp;
-            <input
-              name="midiT.startValue"
-              type="number"
-              min={0}
-              max={127}
-              step={1}
-              onChange={handleChange}
-              value={formData.midiT.startValue}
-            />
-            <span>
-              &nbsp;(midi) &nbsp;
-              {formData.midiT.startValue >= 0
-                ? toNote(formData.midiT.startValue)
-                : null}
-            </span>
-          </label>
-          <label>
-            &nbsp;Range lo:&nbsp;
-            <input
-              name="midiT.range.lo"
-              value={formData.midiT.range.lo}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={127}
-              step={1}
-            />
-          </label>
-          <label>
-            &nbsp;Range hi:&nbsp;
-            <input
-              name="midiT.range.hi"
-              value={formData.midiT.range.hi}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={127}
-              step={1}
-            />
-          </label>
-          <label>
-            &nbsp;Range step:&nbsp;
-            <input
-              name="midiT.range.step"
-              value={formData.midiT.range.step}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={127}
-              step={1}
-            />
-          </label>
-          <br />
-          <label>
-            same-&gt;same:&nbsp;
-            <input
-              name="midiT.same.same"
-              value={formData.midiT.same.same}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <label>
-            &nbsp;same-&gt;up:&nbsp;
-            <input
-              name="midiT.same.up"
-              value={formData.midiT.same.up}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <label>
-            &nbsp;same-&gt;down:&nbsp;
-            <input
-              name="midiT.same.down"
-              value={formData.midiT.same.down}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <br />
-          <label>
-            up-&gt;same:&nbsp;
-            <input
-              name="midiT.up.same"
-              value={formData.midiT.up.same}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <label>
-            &nbsp;up-&gt;up:&nbsp;
-            <input
-              name="midiT.up.up"
-              value={formData.midiT.up.up}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <label>
-            &nbsp;up-&gt;down:&nbsp;
-            <input
-              name="midiT.up.down"
-              value={formData.midiT.up.down}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <br />
-          <label>
-            down-&gt;same:&nbsp;
-            <input
-              name="midiT.down.same"
-              value={formData.midiT.down.same}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <label>
-            &nbsp;down-&gt;up:&nbsp;
-            <input
-              name="midiT.down.up"
-              value={formData.midiT.down.up}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <label>
-            &nbsp;down-&gt;down:&nbsp;
-            <input
-              name="midiT.down.down"
-              value={formData.midiT.down.down}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-        </div>
-      </div>
-      <div className="transition-box">
-        <div className="header">
-          <h2>Speed Transitions</h2>
-        </div>
-        <div className="content">
-          <label>
-            Starting Value:
-            <input
-              name="speedT.startValue"
-              value={formData.speedT.startValue}
-              onChange={handleChange}
-              type="number"
-              min={1}
-              max={500}
-              step={1}
-            />
-            <span> (BPM)</span>
-          </label>
-          <label>
-            &nbsp;Range lo:&nbsp;
-            <input
-              name="speedT.range.lo"
-              value={formData.speedT.range.lo}
-              onChange={handleChange}
-              type="number"
-              min={1}
-              max={500}
-              step={1}
-            />
-          </label>
-          <label>
-            &nbsp;Range hi:&nbsp;
-            <input
-              name="speedT.range.hi"
-              value={formData.speedT.range.hi}
-              onChange={handleChange}
-              type="number"
-              min={1}
-              max={500}
-              step={1}
-            />
-          </label>
-          <label>
-            &nbsp;Range step:&nbsp;
-            <input
-              name="speedT.range.step"
-              value={formData.speedT.range.step}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={500}
-              step={1}
-            />
-          </label>
-          <br />
-          <label>
-            same-&gt;same:&nbsp;
-            <input
-              name="speedT.same.same"
-              value={formData.speedT.same.same}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <label>
-            &nbsp;same-&gt;up:&nbsp;
-            <input
-              name="speedT.same.up"
-              value={formData.speedT.same.up}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <label>
-            &nbsp;same-&gt;down:&nbsp;
-            <input
-              name="speedT.same.down"
-              value={formData.speedT.same.down}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <br />
-          <label>
-            up-&gt;same:&nbsp;
-            <input
-              name="speedT.up.same"
-              value={formData.speedT.up.same}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <label>
-            &nbsp;up-&gt;up:&nbsp;
-            <input
-              name="speedT.up.up"
-              value={formData.speedT.up.up}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <label>
-            &nbsp;up-&gt;down:&nbsp;
-            <input
-              name="speedT.up.down"
-              value={formData.speedT.up.down}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <br />
-          <label>
-            down-&gt;same:&nbsp;
-            <input
-              name="speedT.down.same"
-              value={formData.speedT.down.same}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <label>
-            &nbsp;down-&gt;up:&nbsp;
-            <input
-              name="speedT.down.up"
-              value={formData.speedT.down.up}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <label>
-            &nbsp;down-&gt;down:&nbsp;
-            <input
-              name="speedT.down.down"
-              value={formData.speedT.down.down}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-        </div>
-      </div>
-      <div className="transition-box">
-        <div className="header">
-          <h2>Volume Transitions</h2>
-        </div>
-        <div className="content">
-          <label>
-            Starting Value:
-            <input
-              name="volumeT.startValue"
-              value={formData.volumeT.startValue}
-              onChange={handleChange}
-              type="number"
-              min={-5}
-              max={5}
-              step={.1}
-            />
-            <span> (-5 to +5dB)</span>
-          </label>
-          <label>
-            &nbsp;Range lo:&nbsp;
-            <input
-              name="volumeT.range.lo"
-              value={formData.volumeT.range.lo}
-              onChange={handleChange}
-              type="number"
-              min={-5}
-              max={5}
-              step={.1}
-            />
-          </label>
-          <label>
-            &nbsp;Range hi:&nbsp;
-            <input
-              name="volumeT.range.hi"
-              value={formData.volumeT.range.hi}
-              onChange={handleChange}
-              type="number"
-              min={-5}
-              max={5}
-              step={.1}
-            />
-          </label>
-          <label>
-            &nbsp;Range step:&nbsp;
-            <input
-              name="volumeT.range.step"
-              value={formData.volumeT.range.step}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={10}
-              step={.1}
-            />
-          </label>
-          <br />
-          <label>
-            same-&gt;same:&nbsp;
-            <input
-              name="volumeT.same.same"
-              value={formData.volumeT.same.same}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <label>
-            &nbsp;same-&gt;up:&nbsp;
-            <input
-              name="volumeT.same.up"
-              value={formData.volumeT.same.up}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <label>
-            &nbsp;same-&gt;down:&nbsp;
-            <input
-              name="volumeT.same.down"
-              value={formData.volumeT.same.down}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <br />
-          <label>
-            up-&gt;same:&nbsp;
-            <input
-              name="volumeT.up.same"
-              value={formData.volumeT.up.same}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <label>
-            &nbsp;up-&gt;up:&nbsp;
-            <input
-              name="volumeT.up.up"
-              value={formData.volumeT.up.up}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <label>
-            &nbsp;up-&gt;down:&nbsp;
-            <input
-              name="volumeT.up.down"
-              value={formData.volumeT.up.down}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <br />
-          <label>
-            down-&gt;same:&nbsp;
-            <input
-              name="volumeT.down.same"
-              value={formData.volumeT.down.same}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <label>
-            &nbsp;down-&gt;up:&nbsp;
-            <input
-              name="volumeT.down.up"
-              value={formData.volumeT.down.up}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <label>
-            &nbsp;down-&gt;down:&nbsp;
-            <input
-              name="volumeT.down.down"
-              value={formData.volumeT.down.down}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-        </div>
-      </div>
-      <div className="transition-box">
-        <div className="header">
-          <h2>Pan Transitions</h2>
-        </div>
-        <div className="content">
-          <label>
-            Starting Value:&nbsp;
-            <input
-              name="panT.startValue"
-              value={formData.panT.startValue}
-              onChange={handleChange}
-              type="number"
-              min={-1.0}
-              max={1.0}
-              step={0.1}
-            />
-            <span> (-1 to 1)</span>
-          </label>
-          <label>
-            &nbsp;Range lo:&nbsp;
-            <input
-              name="panT.range.lo"
-              value={formData.panT.range.lo}
-              onChange={handleChange}
-              type="number"
-              min={-1}
-              max={1}
-              step={0.1}
-            />
-          </label>
-          <label>
-            &nbsp;Range hi:&nbsp;
-            <input
-              name="panT.range.hi"
-              value={formData.panT.range.hi}
-              onChange={handleChange}
-              type="number"
-              min={-1}
-              max={1}
-              step={0.1}
-            />
-          </label>
-          <label>
-            &nbsp;Range step:&nbsp;
-            <input
-              name="panT.range.step"
-              value={formData.panT.range.step}
-              onChange={handleChange}
-              type="number"
-              min={-1}
-              max={1}
-              step={0.1}
-            />
-          </label>
-          <br />
-          <label>
-            same-&gt;same:&nbsp;
-            <input
-              name="panT.same.same"
-              value={formData.panT.same.same}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <label>
-            &nbsp;same-&gt;up:&nbsp;
-            <input
-              name="panT.same.up"
-              value={formData.panT.same.up}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <label>
-            &nbsp;same-&gt;down:&nbsp;
-            <input
-              name="panT.same.down"
-              value={formData.panT.same.down}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <br />
-          <label>
-            up-&gt;same:&nbsp;
-            <input
-              name="panT.up.same"
-              value={formData.panT.up.same}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <label>
-            &nbsp;up-&gt;up:&nbsp;
-            <input
-              name="panT.up.up"
-              value={formData.panT.up.up}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <label>
-            &nbsp;up-&gt;down:&nbsp;
-            <input
-              name="panT.up.down"
-              value={formData.panT.up.down}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <br />
-          <label>
-            down-&gt;same:&nbsp;
-            <input
-              name="panT.down.same"
-              value={formData.panT.down.same}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <label>
-            &nbsp;down-&gt;up:&nbsp;
-            <input
-              name="panT.down.up"
-              value={formData.panT.down.up}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-          <label>
-            &nbsp;down-&gt;down:&nbsp;
-            <input
-              name="panT.down.down"
-              value={formData.panT.down.down}
-              onChange={handleChange}
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-            />
-          </label>
-        </div>
-      </div>
+      <TransitionBox
+        title="Midi Transitions"
+        units="midi"
+        name="midiT"
+        min={0}
+        max={127}
+        step={1}
+        transitions={formData.midiT}
+        startValueSuffix={(value: number) => {
+          if (value < 0) return "";
+          else return " ".concat(toNote(value));
+        }}
+      />
+      <TransitionBox
+        title="Speed Transitions"
+        units="BPM"
+        name="speedT"
+        min={1}
+        max={500}
+        step={1}
+        transitions={formData.speedT}
+        startValueSuffix={() => ""}
+      />
+      <TransitionBox
+        title="Volume Transitions"
+        units="-20 to +20"
+        name="volumeT"
+        min={-20}
+        max={20}
+        step={0.1}
+        transitions={formData.volumeT}
+        startValueSuffix={() => ""}
+      />
+      <TransitionBox
+        title="Pan Transitions"
+        units="-1 (left) to +1 (right)"
+        name="panT"
+        min={-1}
+        max={1}
+        step={0.1}
+        transitions={formData.panT}
+        startValueSuffix={() => ""}
+      />
     </>
   );
 }

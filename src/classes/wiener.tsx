@@ -25,7 +25,7 @@ export default class Wiener extends CMG {
     this.seed = this.name;
     this.speed = { initialValue: 60, alpha: 0, sigma: 0, lo: 1, hi: 500 };
     this.pitch = { initialValue: 60, alpha: 0, sigma: 0, lo: 0, hi: 127 };
-    this.volume = { initialValue: 0, alpha: 0, sigma: 0, lo: -5, hi: 5 };
+    this.volume = { initialValue: 0, alpha: 0, sigma: 0, lo: -20, hi: 20 };
     this.pan = { initialValue: 0, alpha: 0, sigma: 0, lo: -1, hi: 1 };
   }
   override copy(): Wiener {

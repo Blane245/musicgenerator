@@ -3,6 +3,7 @@
 
 import AudioFile from "../classes/audiofile";
 import CMGFile from "../classes/cmgfile";
+import Euclidean from "../classes/euclidean";
 import Noise from "../classes/noise";
 import SFPG from "../classes/sfpg";
 import SFRG from "../classes/sfrg";
@@ -55,6 +56,7 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
   NoiseGenerators: Noise[];
   AudioFileGenerators: AudioFile[];
   WienerGenerators: Wiener[];
+  EuclideanGenerators: Euclidean[];
   playbackLength: number;
   offsetTime: number;
   error: string;
@@ -65,6 +67,7 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
   const NoiseGenerators: Noise[] = [];
   const AudioFileGenerators: AudioFile[] = [];
   const WienerGenerators: Wiener[] = [];
+  const EuclideanGenerators: Euclidean[] = [];
   let playbackLength: number = 0;
   let error: string = "";
   let offsetTime: number = 0;
@@ -102,6 +105,8 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
               AudioFileGenerators.push(thisG as AudioFile);
             if (g.type == GENERATORTYPE.Wiener)
               WienerGenerators.push(thisG as Wiener);
+            if (g.type == GENERATORTYPE.Euclidean)
+              EuclideanGenerators.push(thisG as Euclidean);
             playbackLength = Math.max(thisG.stopTime + 1, playbackLength);
           }
         });
@@ -139,6 +144,14 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
                 }
                 if (g.type == GENERATORTYPE.Wiener) {
                   WienerGenerators.push(g as Wiener);
+                }
+                if (g.type == GENERATORTYPE.Euclidean) {
+                  if (!(g as Euclidean).preset) {
+                    error = `Generator '${g.name}' on track '${t.name}' does not have a preset assigned.`;
+                    return;
+                  } else {
+                    EuclideanGenerators.push(g as Euclidean);
+                  }
                 }
                 playbackLength = Math.max(playbackLength, g.stopTime + 1);
               }
@@ -181,6 +194,12 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
         tempGen.startTime = 0;
         WienerGenerators.push(tempGen);
         playbackLength = tempGen.stopTime + 1;
+      } else if (generator.type == GENERATORTYPE.Euclidean) {
+        const tempGen: Euclidean = (generator as Euclidean).copy();
+        tempGen.stopTime = tempGen.stopTime - tempGen.startTime;
+        tempGen.startTime = 0;
+        EuclideanGenerators.push(tempGen);
+        playbackLength = tempGen.stopTime + 1;
       }
     }
   }
@@ -190,6 +209,7 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
     NoiseGenerators.length == 0 &&
     WienerGenerators.length == 0 &&
     AudioFileGenerators.length == 0 &&
+    EuclideanGenerators.length == 0 &&
     error == ""
   ) {
     error = "No generators are available to produce any sound";
@@ -200,6 +220,7 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
     NoiseGenerators,
     AudioFileGenerators,
     WienerGenerators,
+    EuclideanGenerators,
     playbackLength,
     offsetTime,
     error: "",

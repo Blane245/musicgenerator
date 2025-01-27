@@ -68,6 +68,7 @@ export default function WienerDialog(props: WienerDialogProps): JSX.Element {
         <div className="param">High</div>
         <WienerInput
           name={"pitch"}
+          units={"(midi)"}
           parameters={formData.pitch}
           min={0}
           max={127}
@@ -76,6 +77,7 @@ export default function WienerDialog(props: WienerDialogProps): JSX.Element {
         />
         <WienerInput
           name={"speed"}
+          units={"(BPM)"}
           parameters={formData.speed}
           min={1}
           max={1000}
@@ -84,14 +86,16 @@ export default function WienerDialog(props: WienerDialogProps): JSX.Element {
         />
         <WienerInput
           name={"volume"}
+          units={"(dB)"}
           parameters={formData.volume}
-          min={-5}
-          max={5}
+          min={-20}
+          max={20}
           step={.1}
           handleChange={handleChange}
         />
         <WienerInput
           name={"pan"}
+          units={""}
           parameters={formData.pan}
           min={-1}
           max={1}
@@ -117,9 +121,9 @@ export function validateWienerValues(values: Wiener): string[] {
       "Speed low must be nonnegative and speed high must be greater than speed low"
     );
   if (values.volume.sigma < 0) result.push("Volume sigma must be nonnegative");
-  if (values.volume.lo < -5 || values.volume.hi <= values.volume.lo)
+  if (values.volume.hi <= values.volume.lo)
     result.push(
-      "Volume low must be nonnegative and volume high must be greater than volume low"
+      "Volume high must be greater than volume low"
     );
   if (values.pan.sigma < 0) result.push("pan sigma must be nonnegative");
   if (values.pan.lo < -1 || values.pan.hi <= values.pan.lo)
@@ -132,6 +136,7 @@ export function validateWienerValues(values: Wiener): string[] {
 
 interface WienerInputProps {
   name: string;
+  units: string;
   parameters: WienerParameters;
   min: number;
   max: number;
@@ -139,10 +144,10 @@ interface WienerInputProps {
   handleChange: ChangeEventHandler<HTMLInputElement>;
 }
 function WienerInput(props: WienerInputProps) {
-  const { name, parameters, min, max, step, handleChange } = props;
+  const { name, units, parameters, min, max, step, handleChange } = props;
   return (
     <>
-      <div className="param">{name.toUpperCase()}</div>
+      <div className="param">{name.toUpperCase().concat(' ').concat(units)}</div>
       <div className="param">
         <input
           name={name.concat(".initialValue")}

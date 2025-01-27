@@ -1,15 +1,39 @@
-import Weiner from "../classes/wiener";
+import AudioFile from "../classes/audiofile";
 import CMG from "../classes/cmg";
+import Euclidean from "../classes/euclidean";
 import Noise from "../classes/noise";
 import SFPG from "../classes/sfpg";
 import SFRG from "../classes/sfrg";
-import AudioFile from "classes/audiofile";
+import Weiner from "../classes/wiener";
+import {
+  sawtoothModulator,
+  sineModulator,
+  squareModulator,
+  triangleModulator,
+} from "../modulators";
 
 export const SAMPLERATE: number = 44100;
 
 export const EPS: number = 1e-4;
 
-export type CMGeneratorType = CMG | SFPG | SFRG | Noise | AudioFile | Weiner;
+export type CMGeneratorType =
+  | CMG
+  | SFPG
+  | SFRG
+  | Noise
+  | AudioFile
+  | Weiner
+  | Euclidean;
+
+export enum GENERATORTYPE {
+  "CMG" = "CMG",
+  "SFPG" = "SFPG",
+  "SFRG" = "SFRG",
+  "Noise" = "Noise",
+  "AudioFile" = "AudioFile",
+  "Wiener" = "Wiener",
+  "Euclidean" = "Euclidean",
+}
 
 export type SFFile = { name: string };
 
@@ -22,11 +46,26 @@ export enum REPEATOPTION {
 }
 
 export enum MODULATOR {
-  "SINE",
-  "SQUARE",
-  "TRIANGLE",
-  "SAWTOOTH",
+  "SINE" = "SINE",
+  "SQUARE" = "SQUARE",
+  "TRIANGLE" = "TRIANGLE",
+  "SAWTOOTH" = "SAWTOOTH",
 }
+
+export const ModulatorMap: Map<
+  MODULATOR,
+  (
+    time: number,
+    baseValue: number,
+    frequency: number,
+    amplitude: number,
+    phase: number
+  ) => number
+> = new Map();
+ModulatorMap.set(MODULATOR.SINE, sineModulator);
+ModulatorMap.set(MODULATOR.SQUARE, squareModulator);
+ModulatorMap.set(MODULATOR.TRIANGLE, triangleModulator);
+ModulatorMap.set(MODULATOR.SAWTOOTH, sawtoothModulator);
 
 export enum TIMEFORMATTYPE {
   NUMBER,
@@ -95,13 +134,20 @@ export const TimeLineScales: TimeLineScale[] = [
   { extent: 1209600, majorDivisions: 2, minorDivisions: 7, format: 10 },
 ];
 
-export enum GENERATORTYPE {
-  "CMG" = "CMG",
-  "SFPG" = "SFPG",
-  "SFRG" = "SFRG",
-  "Noise" = "Noise",
-  "AudioFile" = "AudioFile",
-  "Wiener" = "Wiener",
+export type ModulationType = {
+  Type: MODULATOR;
+  Center: number;
+  Frequency: number; // mHz
+  Amplitude: number;
+  Phase: number;
+};
+
+export type ModulationAttributeData = {
+  value: number;
+  lo: number;
+  hi: number;
+  step: number;
+  suffix: string;
 }
 
 export enum MARKOVSTATE {
@@ -121,6 +167,7 @@ export type MarkovProbabilities = {
   down: number;
   up: number;
 };
+
 export type RandomSFTransitons = {
   currentState: MARKOVSTATE;
   currentValue: number;
@@ -137,7 +184,8 @@ export type WienerParameters = {
   sigma: number;
   lo: number;
   hi: number;
-}
+};
+
 export enum NOISETYPE {
   white = "white",
   gaussian = "gaussian",
@@ -150,55 +198,49 @@ export enum GENERATIONMODE {
   idle = "idle",
 }
 
-export type MidiEvent = {
-  velocity?: number;
-  frequency?: number;
-  time?: number;
-};
-
 export type TimelineInterval = {
   startOffset: number;
   endOffset: number;
   startTime?: number;
-  endTime?: number; 
-}
+  endTime?: number;
+};
 
 // the data that is needed to realize a source and manage it during preview and record
 export type RawSourceData = {
-  gen: CMGeneratorType,
+  gen: CMGeneratorType;
   source: {
-    sample: Float32Array[], // the sf instrument sample converted to float32 or noise as float32
-    sampleRate: number, // hz/sec
-    playbackRate: number, // sf playback rate or 1 for noise
-    loopStart: number, // sf loopstart index or 0 for noise
-    loopEnd: number, // sf loopEnd index or sample.length for noise
-    loop: boolean,  // true/false depending on sf and option or false for noise
-    startTime: number, // start time of the source within the generator
-    duration: number, // attackInterval + holdInterval + releaseInterval
-    stopTime: number, // startTime + duration
-    started: boolean, // whether or not the source has started playing during preview
-  },
+    sample: Float32Array[]; // the sf instrument sample converted to float32 or noise as float32
+    sampleRate: number; // hz/sec
+    playbackRate: number; // sf playback rate or 1 for noise
+    loopStart: number; // sf loopstart index or 0 for noise
+    loopEnd: number; // sf loopEnd index or sample.length for noise
+    loop: boolean; // true/false depending on sf and option or false for noise
+    startTime: number; // start time of the source within the generator
+    duration: number; // attackInterval + holdInterval + releaseInterval
+    stopTime: number; // startTime + duration
+    started: boolean; // whether or not the source has started playing during preview
+  };
   panner: {
-    value: number, // pan value from generator
-  },
+    value: number; // pan value from generator
+  };
   vol: {
-    delayInterval: number, 
-    attackInterval: number, // attack time from sf as limited
-    holdInterval: number, // the original note's duration minus the attack time
-    decayInterval: number, 
-    sustainInterval: number,
-    releaseInterval: number, // release time from sf as limited
-    sustainLevel: number
-    value:number, // the current volume value
-  }
-}
+    delayInterval: number;
+    attackInterval: number; // attack time from sf as limited
+    holdInterval: number; // the original note's duration minus the attack time
+    decayInterval: number;
+    sustainInterval: number;
+    releaseInterval: number; // release time from sf as limited
+    sustainLevel: number;
+    value: number; // the current volume value
+  };
+};
 
 // the attributes of a source that is managed during preview
 export type ActiveSource = {
-  gen: CMGeneratorType,
-  source: AudioBufferSourceNode,
-  sourceIndex: number,
-  panner: StereoPannerNode,
-  vol: GainNode,
-  stopTime: number,
-}
+  gen: CMGeneratorType;
+  source: AudioBufferSourceNode;
+  sourceIndex: number;
+  panner: StereoPannerNode;
+  vol: GainNode;
+  stopTime: number;
+};

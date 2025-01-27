@@ -85,7 +85,7 @@ fieldset {
   left:0;
   width: 100%;
   height: 160px;
-  z-index: 999;
+  z-index: 1;
   cursor: inherit;
 }
 
@@ -379,6 +379,112 @@ fieldset {
   cursor: inherit;
 }
 
+.modulation-table {
+  display: grid;
+  grid-template-columns: .5fr repeat(5, 1fr);
+  gap: 0;
+  cursor: inherit;
+  vertical-align:middle;
+  
+}
+.sfrg-table {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-areas: 
+  "title start lo hi step"
+  "title transition tosame toup todown"
+  "title fromsame ss su sd"
+  "title fromup us uu ud"
+  "title fromdown ds du dd";
+  gap: 0;
+  cursor: inherit;
+  .title {
+    grid-area: title;
+    gap: 0;
+    vertical-align: center;
+  }
+  .start {
+    grid-area:start;
+    gap: 0;
+  }
+  .lo {
+    grid-area:lo;
+    gap: 0;
+  }
+  .hi {
+    grid-area:hi;
+    gap: 0;
+  }
+  .step {
+    grid-area:step;
+    gap: 0;
+  }
+  .tosame {
+    grid-area: tosame;
+    gap: 0;
+  }
+  .toup {
+    grid-area: toup;
+    gap: 0;
+  }
+  .todown {
+    grid-area: todown;
+    gap: 0;
+  }
+  .fromsame {
+    grid-area: fromsame;
+    gap: 0;
+  }
+  .fromup {
+    grid-area: fromup;
+    gap: 0;
+  }
+  .fromdown {
+    grid-area: fromdown;
+    gap: 0;
+  }
+  .transition {
+    grid-area: transition;
+    gap: 0;
+  }
+  .ss {
+    grid-area: ss;
+    gap: 0;
+  }
+  .su {
+    grid-area: su;
+    gap: 0;
+  }
+  .sd {
+    grid-area: sd;
+    gap: 0;
+  }
+  .us {
+    grid-area: us;
+    gap: 0;
+  }
+  .uu {
+    grid-area: uu;
+    gap: 0;
+  }
+  .ud {
+    grid-area: ud;
+    gap: 0;
+  }
+  .ds {
+    grid-area: ds;
+    gap: 0;
+  }
+  .du {
+    grid-area: du;
+    gap: 0;
+  }
+  .dd {
+    grid-area: dd;
+    gap: 0;
+  }
+
+}
 .wiener-table {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -420,7 +526,7 @@ fieldset {
 /* Modal Content */
 .modal-content {
   position: absolute;
-  z-index: 1;
+  z-index: 2;
   top: 160px;
   left: 200px;
   width: 50em;
@@ -469,10 +575,10 @@ fieldset {
 }
 
 .generator-content {
-  position: absolute;
-  z-index: 1;
-  top: 0px;
-  left: 100px;
+  position: fixed;
+  z-index: 2;
+  top: 10%;
+  left: 10%;
   background-color: #fefefe;
   margin: auto;
   padding: 0;
@@ -485,7 +591,7 @@ fieldset {
 }
 
 .modal-menu {
-  background: rgba(219, 215, 208, 0.9);
+  background: rgba(219, 215, 208, 1.0);
   cursor: inherit;
 }
 
@@ -515,31 +621,6 @@ fieldset {
 
 .cursor-context-menu {
   cursor: context-menu;
-}
-
-.transition-box {
-  display: grid;
-  grid-template-areas: 
-  "header content";
-  grid-template-columns: 1fr 6fr;
-  gap: 1px;
-  padding: 1px;
-  background-color: black;
-  cursor: inherit;
-}
-
-.transition-box > div {
-  background-color: rgba(255,255,255,1.0);
-  padding: 1px;
-}
-
-.transition-box > div.header {
-  grid-area: header;
-  text-align: left;
-}
-
-.transition-box > div.content {
-  grid-area: content;
 }
 
 .progress-container {

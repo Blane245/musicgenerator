@@ -9,6 +9,7 @@ import Volume from "./volume";
 export default class CMGFile {
   dirty: boolean; // if the contents of the file has been changed since loaded, it is marked dirty
   name: string; // the name of the file on the disk or null if not saved
+  version: string; // version of the file
   compressor: Compressor;
   equalizer: Equalizer;
   volume: Volume;
@@ -20,6 +21,7 @@ export default class CMGFile {
   constructor() {
     this.dirty = false;
     this.name = "";
+    this.version = import.meta.env.PACKAGE_VERSION;
     this.compressor = new Compressor("roomcompressor");
     this.equalizer = new Equalizer("roomequalizer");
     this.volume = new Volume("roomvolume");
@@ -54,6 +56,7 @@ export default class CMGFile {
 
   appendXML(doc: XMLDocument, elem: Element, name: string): void {
     elem.setAttribute("name", name);
+    elem.setAttribute("version", this.version);
     elem.setAttribute("SFFileName", this.SFFileName);
     elem.setAttribute("comment", this.comment);
     this.compressor.appendXML(doc, elem);
@@ -75,6 +78,11 @@ export default class CMGFile {
       this.comment = getAttributeValue(fcElem, "comment", "string") as string;
     } catch {
       this.comment = "";
+    }
+    try {
+      this.version = getAttributeValue(fcElem, 'version', 'string') as string;
+    } catch {
+      this.version = '1';
     }
     this.compressor.getXML(fcElem);
     this.equalizer.getXML(fcElem);

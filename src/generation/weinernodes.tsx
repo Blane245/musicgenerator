@@ -31,6 +31,7 @@ export function getBufferSourceNodesFromWiener(gen: Wiener): RawSourceData[] {
     sourceData.push(...connections);
     // go to the next time
     time += 60.0 / values.speed;
+    console.log('patch at time', values.pitch, time+gen.startTime);
   }
 
   return sourceData;

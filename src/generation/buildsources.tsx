@@ -1,5 +1,6 @@
 // Construct the data from each active generator that will be used to
 // realize them when they are inserted into the audio node graph
+import Euclidean from "classes/euclidean";
 import AudioFile from "../classes/audiofile";
 import Noise from "../classes/noise";
 import SFPG from "../classes/sfpg";
@@ -8,6 +9,7 @@ import Wiener from "../classes/wiener";
 import { RawSourceData } from "../types";
 import { setRandomSeed } from "../utils/seededrandom";
 import { getBufferSourceNodesFromAudioFile } from "./audiofilenodes";
+import { getBufferSourceNodesFromEuclidean } from "./euclideannodes";
 import { getBufferSourceNodesFromNoise } from "./noisenodes";
 import { getBufferSourceNodesFromSFPG } from "./sfpgnodes";
 import { getBufferSourceNodesFromSFRG } from "./sfrgnodes";
@@ -19,10 +21,17 @@ export interface buildSourcesProps {
   NoiseGenerators: Noise[];
   AudioFileGenerators: AudioFile[];
   WienerGenerators: Wiener[];
+  EuclideanGenerators: Euclidean[];
 }
 export function buildSources(params: buildSourcesProps): RawSourceData[] {
-  const { SFPGenerators, SFRGenerators, NoiseGenerators, AudioFileGenerators, WienerGenerators } =
-    params;
+  const {
+    SFPGenerators,
+    SFRGenerators,
+    NoiseGenerators,
+    AudioFileGenerators,
+    WienerGenerators,
+    EuclideanGenerators,
+  } = params;
   const sourceData: RawSourceData[] = [];
   SFPGenerators.forEach((g) => {
     const SFPGData: RawSourceData[] = getBufferSourceNodesFromSFPG(g);
@@ -53,6 +62,12 @@ export function buildSources(params: buildSourcesProps): RawSourceData[] {
   WienerGenerators.forEach((g) => {
     const WienerData: RawSourceData[] = getBufferSourceNodesFromWiener(g);
     sourceData.push(...WienerData);
+  });
+
+  // build the buffers for the Euclidean
+  EuclideanGenerators.forEach((g) => {
+    const EuclideanData: RawSourceData[] = getBufferSourceNodesFromEuclidean(g);
+    sourceData.push(...EuclideanData);
   });
   // console.log("raw source count", sourceData.length);
   return sourceData;

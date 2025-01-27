@@ -66,7 +66,7 @@ The CMG application provides several features:
 5. Preview and Record functions. During either preview, only the characteristics of the room equalizer, and compressor may be changed. 
 6. The ability save and load a defined computer music generation scenario.
 
-The figure below illustrates the class structure of teh application. It is implemented as a Vite client using TypeScript. A webserver is used to access a library of soundfont files.
+The figure below illustrates the class structure of the application. It is implemented as a Vite client using TypeScript. A webserver is used to access a library of soundfont files.
 
 ![CMG Component Diagram](ClassDiagram.png)
 
@@ -163,6 +163,7 @@ Version 2 implements
 
 - room and instrument reverbs are a dream
 - create echo effect
+- create [Euclidean rhythm](https://en.wikipedia.org/wiki/Euclidean_rhythm)
 
 # Development and Installation
 

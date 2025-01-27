@@ -23,6 +23,8 @@ import { validateNoiseValues } from "./noisedialog";
 import { validateSFPGValues } from "./sfpgdialog";
 import { validateSFRGValues } from "./sfrgdialog";
 import { validateWienerValues } from "./wienerdialog";
+import Euclidean from "../classes/euclidean";
+import { validateEuclideanValues } from "./euclideandialog";
 
 // The icon starts at the generator's start time and ends at the generators endtime
 export interface GeneratorDialogProps {
@@ -113,6 +115,11 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           newFormData.setAttribute(eventName, eventValue);
           return newFormData;
         }
+        case GENERATORTYPE.Euclidean: {
+          const newFormData: Euclidean = (prev as Euclidean).copy();
+          newFormData.setAttribute(eventName, eventValue);
+          return newFormData;
+        }
         default:
           console.log(
             `generator dialog: improper generator type ${formData.type}`
@@ -189,6 +196,19 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           newF.stopTime = prev.stopTime;
           newF.mute = prev.mute;
           newF.position = prev.position;
+          return newF;
+        }
+        case GENERATORTYPE.Euclidean: {
+          const newF = new Euclidean(0);
+          newF.name = prev.name;
+          newF.startTime = prev.startTime;
+          newF.stopTime = prev.stopTime;
+          newF.mute = prev.mute;
+          newF.position = prev.position;
+          if (presets.length > 0) {
+            newF.preset = presets[0];
+            newF.presetName = bankPresettoName(newF.preset);
+          }
           return newF;
         }
         default:
@@ -275,6 +295,23 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
             (p: Preset) => pn == p.header.name
           );
           if (!(formData as Wiener).preset)
+            msgs.push(`generator dialog: can't find preset named ${pn}`);
+          setErrorMessages(msgs);
+          if (msgs.length > 0) return;
+        }
+        break;
+      case GENERATORTYPE.Euclidean:
+        {
+          let newMessages = validateCMGValues(formData as CMG);
+          msgs.push(...newMessages);
+          newMessages = validateEuclideanValues(formData as Euclidean);
+          msgs.push(...newMessages);
+
+          const pn: string = (formData as Euclidean).presetName.split(":")[2];
+          (formData as Euclidean).preset = presets.find(
+            (p: Preset) => pn == p.header.name
+          );
+          if (!(formData as Euclidean).preset)
             msgs.push(`generator dialog: can't find preset named ${pn}`);
           setErrorMessages(msgs);
           if (msgs.length > 0) return;

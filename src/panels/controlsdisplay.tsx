@@ -4,6 +4,7 @@
 // timeline controls and timeline
 import { ChangeEvent, useEffect, useState } from "react";
 import { SoundFont2 } from "soundfont2";
+import Euclidean from "../classes/euclidean";
 import SFPG from "../classes/sfpg";
 import SFRG from "../classes/sfrg";
 import Track from "../classes/track";
@@ -97,6 +98,14 @@ export default function ControlsDisplay() {
             (g as Wiener).preset &&
             (g as Wiener).pitch.initialValue >= 0 &&
             (g as Wiener).pitch.initialValue <= 127) {
+            goodGeneratorCount++;
+          } else if (
+            g.type == GENERATORTYPE.Euclidean &&
+            (g as Euclidean).presetName != "" &&
+            (g as Euclidean).preset &&
+            (g as Euclidean).noteM.Center >= 0 &&
+            (g as Euclidean).noteM.Center <=127
+          ) {
             goodGeneratorCount++;
           }
         }

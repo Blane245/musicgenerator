@@ -14,7 +14,7 @@ import Track from "../classes/track";
 import { useCMGContext } from "../cmgcontext";
 import GeneratorDialog from "../dialogs/generatordialog";
 import Generate from "../generation/generate";
-import { GENERATIONMODE, TimeLineScales } from "../types";
+import { CMGeneratorType, GENERATIONMODE, TimeLineScales } from "../types";
 import {
   addGenerator,
   flipGeneratorMute,
@@ -81,43 +81,38 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
   // set the visible generator icon boxes based on the generator times and timeLine
   // handle highlighting from timeline interval selection and preview playing
   useEffect(() => {
-
     // get all of the generator boxes
     setSelectedTrackName(track.name);
     const boxes: GeneratorBox[] = [];
-    track.generators.forEach((generator, generatorIndex) => {
+    track.generators.forEach((g: CMGeneratorType, i: number) => {
       // is the generator out of the currently displayed current time?
-      const timeLineStop =
+      const tStop =
         timeLine.startTime + TimeLineScales[timeLine.currentZoomLevel].extent;
-      const timeLineStart = timeLine.startTime;
-      const generatorStart = generator.startTime;
-      const generatorStop = generator.stopTime;
+      const tStart = timeLine.startTime;
+      const gStart = g.startTime;
+      const gStop = g.stopTime;
 
       // if either the generators start or stop time is within the timeline, display it
       // bound the icon's start and stop time to the timeline
-      const iconStartTime: number = Math.max(generatorStart, timeLineStart);
-      const iconStopTime: number = Math.min(generatorStop, timeLineStop);
+      const iStart: number = Math.max(gStart, tStart);
+      const iStop: number = Math.min(gStop, tStop);
 
       // the track timeline box
       const height = trackHeight;
       const width = trackWidth;
-      const iconTop = generator.position;
-      const iconLeft =
-        (width * (iconStartTime - timeLineStart)) /
-        (timeLineStop - timeLineStart);
-      const iconWidth: number =
-        (width * (iconStopTime - iconStartTime)) /
-        (timeLineStop - timeLineStart);
-      const iconHeight: number = height / 3.0;
-      if (iconWidth > 0 && iconHeight > 0) {
+      const iTop = g.position;
+      const iLeft = (width * (iStart - tStart)) / (tStop - tStart);
+      const iWidth: number = (width * (iStop - iStart)) / (tStop - tStart);
+      const iHeight: number = height / 3.0;
+      if (iWidth > 0 && iHeight > 0) {
         boxes.push({
-          generator: generator,
-          generatorIndex: generatorIndex,
-          position: { x: iconLeft, y: iconTop },
-          width: iconWidth,
-          height: iconHeight,
-          selected: isSelected(generator),
-          playing: isPlaying(generator),
+          generator: g,
+          generatorIndex: i,
+          position: { x: iLeft, y: iTop },
+          width: iWidth,
+          height: iHeight,
+          selected: isSelected(g),
+          playing: isPlaying(g),
         });
       }
     });
@@ -162,12 +157,17 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
     if (playing.current) return;
     event.preventDefault();
     event.stopPropagation();
-    setGeneratorIndex(generatorBoxes[boxIndex].generatorIndex);
+    const box = generatorBoxes[boxIndex];
+    setGeneratorIndex(box.generatorIndex);
     setBoxIndex(boxIndex);
 
-    // enable generator menu
-    setMenuX(event.clientX);
-    setMenuY(event.clientY);
+    // enable generator menu at the text element location
+    // the relative position normal location of the
+    // generator's menu is the lower left corner of the
+    // trackdisplay. this move it to the right and up
+    // where the generator's text is located.
+    setMenuX(box.position.x + box.width / 2.0);
+    setMenuY(box.position.y + box.height / 3.0 - 100);
     setMenuEnabled(true);
     setStatus(``);
   }
@@ -281,14 +281,14 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
     setStatus(``);
   }
 
-  function isSelected(generator: CMGenerator): boolean {
+  function isSelected(g: CMGenerator): boolean {
     if (
       timeInterval.startTime != undefined &&
       timeInterval.endTime != undefined
     ) {
       if (
-        generator.startTime >= timeInterval.startTime &&
-        generator.stopTime <= timeInterval.endTime
+        g.startTime >= timeInterval.startTime &&
+        g.stopTime <= timeInterval.endTime
       )
         return true;
       else return false;
@@ -296,8 +296,8 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
     return false;
   }
 
-  function isPlaying(generator: CMGenerator): boolean {
-    return generatorsPlaying.findIndex((g) => g.name == generator.name) >= 0;
+  function isPlaying(gen: CMGenerator): boolean {
+    return generatorsPlaying.findIndex((g) => g.name == gen.name) >= 0;
   }
 
   function selectClass(selected: boolean, playing: boolean): string {
@@ -382,9 +382,10 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
         id="gen-menu"
         style={{
           display: menuEnabled ? "block" : "none",
-          position: "absolute",
-          top: (menuY - 160).toString() + "px",
+          position: "relative",
+          top: menuY.toString() + "px",
           left: menuX.toString() + "px",
+          width: "100px",
           zIndex: 99,
         }}
       >

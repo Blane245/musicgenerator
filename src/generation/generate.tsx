@@ -48,6 +48,7 @@ export default function Generate(props: GeneratorProps) {
       NoiseGenerators,
       AudioFileGenerators,
       WienerGenerators,
+      EuclideanGenerators,
       playbackLength,
       offsetTime,
       error,
@@ -69,6 +70,7 @@ export default function Generate(props: GeneratorProps) {
       NoiseGenerators,
       AudioFileGenerators,
       WienerGenerators,
+      EuclideanGenerators,
     });
 
     // let the system know that playing if entered

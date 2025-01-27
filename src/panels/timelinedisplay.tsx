@@ -128,21 +128,20 @@ export default function TimeLineDisplay() {
       setInterval((prev) => {
         if (prev.startTime != undefined && prev.endTime != undefined) {
           const newInterval: TimelineInterval = { ...prev };
-          const startTime: number = timeLine.startTime;
-          const stopTime: number = startTime + timeLine.timeLineScale.extent;
-          newInterval.startOffset = Math.max(
-            (timeLine.width * (prev.startTime - startTime)) /
-              (stopTime - startTime),
+          const tStart: number = timeLine.startTime;
+          const tStop: number = tStart + timeLine.timeLineScale.extent;
+          newInterval.startOffset = Math.min(Math.max(
+            (timeLine.width * (prev.startTime - tStart)) / (tStop - tStart),
             0
-          );
-          newInterval.endOffset = Math.min(
-            (timeLine.width * (prev.endTime - startTime)) /
-              (stopTime - startTime),
+          ), timeLine.width);
+          newInterval.endOffset = Math.max(Math.min(
+            (timeLine.width * (prev.endTime - tStart)) / (tStop - tStart),
             timeLine.width
-          );
+          ), 0);
 
           // broadcast change
           setTimeInterval(newInterval);
+          console.log('new timeline interval after timeline change', newInterval);
           return newInterval;
         } else return prev;
       });

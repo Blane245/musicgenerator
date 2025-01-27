@@ -2,12 +2,14 @@
 
 import { ChangeEvent } from "react";
 import AudioFile from "../classes/audiofile";
+import Euclidean from "../classes/euclidean";
 import Noise from "../classes/noise";
 import SFPG from "../classes/sfpg";
 import SFRG from "../classes/sfrg";
 import Wiener from "../classes/wiener";
 import { CMGeneratorType, GENERATORTYPE } from "../types";
 import AudioFileDialog from "./audiofiledialog";
+import EuclideanDialog from "./euclideandialog";
 import NoiseDialog from "./noisedialog";
 import SFPGDialog from "./sfpgdialog";
 import SFRGDialog from "./sfrgdialog";
@@ -44,6 +46,12 @@ export default function GeneratorTypeForm(
       {formData.type == GENERATORTYPE.Wiener ? (
         <WienerDialog
           formData={formData as Wiener}
+          handleChange={handleChange}
+        />
+      ) : null}
+      {formData.type == GENERATORTYPE.Euclidean ? (
+        <EuclideanDialog
+          formData={formData as Euclidean}
           handleChange={handleChange}
         />
       ) : null}

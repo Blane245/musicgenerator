@@ -139,11 +139,25 @@ export default function Preview(params: PreviewProps): void {
   }
 
   // time progress clicker for updating the time progress widget
-  let progressId: number = 0;
-  timeProgress();
-  function timeProgress(): void {
+  let tickId: number = 0;
+  let tickCounter: number = offsetTime;
+  const tickInterval: number = 1000;
+  tick();
+  function tick(): void {
     if (playing.current && context.currentTime <= playbackLength) {
-      setTimeProgress(context.currentTime + offsetTime);
+      tickId = window.setTimeout(tick, tickInterval);
+      setTimeProgress(tickCounter);
+      console.log(tickCounter, context.currentTime, offsetTime);
+      tickCounter+=tickInterval/1000;
+    } else {
+      tickId && clearTimeout(tickId);
+      setTimeProgress(-1);
+    }
+  }
+  let playingId: number = 0;
+  playingGenerators();
+  function playingGenerators() {
+    if (playing.current && context.currentTime <= playbackLength) {
       // get the generators playing for highlighting
       setGeneratorsPlaying(() => {
         const newGeneratorsPlaying: CMGeneratorType[] = [];
@@ -162,10 +176,10 @@ export default function Preview(params: PreviewProps): void {
         });
         return newGeneratorsPlaying;
       });
-      progressId = window.setTimeout(timeProgress, 1000);
+      playingId = window.setTimeout(playingGenerators, 500);
     } else {
-      progressId && clearTimeout(progressId);
-      setTimeProgress(-1);
+      playingId && clearTimeout(playingId);
     }
+
   }
 }

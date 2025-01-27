@@ -3,6 +3,7 @@ import { CMGeneratorType } from "../types";
 import { getAttributeValue, getElementElement } from "../utils/xmlfunctions";
 import AudioFile from "./audiofile";
 import CMG from "./cmg";
+import Euclidean from "./euclidean";
 import Noise from "./noise";
 import SFPG from "./sfpg";
 import SFRG from "./sfrg";
@@ -63,12 +64,12 @@ export default class Track {
       trackElem.appendChild(generatorsElem);
       return Promise.resolve(trackElem);
     } catch (e: any) {
-      console.log("file writing error on track", this.name);
+      console.log("XML file writing error on track", this.name);
       return Promise.reject(e);
     }
   }
 
-  async getXML(elem: Element, soundFont: SoundFont2 | null): Promise<Track> {
+  async getXML(elem: Element, soundFont: SoundFont2 | null, version: string): Promise<Track> {
     try {
       // load the base attributes of the track
       this.name = getAttributeValue(elem, "name", "string") as string;
@@ -85,20 +86,20 @@ export default class Track {
         switch (type) {
           case "CMG":
             {
-              const generatorPromise: Promise<CMG> = CMG.getXML(child);
+              const generatorPromise: Promise<CMG> = CMG.getXML(child, version);
               generatorPromises.push(generatorPromise);
             }
             break;
           case "AudioFile":
             {
               const generatorPromise: Promise<AudioFile> =
-                AudioFile.getXML(child);
+                AudioFile.getXML(child,version);
               generatorPromises.push(generatorPromise);
             }
             break;
           case "Noise":
             {
-              const generatorPromise: Promise<Noise> = Noise.getXML(child);
+              const generatorPromise: Promise<Noise> = Noise.getXML(child, version);
               generatorPromises.push(generatorPromise);
             }
             break;
@@ -106,7 +107,8 @@ export default class Track {
             {
               const generatorPromise: Promise<SFPG> = SFPG.getXML(
                 child,
-                soundFont
+                soundFont,
+                version
               );
               generatorPromises.push(generatorPromise);
             }
@@ -115,7 +117,8 @@ export default class Track {
             {
               const generatorPromise: Promise<SFRG> = SFRG.getXML(
                 child,
-                soundFont
+                soundFont,
+                version
               );
               generatorPromises.push(generatorPromise);
             }
@@ -124,7 +127,16 @@ export default class Track {
             {
               const generatorPromise: Promise<Wiener> = Wiener.getXML(
                 child,
-                soundFont
+                soundFont, version
+              );
+              generatorPromises.push(generatorPromise);
+            }
+            break;
+          case "Euclidean":
+            {
+              const generatorPromise: Promise<Euclidean> = Euclidean.getXML(
+                child,
+                soundFont, version
               );
               generatorPromises.push(generatorPromise);
             }
@@ -144,7 +156,5 @@ export default class Track {
     } catch (e) {
       return Promise.reject(e);
     }
-
-    // load the generators in thihis track
   }
 }
