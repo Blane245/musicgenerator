@@ -198,6 +198,7 @@ export default class Wiener extends CMG {
 
   static override async getXML(
     elem: Element,
+    _version: string,
     soundFont: SoundFont2 | null
   ): Promise<Wiener> {
     try {

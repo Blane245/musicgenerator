@@ -128,7 +128,7 @@ export default class AudioFile extends CMG {
     }
   }
 
-  static override async getXML(elem: Element): Promise<AudioFile> {
+  static override async getXML(elem: Element, _version:string): Promise<AudioFile> {
     try {
       const g: AudioFile = new AudioFile(0);
       g.name = getAttributeValue(elem, "name", "string") as string;

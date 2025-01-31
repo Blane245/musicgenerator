@@ -38,6 +38,7 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
     } = props;
     return (
       <div className="sfrg-table">
+        <div className='border'><hr/></div>
         <div className="title">
           <h3>{title}</h3>
           <h4>{'('.concat(units).concat(')')}</h4>
@@ -106,17 +107,6 @@ export default function SFRGDialog(props: SFRGDialogDialogProps): JSX.Element {
         <div className="fromsame">same</div>
         <div className="fromup">up</div>
         <div className="fromdown">down</div>
-        <div className="ss">
-          <input
-            name={name.concat(".same.same")}
-            type="number"
-            min={0}
-            max={1}
-            step={0.01}
-            value={transitions.same.same}
-            onChange={handleChange}
-          />
-        </div>
         <div className="ss">
           <input
             name={name.concat(".same.same")}

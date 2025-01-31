@@ -3,9 +3,7 @@
 import {
   ChangeEvent,
   FormEvent,
-  forwardRef,
   MouseEvent,
-  MutableRefObject,
   useEffect,
   useState,
 } from "react";
@@ -14,7 +12,7 @@ import Track from "../classes/track";
 import { useCMGContext } from "../cmgcontext";
 import GeneratorDialog from "../dialogs/generatordialog";
 import Generate from "../generation/generate";
-import { CMGeneratorType, GENERATIONMODE, TimeLineScales } from "../types";
+import { CMGeneratorType, GENERATIONMODE } from "../types";
 import {
   addGenerator,
   flipGeneratorMute,
@@ -25,8 +23,6 @@ import setCursor from "../utils/setcursor";
 
 export interface GeneratorIconProps {
   track: Track;
-  trackIndex: number;
-  elementRef: MutableRefObject<Element[]>;
 }
 type GeneratorBox = {
   generator: CMGenerator;
@@ -38,9 +34,9 @@ type GeneratorBox = {
   playing: boolean;
 };
 
-// thanx for AWolf's option 2 answer to https://stackoverflow.com/questions/58222004/how-to-get-parent-width-height-in-react-using-hooks
-const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
-  const { track, trackIndex, elementRef } = props;
+// const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
+export default function GeneratorIcons (props: GeneratorIconProps) {
+  const { track } = props;
   const {
     setFileContents,
     timeLine,
@@ -66,28 +62,29 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
   const [trackWidth, setTrackWidth] = useState<number>(100);
   const [trackHeight, setTrackHeight] = useState<number>(100);
 
-  useEffect(() => {
-    const resizeObserver: ResizeObserver = new ResizeObserver(
-      (event: ResizeObserverEntry[]) => {
-        setTrackWidth(event[0].contentBoxSize[0].inlineSize);
-        setTrackHeight(event[0].contentBoxSize[0].blockSize);
-      }
-    );
-    if (elementRef && elementRef.current) {
-      resizeObserver.observe(elementRef.current[trackIndex]);
-    }
-  }, [elementRef]);
-
+  // useEffect(() => {
+  //   const resizeObserver: ResizeObserver = new ResizeObserver(
+  //     (event: ResizeObserverEntry[]) => {
+  //       setTrackWidth(event[0].contentBoxSize[0].inlineSize);
+  //       setTrackHeight(event[0].contentBoxSize[0].blockSize);
+  //     }
+  //   );
+  //   if (elementRef && elementRef.current) {
+  //     resizeObserver.observe(elementRef.current[trackIndex]);
+  //   }
+  // }, [elementRef]);
   // set the visible generator icon boxes based on the generator times and timeLine
   // handle highlighting from timeline interval selection and preview playing
   useEffect(() => {
+    setTrackWidth(timeLine.width);
+    setTrackHeight(100);
     // get all of the generator boxes
     setSelectedTrackName(track.name);
     const boxes: GeneratorBox[] = [];
     track.generators.forEach((g: CMGeneratorType, i: number) => {
       // is the generator out of the currently displayed current time?
       const tStop =
-        timeLine.startTime + TimeLineScales[timeLine.currentZoomLevel].extent;
+        timeLine.startTime + timeLine.timeLineScale.extent;
       const tStart = timeLine.startTime;
       const gStart = g.startTime;
       const gStop = g.stopTime;
@@ -98,8 +95,8 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
       const iStop: number = Math.min(gStop, tStop);
 
       // the track timeline box
-      const height = trackHeight;
-      const width = trackWidth;
+      const height = 100;
+      const width = timeLine.width;
       const iTop = g.position;
       const iLeft = (width * (iStart - tStart)) / (tStop - tStart);
       const iWidth: number = (width * (iStop - iStart)) / (tStop - tStart);
@@ -120,7 +117,6 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
   }, [
     track.generators,
     timeLine,
-    trackWidth,
     timeInterval,
     trackHeight,
     generatorsPlaying,
@@ -456,5 +452,6 @@ const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
       </div>
     </>
   );
-});
-export default GeneratorIcons;
+}
+// );
+// export default GeneratorIcons;

@@ -16,7 +16,7 @@
 // The XML is then written to the provided file.
 //
 // reading decomposes the file's XML into its various
-// components. First, the file contents, and then the 
+// components. First, the file contents, and then the
 // tracks and thie generators asynchornously and in paralle
 
 import CMGFile from "../classes/cmgfile";
@@ -87,7 +87,11 @@ export async function loadXML(
     const trackPromises: Promise<Track>[] = [];
     for (let child of tracksChildren) {
       const track: Track = new Track(0);
-      const trackPromise: Promise<Track> = track.getXML(child, fileContents.SoundFont, fileContents.version);
+      const trackPromise: Promise<Track> = track.getXML(
+        child,
+        fileContents.version,
+        fileContents.SoundFont
+      );
       trackPromises.push(trackPromise);
     }
 

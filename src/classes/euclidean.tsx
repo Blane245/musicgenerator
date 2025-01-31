@@ -7,7 +7,7 @@ import {
   ModulatorMap,
 } from "../types";
 import { euclideanRhythm } from "../utils/euclidean-rhythm";
-import { getAttributeValue, getElementElement } from "../utils/xmlfunctions";
+import { addModulationAttributes, getAttributeValue, getModulationAttributes } from "../utils/xmlfunctions";
 import CMG from "./cmg";
 
 // implements the Euclidean algorithm for rhythm and
@@ -39,32 +39,32 @@ export default class Euclidean extends CMG {
     this.#currentRhythmEntry = 0;
     this.noteCount = 7;
     this.noteM = {
-      Type: MODULATOR.SINE,
-      Center: 60,
-      Frequency: 1000,
-      Amplitude: 0,
-      Phase: 0,
+      type: MODULATOR.SINE,
+      center: 60,
+      frequency: 1000,
+      amplitude: 0,
+      phase: 0,
     };
     this.speedM = {
-      Type: MODULATOR.SINE,
-      Center: 60,
-      Frequency: 1000,
-      Amplitude: 0,
-      Phase: 0,
+      type: MODULATOR.SINE,
+      center: 60,
+      frequency: 1000,
+      amplitude: 0,
+      phase: 0,
     };
     this.volumeM = {
-      Type: MODULATOR.SINE,
-      Center: 0,
-      Frequency: 1000,
-      Amplitude: 0,
-      Phase: 0,
+      type: MODULATOR.SINE,
+      center: 0,
+      frequency: 1000,
+      amplitude: 0,
+      phase: 0,
     };
     this.panM = {
-      Type: MODULATOR.SINE,
-      Center: 0,
-      Frequency: 1000,
-      Amplitude: 0,
-      Phase: 0,
+      type: MODULATOR.SINE,
+      center: 0,
+      frequency: 1000,
+      amplitude: 0,
+      phase: 0,
     };
   }
 
@@ -94,7 +94,7 @@ export default class Euclidean extends CMG {
   override setAttribute(name: string, value: string): void {
     super.setAttribute(name, value);
     switch (name) {
-      case "Type":
+      case "type":
         this.type = GENERATORTYPE.Euclidean;
         break;
       case "seed":
@@ -115,65 +115,65 @@ export default class Euclidean extends CMG {
       case "noteCount":
         this.noteCount = parseInt(value);
         break;
-      case "noteM.Type":
-        this.noteM.Type = MODULATOR[value];
+      case "noteM.type":
+        this.noteM.type = MODULATOR[value];
         break;
-      case "noteM.Center":
-        this.noteM.Center = parseFloat(value);
+      case "noteM.center":
+        this.noteM.center = parseFloat(value);
         break;
-      case "noteM.Frequency":
-        this.noteM.Frequency = parseFloat(value);
+      case "noteM.frequency":
+        this.noteM.frequency = parseFloat(value);
         break;
-      case "noteM.Amplitude":
-        this.noteM.Amplitude = parseFloat(value);
+      case "noteM.amplitude":
+        this.noteM.amplitude = parseFloat(value);
         break;
-      case "noteM.Phase":
-        this.noteM.Phase = parseFloat(value);
+      case "noteM.phase":
+        this.noteM.phase = parseFloat(value);
         break;
-      case "speedM.Type":
-        this.speedM.Type = MODULATOR[value];
+      case "speedM.type":
+        this.speedM.type = MODULATOR[value];
         break;
-      case "speedM.Center":
-        this.speedM.Center = parseFloat(value);
+      case "speedM.center":
+        this.speedM.center = parseFloat(value);
         break;
-      case "speedM.Frequency":
-        this.speedM.Frequency = parseFloat(value);
+      case "speedM.frequency":
+        this.speedM.frequency = parseFloat(value);
         break;
-      case "speedM.Amplitude":
-        this.speedM.Amplitude = parseFloat(value);
+      case "speedM.amplitude":
+        this.speedM.amplitude = parseFloat(value);
         break;
-      case "speedM.Phase":
-        this.speedM.Phase = parseFloat(value);
+      case "speedM.phase":
+        this.speedM.phase = parseFloat(value);
         break;
-      case "volumeM.Type":
-        this.volumeM.Type = MODULATOR[value];
+      case "volumeM.type":
+        this.volumeM.type = MODULATOR[value];
         break;
-      case "volumeM.Center":
-        this.volumeM.Center = parseFloat(value);
+      case "volumeM.center":
+        this.volumeM.center = parseFloat(value);
         break;
-      case "volumeM.Frequency":
-        this.volumeM.Frequency = parseFloat(value);
+      case "volumeM.frequency":
+        this.volumeM.frequency = parseFloat(value);
         break;
-      case "volumeM.Amplitude":
-        this.volumeM.Amplitude = parseFloat(value);
+      case "volumeM.amplitude":
+        this.volumeM.amplitude = parseFloat(value);
         break;
-      case "volumeM.Phase":
-        this.volumeM.Phase = parseFloat(value);
+      case "volumeM.phase":
+        this.volumeM.phase = parseFloat(value);
         break;
-      case "panM.Type":
-        this.panM.Type = MODULATOR[value];
+      case "panM.type":
+        this.panM.type = MODULATOR[value];
         break;
-      case "panM.Center":
-        this.panM.Center = parseFloat(value);
+      case "panM.center":
+        this.panM.center = parseFloat(value);
         break;
-      case "panM.Frequency":
-        this.panM.Frequency = parseFloat(value);
+      case "panM.frequency":
+        this.panM.frequency = parseFloat(value);
         break;
-      case "panM.Amplitude":
-        this.panM.Amplitude = parseFloat(value);
+      case "panM.amplitude":
+        this.panM.amplitude = parseFloat(value);
         break;
-      case "panM.Phase":
-        this.panM.Phase = parseFloat(value);
+      case "panM.phase":
+        this.panM.phase = parseFloat(value);
         break;
     }
   }
@@ -192,36 +192,36 @@ console.log ('sequences initialized', this.#beatSequence, this.#noteSequence);
     volume: number;
     pan: number;
   } {
-    let volume: number = 0;
-    let pan: number = 0;
-    let midi: number = this.noteM.Center;
-    let speed = this.speedM.Center;
-    const noteFunction = ModulatorMap.get(this.noteM.Type);
-    const speedFunction = ModulatorMap.get(this.speedM.Type);
-    const volFunction = ModulatorMap.get(this.volumeM.Type);
-    const panFunction = ModulatorMap.get(this.panM.Type);
+    let volume: number = this.volumeM.center;
+    let pan: number = this.volumeM.center;
+    let midi: number = this.noteM.center;
+    let speed = this.speedM.center;
+    const noteFunction = ModulatorMap.get(this.noteM.type);
+    const speedFunction = ModulatorMap.get(this.speedM.type);
+    const volFunction = ModulatorMap.get(this.volumeM.type);
+    const panFunction = ModulatorMap.get(this.panM.type);
     if (!noteFunction || !speedFunction || !volFunction || !panFunction)
       return { midi, speed, volume, pan };
     volume = volFunction(
       time,
-      this.volumeM.Center,
-      this.volumeM.Frequency,
-      this.volumeM.Amplitude,
-      this.volumeM.Phase
+      this.volumeM.center,
+      this.volumeM.frequency,
+      this.volumeM.amplitude,
+      this.volumeM.phase
     );
     pan = panFunction(
       time,
-      this.panM.Center,
-      this.panM.Frequency,
-      this.panM.Amplitude,
-      this.panM.Phase
+      this.panM.center,
+      this.panM.frequency,
+      this.panM.amplitude,
+      this.panM.phase
     );
     speed = speedFunction(
       time,
-      this.speedM.Center,
-      this.speedM.Frequency,
-      this.speedM.Amplitude,
-      this.speedM.Phase
+      this.speedM.center,
+      this.speedM.frequency,
+      this.speedM.amplitude,
+      this.speedM.phase
     );
     console.log('current beat', this.#currentRhythmEntry);
     // if the current note is to be silent,
@@ -240,9 +240,9 @@ console.log ('sequences initialized', this.#beatSequence, this.#noteSequence);
       noteFunction(
         time,
         0,
-        this.noteM.Frequency,
-        this.noteM.Amplitude,
-        this.noteM.Phase
+        this.noteM.frequency,
+        this.noteM.amplitude,
+        this.noteM.phase
       )
     );
 
@@ -255,7 +255,7 @@ console.log ('sequences initialized', this.#beatSequence, this.#noteSequence);
 
     // note is 'on' return it
     if (isNoteOn) {
-      midi = this.noteM.Center + octave * 12 + octaveOffset;
+      midi = this.noteM.center + octave * 12 + octaveOffset;
       console.log('note is on, time, midioffset, midi', time, midiOffset, midi)
     } else {
       // find the two 'on' notes surrounding this 'off' note
@@ -268,8 +268,8 @@ console.log ('sequences initialized', this.#beatSequence, this.#noteSequence);
       const lastOffset: number = last - normalizedOctaveOffset;
       // set the midi to the closest 'on' note, favoring the lower one
       if (firstOffset <= lastOffset)
-        midi = this.noteM.Center + octave * 12 + first;
-      else midi = this.noteM.Center + octave * 12 + last;
+        midi = this.noteM.center + octave * 12 + first;
+      else midi = this.noteM.center + octave * 12 + last;
       console.log('note is off time, first, last, midioffset,  midi', time, first, last, midiOffset,midi);
     }
 
@@ -288,31 +288,19 @@ console.log ('sequences initialized', this.#beatSequence, this.#noteSequence);
       returnElem.setAttribute("measureLength", this.measureLength.toString());
       returnElem.setAttribute("beatCount", this.beatCount.toString());
       returnElem.setAttribute("noteCount", this.noteCount.toString());
-      returnElem.appendChild(addModulationAttributes("noteM", this.noteM));
-      returnElem.appendChild(addModulationAttributes("speedM", this.speedM));
-      returnElem.appendChild(addModulationAttributes("volumeM", this.volumeM));
-      returnElem.appendChild(addModulationAttributes("panM", this.panM));
+      returnElem.appendChild(addModulationAttributes(doc, "noteM", this.noteM));
+      returnElem.appendChild(addModulationAttributes(doc, "speedM", this.speedM));
+      returnElem.appendChild(addModulationAttributes(doc,"volumeM", this.volumeM));
+      returnElem.appendChild(addModulationAttributes(doc, "panM", this.panM));
       return Promise.resolve(returnElem);
     } catch (e: any) {
       return Promise.reject(e);
-    }
-
-    function addModulationAttributes(
-      name: string,
-      attributes: ModulationType
-    ): Element {
-      const aElement: Element = doc.createElement(name);
-      aElement.setAttribute("Type", attributes.Type);
-      aElement.setAttribute("Center", attributes.Center.toString());
-      aElement.setAttribute("Frequency", attributes.Frequency.toString());
-      aElement.setAttribute("Amplitude", attributes.Amplitude.toString());
-      aElement.setAttribute("Phase", attributes.Phase.toString());
-      return aElement;
     }
   }
 
   static override async getXML(
     elem: Element,
+    _version: string,
     soundFont: SoundFont2 | null
   ): Promise<Euclidean> {
     try {
@@ -344,41 +332,6 @@ console.log ('sequences initialized', this.#beatSequence, this.#noteSequence);
       g.volumeM = getModulationAttributes(elem, "volumeM");
       g.panM = getModulationAttributes(elem, "panM");
       return Promise.resolve(g);
-      function getModulationAttributes(
-        elem: Element,
-        name: string
-      ): ModulationType {
-        const attrElem: Element = getElementElement(elem, name);
-        const result: ModulationType = {
-          Type: MODULATOR.SINE,
-          Center: 0,
-          Frequency: 0,
-          Amplitude: 0,
-          Phase: 0,
-        };
-        result.Type = getAttributeValue(
-          attrElem,
-          "Type",
-          "string"
-        ) as MODULATOR;
-        result.Center = getAttributeValue(
-          attrElem,
-          "Center",
-          "float"
-        ) as number;
-        result.Frequency = getAttributeValue(
-          attrElem,
-          "Frequency",
-          "float"
-        ) as number;
-        result.Amplitude = getAttributeValue(
-          attrElem,
-          "Amplitude",
-          "float"
-        ) as number;
-        result.Phase = getAttributeValue(attrElem, "Phase", "float") as number;
-        return result;
-      }
     } catch (e) {
       return Promise.reject(e);
     }

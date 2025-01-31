@@ -95,7 +95,7 @@ export default function WienerDialog(props: WienerDialogProps): JSX.Element {
         />
         <WienerInput
           name={"pan"}
-          units={""}
+          units={"(-1 to +1)"}
           parameters={formData.pan}
           min={-1}
           max={1}
@@ -174,6 +174,8 @@ function WienerInput(props: WienerInputProps) {
           name={name.concat(".sigma")}
           size={INPUTSIZE}
           type="number"
+          min={0}
+          max={10000}
           step={step}
           onChange={handleChange}
           value={parameters.sigma}

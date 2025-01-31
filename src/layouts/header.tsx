@@ -14,10 +14,15 @@ export interface HeaderProps {
 
 export default function Header(props: HeaderProps) {
   const { appName, appVersion } = props;
-  const { fileName, fileContents, setFileContents } = useCMGContext();
+  const { screenWidth, fileName, fileContents, setFileContents } = useCMGContext();
   const [isDirty, setIsDirty] = useState("");
   const [comment, setComment] = useState<string>("");
   const [commentModal, setCommentModal] = useState<boolean>(false);
+  const [width, setWidth] = useState<number>(screenWidth);
+  useEffect(() => {
+    setWidth(screenWidth);
+  }, [screenWidth]);
+
   useEffect(() => {
     setIsDirty(fileContents.dirty ? "*" : "");
     setComment(fileContents.comment);
@@ -39,7 +44,7 @@ export default function Header(props: HeaderProps) {
   }
   return (
     <>
-      <div className="page-header">
+      <div className="page-header" style={{width:width}}>;
         <div className="page-grid">
           <div className="page-icon">
             <img

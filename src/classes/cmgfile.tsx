@@ -84,8 +84,8 @@ export default class CMGFile {
     } catch {
       this.version = '1';
     }
-    this.compressor.getXML(fcElem);
-    this.equalizer.getXML(fcElem);
-    this.volume.getXML(fcElem);
+    this.compressor.getXML(fcElem, this.version);
+    this.equalizer.getXML(fcElem, this.version);
+    this.volume.getXML(fcElem, this.version);
   }
 }

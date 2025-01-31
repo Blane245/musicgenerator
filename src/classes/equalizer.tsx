@@ -82,7 +82,7 @@ export default class Equalizer {
     return n;
   }
 
-  getXML(fcElem: Element): void {
+  getXML(fcElem: Element, _version: string): void {
     try {
       const eElement: Element = getElementElement(fcElem, "equalizer");
       for (let i = 0; i < BANDCOUNT; i++) {

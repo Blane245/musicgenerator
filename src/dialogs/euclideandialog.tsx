@@ -88,7 +88,7 @@ export default function EudlideanDialog(
         <span>&nbsp;(beats)</span>
       </label>
       <label>
-      &nbsp;Scale Notes:&nbsp;
+        &nbsp;Scale Notes:&nbsp;
         <input
           name="noteCount"
           type="number"
@@ -109,31 +109,31 @@ export default function EudlideanDialog(
         <div>Phase</div>
         <ModulationAttributeBox
           title={"Note"}
-          name={"noteM."}
-          type={formData.noteM.Type.toString()}
+          name={"noteM"}
+          type={formData.noteM.type.toString()}
           center={{
-            value: formData.noteM.Center,
+            value: formData.noteM.center,
             lo: 0,
             hi: 127,
             step: 1,
-            suffix: toNote(formData.noteM.Center).concat(" (midi)"),
+            suffix: toNote(formData.noteM.center).concat(" (midi)"),
           }}
           frequency={{
-            value: formData.noteM.Frequency,
+            value: formData.noteM.frequency,
             lo: 0,
             hi: 1000000,
             step: 1,
             suffix: "(mHz)",
           }}
           amplitude={{
-            value: formData.noteM.Amplitude,
+            value: formData.noteM.amplitude,
             lo: 0,
             hi: 127,
             step: 1,
             suffix: "(midi)",
           }}
           phase={{
-            value: formData.noteM.Phase,
+            value: formData.noteM.phase,
             lo: -360,
             hi: 360,
             step: 1,
@@ -143,31 +143,31 @@ export default function EudlideanDialog(
         />
         <ModulationAttributeBox
           title={"Speed"}
-          name={"speedM."}
-          type={formData.speedM.Type.toString()}
+          name={"speedM"}
+          type={formData.speedM.type.toString()}
           center={{
-            value: formData.speedM.Center,
+            value: formData.speedM.center,
             lo: 1,
             hi: 500,
             step: 1,
             suffix: "(BPM)",
           }}
           frequency={{
-            value: formData.speedM.Frequency,
+            value: formData.speedM.frequency,
             lo: 0,
             hi: 1000000,
             step: 1,
             suffix: "(mHz)",
           }}
           amplitude={{
-            value: formData.speedM.Amplitude,
+            value: formData.speedM.amplitude,
             lo: 0,
             hi: 1000,
             step: 1,
             suffix: "(BPM)",
           }}
           phase={{
-            value: formData.speedM.Phase,
+            value: formData.speedM.phase,
             lo: -360,
             hi: 360,
             step: 1,
@@ -177,31 +177,31 @@ export default function EudlideanDialog(
         />
         <ModulationAttributeBox
           title={"Volume"}
-          name={"volumeM."}
-          type={formData.volumeM.Type.toString()}
+          name={"volumeM"}
+          type={formData.volumeM.type.toString()}
           center={{
-            value: formData.volumeM.Center,
+            value: formData.volumeM.center,
             lo: -20,
             hi: 20,
             step: 1,
             suffix: "(-20 to +20 dB)",
           }}
           frequency={{
-            value: formData.volumeM.Frequency,
+            value: formData.volumeM.frequency,
             lo: 0,
             hi: 1000000,
             step: 1,
             suffix: "(mHz)",
           }}
           amplitude={{
-            value: formData.volumeM.Amplitude,
+            value: formData.volumeM.amplitude,
             lo: 0,
             hi: 40,
             step: 1,
             suffix: "(0 - 20 dB)",
           }}
           phase={{
-            value: formData.volumeM.Phase,
+            value: formData.volumeM.phase,
             lo: -360,
             hi: 360,
             step: 1,
@@ -211,31 +211,31 @@ export default function EudlideanDialog(
         />
         <ModulationAttributeBox
           title={"Pan"}
-          name={"panM."}
-          type={formData.panM.Type.toString()}
+          name={"panM"}
+          type={formData.panM.type.toString()}
           center={{
-            value: formData.panM.Center,
+            value: formData.panM.center,
             lo: -1,
             hi: +1,
             step: 0.1,
             suffix: "(-1 to +1)",
           }}
           frequency={{
-            value: formData.panM.Frequency,
+            value: formData.panM.frequency,
             lo: 0,
             hi: 1000000,
             step: 1,
             suffix: "(mHz)",
           }}
           amplitude={{
-            value: formData.panM.Amplitude,
+            value: formData.panM.amplitude,
             lo: 0,
             hi: 2,
-            step: .1,
+            step: 0.1,
             suffix: "(0 - 1)",
           }}
           phase={{
-            value: formData.panM.Phase,
+            value: formData.panM.phase,
             lo: -360,
             hi: 360,
             step: 1,

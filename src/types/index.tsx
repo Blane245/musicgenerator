@@ -135,11 +135,11 @@ export const TimeLineScales: TimeLineScale[] = [
 ];
 
 export type ModulationType = {
-  Type: MODULATOR;
-  Center: number;
-  Frequency: number; // mHz
-  Amplitude: number;
-  Phase: number;
+  type: MODULATOR;
+  center: number;
+  frequency: number; // mHz
+  amplitude: number;
+  phase: number;
 };
 
 export type ModulationAttributeData = {

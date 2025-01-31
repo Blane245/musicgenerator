@@ -1,6 +1,7 @@
 import { ChangeEvent } from "react";
 import Noise from "../classes/noise";
-import { MODULATOR, NOISETYPE } from "../types";
+import { NOISETYPE } from "../types";
+import ModulationAttributeBox from "./modulationattributebox";
 
 // provides the form fields and validators for the noise generator
 export interface NoiseProps {
@@ -105,120 +106,82 @@ export default function NoiseDialog(props: NoiseProps): JSX.Element {
         <span> (s)</span>
       </label>
       <hr />
-      <label htmlFor="VMType"> VMType:</label>
-      <select name="VMType" onChange={handleChange} value={formData.VMType}>
-        {Object.keys(MODULATOR).map((t) => {
-          if (!parseInt(t) && t != "0")
-            return (
-              <option key={`NoiseVMType-${t}`} value={t}>
-                {t}
-              </option>
-            );
-        })}
-      </select>
-      <label htmlFor="VMCenter"> VMCenter:</label>
-      <input
-        name="VMCenter"
-        type="number"
-        min={-20}
-        max={20}
-        step={.1}
-        onChange={handleChange}
-        value={formData.VMCenter}
-      />
-      <span> (-20 to +20dB) </span>
-      <label htmlFor="VMAmplitude"> VMAmplitude:</label>
-      <input
-        name="VMAmplitude"
-        type="number"
-        min={0}
-        max={10}
-        step={1}
-        onChange={handleChange}
-        value={formData.VMAmplitude}
-      />
-      <span> (0-10dB) </span>
-      <label htmlFor="VMFrequency"> VMFrequency:</label>
-      <input
-        name="VMFrequency"
-        size={INPUTSIZE}
-        type="number"
-        min={0}
-        max={20000}
-        onChange={handleChange}
-        value={formData.VMFrequency}
-      />
-      <span> (mHz) </span>
-      <label htmlFor="VMPhase"> VMPhase:</label>
-      <input
-        name="VMPhase"
-        type="number"
-        min={-360}
-        max={360}
-        step={1}
-        onChange={handleChange}
-        value={formData.VMPhase}
-      />
-      <span> (degrees) </span>
-      <hr />
-      <label htmlFor="PMType"> PMType:</label>
-      <select name="PMType" onChange={handleChange} value={formData.PMType}>
-        {Object.keys(MODULATOR).map((t) => {
-          if (!parseInt(t) && t != "0")
-            return (
-              <option key={`NoisePMType-${t}`} value={t}>
-                {t}
-              </option>
-            );
-        })}
-      </select>
-      <label htmlFor="PMCenter"> PMCenter:</label>
-      <input
-        name="PMCenter"
-        type="number"
-        size={INPUTSIZE}
-        onChange={handleChange}
-        value={formData.PMCenter}
-        min={-1.0}
-        max={1.0}
-        step={0.1}
-      />
-      <span> (-1 to +1) </span>
-      <label htmlFor="PMAmplitude"> PMAmplitude:</label>
-      <input
-        name="PMAmplitude"
-        type="number"
-        size={INPUTSIZE}
-        onChange={handleChange}
-        value={formData.PMAmplitude}
-        min={0}
-        max={1.0}
-        step={0.1}
-      />
-      <span> (0 to 1) </span>
-      <label htmlFor="PMFrequency"> PMFrequency:</label>
-      <input
-        name="PMFrequency"
-        type="number"
-        min={0}
-        max={20000}
-        size={INPUTSIZE}
-        onChange={handleChange}
-        value={formData.PMFrequency}
-      />
-      <span> (mHz) </span>
-      <label htmlFor="PMPhase">PMPhase:</label>
-      <input
-        name="PMPhase"
-        type="number"
-        min={-360}
-        max={360}
-        step={1}
-        onChange={handleChange}
-        size={INPUTSIZE}
-        value={formData.PMPhase}
-      />
-      <span> (degrees)</span>
+      <div className="modulation-table">
+        <div>Name</div>
+        <div>Type</div>
+        <div>Center</div>
+        <div>Frequency</div>
+        <div>Amplitude</div>
+        <div>Phase</div>
+        <ModulationAttributeBox
+          title={"Volume"}
+          name={"volumeM"}
+          type={formData.volumeM.type.toString()}
+          center={{
+            value: formData.volumeM.center,
+            lo: -20,
+            hi: 20,
+            step: 1,
+            suffix: "(-20 to +20 dB)",
+          }}
+          frequency={{
+            value: formData.volumeM.frequency,
+            lo: 0,
+            hi: 1000000,
+            step: 1,
+            suffix: "(mHz)",
+          }}
+          amplitude={{
+            value: formData.volumeM.amplitude,
+            lo: 0,
+            hi: 40,
+            step: 1,
+            suffix: "(0 - 20 dB)",
+          }}
+          phase={{
+            value: formData.volumeM.phase,
+            lo: -360,
+            hi: 360,
+            step: 1,
+            suffix: "(degrees)",
+          }}
+          handleChange={handleChange}
+        />
+        <ModulationAttributeBox
+          title={"Pan"}
+          name={"panM"}
+          type={formData.panM.type.toString()}
+          center={{
+            value: formData.panM.center,
+            lo: -1,
+            hi: +1,
+            step: 0.1,
+            suffix: "(-1 to +1)",
+          }}
+          frequency={{
+            value: formData.panM.frequency,
+            lo: 0,
+            hi: 1000000,
+            step: 1,
+            suffix: "(mHz)",
+          }}
+          amplitude={{
+            value: formData.panM.amplitude,
+            lo: 0,
+            hi: 2,
+            step: 0.1,
+            suffix: "(0 - 1)",
+          }}
+          phase={{
+            value: formData.panM.phase,
+            lo: -360,
+            hi: 360,
+            step: 1,
+            suffix: "(degrees)",
+          }}
+          handleChange={handleChange}
+        />
+      </div>
     </>
   );
 }

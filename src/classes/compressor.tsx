@@ -72,7 +72,7 @@ export default class Compressor {
     return n;
   }
 
-  getXML(fcElem: Element): void {
+  getXML(fcElem: Element, _version: string): void {
     try {
       const cElem: Element = getElementElement(fcElem, "compressor");
       this.name = getAttributeValue(cElem, "name", "float") as string;

@@ -19,6 +19,14 @@ import { CMGeneratorType, TimelineInterval } from "./types";
 
 // the elements of this application that are used at many levels
 interface CMGContextType {
+  screenHeight: number;
+  setScreenHeight: Dispatch<SetStateAction<number>>;
+  screenWidth: number;
+  setScreenWidth: Dispatch<SetStateAction<number>>;
+  bodyHeight: number;
+  setBodyHeight: Dispatch<SetStateAction<number>>;
+  verticalScrollWidth: number;
+  setVerticalScrollWidth: Dispatch<SetStateAction<number>>;
   fileName: string;
   setFileName: Dispatch<SetStateAction<string>>;
   fileContents: CMGFile;
@@ -43,6 +51,10 @@ interface CMGContextType {
 const CMGContext = createContext<CMGContextType | undefined>(undefined);
 
 export const CMGProvider = ({ children }: { children: ReactNode }) => {
+  const [screenHeight, setScreenHeight] = useState<number>(0);
+  const [screenWidth, setScreenWidth] = useState<number>(0);
+  const [bodyHeight, setBodyHeight] = useState<number>(0);
+  const [verticalScrollWidth, setVerticalScrollWidth] = useState<number>(0);
   const [fileContents, setFileContents] = useState<CMGFile>(new CMGFile());
   const [status, setStatus] = useState<string>("");
   const [timeLine, setTimeLine] = useState<TimeLine>(new TimeLine(0, 0));
@@ -60,6 +72,14 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     []
   );
   const contextValue = {
+    screenHeight,
+    setScreenHeight,
+    screenWidth,
+    setScreenWidth,
+    bodyHeight,
+    setBodyHeight,
+    verticalScrollWidth,
+    setVerticalScrollWidth,
     fileName,
     setFileName,
     fileContents,

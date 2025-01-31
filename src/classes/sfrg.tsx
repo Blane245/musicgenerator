@@ -423,7 +423,7 @@ export default class SFRG extends CMG {
     }
   }
 
-  static override async getXML(elem: Element, soundFont: SoundFont2 | null): Promise<SFRG> {
+  static override async getXML(elem: Element, _version: string, soundFont: SoundFont2 | null): Promise<SFRG> {
     try {
       const g: SFRG = new SFRG(0);
       g.name = getAttributeValue(elem, "name", "string") as string;

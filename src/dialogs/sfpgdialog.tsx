@@ -1,8 +1,7 @@
 import { ChangeEvent } from "react";
 import SFPG from "../classes/sfpg";
 import { useCMGContext } from "../cmgcontext";
-import { bankPresettoName, toNote } from "../sfcomponents/util";
-import { MODULATOR } from "../types";
+import { bankPresettoName } from "../sfcomponents/util";
 import ModulationAttributeBox from "./modulationattributebox";
 
 // provides the form fields and validators for the sfperiodic generator
@@ -12,8 +11,6 @@ export interface SFPGDialogProps {
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
 }
-const INPUTSIZE: number = 6;
-
 export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
   const { formData, handleChange } = props;
   const { presets } = useCMGContext();
@@ -50,18 +47,6 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
           onChange={handleChange}
         />
       </label>
-      <label htmlFor="midi"> Midi Number:</label>
-      <input
-        name="midi"
-        size={INPUTSIZE}
-        type="number"
-        min={0}
-        max={127}
-        step={1}
-        onChange={handleChange}
-        value={formData.midi}
-      />
-      <span> {formData.midi > 0 ? toNote(formData.midi) : null}</span>
       <hr />
       <label>
         &nbsp;Interval:&nbsp;
@@ -78,34 +63,40 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
       </label>
       <hr />
       <div className="modulation-table">
-      <div >Name</div>
-      <div >Type</div>
-      <div >Center</div>
-        <div >Frequency</div>
-        <div >Amplitude</div>
-        <div >Phase</div>
+        <div>Name</div>
+        <div>Type</div>
+        <div>Center</div>
+        <div>Frequency</div>
+        <div>Amplitude</div>
+        <div>Phase</div>
 
         <ModulationAttributeBox
           title={"Tone"}
-          name={"FM"}
-          type={formData.FMType}
-          center={null}
+          name={"noteM"}
+          type={formData.noteM.type}
+          center={{
+            value: formData.noteM.center,
+            lo: 0,
+            hi: 127,
+            step: 1,
+            suffix: "(midi)",
+          }}
           frequency={{
-            value: formData.FMFrequency,
+            value: formData.noteM.frequency,
             lo: 0,
             hi: 1000000,
             step: 1,
             suffix: "(mHz)",
           }}
           amplitude={{
-            value: formData.FMAmplitude,
+            value: formData.noteM.amplitude,
             lo: 0,
             hi: 127,
             step: 1,
             suffix: "(midi)",
           }}
           phase={{
-            value: formData.FMPhase,
+            value: formData.noteM.phase,
             lo: -360,
             hi: 360,
             step: 1,
@@ -115,31 +106,31 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
         />
         <ModulationAttributeBox
           title={"Volume"}
-          name={"VM"}
-          type={formData.VMType}
+          name={"volumeM"}
+          type={formData.volumeM.type}
           center={{
-            value: formData.VMCenter,
+            value: formData.volumeM.center,
             lo: -20,
             hi: 20,
             step: 0.1,
             suffix: "(-20 to +20dB)",
           }}
           frequency={{
-            value: formData.VMFrequency,
+            value: formData.volumeM.frequency,
             lo: 0,
             hi: 1000000,
             step: 1,
             suffix: "(mHz)",
           }}
           amplitude={{
-            value: formData.VMAmplitude,
+            value: formData.volumeM.amplitude,
             lo: 0,
             hi: 10,
-            step: .1,
+            step: 0.1,
             suffix: "(0-10dB)",
           }}
           phase={{
-            value: formData.VMPhase,
+            value: formData.volumeM.phase,
             lo: -360,
             hi: 360,
             step: 1,
@@ -149,31 +140,31 @@ export default function SFPGDialog(props: SFPGDialogProps): JSX.Element {
         />
         <ModulationAttributeBox
           title={"Pan"}
-          name={"PM"}
-          type={formData.PMType}
+          name={"panM"}
+          type={formData.panM.type}
           center={{
-            value: formData.PMCenter,
+            value: formData.panM.center,
             lo: -1,
             hi: 1,
             step: 0.1,
             suffix: "(-1 to +1)",
           }}
           frequency={{
-            value: formData.PMFrequency,
+            value: formData.panM.frequency,
             lo: 0,
             hi: 1000000,
             step: 1,
             suffix: "(mHz)",
           }}
           amplitude={{
-            value: formData.PMAmplitude,
+            value: formData.panM.amplitude,
             lo: 0,
             hi: 1,
             step: 0.1,
             suffix: "(0-1)",
           }}
           phase={{
-            value: formData.PMPhase,
+            value: formData.panM.phase,
             lo: -360,
             hi: 360,
             step: 1,

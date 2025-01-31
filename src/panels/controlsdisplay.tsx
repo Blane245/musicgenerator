@@ -2,7 +2,13 @@
 // includes the soundfont file selector, record button, record format selector
 // preview button, stop button
 // timeline controls and timeline
-import { ChangeEvent, useEffect, useState } from "react";
+import {
+  ChangeEvent,
+  MutableRefObject,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { SoundFont2 } from "soundfont2";
 import Euclidean from "../classes/euclidean";
 import SFPG from "../classes/sfpg";
@@ -18,6 +24,7 @@ import { modifyGenerator, setSoundFont } from "../utils/cmfiletransactions";
 import fetchData from "../utils/fetchdata";
 import { loadSoundFont } from "../utils/loadsoundfont";
 import TimeLineDisplay from "./timelinedisplay";
+import TimeLineControlsDisplay from "./timelinecontrolsdisplay";
 
 export default function ControlsDisplay() {
   const { fileContents, setFileContents, setStatus, playing } = useCMGContext();
@@ -31,6 +38,9 @@ export default function ControlsDisplay() {
   const [recordHandle, setRecordHandle] = useState<FileSystemFileHandle | null>(
     null
   );
+  const timeLineRef: MutableRefObject<HTMLDivElement[]> = useRef<
+    HTMLDivElement[]
+  >([]);
 
   // load the soundfont file list from the server at start up
   useEffect(() => {
@@ -76,35 +86,29 @@ export default function ControlsDisplay() {
           if (
             g.type == GENERATORTYPE.SFPG &&
             (g as SFPG).presetName != "" &&
-            (g as SFPG).preset &&
-            (g as SFPG).midi >= 0 &&
-            (g as SFPG).midi <= 127
+            (g as SFPG).preset
           ) {
             goodGeneratorCount++;
           } else if (
             g.type == GENERATORTYPE.SFRG &&
             (g as SFRG).presetName != "" &&
-            (g as SFRG).preset &&
-            (g as SFRG).midiT.startValue >= 0 &&
-            (g as SFRG).midiT.startValue <= 127
+            (g as SFRG).preset
           ) {
             goodGeneratorCount++;
           } else if (g.type == GENERATORTYPE.Noise) {
             goodGeneratorCount++;
           } else if (g.type == GENERATORTYPE.AudioFile) {
             goodGeneratorCount++;
-          } else if (g.type == GENERATORTYPE.Wiener&&
+          } else if (
+            g.type == GENERATORTYPE.Wiener &&
             (g as Wiener).presetName != "" &&
-            (g as Wiener).preset &&
-            (g as Wiener).pitch.initialValue >= 0 &&
-            (g as Wiener).pitch.initialValue <= 127) {
+            (g as Wiener).preset
+          ) {
             goodGeneratorCount++;
           } else if (
             g.type == GENERATORTYPE.Euclidean &&
             (g as Euclidean).presetName != "" &&
-            (g as Euclidean).preset &&
-            (g as Euclidean).noteM.Center >= 0 &&
-            (g as Euclidean).noteM.Center <=127
+            (g as Euclidean).preset
           ) {
             goodGeneratorCount++;
           }
@@ -206,7 +210,16 @@ export default function ControlsDisplay() {
         </button>
       </div>
 
-      <TimeLineDisplay />
+      <TimeLineControlsDisplay />
+      <div
+      className='page-time-timeline'
+        ref={(el: HTMLDivElement) => {
+          timeLineRef.current[0] = el;
+          return el;
+        }}
+      >
+        <TimeLineDisplay timeLineRef={timeLineRef} />
+      </div>
       <Generate
         mode={mode}
         setMode={setMode}

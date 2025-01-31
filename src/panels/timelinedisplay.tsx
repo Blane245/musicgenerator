@@ -2,13 +2,13 @@
 // zoom level
 // handle time line interval editing
 import numeral from "numeral";
-import { MouseEvent, useEffect, useRef, useState } from "react";
 import {
-  CiCircleChevLeft,
-  CiCircleChevRight,
-  CiZoomIn,
-  CiZoomOut,
-} from "react-icons/ci";
+  forwardRef,
+  MouseEvent,
+  MutableRefObject,
+  useEffect,
+  useState,
+} from "react";
 import TimeLine from "../classes/timeline";
 import { useCMGContext } from "../cmgcontext";
 import { precision } from "../sfcomponents/util";
@@ -19,10 +19,15 @@ import {
   TimeLineScales,
 } from "../types";
 import setCursor from "../utils/setcursor";
-
+type TimeLineDisplayProps = {
+  timeLineRef: MutableRefObject<Element[]>;
+};
 // render the timeline and control the timeline interval
-export default function TimeLineDisplay() {
+// thanx for AWolf's option 2 answer to https://stackoverflow.com/questions/58222004/how-to-get-parent-width-height-in-react-using-hooks
+const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
+  const { timeLineRef } = props;
   const {
+    verticalScrollWidth,
     timeLine,
     setTimeLine,
     setTimeInterval,
@@ -31,7 +36,7 @@ export default function TimeLineDisplay() {
     mouseDown,
     setMouseDown,
   } = useCMGContext();
-  const timeLineRef = useRef<HTMLDivElement>(null);
+  // const timeLineRef = useRef<HTMLDivElement>(null);
   const [ticks, setTicks] = useState<{
     majorTickCount: number;
     scaleExtent: number;
@@ -62,15 +67,31 @@ export default function TimeLineDisplay() {
   const [type, setType] = useState<string>("");
 
   // create the timeline object when the time line starts up
-  useEffect(() => {
-    if (timeLineRef && timeLineRef.current) {
-      const width: number = timeLineRef.current.clientWidth;
-      const height: number = timeLineRef.current.clientHeight;
-      const newT = new TimeLine(width, height);
-      setTimeLine(newT);
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (timeLineRef && timeLineRef.current) {
+  //     const width: number = timeLineRef.current.clientWidth;
+  //     const height: number = timeLineRef.current.clientHeight;
+  //     const newT:TimeLine = new TimeLine(width, height);
+  //     setTimeLine(newT);
+  //   }
+  // }, []);
 
+  useEffect(() => {
+    const resizeObserver: ResizeObserver = new ResizeObserver(
+      (event: ResizeObserverEntry[]) => {
+        const width = Math.max(
+          event[0].contentBoxSize[0].inlineSize - verticalScrollWidth,
+          0
+        );
+        const height = event[0].contentBoxSize[0].blockSize;
+        const n: TimeLine = new TimeLine(width, height);
+        setTimeLine(n);
+      }
+    );
+    if (timeLineRef && timeLineRef.current && timeLineRef.current.length > 0) {
+      resizeObserver.observe(timeLineRef.current[0]);
+    }
+  }, [timeLineRef]);
   // update the playback tick and time line start time when the time progress changes
   useEffect(() => {
     if (timeProgress >= 0 && ticks.scaleExtent > 0) {
@@ -130,18 +151,27 @@ export default function TimeLineDisplay() {
           const newInterval: TimelineInterval = { ...prev };
           const tStart: number = timeLine.startTime;
           const tStop: number = tStart + timeLine.timeLineScale.extent;
-          newInterval.startOffset = Math.min(Math.max(
-            (timeLine.width * (prev.startTime - tStart)) / (tStop - tStart),
-            0
-          ), timeLine.width);
-          newInterval.endOffset = Math.max(Math.min(
-            (timeLine.width * (prev.endTime - tStart)) / (tStop - tStart),
+          newInterval.startOffset = Math.min(
+            Math.max(
+              (timeLine.width * (prev.startTime - tStart)) / (tStop - tStart),
+              0
+            ),
             timeLine.width
-          ), 0);
+          );
+          newInterval.endOffset = Math.max(
+            Math.min(
+              (timeLine.width * (prev.endTime - tStart)) / (tStop - tStart),
+              timeLine.width
+            ),
+            0
+          );
 
           // broadcast change
           setTimeInterval(newInterval);
-          console.log('new timeline interval after timeline change', newInterval);
+          console.log(
+            "new timeline interval after timeline change",
+            newInterval
+          );
           return newInterval;
         } else return prev;
       });
@@ -208,41 +238,6 @@ export default function TimeLineDisplay() {
     }
     return result;
   }
-
-  const handleZoomIn = (): void => {
-    setTimeLine((c: TimeLine) => {
-      const n: TimeLine = c.copy();
-      n.zoomIn();
-      return n;
-    });
-  };
-  const handleZoomOut = (): void => {
-    setTimeLine((c: TimeLine) => {
-      const n: TimeLine = c.copy();
-      n.zoomOut();
-      return n;
-    });
-  };
-
-  // shift time line start left 1/2 of the extent of the current zoom level
-  const handleShiftLeft = (): void => {
-    setTimeLine((c: TimeLine) => {
-      if (c.startTime <= 0) return c;
-      const n = c.copy();
-      n.shiftLeft();
-      return n;
-    });
-  };
-
-  // shift time line start right 1/2 of the extent of the current zoom level
-  const handleShiftRight = (): void => {
-    setTimeLine((c: TimeLine) => {
-      const n = c.copy();
-      n.shiftRight();
-      return n;
-    });
-  };
-
   // the timeline, interval body, and edges have mousedown handlers
   // this will either initiate the definition of a new interval
   // or allow an existing interval to be changed
@@ -467,76 +462,44 @@ export default function TimeLineDisplay() {
 
   return (
     <>
-      <div className="page-time-control">
-        <fieldset disabled={playing.current} style={{ width: "inherit" }}>
-          <button
-            style={{ fontSize: "15px" }}
-            disabled={timeLine.currentZoomLevel == 0}
-            onClick={handleZoomIn}
-          >
-            <CiZoomIn />
-          </button>
-          <button
-            style={{ fontSize: "15px" }}
-            disabled={timeLine.currentZoomLevel == TimeLineScales.length - 1}
-            onClick={handleZoomOut}
-          >
-            <CiZoomOut />
-          </button>
-          <button
-            style={{ fontSize: "15px" }}
-            disabled={timeLine.startTime == 0}
-            onClick={handleShiftLeft}
-          >
-            <CiCircleChevLeft />
-          </button>
-          <button style={{ fontSize: "15px" }} onClick={handleShiftRight}>
-            <CiCircleChevRight />
-          </button>
-        </fieldset>
-      </div>
-      <div ref={timeLineRef} className="page-time-timeline">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={timeLine.width}
+        height={timeLine.height}
+        viewBox={`0 0 ${timeLine.width} ${timeLine.height}`}
+      >
+        <rect
+          className="timeline"
+          id="timeline"
+          x={0}
+          y={0}
           width={timeLine.width}
           height={timeLine.height}
-          viewBox={`0 0 ${timeLine.width} ${timeLine.height}`}
-        >
-          <rect
-            className="timeline"
-            id="timeline"
-            x={0}
-            y={0}
-            width={timeLine.width}
-            height={timeLine.height}
-            onMouseEnter={(e) => handleMouseEnter(e)}
-            onMouseLeave={(e) => handleMouseLeave(e)}
-            onMouseDown={(e) => handleMouseDown(e)}
-            onMouseMove={(e) => handleMouseMove(e)}
-          />
-          <path
-            stroke="black"
-            d={`m 0 ${timeLine.height} H ${timeLine.width}`}
-          />
-          {getTickLines(ticks.tickCount, ticks.tickHeight, ticks.tickSpacing)}
-          {getTickLabels(
-            ticks.majorTickCount,
-            ticks.labelSize,
-            ticks.labelSpacing,
-            ticks.scaleExtent,
-            ticks.labelFormat
-          )}
-          <line
-            stroke="red"
-            x1="0"
-            x2="0"
-            y1="0"
-            y2={timeLine.height}
-            id="playback-tick"
-          />
-          <DisplayInterval interval={interval} timeLine={timeLine} />
-        </svg>
-      </div>
+          onMouseEnter={(e) => handleMouseEnter(e)}
+          onMouseLeave={(e) => handleMouseLeave(e)}
+          onMouseDown={(e) => handleMouseDown(e)}
+          onMouseMove={(e) => handleMouseMove(e)}
+        />
+        <path stroke="black" d={`m 0 ${timeLine.height} H ${timeLine.width}`} />
+        {getTickLines(ticks.tickCount, ticks.tickHeight, ticks.tickSpacing)}
+        {getTickLabels(
+          ticks.majorTickCount,
+          ticks.labelSize,
+          ticks.labelSpacing,
+          ticks.scaleExtent,
+          ticks.labelFormat
+        )}
+        <line
+          stroke="red"
+          x1="0"
+          x2="0"
+          y1="0"
+          y2={timeLine.height}
+          id="playback-tick"
+        />
+        <DisplayInterval interval={interval} timeLine={timeLine} />
+      </svg>
     </>
   );
-}
+});
+export default TimeLineDisplay;

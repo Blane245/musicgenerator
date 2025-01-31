@@ -6,14 +6,19 @@
 // the daussian noise generator has a centeral frequency
 // with a standard deviation
 import {
-  sawtoothModulator,
-  sineModulator,
-  squareModulator,
-  triangleModulator,
-} from "../modulators/index";
-import { GENERATORTYPE, NOISETYPE, SAMPLERATE } from "../types";
+  GENERATORTYPE,
+  ModulationType,
+  MODULATOR,
+  ModulatorMap,
+  NOISETYPE,
+  SAMPLERATE,
+} from "../types";
 import { gaussianRandom } from "../utils/gaussianrandom";
-import { getAttributeValue } from "../utils/xmlfunctions";
+import {
+  addModulationAttributes,
+  getAttributeValue,
+  getModulationAttributes,
+} from "../utils/xmlfunctions";
 import CMG from "./cmg";
 
 export default class Noise extends CMG {
@@ -23,16 +28,8 @@ export default class Noise extends CMG {
   std: number; // gaussian signal level noise standard devision (amplitude)
   sampleRate: number;
   duration: number; // ms
-  VMType: string;
-  VMCenter: number; // 0 100
-  VMFrequency: number; // mHz
-  VMAmplitude: number; // -5, +5
-  VMPhase: number; // degrees
-  PMType: string;
-  PMCenter: number; // -1, +1
-  PMFrequency: number; // mHz
-  PMAmplitude: number; // 0 1 (center applied, center +- amplitude cannot be outside -1, 1)
-  PMPhase: number; // degrees
+  volumeM: ModulationType;
+  panM: ModulationType;
 
   constructor(next: number) {
     super(next);
@@ -43,16 +40,20 @@ export default class Noise extends CMG {
     this.std = 0;
     this.sampleRate = SAMPLERATE;
     this.duration = 0;
-    this.VMType = "SINE";
-    this.VMCenter = 0;
-    this.VMFrequency = 0;
-    this.VMAmplitude = 0;
-    this.VMPhase = 0;
-    this.PMType = "SINE";
-    this.PMFrequency = 0;
-    this.PMAmplitude = 0;
-    this.PMCenter = 0;
-    this.PMPhase = 0;
+    this.volumeM = {
+      type: MODULATOR.SINE,
+      center: 0,
+      frequency: 1000,
+      amplitude: 0,
+      phase: 0,
+    };
+    this.panM = {
+      type: MODULATOR.SINE,
+      center: 0,
+      frequency: 1000,
+      amplitude: 0,
+      phase: 0,
+    };
   }
 
   override copy(): Noise {
@@ -69,16 +70,8 @@ export default class Noise extends CMG {
     n.std = this.std;
     n.sampleRate = this.sampleRate;
     n.duration = this.duration;
-    n.VMCenter = this.VMCenter;
-    n.VMType = this.VMType;
-    n.VMAmplitude = this.VMAmplitude;
-    n.VMFrequency = this.VMFrequency;
-    n.VMPhase = this.VMPhase;
-    n.PMCenter = this.PMCenter;
-    n.PMType = this.PMType;
-    n.PMAmplitude = this.PMAmplitude;
-    n.PMFrequency = this.PMFrequency;
-    n.PMPhase = this.PMPhase;
+    n.volumeM = { ...this.volumeM };
+    n.panM = { ...this.panM };
     return n;
   }
 
@@ -106,35 +99,35 @@ export default class Noise extends CMG {
       case "duration":
         this.duration = parseFloat(value);
         break;
-      case "VMCenter":
-        this.VMCenter = parseFloat(value);
+      case "volumeM.type":
+        this.volumeM.type = MODULATOR[value];
         break;
-      case "VMType":
-        this.VMType = value;
+      case "volumeM.center":
+        this.volumeM.center = parseFloat(value);
         break;
-      case "VMAmplitude":
-        this.VMAmplitude = parseFloat(value);
+      case "volumeM.frequency":
+        this.volumeM.frequency = parseFloat(value);
         break;
-      case "VMFrequency":
-        this.VMFrequency = parseFloat(value);
+      case "volumeM.amplitude":
+        this.volumeM.amplitude = parseFloat(value);
         break;
-      case "VMPhase":
-        this.VMPhase = parseFloat(value);
+      case "volumeM.phase":
+        this.volumeM.phase = parseFloat(value);
         break;
-      case "PMCenter":
-        this.PMCenter = parseFloat(value);
+      case "panM.type":
+        this.panM.type = MODULATOR[value];
         break;
-      case "PMType":
-        this.PMType = value;
+      case "panM.center":
+        this.panM.center = parseFloat(value);
         break;
-      case "PMAmplitude":
-        this.PMAmplitude = parseFloat(value);
+      case "panM.frequency":
+        this.panM.frequency = parseFloat(value);
         break;
-      case "PMFrequency":
-        this.PMFrequency = parseFloat(value);
+      case "panM.amplitude":
+        this.panM.amplitude = parseFloat(value);
         break;
-      case "PMPhase":
-        this.PMPhase = parseFloat(value);
+      case "panM.phase":
+        this.panM.phase = parseFloat(value);
         break;
     }
   }
@@ -164,86 +157,27 @@ export default class Noise extends CMG {
         }
       }
     }
+    let volume: number = this.volumeM.center;
+    let pan: number = this.volumeM.center;
+    const volFunction = ModulatorMap.get(this.volumeM.type);
+    const panFunction = ModulatorMap.get(this.panM.type);
+    if (!volFunction || !panFunction) return { sample, volume, pan };
+    volume = volFunction(
+      time,
+      this.volumeM.center,
+      this.volumeM.frequency,
+      this.volumeM.amplitude,
+      this.volumeM.phase
+    );
+    pan = panFunction(
+      time,
+      this.panM.center,
+      this.panM.frequency,
+      this.panM.amplitude,
+      this.panM.phase
+    );
 
-    let volume: number = this.VMCenter;
-    switch (this.VMType) {
-      case "SINE":
-        volume = sineModulator(
-          time,
-          this.VMCenter,
-          this.VMFrequency,
-          this.VMAmplitude,
-          this.VMPhase
-        );
-        break;
-      case "SAWTOOTH":
-        volume = sawtoothModulator(
-          time,
-          this.VMCenter,
-          this.VMFrequency,
-          this.VMAmplitude,
-          this.VMPhase
-        );
-        break;
-      case "SQUARE":
-        volume = squareModulator(
-          time,
-          this.VMCenter,
-          this.VMFrequency,
-          this.VMAmplitude,
-          this.VMPhase
-        );
-        break;
-      case "TRIANGLE":
-        volume = triangleModulator(
-          time,
-          this.VMCenter,
-          this.VMFrequency,
-          this.VMAmplitude,
-          this.VMPhase
-        );
-        break;
-    }
-    let pan: number = this.PMCenter;
-    switch (this.PMType) {
-      case "SINE":
-        pan = sineModulator(
-          time,
-          this.PMCenter,
-          this.PMFrequency,
-          this.PMAmplitude,
-          this.PMPhase
-        );
-        break;
-      case "SAWTOOTH":
-        pan = sawtoothModulator(
-          time,
-          this.PMCenter,
-          this.PMFrequency,
-          this.PMAmplitude,
-          this.PMPhase
-        );
-        break;
-      case "SQUARE":
-        pan = squareModulator(
-          time,
-          this.PMCenter,
-          this.PMFrequency,
-          this.PMAmplitude,
-          this.PMPhase
-        );
-        break;
-      case "TRIANGLE":
-        pan = triangleModulator(
-          time,
-          this.PMCenter,
-          this.PMFrequency,
-          this.PMAmplitude,
-          this.PMPhase
-        );
-        break;
-    }
-    return { sample: sample, volume: volume, pan: pan };
+    return { sample, volume, pan };
   }
 
   override async appendXML(doc: XMLDocument, elem: Element): Promise<Element> {
@@ -257,23 +191,19 @@ export default class Noise extends CMG {
       returnElement.setAttribute("std", this.std.toString());
       returnElement.setAttribute("sampleRate", this.sampleRate.toString());
       returnElement.setAttribute("duration", this.duration.toString());
-      returnElement.setAttribute("VMType", this.VMType.toString());
-      returnElement.setAttribute("VMCenter", this.VMCenter.toString());
-      returnElement.setAttribute("VMFrequency", this.VMFrequency.toString());
-      returnElement.setAttribute("VMAmplitude", this.VMAmplitude.toString());
-      returnElement.setAttribute("VMPhase", this.VMPhase.toString());
-      returnElement.setAttribute("PMType", this.PMType.toString());
-      returnElement.setAttribute("PMCenter", this.PMCenter.toString());
-      returnElement.setAttribute("PMFrequency", this.PMFrequency.toString());
-      returnElement.setAttribute("PMAmplitude", this.PMAmplitude.toString());
-      returnElement.setAttribute("PMPhase", this.PMPhase.toString());
+      returnElement.appendChild(
+        addModulationAttributes(doc, "volumeM", this.volumeM)
+      );
+      returnElement.appendChild(
+        addModulationAttributes(doc, "panM", this.panM)
+      );
       return Promise.resolve(returnElement);
     } catch (e: any) {
       return Promise.reject(e);
     }
   }
 
-  static override async getXML(elem: Element): Promise<Noise> {
+  static override async getXML(elem: Element, version: string): Promise<Noise> {
     try {
       const g = new Noise(0);
       g.name = getAttributeValue(elem, "name", "string") as string;
@@ -289,16 +219,45 @@ export default class Noise extends CMG {
       g.std = getAttributeValue(elem, "std", "float") as number;
       g.sampleRate = getAttributeValue(elem, "sampleRate", "float") as number;
       g.duration = getAttributeValue(elem, "duration", "float") as number;
-      g.VMCenter = getAttributeValue(elem, "VMCenter", "float") as number;
-      g.VMType = getAttributeValue(elem, "VMType", "string") as string;
-      g.VMAmplitude = getAttributeValue(elem, "VMAmplitude", "float") as number;
-      g.VMFrequency = getAttributeValue(elem, "VMFrequency", "float") as number;
-      g.VMPhase = getAttributeValue(elem, "VMPhase", "float") as number;
-      g.PMCenter = getAttributeValue(elem, "PMCenter", "float") as number;
-      g.PMType = getAttributeValue(elem, "PMType", "string") as string;
-      g.PMAmplitude = getAttributeValue(elem, "PMAmplitude", "float") as number;
-      g.PMFrequency = getAttributeValue(elem, "PMFrequency", "float") as number;
-      g.PMPhase = getAttributeValue(elem, "PMPhase", "float") as number;
+      if (version < "2") {
+        g.volumeM.center = getAttributeValue(
+          elem,
+          "VMCenter",
+          "float"
+        ) as number;
+        g.volumeM.type = getAttributeValue(
+          elem,
+          "VMType",
+          "string"
+        ) as MODULATOR;
+        g.volumeM.amplitude = getAttributeValue(
+          elem,
+          "VMAmplitude",
+          "float"
+        ) as number;
+        g.volumeM.frequency = getAttributeValue(
+          elem,
+          "VMFrequency",
+          "float"
+        ) as number;
+        g.volumeM.phase = getAttributeValue(elem, "VMPhase", "float") as number;
+        g.panM.center = getAttributeValue(elem, "VMCenter", "float") as number;
+        g.panM.type = getAttributeValue(elem, "VMType", "string") as MODULATOR;
+        g.panM.amplitude = getAttributeValue(
+          elem,
+          "VMAmplitude",
+          "float"
+        ) as number;
+        g.panM.frequency = getAttributeValue(
+          elem,
+          "VMFrequency",
+          "float"
+        ) as number;
+        g.panM.phase = getAttributeValue(elem, "VMPhase", "float") as number;
+      } else {
+        g.volumeM = getModulationAttributes(elem, "volumeM");
+        g.panM = getModulationAttributes(elem, "panM");
+      }
       return Promise.resolve(g);
     } catch (e) {
       return Promise.reject(e);

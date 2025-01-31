@@ -70,7 +70,7 @@ export default class CMG {
     }
   }
 
-  static async getXML(elem: Element, _?: SoundFont2 | null): Promise<CMG> {
+  static async getXML(elem: Element, _version: string, _?: SoundFont2 | null): Promise<CMG> {
     try {
       const g: CMG = new CMG(0);
       g.name = getAttributeValue(elem, "name", "string") as string;

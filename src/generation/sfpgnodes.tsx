@@ -19,13 +19,13 @@ export function getBufferSourceNodesFromSFPG(gen: SFPG): RawSourceData[] {
     const time = i * duration;
 
     // get the current pitch, volume, and pan at this time
-    const { pitch, volume, pan } = gen.getCurrentValues(time);
+    const { midi, volume, pan } = gen.getCurrentValues(time);
 
     const connections: RawSourceData[] = getPresetNote(
       gen,
       preset,
       duration,
-      pitch,
+      midi,
       volume,
       pan,
       time + gen.startTime

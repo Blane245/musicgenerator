@@ -69,7 +69,7 @@ export default class Track {
     }
   }
 
-  async getXML(elem: Element, soundFont: SoundFont2 | null, version: string): Promise<Track> {
+  async getXML(elem: Element, _version: string, soundFont: SoundFont2 | null ): Promise<Track> {
     try {
       // load the base attributes of the track
       this.name = getAttributeValue(elem, "name", "string") as string;
@@ -86,20 +86,20 @@ export default class Track {
         switch (type) {
           case "CMG":
             {
-              const generatorPromise: Promise<CMG> = CMG.getXML(child, version);
+              const generatorPromise: Promise<CMG> = CMG.getXML(child, _version);
               generatorPromises.push(generatorPromise);
             }
             break;
           case "AudioFile":
             {
               const generatorPromise: Promise<AudioFile> =
-                AudioFile.getXML(child,version);
+                AudioFile.getXML(child, _version);
               generatorPromises.push(generatorPromise);
             }
             break;
           case "Noise":
             {
-              const generatorPromise: Promise<Noise> = Noise.getXML(child, version);
+              const generatorPromise: Promise<Noise> = Noise.getXML(child, _version);
               generatorPromises.push(generatorPromise);
             }
             break;
@@ -107,8 +107,8 @@ export default class Track {
             {
               const generatorPromise: Promise<SFPG> = SFPG.getXML(
                 child,
+                _version,
                 soundFont,
-                version
               );
               generatorPromises.push(generatorPromise);
             }
@@ -117,8 +117,8 @@ export default class Track {
             {
               const generatorPromise: Promise<SFRG> = SFRG.getXML(
                 child,
+                _version,
                 soundFont,
-                version
               );
               generatorPromises.push(generatorPromise);
             }
@@ -127,7 +127,8 @@ export default class Track {
             {
               const generatorPromise: Promise<Wiener> = Wiener.getXML(
                 child,
-                soundFont, version
+                _version,
+                soundFont, 
               );
               generatorPromises.push(generatorPromise);
             }
@@ -136,7 +137,8 @@ export default class Track {
             {
               const generatorPromise: Promise<Euclidean> = Euclidean.getXML(
                 child,
-                soundFont, version
+                _version,
+                soundFont, 
               );
               generatorPromises.push(generatorPromise);
             }

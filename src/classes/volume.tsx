@@ -37,7 +37,7 @@ export default class Volume {
     return n;
   }
 
-  getXML(fcElem: Element): void {
+  getXML(fcElem: Element, _version:string): void {
     try {
       this.volume = getAttributeValue(fcElem, "volume", "float") as number;
     } catch {
