@@ -27,9 +27,9 @@ margin-right: auto;
 - [Handling the Timeline](#HandlingtheTimeline)
   - [Timeline Interval](#TimelineInterval)
 - [Room Level Functions](#RoomLevelFunctions)
+  - [Room Volume](#RoomVolume)
   - [Room Compressor](#RoomCompressor)
   - [Room Equalizer](#RoomEqualizer)
-  - [Room Volume](#RoomVolume)
 - [Previewing and Recording](#PreviewingandRecording)
   - [Recording](#Recording)
   - [Previewing](#Previewing)
@@ -112,9 +112,11 @@ The control section displays the name of the track and provides several track le
 * **Delete**: A track may be deleted by clicking this button. A track delete confirmation screen is displayed requesting confirmation of the deletion. 
 
 >>![alt text](./images/ConfirmTrackDelete.png)
+
 * **Rename**: A track may be renamed as long as the new name is different from existing track names. 
 
 >>![alt text](./images/RenameTrack.png)
+
 >>The new name for the track must be different from all other existing tracks. If it is not, a message will be displayed at the bottom of the rename panel. The panel can be dismissed by clicking the <span style='color:lightblue'>x</span> at the upper left hand corner of the panel.</p>
 
 * **Solo**: A track may be soloed when previewing or recording. All tracks that are soloed are played together and others are ignored. A track is taken in and out of solo each time the button is clicked. The track solo setting is ignored when a timeline interval is active. See the Section on the [Timeline Interval](#timelineinterval) for more details.</p>
@@ -194,6 +196,12 @@ that is applied to the amplitude of the noise. Volume and pan values have center
 5. Audio File Generator (**AudioFile**).
 This is not really a generator as it will play a saved audio file rather tahn generate a new sound. The user specifies the start time of the playback and its volume. The entire audio file is then played from beginning to end. 
 
+6. Weiner Generator (**Weiner**).
+This generator uses a [Weiner Series](https://en.wikipedia.org/wiki/Wiener_series) to control the selection of soundfont note, speed, volume, and pan. Each parameter has starting value, trend, and dispersion parameters. The parameter can be bounded so that no how the Weiner series wander, the value will go outside of eh high and low limits 
+
+7. Euclidean Algorithm (**Euclidean**).
+This generator uses the [Euclidean Algorithm](https://en.wikipedia.org/wiki/Euclidean_algorithm) to select beat patterns (Euclidean rhythm) and the number notes from the 12-tone scale. Note, Speed, Volume and Pan values have center, amplitude, frequency, and phase values and have the same repetitive types as SFPG using the user-defined interval.
+
 <a id="TracksandGenerators"></a>
 ## Tracks and Generators
 
@@ -212,6 +220,7 @@ Generators are added by selecting the [**Add Generator**](#addgenerator) option 
 The placeholder generator, CMG, contains the name of the generator, its start and stop times. The type is CMG. When the type is changed, the add/edit panel changes to the selected type. 
 
 ![alt text](./images/CMGEdit.png)
+
 The figure shows the panel for adding a new generator. There is an **Add** Button. When a generator is modified, the title is the name of the generator and the button is displayed as **Modify**. Add and Modify functions may be canceled by clicking the ***x*** in the upper left-hand corner of the panel.
 
 The name of the generator must be unique within all generators in the file. When a new generator is created the default name is a 'G' followed by a unique number. 
@@ -223,8 +232,8 @@ If the name is not unique or the start and stop times are incorrect, and error m
 ### SFPG
 
 When the generator type is selected as SFPG, the Add/Edit panel for that type is displayed:
-
 ![alt text](./images/SFPGEdit.png)
+
 The fields are defined as follows along with their restrictions. 
 
 <a id="preset"></a>
@@ -260,6 +269,7 @@ The following fields are common to the SFPG and Noise generators. They affect th
 When the generator type is selected as SFPG, the Add/Edit panel for that type is displayed:
 
 ![alt text](./images/SFRGEdit.png)
+
 There are quite a number of fields on this panel:
 <a id='randomseed'></a>
 - **Random Seed:** The is a character string that is used to start the random number sequence for this generator. It defaults to the initial generator name, which is not a particularly good value and should be changed. Each of the SFRG and Noise generators have their own seed. These can be the same as another generator if it is desired to have the generator state transitions coupled. See [this](https://stackoverflow.com/questions/16801687/javascript-random-ordering-with-seed) for a good dicussion on generating random numbers.j
@@ -268,6 +278,7 @@ There are quite a number of fields on this panel:
 
 Many of the fields define state transition probabilities between the various states of the Markov Chains for the midi number, the speed, the volume, and the pan. At any time, each of the variables (midi number, speed, volume, and pan) have a specific value. When it is time to determine a new value, a transition from one state to the next is determined by drawing a random number and determining which transition is to be made. Each of the 9 transitions may have a different value but the sum of the three transitions out of a state and into another must sum up to one and each must be less than or equal to 1 and greater than or equal to 0. The figure below illustrates a example where a variable will never stay at the same value and will have a probably of 0.5 of going either up or down.
 ![alt text](./images/transitionexample.png)
+
 If it is desired that no change should be applied to a variable, then assigned a probably of 1 of a transition from any state to the **same** state should be 1 and other transition probabilities should be 0. These are the default values.
 
 All variables have three transition probabilities. What remains to describe are the starting values and ranges.
@@ -324,10 +335,24 @@ The rest of the fields for the Noise generator are the same as those for the SFP
 ## AudioFile
 
 The Audiofile generator has a volume setting and a button which allows the selection of a recording audio file. 
-- **Volume:** The is the volume at which the audio file will be played back. It must be between 0 and 10 with a step size of 1. The default value is 5.
+- **Volume:** This is the volume at which the audio file will be played back. It must be between 0 and 10 with a step size of 1. The default value is 5.
 - **Audio File:** All files are displayed and the one selected will be read. If it is not an valid audio file, at error message will be display and the file will not be loaded. The stop time an the information about the audio file (sample rate, duration, and number of channels) is not updated until the volume is changed or the next time the generator is viewed.
 
 ![alt text](./images/AudioFileGenerator.png)
+
+When the generator type is selected as Wierner, the Add/Edit panel for that type is displayed:
+## Weiner
+When the generator type is selected as Wierner, the Add/Edit panel for that type is displayed:
+![alt text](./images/WienerEdit.png)
+
+The parameters on this panel define how each of the attributes of pitch, speed, volume, and pan behave in time. The Wiener series is a 'random walk' from one point to the next. A Random number is used to select the dispersion at each time. Each parameter has an initial value, a trend, an dispersion, and lo and hi values. As the series evolves for each parameter, the values are kept between the hi and lo values. The trend is how fast the series rises or lowers from the initial value. 
+
+
+## Euclidean
+When the generator type is selected as Euclidean, the Add/Edit panel for that type is displayed:
+![alt text](./images/EuclideanEdit.png)
+
+The note, speed, volume, and pan parameters are the same as a SFPG generator. What is unique to this generator are the length of a measure, the number of notes heard in that measure, and the number of notes from the 12-tone scale that can be played. For example a measure lenght of 13 with 5 heard notes generates the sequence [x..x.x..x.x..]. Also if 7 notes are selected from the 12-tone scale, and the initial note is C4, the only notes that will be heard are C D Eb F G Ab Bb from any octave. 
 
 <a id="GeneratorPulldownMenu"></a>
 ## Generator Pulldown Menu
@@ -378,6 +403,11 @@ This figure illustrates a typical timeline interval with the selected generators
 # Room Level Functions
 During the rendering of a generated sound composition, all of the sources from all of the active generators are pulled together to allow for the room level audio modulators of compression, equalization, and volume to be applied. These modulators are applied to all of the source sources as an aggregate. The parameters of the compressor, equalizer, and volume are part of the CMG file definition and are saved so they can be loaded later. The compressor, equalizer, and volume controls are located in the right hand corner of the screen. Their values are set by the use of sliders. 
 ![alt text](./images/roommodulators.png)
+<a id="RoomVolume"></a>
+## Room Volume
+
+The volume slider affects the final volume of the generated sound. The slider has a default value of 0, indicating the no addition gain is applied. It ranges from +5 to -5 in steps of 1. Positive values increase the volume, while negative values decrease the volume. 
+
 <a id="RoomCompressor"></a>
 ## Room Compressor 
 
@@ -399,13 +429,11 @@ The equalizer has 10 frequency band filters, roughly spaced 1 octave apart. The 
 
 The frequencies of the equalizer are not adjustable, but the gains are. They may be varied from -15 to +15 by moving the gain slider. The default values for all filter gains is 0, which can be restored by clicking the equalizer reset button.
 
-<a id="RoomVolume"></a>
-## Room Volume
-The volume slider affects the final volume of the generated sound. The slider has a default value of 0, indicating the no addition gain is applied. It ranges from +5 to -5 in steps of 1. Positive values increase the volume, while negative values decrease the volume. 
-
 <a id="PreviewingandRecording"></a>
 # Previewing and Recording
-The whole idea of this application is to produce sound from the defined generators. This is accomplished using the Preview and Record buttons. The buttons are only active when there is at least one generator defined that can produce sound. When either *Preview* or *Record* is selected, a *Stop* button will appear allowing the review or record to be prematurely stopped. 
+The whole idea of this application is to produce sound from the defined generators. This is accomplished using the Preview and Record buttons. The buttons are only active when there is at least one generator defined that can produce sound. When either *Preview* or *Record* is selected, a *Stop* button will appear allowing the review or record to be prematurely stopped.
+
+The best way to determine how these 
 
 <div class="note">*Note: All input functions are disabled, except the room compressor, equalizer, and volume until the preview/record is stopped or completed.</div><br/>
 
@@ -450,5 +478,5 @@ The definition of many of the terms used in this manual can be found online, par
 | Peaking Filter | This is a band-pass filter as defined by [Wikipedia](#https://en.wikipedia.org/wiki/Band-pass_filter)  |
 | High Shelf Filter | This is best described by [Wikipedia](#https://en.wikipedia.org/wiki/Filter_design) |
 | Q Value | This is parameter os a band-pass filter as defined by [Wikipedia](#https://en.wikipedia.org/wiki/Band-pass_filter) |
-
-
+| Weiner Series | This is used by the Weiner generator to determine values for note, spped, volume, and pan. The series is described in [Wikipedia](https://en.wikipedia.org/wiki/Wiener_series). |
+| Euclid Algorithm | This is used by the Euclidean generator to create [Euclidean Rhythm](https://en.wikipedia.org/wiki/Euclidean_rhythm) patterns and to select notes from the 12-note scale. The algorithm is defined in [Wikipedia](https://en.wikipedia.org/wiki/Euclidean_algorithm) |

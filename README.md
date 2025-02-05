@@ -73,19 +73,23 @@ The figure below illustrates the class structure of the application. It is imple
 The application is designed around the user interface and supported by a context provided. The three parts of the application are the header, body, and footer. 
 
 ## Component Structure
-Classes are used to define sound generator objects (SFPG, SFR, Noise) that are persisted in files while the user interface and sound generation are implemented through React functions. The general structure of the classes are
+Classes are used to define sound generator objects (CMG, SFPG, SFRG, Noise, Wiener, Euclidean) that are persisted in files while the user interface and sound generation are implemented through React functions. The general structure of the classes are
 1. A set of attributes that define the objects of the class.
 2. A *constructor* that requires a parameter to name the object. Other optional parameters may be present.
 4. A *copy* function that makes a copy of the current object. This is used to cause React to trigger hooks when one or more of the properties of the object changes.
 5. A *setAttribute* function that is called by the object maintenance functions of the user interface.
 6. An *appendXML* function that added the objects definition to an XML document to be written to external storage. 
-7. A *getXML* function that reads the object from a XML string
+7. A *getXML* static function that reads the object from a XML string
+
+Other function may be available for special needs. 
 
 ## Header
 
-The header is laid out in a grid containing a menu and a controls display. 
+The header is laid out in a grid containing, title line,  a menu and a controls display. 
 
-The menu has options for starting a new file, opening an existing file, save a file and creating a new track. 
+The title line contains the logo, the program name and versio0n, the currently open file name, and a button for adding a comment to a file. 
+
+The menu has options for starting a new file, opening an existing file, save a file, and creating a new track. 
 
 The controls display provide for selection of a Soundfont file from the soundfont file server, manages the time line display pan and zoom, time line interval, and provides for control of the execution of preview and record.
 
@@ -93,7 +97,7 @@ The controls display provide for selection of a Soundfont file from the soundfon
 
 The body as a scrollable area that holds all of the defined tracks. Each track has a control area and a display area. Track controls include delete, rename, solo, mute, move up and down the track list, and add generator buttons. Track display include 'icons' for each generator defined on the track.
 
-When a generator is created, it has a default type of CMG, which contains the start time and stop time attributes. The type may be changed to SFPG, SFRG, or Noise as desired. If left as CMG, it is a place holder that will not generate any sound.
+When a generator is created, it has a default type of CMG, which contains the start time and stop time attributes. The type may be changed to SFPG, SFRG, Noise, Weiner, or Euclidean as desired. If left as CMG, it is a place holder that will not generate any sound.
 
 The generator icons are displayed as rectangles that start and stop at the generator's times and are 1/3 of the height of the track display. This allows for movement on the icon vertically within the track display to reduce overlap. 
 
@@ -101,21 +105,21 @@ These icons have a menu that provides for generator editing, mute, and preview f
 
 ## Footer
 
-The footer includes areas for a status message, equalizer, and compressor attributes. 
+The footer includes areas for a status message, volume, equalizer, and compressor attributes. 
 
 ## Preview and Record Generation
 
-This is the business end of this application and most of the user interaction function is disabled when in either of these modes. The only interaction allowed is to stop the preview or record, or adjust the equalizer and compressor parameters while previewing. 
+This is the business end of this application and most of the user interaction function is disabled when in either of these modes. The only interaction allowed is to stop the preview or record, or adjust the volume, equalizer, and compressor parameters while previewing. 
 
-Whether previewing or recording is being done, filters are applied to determine which sources will be used to build the audio routing graph. These filters take into account the presence of a timeline interval, and track and generator solo and mute settings. An array of source is constructed that contains all of the information needed to construct the audio routing graph.
+While previewing or recording is being done, filters are applied to determine which sources will be used to build the audio routing graph. These filters take into account the presence of a timeline interval, and track and generator solo and mute settings. An array of sources is constructed that contains all of the information needed to construct the audio routing graph.
 
-Generation involves the build of the audio routing graph for the composition. There could be several thousand sources and related audio nodes in the full composition. Trying to realize the entire graph for preview or record is problematic as the memory required may be excessive. A scheme has been developed to only realize a portion of the graph, discard that portion and realize another portion. The algorithm is different for preview and record.
+Generation involves the build of the audio routing graph for the composition. There could be several thousand sources and related audio nodes in the full composition. Trying to realize the entire graph for preview or record is problematic and the memory required may be excessive. A scheme has been developed to only realize a portion of the graph, discard that portion and realize another portion. The algorithm is different for preview and record.
 
 ### Preview Realization
 
 1. An audio context is constructed to hold the dynamically changing routing graph.
 2. The room level nodes are constructed and connected to the context destination (system speakers). These include a room concentrator with unity gain, and the compressor, equalizer, and volume as defined by the composition. When the sources are placed on the graph they are connected to room concentrator.
-3. A scheduler is run that triggers every 25.0 milliseconds. This scheduler does the following every cycle.
+3. A scheduler is run that triggers every 25 milliseconds. This scheduler does the following every cycle.
     - All sources that are to be started within the next 100 milliseconds of the current context time, are collected into an array. They are then realized as audio nodes along with their effects, connected to the room concentrator, and started.
     - All running sources that have their stop time prior to the curren time are disconnect from the routing graph.
     - When the current time is before the playback length of the composition, the next 25 milliseconds cycle is initiated. 
@@ -154,16 +158,17 @@ Special thanks to various people
 # Versions - Changes
 
 Version 2 implements 
-1. higher quality sound by using all instruments in a preset and using some of the gain envelope generators from the preset. Full use cases for delay, attack, hold, decay, sustain, and release have been implemented.
+1. Higher quality sound by using all instruments in a preset and using some of the gain envelope generators from the preset. Full use cases for delay, attack, hold, decay, sustain, and release have been implemented.
 2. Performance enhancement by keeping a sample pool to reduce memory utilization and dynamically modifying the audio graph during execution.
 3. Overall room volume control.
 4. User interface improvements.
+5. Implementation of the Weiner and Euclidean generators
+6. Refinement of he screen layout to accommodate different size monitors.
 
 ## Remaining things to do
 
 - room and instrument reverbs are a dream
 - create echo effect
-- create [Euclidean rhythm](https://en.wikipedia.org/wiki/Euclidean_rhythm)
 
 # Development and Installation
 
@@ -171,7 +176,7 @@ This application was developed in Visual Code, using a vite/typescript project.
 
 ## Typescript and Vite build tweaks
 
-I removed the typescript verification call from the build script because of the problems typescript is having with the way the SF generators are loaded. Maybe I'll fix this someday.
+While TypeScript goes a long way towards making JavaScript strongly data types, there is still some work that is needed. I had to have typscript compiler ignore a few lines that it was having trouble with using // @ts-ignore
 
 Note to self: The base for the build is set to /cmg.
 I am running a nginx ubuntu server for access to the CMG client. After building the application (npm run build), move the contents of the build folder (dist) to /var/www/lanedb.hopto.org/cmg via scp. The nginx configuration for the path lanedb.hopto.org/cmg is root /var/www/lanedb.hopto.org. The build index file points to /assets/... get the the app. I had to change it to /cmg/assets. Also, the assets directory had to have its mode changed via <code>sudo chmod 755 assets</code>.

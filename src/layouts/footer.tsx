@@ -11,9 +11,9 @@ export default function Footer() {
   return (
     <div className="page-footer">
       <div className="page-footer-status">{status}</div>
+      <RoomVolumeDialog />
       <RoomCompressorDialog />
       <RoomEqualizerDialog />
-      <RoomVolumeDialog />
     </div>
   );
 }
