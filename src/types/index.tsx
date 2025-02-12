@@ -1,7 +1,16 @@
+import { Preset } from "sfcomponents/types";
+import { SoundFont2 } from "soundfont2";
 import AudioFile from "../classes/audiofile";
 import CMG from "../classes/cmg";
 import Euclidean from "../classes/euclidean";
 import Noise from "../classes/noise";
+import {
+  EuclideanValues,
+  MarkovianValues,
+  OscillatorValues,
+  ParameterValues,
+  WienerValues,
+} from "../classes/parametervalues";
 import SFPG from "../classes/sfpg";
 import SFRG from "../classes/sfrg";
 import Weiner from "../classes/wiener";
@@ -11,6 +20,7 @@ import {
   squareModulator,
   triangleModulator,
 } from "../modulators";
+import Mixed from "../classes/mixed";
 
 export const SAMPLERATE: number = 44100;
 
@@ -23,7 +33,8 @@ export type CMGeneratorType =
   | Noise
   | AudioFile
   | Weiner
-  | Euclidean;
+  | Euclidean
+  | Mixed;
 
 export enum GENERATORTYPE {
   "CMG" = "CMG",
@@ -33,6 +44,7 @@ export enum GENERATORTYPE {
   "AudioFile" = "AudioFile",
   "Wiener" = "Wiener",
   "Euclidean" = "Euclidean",
+  "Mixed" = "Mixed",
 }
 
 export type SFFile = { name: string };
@@ -141,7 +153,6 @@ export type ModulationType = {
   amplitude: number;
   phase: number;
 };
-
 export type ModulationAttributeData = {
   value: number;
   lo: number;
@@ -149,6 +160,28 @@ export type ModulationAttributeData = {
   step: number;
   suffix: string;
 }
+
+export type OscillatorType = {
+  soundFont: SoundFont2;
+  presetName: string;
+  preset: Preset;
+  isLooping: boolean;
+  attributes: ModulationType;
+};
+
+export enum PARAMETERMODULATOR {
+  "None" = "None",
+  "Oscillator" = "Oscillator",
+  "Markovian" = "Markovian",
+  "Wiener" = "Wiener",
+  "Euclidean" = "Euclidean",
+}
+
+export type EuclideanParameterTypes =
+  ParameterValues
+  | OscillatorValues
+  | MarkovianValues
+  | WienerValues;
 
 export enum MARKOVSTATE {
   same = "same",
@@ -178,6 +211,16 @@ export type RandomSFTransitons = {
   down: MarkovProbabilities;
 };
 
+export type MarkovianTransitons = {
+  currentState: MARKOVSTATE;
+  currentValue: number;
+  startValue: number;
+  range: AttributeRange;
+  same: MarkovProbabilities;
+  up: MarkovProbabilities;
+  down: MarkovProbabilities;
+};
+
 export type WienerParameters = {
   initialValue: number;
   alpha: number;
@@ -185,6 +228,22 @@ export type WienerParameters = {
   lo: number;
   hi: number;
 };
+
+export type WienerAttributes = {
+  initialValue: number;
+  alpha: number;
+  sigma: number;
+  lo: number;
+  hi: number;
+};
+
+export type EuclideanAttributes = {
+  measureLength: number; // the number of beats in a measure
+  beatCount: number; // the number of strokes in a measure
+  noteCount: number; // the number of notes in the octave
+  parameterName: string;
+  parameter: EuclideanParameterTypes;
+}
 
 export enum NOISETYPE {
   white = "white",

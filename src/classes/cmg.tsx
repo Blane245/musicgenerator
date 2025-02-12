@@ -1,6 +1,7 @@
 import { SoundFont2 } from "soundfont2";
 import { CMGeneratorType, GENERATORTYPE } from "../types";
 import { getAttributeValue } from "../utils/xmlfunctions";
+import CMGFile from "./cmgfile";
 
 export default class CMG {
   name: string;
@@ -83,5 +84,28 @@ export default class CMG {
     } catch (e) {
       return Promise.reject(e);
     }
+  }
+
+  static validate(values: CMG, fileContents: CMGFile, oldName: string): string[]{
+    const result: string[] = [];
+    if (values.name == "") result.push("Name must not be blank");
+    else {
+      if (values.name != oldName) {
+        for (let i = 0; i < fileContents.tracks.length; i++) {
+          const t = fileContents.tracks[i];
+          for (let j = 0; j < t.generators.length; j++) {
+            if (t.generators[j].name == values.name) {
+              result.push("A generator with that name already exists");
+            }
+          }
+        }
+      }
+      if (values.startTime < 0 || values.stopTime <= values.startTime)
+        result.push(
+          "All times must be greater than zero and stop must be greater than start"
+        );
+      }
+    return result;
+
   }
 }

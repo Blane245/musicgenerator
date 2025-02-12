@@ -157,7 +157,8 @@ Special thanks to various people
 
 # Versions - Changes
 
-Version 2 implements 
+Version 3 implements 
+1. The Mixed generator, where one, volume, speed, and pan can each be a different algorithm.
 1. Higher quality sound by using all instruments in a preset and using some of the gain envelope generators from the preset. Full use cases for delay, attack, hold, decay, sustain, and release have been implemented.
 2. Performance enhancement by keeping a sample pool to reduce memory utilization and dynamically modifying the audio graph during execution.
 3. Overall room volume control.

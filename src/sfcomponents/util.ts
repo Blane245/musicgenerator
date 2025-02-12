@@ -1,3 +1,4 @@
+import { SoundFont2 } from "soundfont2";
 import { Preset } from "./types";
 export const tokenizeNote = (note: any) => {
   if (typeof note !== "string") {
@@ -65,11 +66,20 @@ export const toNote = (midi: number): string => {
   return noteName.concat(octave.toString().concat(extra));
 };
 
-export function bankPresettoName(preset: Preset): string {
+export function bankPresettoName(preset: Preset | undefined): string {
+  if (!preset) return '';
   return ("00" + preset.header.bank)
     .slice(-3)
     .concat(":")
     .concat(("00" + preset.header.preset).slice(-3))
     .concat(":")
     .concat(preset.header.name);
+}
+
+export function presetNameToPreset (name: string | undefined, soundFont: SoundFont2 | undefined): Preset | undefined {
+  if (!name || !soundFont) return undefined;
+  const presetName: string = name.split(":")[2];
+  const preset = soundFont.presets.find((p) => p.header.name === presetName);
+  if (!preset) return undefined;
+  return preset as Preset;
 }

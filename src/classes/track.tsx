@@ -8,6 +8,7 @@ import Noise from "./noise";
 import SFPG from "./sfpg";
 import SFRG from "./sfrg";
 import Wiener from "./wiener";
+import Mixed from "./mixed";
 export default class Track {
   name: string;
   mute: boolean;
@@ -133,17 +134,27 @@ export default class Track {
               generatorPromises.push(generatorPromise);
             }
             break;
-          case "Euclidean":
-            {
-              const generatorPromise: Promise<Euclidean> = Euclidean.getXML(
-                child,
-                _version,
-                soundFont, 
-              );
-              generatorPromises.push(generatorPromise);
-            }
-            break;
-        }
+            case "Euclidean":
+              {
+                const generatorPromise: Promise<Euclidean> = Euclidean.getXML(
+                  child,
+                  _version,
+                  soundFont, 
+                );
+                generatorPromises.push(generatorPromise);
+              }
+              break;
+              case "Mixed":
+                {
+                  const generatorPromise: Promise<Mixed> = Mixed.getXML(
+                    child,
+                    _version,
+                    soundFont, 
+                  );
+                  generatorPromises.push(generatorPromise);
+                }
+                break;
+              }
       }
 
       // attach the generators to the track

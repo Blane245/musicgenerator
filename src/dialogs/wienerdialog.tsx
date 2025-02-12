@@ -2,7 +2,7 @@ import { ChangeEvent, ChangeEventHandler } from "react";
 import Wiener from "../classes/wiener";
 import { useCMGContext } from "../cmgcontext";
 import { bankPresettoName } from "../sfcomponents/util";
-import { WienerParameters } from "types";
+import { WienerParameters } from "../types";
 
 // provides the form fields and validators for the sfperiodic generator
 export interface WienerDialogProps {
