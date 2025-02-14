@@ -113,7 +113,7 @@ export default function AlgorithmicDialog(
           onChange={handleChange}
           value={formData.noiseDispersion}
         />
-        <span> (dB) </span>
+        <span> (midi) </span>
       </label>
       <hr />
       <div className="algorithmic-table">
@@ -253,7 +253,7 @@ export default function AlgorithmicDialog(
               }}
               amplitude={{
                 value: (formData.speedP as OscillatorValues).values.amplitude,
-                lo: 1,
+                lo: 0,
                 hi: 1000,
                 step: 1,
                 suffix: "(BPM)",
@@ -342,7 +342,7 @@ export default function AlgorithmicDialog(
               }}
               amplitude={{
                 value: (formData.volumeP as OscillatorValues).values.amplitude,
-                lo: -50,
+                lo: 0,
                 hi: 50,
                 step: 1,
                 suffix: "(dB)",
@@ -429,7 +429,7 @@ export default function AlgorithmicDialog(
               }}
               amplitude={{
                 value: (formData.panP as OscillatorValues).values.amplitude,
-                lo: -1,
+                lo: 0,
                 hi: 1,
                 step: 0.1,
                 suffix: "(dB)",
