@@ -202,50 +202,50 @@ export class MarkovianValues extends AlgorithmValues {
     super.setAttribute(name, value);
     switch (name) {
       case "startValue":
-        this.values.startValue = MODULATOR[value];
-        break;
+        this.values.startValue = parseFloat(value);
+        return;
       case "seed":
         this.values.seed = value;
         this.values.rn = new RandomNumber(value);
-        break;
+        return;
       case "range-lo":
         this.values.range.lo = parseFloat(value);
-        break;
+        return;
       case "range-hi":
         this.values.range.hi = parseFloat(value);
-        break;
+        return;
       case "range-step":
         this.values.range.step = parseFloat(value);
-        break;
+        return;
       case "same-same":
         this.values.same.same = parseFloat(value);
-        break;
+        return;
       case "same-up":
         this.values.same.up = parseFloat(value);
-        break;
+        return;
       case "same-down":
         this.values.same.down = parseFloat(value);
-        break;
+        return;
       case "up-same":
         this.values.up.same = parseFloat(value);
-        break;
+        return;
       case "up-up":
         this.values.up.up = parseFloat(value);
-        break;
+        return;
       case "up-down":
         this.values.up.down = parseFloat(value);
-        break;
+        return;
       case "down-same":
         this.values.down.same = parseFloat(value);
-        break;
+        return;
       case "down-up":
         this.values.down.up = parseFloat(value);
-        break;
+        return;
       case "down-down":
         this.values.down.down = parseFloat(value);
-        break;
+        return;
       default:
-        break;
+        return;
     }
   }
 

@@ -461,41 +461,60 @@ fieldset {
   cursor: inherit;
 }
 
-.algorithmic-table {
+div.algorithmic-table {
   display: grid;
   grid-template-columns: 1fr 1fr 10fr;
   grid-template-areas: "attribute gentype parameters";
-  gap: 2px;
+  gap: 5px;
   .attribute {
     grid-area: attribute;
+    align-self:center;
   }
-  .gentype {
+  div.gentype {
     grid-area: gentype;
+    align-self:center;
   }
-  .parameters {
+  div.parameters {
     grid-area: parameters;
-    .oscillator {
+    div.oscillator {
       display: grid;
       grid-template-columns: 0.5fr repeat(5, 1fr);
-      grid-template-areas: "type center frequency amplitude phase";
+      grid-template-areas: 
+      "typetitle centertitle frequencytitle amplitudetitle phasetitle"
+      "type center frequency amplitude phase";
       gap: 0;
-      .type {
+      div.typetitle {
+        grid-area: typetitle;
+      }
+      div.centertitle {
+        grid-area: centertitle;
+      }
+      div.frequencytitle {
+        grid-area: frequencytitle;
+      }
+      div.amplitudetitle {
+        grid-area: amplitudetitle;
+      }
+      div.phasetitle {
+        grid-area: phasetitle;
+      }
+      div.type {
         grid-area: type;
       }
-      .center {
+      div.center {
         grid-area: center;
       }
-      .frequency {
+      div.frequency {
         grid-area: frequency;
       }
-      .amplitude {
+      div.amplitude {
         grid-area: amplitude;
       }
-      .phase {
+      div.phase {
         grid-area: phase;
       }
     }
-    .markovian {
+    div.markovian {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       grid-template-areas:
@@ -507,105 +526,100 @@ fieldset {
       gap: 0;
       .seed {
         grid-area: seed;
-        gap: 0;
       }
       .start {
         grid-area: start;
-        gap: 0;
       }
       .lo {
         grid-area: lo;
-        gap: 0;
       }
       .hi {
         grid-area: hi;
-        gap: 0;
       }
       .step {
         grid-area: step;
-        gap: 0;
       }
       .transition {
         grid-area: transition;
-        gap: 0;
       }
       .tosame {
         grid-area: tosame;
-        gap: 0;
       }
       .toup {
         grid-area: toup;
-        gap: 0;
       }
       .todown {
         grid-area: todown;
-        gap: 0;
       }
       .fromsame {
         grid-area: fromsame;
-        gap: 0;
       }
       .fromup {
         grid-area: fromup;
-        gap: 0;
       }
       .fromdown {
         grid-area: fromdown;
-        gap: 0;
       }
       .ss {
         grid-area: ss;
-        gap: 0;
       }
       .su {
         grid-area: su;
-        gap: 0;
       }
       .sd {
         grid-area: sd;
-        gap: 0;
       }
       .us {
         grid-area: us;
-        gap: 0;
       }
       .uu {
         grid-area: uu;
-        gap: 0;
       }
       .ud {
         grid-area: ud;
-        gap: 0;
       }
       .ds {
         grid-area: ds;
-        gap: 0;
       }
       .du {
         grid-area: du;
-        gap: 0;
       }
       .dd {
         grid-area: dd;
-        gap: 0;
       }
     }
-    .wiener {
+    div.wiener {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
-      grid-template-areas: "seed initial trend dispersion lo hi";
+      grid-template-areas: 
+      "seedtitle initialtitle trendtitle dispersiontitle lotitle hititle"
+      "seed initialv trend dispersion lo hi";
       gap: 2px;
-      color: black;
-      font-size: 1em;
-      line-height: 1.5em;
-      text-align: left;
-      margin-right: 2px;
+      .seedtitle {
+        grid-area: seedtitle;
+        size: 10em;
+      }
+      .initialtitle {
+        grid-area: initial;
+      }
+      .trendtitle {
+        grid-area: trendtitle;
+      }
+      .dispersiontitle {
+        grid-area: dispersiontitle;
+      }
+      .lotitle {
+        grid-area: lotitle;
+      }
+      .hititle {
+        grid-area: hititle;
+      }
       .seed {
         grid-area: seed;
         size: 10em;
       }
       .initial {
-        grid-area: initial;
+        grid-area: initialv;
       }
       .trend {
         grid-area: trend;

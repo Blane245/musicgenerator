@@ -15,12 +15,12 @@ export default function WienerPropertiesBox(props: WienerPropertiesBoxProps) {
   const { name, values, min, max, step, handleChange } = props;
   return (
     <div className="wiener">
-      <div className="seed">Seed</div>
-      <div className="initial">Initial Value</div>
-      <div className="trend">Trend (1/sec)</div>
-      <div className="dispersion">Dispersion (1/sqrt(sec))</div>
-      <div className="lo">Lo</div>
-      <div className="hi">Hi</div>
+      <div className="seedtitle">Seed</div>
+      <div className="initialtitle">Initial Value</div>
+      <div className="trendtitle">Trend (1/sec)</div>
+      <div className="dispersiontitle">Dispersion (1/sqrt(sec))</div>
+      <div className="lotitle">Lo</div>
+      <div className="hititle">Hi</div>
       <br />
       <div className="seed">
         <input
@@ -45,6 +45,9 @@ export default function WienerPropertiesBox(props: WienerPropertiesBoxProps) {
         <input
           name={name.concat(".alpha")}
           type="number"
+          min={-1000}
+          max={1000}
+          step={1}
           onChange={handleChange}
           value={values.alpha}
         />

@@ -20,44 +20,36 @@ export default function OscillatorPropertiesBox(
   const { name, type, center, frequency, amplitude, phase, handleChange } =
     props;
   return (
-    <>
-      <div className="oscillator">
-        <div className="type">Type</div>
-        <div className="center">Center</div>
-        <div className="frequency">Frequency (mHz)</div>
-        <div className="amplitude">Amplitude</div>
-        <div className="phase">Phase (deg)</div>
-        <br />
-        <div className="type">
-          <label>
-            Type
-            <select
-              name={name.concat(".type")}
-              onChange={handleChange}
-              value={type}
-            >
-              {Object.keys(MODULATOR).map((t) => {
-                  return (
-                    <option key={name.concat("-").concat(t.toString())}>
-                      {t}
-                    </option>
-                  );
-              })}
-            </select>
-          </label>
-        </div>
-        <div className="center">
-          <input
-            name={name.concat(".center")}
-            type="number"
-            min={center.lo}
-            max={center.hi}
-            step={center.step}
-            onChange={handleChange}
-            value={center.value}
-          />
-          <span style={{ fontSize: "small" }}>&nbsp;{center.suffix}</span>
-        </div>
+    <div className="oscillator">
+      <div className="typetitle">Type</div>
+      <div className="centertitle">Center</div>
+      <div className="frequencytitle">Frequency (mHz)</div>
+      <div className="amplitudetitle">Amplitude</div>
+      <div className="phasetitle">Phase (deg)</div>
+      <div className="type">
+        <select
+          name={name.concat(".type")}
+          onChange={handleChange}
+          value={type}
+        >
+          {Object.keys(MODULATOR).map((t) => {
+            return (
+              <option key={name.concat("-").concat(t.toString())}>{t}</option>
+            );
+          })}
+        </select>
+      </div>
+      <div className="center">
+        <input
+          name={name.concat(".center")}
+          type="number"
+          min={center.lo}
+          max={center.hi}
+          step={center.step}
+          onChange={handleChange}
+          value={center.value}
+        />
+        <span style={{ fontSize: "small" }}>&nbsp;{center.suffix}</span>
       </div>
       <div className="frequency">
         <input
@@ -69,7 +61,7 @@ export default function OscillatorPropertiesBox(
           onChange={handleChange}
           value={frequency.value}
         />
-        <span style={{ fontSize: "small" }}>&nbsp;{frequency.suffix}</span>
+        {/* <span style={{ fontSize: "small" }}>&nbsp;{frequency.suffix}</span> */}
       </div>
       <div className="amplitude">
         <input
@@ -93,8 +85,8 @@ export default function OscillatorPropertiesBox(
           onChange={handleChange}
           value={phase.value}
         />
-        <span style={{ fontSize: "small" }}>&nbsp;{phase.suffix}</span>
+        {/* <span style={{ fontSize: "small" }}>&nbsp;{phase.suffix}</span> */}
       </div>
-    </>
+    </div>
   );
 }

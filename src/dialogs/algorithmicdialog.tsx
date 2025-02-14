@@ -1,4 +1,4 @@
-import { ChangeEvent } from "react";
+import { ChangeEvent, useEffect } from "react";
 import { ALGORITHMTYPE } from "../types";
 import {
   MarkovianValues,
@@ -11,6 +11,7 @@ import { bankPresettoName, toNote } from "../sfcomponents/util";
 import MarkovianPropertiesBox from "./markovianpropertiesbox";
 import OscillatorPropertiesBox from "./oscillatorpropertiesbox";
 import WienerPropertiesBox from "./wienerpropertiesbox";
+import { Preset } from "sfcomponents/types";
 // provides the form fields and validators for the sfperiodic generator
 export interface AlgorithmicDialogProps {
   formData: Algorithmic;
@@ -22,7 +23,15 @@ export default function AlgorithmicDialog(
   props: AlgorithmicDialogProps
 ): JSX.Element {
   const { formData, handleChange } = props;
-  const { presets } = useCMGContext();
+  const { presets, fileContents } = useCMGContext();
+
+  // initialize the preset when the soundFont changes
+  useEffect(() => {
+    if (!formData.preset && fileContents.SoundFont) {
+      formData.preset = fileContents.SoundFont.presets[0] as Preset;
+      formData.presetName = bankPresettoName(formData.preset);
+    }
+  }, [fileContents.SoundFont]);
 
   return (
     <>
@@ -96,7 +105,7 @@ export default function AlgorithmicDialog(
       <label>
         &nbsp;Dispersion:&nbsp;
         <input
-          name="Dispersion"
+          name="noiseDispersion"
           type="number"
           min={0}
           max={100}
@@ -131,73 +140,74 @@ export default function AlgorithmicDialog(
             </select>
           </label>
         </div>
-        <div className="parameters"></div>
-        {/* build oscillator, markovian, wiener, or euclidean box */}
-        {formData.noteP &&
-        formData.noteP.algorithmType == ALGORITHMTYPE.Oscillator ? (
-          <OscillatorPropertiesBox
-            name="noteP.values"
-            type={(formData.noteP as OscillatorValues).values.type}
-            center={{
-              value: (formData.noteP as OscillatorValues).values.center,
-              lo: 0,
-              hi: 127,
-              step: 1,
-              suffix: "(midi)",
-            }}
-            frequency={{
-              value: (formData.noteP as OscillatorValues).values.frequency,
-              lo: 0,
-              hi: 1000000,
-              step: 1,
-              suffix: "(mHz)",
-            }}
-            amplitude={{
-              value: (formData.noteP as OscillatorValues).values.amplitude,
-              lo: 0,
-              hi: 127,
-              step: 1,
-              suffix: "(midi)",
-            }}
-            phase={{
-              value: (formData.noteP as OscillatorValues).values.phase,
-              lo: -360,
-              hi: 360,
-              step: 1,
-              suffix: "(degrees)",
-            }}
-            handleChange={handleChange}
-          />
-        ) : null}
-        {formData.noteP &&
-        formData.noteP.algorithmType == ALGORITHMTYPE.Markovian ? (
-          <MarkovianPropertiesBox
-            name="noteP.values"
-            values={(formData.noteP as MarkovianValues).values}
-            startValueSuffix={(value: number) => {
-              if (value < 0) return "";
-              else return " ".concat(toNote(value));
-            }}
-            min={0}
-            max={127}
-            step={1}
-            handleChange={handleChange}
-          />
-        ) : null}
-        {formData.noteP &&
-        formData.noteP.algorithmType == ALGORITHMTYPE.Wiener ? (
-          <WienerPropertiesBox
-            name="noteP.values"
-            values={(formData.noteP as WienerValues).values}
-            handleChange={handleChange}
-            min={0}
-            max={127}
-            step={1}
-          />
-        ) : null}
+        <div className="parameters">
+          {/* build oscillator, markovian, wiener, or euclidean box */}
+          {formData.noteP &&
+          formData.noteP.algorithmType == ALGORITHMTYPE.Oscillator ? (
+            <OscillatorPropertiesBox
+              name="noteP.oscillator.values"
+              type={(formData.noteP as OscillatorValues).values.type}
+              center={{
+                value: (formData.noteP as OscillatorValues).values.center,
+                lo: 0,
+                hi: 127,
+                step: 1,
+                suffix: "(midi)",
+              }}
+              frequency={{
+                value: (formData.noteP as OscillatorValues).values.frequency,
+                lo: 0,
+                hi: 1000000,
+                step: 1,
+                suffix: "(mHz)",
+              }}
+              amplitude={{
+                value: (formData.noteP as OscillatorValues).values.amplitude,
+                lo: 0,
+                hi: 127,
+                step: 1,
+                suffix: "(midi)",
+              }}
+              phase={{
+                value: (formData.noteP as OscillatorValues).values.phase,
+                lo: -360,
+                hi: 360,
+                step: 1,
+                suffix: "(degrees)",
+              }}
+              handleChange={handleChange}
+            />
+          ) : null}
+          {formData.noteP &&
+          formData.noteP.algorithmType == ALGORITHMTYPE.Markovian ? (
+            <MarkovianPropertiesBox
+              name="noteP.markovian.values"
+              values={(formData.noteP as MarkovianValues).values}
+              startValueSuffix={(value: number) => {
+                if (value < 0) return "";
+                else return " ".concat(toNote(value));
+              }}
+              min={0}
+              max={127}
+              step={1}
+              handleChange={handleChange}
+            />
+          ) : null}
+          {formData.noteP &&
+          formData.noteP.algorithmType == ALGORITHMTYPE.Wiener ? (
+            <WienerPropertiesBox
+              name="noteP.wiener.values"
+              values={(formData.noteP as WienerValues).values}
+              handleChange={handleChange}
+              min={0}
+              max={127}
+              step={1}
+            />
+          ) : null}
+        </div>
       </div>
       <hr />
-      <div className="algorithm-table">
+      <div className="algorithmic-table">
         <div className="attribute">Speed (BPM)</div>
         <div className="gentype">
           <label>
@@ -221,71 +231,72 @@ export default function AlgorithmicDialog(
             </select>
           </label>
         </div>
-        <div className="parameters"></div>
-        {formData.speedP &&
-        formData.speedP.algorithmType == ALGORITHMTYPE.Oscillator ? (
-          <OscillatorPropertiesBox
-            name="speedP.values"
-            type={(formData.speedP as OscillatorValues).values.type}
-            center={{
-              value: (formData.speedP as OscillatorValues).values.center,
-              lo: 1,
-              hi: 1000,
-              step: 1,
-              suffix: "(BPM)",
-            }}
-            frequency={{
-              value: (formData.speedP as OscillatorValues).values.frequency,
-              lo: 0,
-              hi: 1000000,
-              step: 1,
-              suffix: "(mHz)",
-            }}
-            amplitude={{
-              value: (formData.speedP as OscillatorValues).values.amplitude,
-              lo: 1,
-              hi: 1000,
-              step: 1,
-              suffix: "(BPM)",
-            }}
-            phase={{
-              value: (formData.speedP as OscillatorValues).values.phase,
-              lo: -360,
-              hi: 360,
-              step: 1,
-              suffix: "(degrees)",
-            }}
-            handleChange={handleChange}
-          />
-        ) : null}
-        {formData.speedP &&
-        formData.speedP.algorithmType == ALGORITHMTYPE.Markovian ? (
-          <MarkovianPropertiesBox
-            name="speedP.values"
-            startValueSuffix={() => {
-              return "";
-            }}
-            values={(formData.speedP as MarkovianValues).values}
-            min={1}
-            max={1000}
-            step={1}
-            handleChange={handleChange}
-          />
-        ) : null}
-        {formData.speedP &&
-        formData.speedP.algorithmType == ALGORITHMTYPE.Wiener ? (
-          <WienerPropertiesBox
-            name="speedP.values"
-            values={(formData.speedP as WienerValues).values}
-            min={0}
-            max={127}
-            step={1}
-            handleChange={handleChange}
-          />
-        ) : null}
+        <div className="parameters">
+          {formData.speedP &&
+          formData.speedP.algorithmType == ALGORITHMTYPE.Oscillator ? (
+            <OscillatorPropertiesBox
+              name="speedP.oscillator.values"
+              type={(formData.speedP as OscillatorValues).values.type}
+              center={{
+                value: (formData.speedP as OscillatorValues).values.center,
+                lo: 1,
+                hi: 1000,
+                step: 1,
+                suffix: "(BPM)",
+              }}
+              frequency={{
+                value: (formData.speedP as OscillatorValues).values.frequency,
+                lo: 0,
+                hi: 1000000,
+                step: 1,
+                suffix: "(mHz)",
+              }}
+              amplitude={{
+                value: (formData.speedP as OscillatorValues).values.amplitude,
+                lo: 1,
+                hi: 1000,
+                step: 1,
+                suffix: "(BPM)",
+              }}
+              phase={{
+                value: (formData.speedP as OscillatorValues).values.phase,
+                lo: -360,
+                hi: 360,
+                step: 1,
+                suffix: "(degrees)",
+              }}
+              handleChange={handleChange}
+            />
+          ) : null}
+          {formData.speedP &&
+          formData.speedP.algorithmType == ALGORITHMTYPE.Markovian ? (
+            <MarkovianPropertiesBox
+              name="speedP.markovian.values"
+              startValueSuffix={() => {
+                return "";
+              }}
+              values={(formData.speedP as MarkovianValues).values}
+              min={1}
+              max={1000}
+              step={1}
+              handleChange={handleChange}
+            />
+          ) : null}
+          {formData.speedP &&
+          formData.speedP.algorithmType == ALGORITHMTYPE.Wiener ? (
+            <WienerPropertiesBox
+              name="speedP.wiener.values"
+              values={(formData.speedP as WienerValues).values}
+              min={0}
+              max={127}
+              step={1}
+              handleChange={handleChange}
+            />
+          ) : null}
+        </div>
       </div>
       <hr />
-      <div className="algorithm-table">
+      <div className="algorithmic-table">
         <div className="attribute">Volume (dB)</div>
         <div className="gentype">
           <label>
@@ -309,71 +320,72 @@ export default function AlgorithmicDialog(
             </select>
           </label>
         </div>
-        <div className="parameters"></div>
-        {formData.volumeP &&
-        formData.volumeP.algorithmType == ALGORITHMTYPE.Oscillator ? (
-          <OscillatorPropertiesBox
-            name="volumeP.values"
-            type={(formData.volumeP as OscillatorValues).values.type}
-            center={{
-              value: (formData.volumeP as OscillatorValues).values.center,
-              lo: -50,
-              hi: 50,
-              step: 1,
-              suffix: "(dB)",
-            }}
-            frequency={{
-              value: (formData.volumeP as OscillatorValues).values.frequency,
-              lo: 0,
-              hi: 1000000,
-              step: 1,
-              suffix: "(mHz)",
-            }}
-            amplitude={{
-              value: (formData.volumeP as OscillatorValues).values.amplitude,
-              lo: -50,
-              hi: 50,
-              step: 1,
-              suffix: "(dB)",
-            }}
-            phase={{
-              value: (formData.volumeP as OscillatorValues).values.phase,
-              lo: -360,
-              hi: 360,
-              step: 1,
-              suffix: "(degrees)",
-            }}
-            handleChange={handleChange}
-          />
-        ) : null}
-        {formData.volumeP &&
-        formData.volumeP.algorithmType == ALGORITHMTYPE.Markovian ? (
-          <MarkovianPropertiesBox
-            name="volumeP.values"
-            startValueSuffix={() => {
-              return "";
-            }}
-            values={(formData.volumeP as MarkovianValues).values}
-            min={-50}
-            max={50}
-            step={1}
-            handleChange={handleChange}
-          />
-        ) : null}
-        {formData.volumeP &&
-        formData.volumeP.algorithmType == ALGORITHMTYPE.Wiener ? (
-          <WienerPropertiesBox
-            name="volumeP.values"
-            values={(formData.volumeP as WienerValues).values}
-            min={-50}
-            max={50}
-            step={1}
-            handleChange={handleChange}
-          />
-        ) : null}
+        <div className="parameters">
+          {formData.volumeP &&
+          formData.volumeP.algorithmType == ALGORITHMTYPE.Oscillator ? (
+            <OscillatorPropertiesBox
+              name="volumeP.oscillator.values"
+              type={(formData.volumeP as OscillatorValues).values.type}
+              center={{
+                value: (formData.volumeP as OscillatorValues).values.center,
+                lo: -50,
+                hi: 50,
+                step: 1,
+                suffix: "(dB)",
+              }}
+              frequency={{
+                value: (formData.volumeP as OscillatorValues).values.frequency,
+                lo: 0,
+                hi: 1000000,
+                step: 1,
+                suffix: "(mHz)",
+              }}
+              amplitude={{
+                value: (formData.volumeP as OscillatorValues).values.amplitude,
+                lo: -50,
+                hi: 50,
+                step: 1,
+                suffix: "(dB)",
+              }}
+              phase={{
+                value: (formData.volumeP as OscillatorValues).values.phase,
+                lo: -360,
+                hi: 360,
+                step: 1,
+                suffix: "(degrees)",
+              }}
+              handleChange={handleChange}
+            />
+          ) : null}
+          {formData.volumeP &&
+          formData.volumeP.algorithmType == ALGORITHMTYPE.Markovian ? (
+            <MarkovianPropertiesBox
+              name="volumeP.markovian.values"
+              startValueSuffix={() => {
+                return "";
+              }}
+              values={(formData.volumeP as MarkovianValues).values}
+              min={-50}
+              max={50}
+              step={1}
+              handleChange={handleChange}
+            />
+          ) : null}
+          {formData.volumeP &&
+          formData.volumeP.algorithmType == ALGORITHMTYPE.Wiener ? (
+            <WienerPropertiesBox
+              name="volumeP.wiener.values"
+              values={(formData.volumeP as WienerValues).values}
+              min={-50}
+              max={50}
+              step={1}
+              handleChange={handleChange}
+            />
+          ) : null}
+        </div>
       </div>
       <hr />
-      <div className="algorithm-table">
+      <div className="algorithmic-table">
         <div className="attribute">Pan</div>
         <div className="gentype">
           <label>
@@ -395,70 +407,70 @@ export default function AlgorithmicDialog(
             </select>
           </label>
         </div>
-        <div className="parameters"></div>
-        {formData.panP &&
-        formData.panP.algorithmType == ALGORITHMTYPE.Oscillator ? (
-          <OscillatorPropertiesBox
-            name="panP.values"
-            type={(formData.panP as OscillatorValues).values.type}
-            center={{
-              value: (formData.panP as OscillatorValues).values.center,
-              lo: -1,
-              hi: 1,
-              step: 0.1,
-              suffix: "(dB)",
-            }}
-            frequency={{
-              value: (formData.panP as OscillatorValues).values.frequency,
-              lo: 0,
-              hi: 1000000,
-              step: 1,
-              suffix: "(mHz)",
-            }}
-            amplitude={{
-              value: (formData.panP as OscillatorValues).values.amplitude,
-              lo: -1,
-              hi: 1,
-              step: 0.1,
-              suffix: "(dB)",
-            }}
-            phase={{
-              value: (formData.panP as OscillatorValues).values.phase,
-              lo: -360,
-              hi: 360,
-              step: 1,
-              suffix: "(degrees)",
-            }}
-            handleChange={handleChange}
-          />
-        ) : null}
-        {formData.panP &&
-        formData.panP.algorithmType == ALGORITHMTYPE.Markovian ? (
-          <MarkovianPropertiesBox
-            name="panP.values"
-            startValueSuffix={() => {
-              return "";
-            }}
-            values={(formData.panP as MarkovianValues).values}
-            min={-1}
-            max={1}
-            step={0.1}
-            handleChange={handleChange}
-          />
-        ) : null}
-        {formData.panP &&
-        formData.panP.algorithmType == ALGORITHMTYPE.Wiener ? (
-          <WienerPropertiesBox
-            name="panP.values"
-            values={(formData.panP as WienerValues).values}
-            handleChange={handleChange}
-            min={-1}
-            max={1}
-            step={0.1}
-          />
-        ) : null}
+        <div className="parameters">
+          {formData.panP &&
+          formData.panP.algorithmType == ALGORITHMTYPE.Oscillator ? (
+            <OscillatorPropertiesBox
+              name="panP.oscillator.values"
+              type={(formData.panP as OscillatorValues).values.type}
+              center={{
+                value: (formData.panP as OscillatorValues).values.center,
+                lo: -1,
+                hi: 1,
+                step: 0.1,
+                suffix: "(dB)",
+              }}
+              frequency={{
+                value: (formData.panP as OscillatorValues).values.frequency,
+                lo: 0,
+                hi: 1000000,
+                step: 1,
+                suffix: "(mHz)",
+              }}
+              amplitude={{
+                value: (formData.panP as OscillatorValues).values.amplitude,
+                lo: -1,
+                hi: 1,
+                step: 0.1,
+                suffix: "(dB)",
+              }}
+              phase={{
+                value: (formData.panP as OscillatorValues).values.phase,
+                lo: -360,
+                hi: 360,
+                step: 1,
+                suffix: "(degrees)",
+              }}
+              handleChange={handleChange}
+            />
+          ) : null}
+          {formData.panP &&
+          formData.panP.algorithmType == ALGORITHMTYPE.Markovian ? (
+            <MarkovianPropertiesBox
+              name="panP.markovian.values"
+              startValueSuffix={() => {
+                return "";
+              }}
+              values={(formData.panP as MarkovianValues).values}
+              min={-1}
+              max={1}
+              step={0.1}
+              handleChange={handleChange}
+            />
+          ) : null}
+          {formData.panP &&
+          formData.panP.algorithmType == ALGORITHMTYPE.Wiener ? (
+            <WienerPropertiesBox
+              name="panP.wiener.values"
+              values={(formData.panP as WienerValues).values}
+              handleChange={handleChange}
+              min={-1}
+              max={1}
+              step={0.1}
+            />
+          ) : null}
+        </div>
       </div>
-      <hr />
     </>
   );
 }

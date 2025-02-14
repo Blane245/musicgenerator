@@ -9,6 +9,7 @@ import { Algorithm, ALGORITHMTYPE, GENERATORTYPE } from "../types";
 import { euclideanRhythm } from "../utils/euclidean-rhythm";
 import { getAttributeValue, getElementElement } from "../utils/xmlfunctions";
 import {
+  AlgorithmValues,
   MarkovianValues,
   OscillatorValues,
   WienerValues,
@@ -201,27 +202,28 @@ export class Algorithmic extends CMG {
 
   override setAttribute(name: string, value: string): void {
     // handle a change of the algorithm type
+    super.setAttribute(name, value);
     switch (name) {
       case "presetName":
         this.presetName = value;
         const { preset } = presetNameToPreset(this.presetName, this.soundFont);
         this.preset = preset;
-        break;
+        return;
       case "isLooping":
         this.isLooping = value == "true";
-        break;
+        return;
       case "measureLength":
         this.measureLength = parseInt(value);
-        break;
+        return;
       case "beatCount":
         this.beatCount = parseInt(value);
-        break;
+        return;
       case "noiseAmplitude":
         this.noiseAmplitude = parseInt(value);
-        break;
+        return;
       case "noiseDispersion":
         this.noiseDispersion = parseInt(value);
-        break;
+        return;
       case "noteP.algorithmType":
         switch (value) {
           case "Oscillator":
@@ -232,6 +234,9 @@ export class Algorithmic extends CMG {
             return;
           case "Wiener":
             this.noteP = new WienerValues();
+            return;
+          case "None":
+            this.noteP = new AlgorithmValues();
             return;
         }
         break;
@@ -246,6 +251,9 @@ export class Algorithmic extends CMG {
           case "Wiener":
             this.speedP = new WienerValues();
             return;
+          case "None":
+            this.speedP = new AlgorithmValues();
+            return;
         }
         break;
       case "volumeP.algorithmType":
@@ -258,6 +266,9 @@ export class Algorithmic extends CMG {
             return;
           case "Wiener":
             this.volumeP = new WienerValues();
+            return;
+          case "None":
+            this.volumeP = new AlgorithmValues();
             return;
         }
         break;
@@ -272,15 +283,18 @@ export class Algorithmic extends CMG {
           case "Wiener":
             this.panP = new WienerValues();
             return;
+          case "None":
+            this.panP = new AlgorithmValues();
+            return;
         }
         break;
     }
 
     // handle all other algorithm property values
-    const nameParts: string[] = name.split("."); // should be three
+    const nameParts: string[] = name.split("."); // should be four, the third being 'values'
     const parameterName: string = nameParts[0];
     const algorithmName: string = nameParts[1];
-    const valueName: string = nameParts[2];
+    const valueName: string = nameParts[3];
     switch (parameterName) {
       case "noteP":
         switch (algorithmName) {
