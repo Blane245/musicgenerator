@@ -82,7 +82,7 @@ fieldset {
 .page-header {
   position: absolute;
   top: 0;
-  left:0;
+  left: 0;
   width: 100%;
   height: 160px;
   z-index: 1;
@@ -379,133 +379,6 @@ fieldset {
   cursor: inherit;
 }
 
-.modulation-table {
-  display: grid;
-  grid-template-columns: .5fr repeat(5, 1fr);
-  gap: 0;
-  cursor: inherit;
-  vertical-align:middle;
-  
-}
-.sfrg-table {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  grid-template-areas: 
-  "border border border border border"
-  "title start lo hi step"
-  "title transition tosame toup todown"
-  "title fromsame ss su sd"
-  "title fromup us uu ud"
-  "title fromdown ds du dd";
-  gap: 0;
-  cursor: inherit;
-  .border {
-    grid-area: border;
-  }
-  .title {
-    grid-area: title;
-    gap: 0;
-    vertical-align: center;
-  }
-  .start {
-    grid-area:start;
-    gap: 0;
-  }
-  .lo {
-    grid-area:lo;
-    gap: 0;
-  }
-  .hi {
-    grid-area:hi;
-    gap: 0;
-  }
-  .step {
-    grid-area:step;
-    gap: 0;
-  }
-  .tosame {
-    grid-area: tosame;
-    gap: 0;
-  }
-  .toup {
-    grid-area: toup;
-    gap: 0;
-  }
-  .todown {
-    grid-area: todown;
-    gap: 0;
-  }
-  .fromsame {
-    grid-area: fromsame;
-    gap: 0;
-  }
-  .fromup {
-    grid-area: fromup;
-    gap: 0;
-  }
-  .fromdown {
-    grid-area: fromdown;
-    gap: 0;
-  }
-  .transition {
-    grid-area: transition;
-    gap: 0;
-  }
-  .ss {
-    grid-area: ss;
-    gap: 0;
-  }
-  .su {
-    grid-area: su;
-    gap: 0;
-  }
-  .sd {
-    grid-area: sd;
-    gap: 0;
-  }
-  .us {
-    grid-area: us;
-    gap: 0;
-  }
-  .uu {
-    grid-area: uu;
-    gap: 0;
-  }
-  .ud {
-    grid-area: ud;
-    gap: 0;
-  }
-  .ds {
-    grid-area: ds;
-    gap: 0;
-  }
-  .du {
-    grid-area: du;
-    gap: 0;
-  }
-  .dd {
-    grid-area: dd;
-    gap: 0;
-  }
-
-}
-.wiener-table {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  grid-template-rows: repeat(4, );
-  gap: 2px;
-  cursor:inherit;
-  .param {
-    color: black;
-    font-size: 1em;
-    line-height: 1.5em;
-    text-align: left;
-    cursor: inherit; 
-    margin-right: 2px;  
-  }
-  
-}
-
 .modal-header {
   padding: 2px 16px;
   background-color: #5cb85c;
@@ -548,54 +421,210 @@ fieldset {
   padding: 2px 16px;
   background-color: #5c75b8;
   color: white;
-  cursor: inherit;
 }
 
 .generator-body {
   padding: 2px 16px;
-  cursor: inherit;
 }
 
 .generator-footer {
   padding: 2px 16px;
   background-color: #5c75b8;
   color: white;
-  cursor: inherit;
 }
 
 .generator-selected {
   fill: rgba(255, 169, 203, 0.418);
-  cursor: inherit;
 }
 
 .generator-playing {
   fill: rgba(255, 169, 203, 0.999);
-  cursor: inherit;
 }
 
 .generator-normal {
   fill: white;
-  cursor: inherit;
 }
 
 .generator-content {
   position: fixed;
   z-index: 2;
-  top: 10%;
-  left: 10%;
+  top: 5%;
+  left: 5%;
   background-color: #fefefe;
   margin: auto;
   padding: 0;
   border: 1px solid #888;
-  width: 70%;
+  width: 90%;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   animation-name: animateleft;
   animation-duration: 0.4s;
   cursor: inherit;
 }
 
+.algorithmic-table {
+  display: grid;
+  grid-template-columns: 1fr 1fr 10fr;
+  grid-template-areas: "attribute gentype parameters";
+  gap: 2px;
+  .attribute {
+    grid-area: attribute;
+  }
+  .gentype {
+    grid-area: gentype;
+  }
+  .parameters {
+    grid-area: parameters;
+    .oscillator {
+      display: grid;
+      grid-template-columns: 0.5fr repeat(5, 1fr);
+      grid-template-areas: "type center frequency amplitude phase";
+      gap: 0;
+      .type {
+        grid-area: type;
+      }
+      .center {
+        grid-area: center;
+      }
+      .frequency {
+        grid-area: frequency;
+      }
+      .amplitude {
+        grid-area: amplitude;
+      }
+      .phase {
+        grid-area: phase;
+      }
+    }
+    .markovian {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-areas:
+        "seed start lo hi step"
+        "transition tosame toup todown ."
+        "fromsame ss su sd ."
+        "fromup us uu ud ."
+        "fromdown ds du dd .";
+      gap: 0;
+      .seed {
+        grid-area: seed;
+        gap: 0;
+      }
+      .start {
+        grid-area: start;
+        gap: 0;
+      }
+      .lo {
+        grid-area: lo;
+        gap: 0;
+      }
+      .hi {
+        grid-area: hi;
+        gap: 0;
+      }
+      .step {
+        grid-area: step;
+        gap: 0;
+      }
+      .transition {
+        grid-area: transition;
+        gap: 0;
+      }
+      .tosame {
+        grid-area: tosame;
+        gap: 0;
+      }
+      .toup {
+        grid-area: toup;
+        gap: 0;
+      }
+      .todown {
+        grid-area: todown;
+        gap: 0;
+      }
+      .fromsame {
+        grid-area: fromsame;
+        gap: 0;
+      }
+      .fromup {
+        grid-area: fromup;
+        gap: 0;
+      }
+      .fromdown {
+        grid-area: fromdown;
+        gap: 0;
+      }
+      .ss {
+        grid-area: ss;
+        gap: 0;
+      }
+      .su {
+        grid-area: su;
+        gap: 0;
+      }
+      .sd {
+        grid-area: sd;
+        gap: 0;
+      }
+      .us {
+        grid-area: us;
+        gap: 0;
+      }
+      .uu {
+        grid-area: uu;
+        gap: 0;
+      }
+      .ud {
+        grid-area: ud;
+        gap: 0;
+      }
+      .ds {
+        grid-area: ds;
+        gap: 0;
+      }
+      .du {
+        grid-area: du;
+        gap: 0;
+      }
+      .dd {
+        grid-area: dd;
+        gap: 0;
+      }
+    }
+    .wiener {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      grid-template-areas: "seed initial trend dispersion lo hi";
+      gap: 2px;
+      color: black;
+      font-size: 1em;
+      line-height: 1.5em;
+      text-align: left;
+      margin-right: 2px;
+      .seed {
+        grid-area: seed;
+        size: 10em;
+      }
+      .initial {
+        grid-area: initial;
+      }
+      .trend {
+        grid-area: trend;
+      }
+      .dispersion {
+        grid-area: dispersion;
+      }
+      .lo {
+        grid-area: lo;
+      }
+      .hi {
+        grid-area: hi;
+      }
+    }
+  }
+}
+
 .modal-menu {
-  background: rgba(219, 215, 208, 1.0);
+  background: rgba(219, 215, 208, 1);
   cursor: inherit;
   z-index: 2;
 }
@@ -655,7 +684,7 @@ fieldset {
 .intervalbox {
   stroke: black;
   stroke-width: 1;
-  fill: rgba(169,169,169,.5);
+  fill: rgba(169, 169, 169, 0.5);
   cursor: inherit;
 }
 .intervalmarker {

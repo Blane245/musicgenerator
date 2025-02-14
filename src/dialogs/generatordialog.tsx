@@ -1,30 +1,17 @@
 // provides CRUD for all types of generators
 import { ChangeEvent, FormEvent, MouseEvent, useEffect, useState } from "react";
-import AudioFile from "../classes/audiofile";
-import CMG from "../classes/cmg";
-import Noise from "../classes/noise";
-import SFPG from "../classes/sfpg";
-import SFRG from "../classes/sfrg";
+import { Algorithmic, AudioFile, CMG } from "../classes/generators";
 import Track from "../classes/track";
-import Wiener from "../classes/wiener";
 import { useCMGContext } from "../cmgcontext";
-import { Preset } from "../sfcomponents/types";
-import { bankPresettoName, precision } from "../sfcomponents/util";
-import { CMGeneratorType, GENERATORTYPE } from "../types";
+import { precision } from "../sfcomponents/util";
+import { GeneratorType, GENERATORTYPE } from "../types";
 import {
   addGenerator,
   deleteGenerator,
   modifyGenerator,
 } from "../utils/cmfiletransactions";
 import { getGeneratorUID } from "../utils/getgeneratoruid";
-import { validateAudioFileValues } from "./audiofiledialog";
 import GeneratorTypeForm from "./generatortypeform";
-import { validateNoiseValues } from "./noisedialog";
-import { validateSFPGValues } from "./sfpgdialog";
-import { validateSFRGValues } from "./sfrgdialog";
-import { validateWienerValues } from "./wienerdialog";
-import Euclidean from "../classes/euclidean";
-import { validateEuclideanValues } from "./euclideandialog";
 
 // The icon starts at the generator's start time and ends at the generators endtime
 export interface GeneratorDialogProps {
@@ -51,7 +38,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
   const [oldName, setOldName] = useState<string>("");
   const [generatorName, setGeneratorName] = useState<string>("");
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [formData, setFormData] = useState<CMGeneratorType>(new CMG(0));
+  const [formData, setFormData] = useState<GeneratorType>(new CMG(0));
   useEffect(() => {
     if (open) {
       // either get the generator from the track or build a new one if being added
@@ -74,7 +61,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ): void {
     // update the form with the new attribute value
-    setFormData((prev: CMGeneratorType) => {
+    setFormData((prev: GeneratorType) => {
       const eventName: string | null = event.target["name"];
       const eventValue: string =
         event.target["type"] != "checkbox"
@@ -90,33 +77,13 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           newFormData.setAttribute(eventName, eventValue);
           return newFormData;
         }
-        case GENERATORTYPE.SFPG: {
-          const newFormData: SFPG = (prev as SFPG).copy();
-          newFormData.setAttribute(eventName, eventValue);
-          return newFormData;
-        }
-        case GENERATORTYPE.SFRG: {
-          const newFormData: SFRG = (prev as SFRG).copy();
-          newFormData.setAttribute(eventName, eventValue);
-          return newFormData;
-        }
-        case GENERATORTYPE.Noise: {
-          const newFormData: Noise = (prev as Noise).copy();
+        case GENERATORTYPE.Algorithmic: {
+          const newFormData: Algorithmic = (prev as Algorithmic).copy();
           newFormData.setAttribute(eventName, eventValue);
           return newFormData;
         }
         case GENERATORTYPE.AudioFile: {
           const newFormData: AudioFile = (prev as AudioFile).copy();
-          newFormData.setAttribute(eventName, eventValue);
-          return newFormData;
-        }
-        case GENERATORTYPE.Wiener: {
-          const newFormData: Wiener = (prev as Wiener).copy();
-          newFormData.setAttribute(eventName, eventValue);
-          return newFormData;
-        }
-        case GENERATORTYPE.Euclidean: {
-          const newFormData: Euclidean = (prev as Euclidean).copy();
           newFormData.setAttribute(eventName, eventValue);
           return newFormData;
         }
@@ -134,81 +101,32 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     const newType: GENERATORTYPE = event.target["value"] as GENERATORTYPE;
 
     // switching generator type - copy the CMG values and default the preset name
-    setFormData((prev: CMGeneratorType) => {
+    setFormData((prev: GeneratorType) => {
       switch (newType) {
         case GENERATORTYPE.CMG: {
           const newF = new CMG(0);
           newF.name = prev.name;
           newF.startTime = prev.startTime;
-          newF.stopTime = prev.stopTime;
+          newF.stopTime = prev.startTime;
           newF.mute = prev.mute;
           newF.position = prev.position;
           return newF;
         }
-        case GENERATORTYPE.SFPG: {
-          const newF = new SFPG(0);
+        case GENERATORTYPE.Algorithmic: {
+          const newF = new Algorithmic(0);
           newF.name = prev.name;
           newF.startTime = prev.startTime;
-          newF.stopTime = prev.stopTime;
+          newF.stopTime = prev.startTime;
           newF.mute = prev.mute;
-          newF.position = prev.position;
-          if (presets.length > 0) {
-            newF.preset = presets[0];
-            newF.presetName = bankPresettoName(newF.preset);
-          }
-          return newF;
-        }
-        case GENERATORTYPE.SFRG: {
-          const newF = new SFRG(0);
-          newF.name = prev.name;
-          newF.startTime = prev.startTime;
-          newF.stopTime = prev.stopTime;
-          newF.mute = prev.mute;
-          newF.position = prev.position;
-          if (presets.length > 0) {
-            newF.preset = presets[0];
-            newF.presetName = bankPresettoName(newF.preset);
-          }
-          return newF;
-        }
-        case GENERATORTYPE.Noise: {
-          const newF = new Noise(0);
-          newF.name = prev.name;
-          newF.startTime = prev.startTime;
-          newF.stopTime = prev.stopTime;
-          newF.mute = prev.mute;
-          newF.position = prev.position;
           return newF;
         }
         case GENERATORTYPE.AudioFile: {
           const newF = new AudioFile(0);
           newF.name = prev.name;
           newF.startTime = prev.startTime;
-          newF.stopTime = prev.stopTime;
+          newF.stopTime = prev.startTime;
           newF.mute = prev.mute;
           newF.position = prev.position;
-          return newF;
-        }
-        case GENERATORTYPE.Wiener: {
-          const newF = new Wiener(0);
-          newF.name = prev.name;
-          newF.startTime = prev.startTime;
-          newF.stopTime = prev.stopTime;
-          newF.mute = prev.mute;
-          newF.position = prev.position;
-          return newF;
-        }
-        case GENERATORTYPE.Euclidean: {
-          const newF = new Euclidean(0);
-          newF.name = prev.name;
-          newF.startTime = prev.startTime;
-          newF.stopTime = prev.stopTime;
-          newF.mute = prev.mute;
-          newF.position = prev.position;
-          if (presets.length > 0) {
-            newF.preset = presets[0];
-            newF.presetName = bankPresettoName(newF.preset);
-          }
           return newF;
         }
         default:
@@ -223,51 +141,23 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     switch (formData.type) {
       case GENERATORTYPE.CMG:
         {
-          const newMessages = validateCMGValues(formData as CMG);
-          msgs.push(...newMessages);
-          setErrorMessages(msgs);
-          if (msgs.length > 0) return;
-        }
-        break;
-      case GENERATORTYPE.SFPG:
-        {
-          let newMessages = validateCMGValues(formData as CMG);
-          msgs.push(...newMessages);
-          newMessages = validateSFPGValues(formData as SFPG);
-          msgs.push(...newMessages);
-
-          const pn: string = (formData as SFPG).presetName.split(":")[2];
-          (formData as SFPG).preset = presets.find(
-            (p: Preset) => pn == p.header.name
+          const newMessages = CMG.validate(
+            formData as CMG,
+            fileContents,
+            oldName
           );
-          if (!(formData as SFPG).preset)
-            msgs.push(`generator dialog: can't find preset named ${pn}`);
+          msgs.push(...newMessages);
           setErrorMessages(msgs);
           if (msgs.length > 0) return;
         }
         break;
-      case GENERATORTYPE.SFRG:
+      case GENERATORTYPE.Algorithmic:
         {
-          let newMessages = validateCMGValues(formData as CMG);
-          msgs.push(...newMessages);
-          newMessages = validateSFRGValues(formData as SFRG);
-          msgs.push(...newMessages);
-
-          const pn: string = (formData as SFRG).presetName.split(":")[2];
-          (formData as SFRG).preset = presets.find(
-            (p: Preset) => pn == p.header.name
+          const newMessages = Algorithmic.validate(
+            formData as Algorithmic,
+            fileContents,
+            oldName
           );
-          if (!(formData as SFRG).preset)
-            msgs.push(`generator dialog: can't find preset named ${pn}`);
-          setErrorMessages(msgs);
-          if (msgs.length > 0) return;
-        }
-        break;
-      case GENERATORTYPE.Noise:
-        {
-          let newMessages = validateCMGValues(formData as CMG);
-          msgs.push(...newMessages);
-          newMessages = validateNoiseValues(formData as Noise);
           msgs.push(...newMessages);
           setErrorMessages(msgs);
           if (msgs.length > 0) return;
@@ -275,44 +165,12 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
         break;
       case GENERATORTYPE.AudioFile:
         {
-          let newMessages = validateCMGValues(formData as CMG);
-          msgs.push(...newMessages);
-          newMessages = validateAudioFileValues(formData as AudioFile);
-          msgs.push(...newMessages);
-          setErrorMessages(msgs);
-          if (msgs.length > 0) return;
-        }
-        break;
-      case GENERATORTYPE.Wiener:
-        {
-          let newMessages = validateCMGValues(formData as CMG);
-          msgs.push(...newMessages);
-          newMessages = validateWienerValues(formData as Wiener);
-          msgs.push(...newMessages);
-
-          const pn: string = (formData as Wiener).presetName.split(":")[2];
-          (formData as Wiener).preset = presets.find(
-            (p: Preset) => pn == p.header.name
+          const newMessages = AudioFile.validate(
+            formData as AudioFile,
+            fileContents,
+            oldName
           );
-          if (!(formData as Wiener).preset)
-            msgs.push(`generator dialog: can't find preset named ${pn}`);
-          setErrorMessages(msgs);
-          if (msgs.length > 0) return;
-        }
-        break;
-      case GENERATORTYPE.Euclidean:
-        {
-          let newMessages = validateCMGValues(formData as CMG);
           msgs.push(...newMessages);
-          newMessages = validateEuclideanValues(formData as Euclidean);
-          msgs.push(...newMessages);
-
-          const pn: string = (formData as Euclidean).presetName.split(":")[2];
-          (formData as Euclidean).preset = presets.find(
-            (p: Preset) => pn == p.header.name
-          );
-          if (!(formData as Euclidean).preset)
-            msgs.push(`generator dialog: can't find preset named ${pn}`);
           setErrorMessages(msgs);
           if (msgs.length > 0) return;
         }
@@ -343,28 +201,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
       setOpen(false);
       closeTrackGenerator();
     }
-  }
-
-  function validateCMGValues(values: CMG): string[] {
-    const result: string[] = [];
-    if (values.name == "") result.push("Name must not be blank");
-    else {
-      if (values.name != oldName) {
-        for (let i = 0; i < fileContents.tracks.length; i++) {
-          const t = fileContents.tracks[i];
-          for (let j = 0; j < t.generators.length; j++) {
-            if (t.generators[j].name == values.name) {
-              result.push("A generator with that name already exists");
-            }
-          }
-        }
-      }
-      if (values.startTime < 0 || values.stopTime <= values.startTime)
-        result.push(
-          "All times must be greater than zero and stop must be greater than start"
-        );
-    }
-    return result;
   }
 
   function handleCancelClick(event: MouseEvent<Element>) {
@@ -426,50 +262,58 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                 id="generator_CRUD"
                 onSubmit={handleSubmit}
               >
-                <label htmlFor="name">Name: </label>
-                <input
-                  name="name"
-                  type="text"
-                  onChange={handleChange}
-                  value={formData.name}
-                />
+                <label>
+                  Name:&nbsp;
+                  <input
+                    name="name"
+                    type="text"
+                    onChange={handleChange}
+                    value={formData.name}
+                  />
+                </label>
+                <label>
+                &nbsp;Type:&nbsp;
+                  <select
+                    name="type"
+                    onChange={handleTypeChange}
+                    value={formData.type}
+                  >
+                    {Object.keys(GENERATORTYPE).map((t, i) => {
+                      if (!parseInt(t) && t != "0")
+                        return (
+                          <option key={`GT-${i}`} value={t}>
+                            {t}
+                          </option>
+                        );
+                    })}
+                  </select>
+                </label>
+                <label>
+                &nbsp;Start Time:&nbsp;
+                  <input
+                    name="startTime"
+                    type="number"
+                    min={0}
+                    step={0.1}
+                    onChange={handleChange}
+                    value={precision(formData.startTime, 1)}
+                  />
+                  <span> (sec) </span>
+                </label>
+                <label>
+                &nbsp;Stop Time:&nbsp;
+                  <input
+                    name="stopTime"
+                    type="number"
+                    min={0}
+                    step={0.1}
+                    onChange={handleChange}
+                    value={precision(formData.stopTime, 1)}
+                  />
+                  <span> (sec) </span>
+                </label>
                 <br />
-                <label htmlFor="startTime">Start Time: </label>
-                <input
-                  name="startTime"
-                  type="number"
-                  min={0}
-                  step={0.1}
-                  onChange={handleChange}
-                  value={precision(formData.startTime, 1)}
-                />
-                <span> (sec) </span>
-                <label htmlFor="stopTime">Stop Time: </label>
-                <input
-                  name="stopTime"
-                  type="number"
-                  min={0}
-                  step={0.1}
-                  onChange={handleChange}
-                  value={precision(formData.stopTime, 1)}
-                />
-                <span> (sec) </span>
-                <label htmlFor="type">Type: </label>
-                <select
-                  name="type"
-                  onChange={handleTypeChange}
-                  value={formData.type}
-                >
-                  {Object.keys(GENERATORTYPE).map((t, i) => {
-                    if (!parseInt(t) && t != "0")
-                      return (
-                        <option key={`GT-${i}`} value={t}>
-                          {t}
-                        </option>
-                      );
-                  })}
-                </select>
-                <br />
+
                 <GeneratorTypeForm
                   formData={formData}
                   handleChange={handleChange}

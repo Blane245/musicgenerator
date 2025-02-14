@@ -7,7 +7,7 @@ import { MutableRefObject } from "react";
 import CMGFile from "../classes/cmgfile";
 import {
   ActiveSource,
-  CMGeneratorType,
+  GeneratorType,
   GENERATIONMODE,
   RawSourceData,
 } from "../types";
@@ -160,11 +160,11 @@ export default function Preview(params: PreviewProps): void {
     if (playing.current && context.currentTime <= playbackLength) {
       // get the generators playing for highlighting
       setGeneratorsPlaying(() => {
-        const newGeneratorsPlaying: CMGeneratorType[] = [];
+        const newGeneratorsPlaying: GeneratorType[] = [];
         activeSources.forEach((s: ActiveSource) => {
           if (
             newGeneratorsPlaying.findIndex(
-              (g: CMGeneratorType) => g.name == s.gen.name
+              (g: GeneratorType) => g.name == s.gen.name
             ) < 0
           ) {
             if (

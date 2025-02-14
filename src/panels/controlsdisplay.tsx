@@ -2,6 +2,7 @@
 // includes the soundfont file selector, record button, record format selector
 // preview button, stop button
 // timeline controls and timeline
+// TODO check that preset names are handled properly based on soundfont settings
 import {
   ChangeEvent,
   MutableRefObject,
@@ -10,21 +11,18 @@ import {
   useState,
 } from "react";
 import { SoundFont2 } from "soundfont2";
-import Euclidean from "../classes/euclidean";
-import SFPG from "../classes/sfpg";
-import SFRG from "../classes/sfrg";
+import { Algorithmic } from "../classes/generators";
 import Track from "../classes/track";
-import Wiener from "../classes/wiener";
 import { useCMGContext } from "../cmgcontext";
 import Generate from "../generation/generate";
 import { Preset } from "../sfcomponents/types";
 import { bankPresettoName } from "../sfcomponents/util";
-import { CMGeneratorType, GENERATIONMODE, GENERATORTYPE } from "../types";
+import { GENERATIONMODE, GeneratorType, GENERATORTYPE } from "../types";
 import { modifyGenerator, setSoundFont } from "../utils/cmfiletransactions";
 import fetchData from "../utils/fetchdata";
 import { loadSoundFont } from "../utils/loadsoundfont";
-import TimeLineDisplay from "./timelinedisplay";
 import TimeLineControlsDisplay from "./timelinecontrolsdisplay";
+import TimeLineDisplay from "./timelinedisplay";
 
 export default function ControlsDisplay() {
   const { fileContents, setFileContents, setStatus, playing } = useCMGContext();
@@ -81,35 +79,15 @@ export default function ControlsDisplay() {
     }
     let goodGeneratorCount: number = 0;
     fileContents.tracks.forEach((t: Track) => {
-      t.generators.forEach((g: CMGeneratorType) => {
+      t.generators.forEach((g: GeneratorType) => {
         if (g.type != GENERATORTYPE.CMG) {
           if (
-            g.type == GENERATORTYPE.SFPG &&
-            (g as SFPG).presetName != "" &&
-            (g as SFPG).preset
+            g.type == GENERATORTYPE.Algorithmic &&
+            (g as Algorithmic).presetName != "" &&
+            (g as Algorithmic).preset
           ) {
-            goodGeneratorCount++;
-          } else if (
-            g.type == GENERATORTYPE.SFRG &&
-            (g as SFRG).presetName != "" &&
-            (g as SFRG).preset
-          ) {
-            goodGeneratorCount++;
-          } else if (g.type == GENERATORTYPE.Noise) {
             goodGeneratorCount++;
           } else if (g.type == GENERATORTYPE.AudioFile) {
-            goodGeneratorCount++;
-          } else if (
-            g.type == GENERATORTYPE.Wiener &&
-            (g as Wiener).presetName != "" &&
-            (g as Wiener).preset
-          ) {
-            goodGeneratorCount++;
-          } else if (
-            g.type == GENERATORTYPE.Euclidean &&
-            (g as Euclidean).presetName != "" &&
-            (g as Euclidean).preset
-          ) {
             goodGeneratorCount++;
           }
         }
@@ -212,7 +190,7 @@ export default function ControlsDisplay() {
 
       <TimeLineControlsDisplay />
       <div
-      className='page-time-timeline'
+        className="page-time-timeline"
         ref={(el: HTMLDivElement) => {
           timeLineRef.current[0] = el;
           return el;
@@ -257,39 +235,35 @@ export default function ControlsDisplay() {
     // locate each generator that is using a preset and rename the preset.
     const errors: string[] = [];
     fileContents.tracks.forEach((t: Track) => {
-      t.generators.forEach((g: CMGeneratorType) => {
-        let presetSplit: string[] = [];
-        if (g.type == GENERATORTYPE.SFPG) {
-          presetSplit = (g as SFPG).presetName.split(":");
-        }
-        if (g.type == GENERATORTYPE.SFRG) {
-          presetSplit = (g as SFRG).presetName.split(":");
-        }
-        if (presetSplit.length == 3) {
-          const bank: number = parseInt(presetSplit[0]);
-          const channel: number = parseInt(presetSplit[1]);
+      t.generators.forEach((g: GeneratorType) => {
+        if (g.type == GENERATORTYPE.Algorithmic) {
+          (g as Algorithmic).soundFont = sf;
+          let presetSplit: string[] = [];
+          presetSplit = (g as Algorithmic).presetName.split(":");
+          if (presetSplit.length == 3) {
+            const bank: number = parseInt(presetSplit[0]);
+            const channel: number = parseInt(presetSplit[1]);
 
-          // find the present in the new soundfont file with this
-          // back and channel number
-          let newPreset: Preset | undefined = (sf.presets as Preset[]).find(
-            (p) => bank == p.header.bank && channel == p.header.preset
-          );
-          let newPresetName: string = "";
-          if (newPreset) {
-            newPresetName = bankPresettoName(newPreset);
-          } else {
-            errors.push(
-              `Track ${t.name}, generator ${g.name} has no preset for bank ${bank}, channel${channel}. Setting first preset`
+            // find the present in the new soundfont file with this
+            // back and channel number
+            let newPreset: Preset | undefined = (sf.presets as Preset[]).find(
+              (p) => bank == p.header.bank && channel == p.header.preset
             );
-            newPreset = (sf.presets as Preset[])[0];
-            newPresetName = bankPresettoName(newPreset);
+            let newPresetName: string = "";
+            if (newPreset) {
+              newPresetName = bankPresettoName(newPreset);
+            } else {
+              errors.push(
+                `Track ${t.name}, generator ${g.name} has no preset for bank ${bank}, channel${channel}. Setting first preset`
+              );
+              newPreset = (sf.presets as Preset[])[0];
+              newPresetName = bankPresettoName(newPreset);
+            }
+            const newG = g.copy();
+            (newG as Algorithmic).presetName = newPresetName;
+            (newG as Algorithmic).preset = newPreset;
+            modifyGenerator(t, newG, g.name, setFileContents);
           }
-          const newG = g.copy();
-          if (newG.type != "CMG") {
-            (newG as SFPG | SFRG).presetName = newPresetName;
-            (newG as SFPG | SFRG).preset = newPreset;
-          }
-          modifyGenerator(t, newG, g.name, setFileContents);
         }
       });
     });

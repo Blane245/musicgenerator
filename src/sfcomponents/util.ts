@@ -1,3 +1,4 @@
+import { SoundFont2 } from "soundfont2";
 import { Preset } from "./types";
 export const tokenizeNote = (note: any) => {
   if (typeof note !== "string") {
@@ -72,4 +73,27 @@ export function bankPresettoName(preset: Preset): string {
     .concat(("00" + preset.header.preset).slice(-3))
     .concat(":")
     .concat(preset.header.name);
+}
+
+// find the preset in the soundfont file. If it is not found, set the
+// preset to the first one in the file
+export function presetNameToPreset(
+  name: string | undefined,
+  soundFont: SoundFont2 | undefined
+): { preset: Preset | undefined; name: string } {
+  if (!name || name == "" || !soundFont) return { preset: undefined, name: "" };
+  const presetName: string = name.split(":")[2];
+  let preset: Preset = soundFont.presets.find(
+    (p) => p.header.name === presetName
+  ) as Preset;
+  if (!preset) {
+    preset = soundFont.presets[0] as Preset;
+    name = bankPresettoName(preset);
+  }
+  return { preset, name };
+}
+
+//curtesy of https://inspiredacoustics.com/en/MIDI_note_numbers_and_center_frequencies
+export function midiToFrequency (midi: number) : number {
+  return 440.0 * Math.pow(2, (midi - 69)/12);
 }

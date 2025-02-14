@@ -5,7 +5,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useCMGContext } from "../cmgcontext";
 import {
-  CMGeneratorType,
+  GeneratorType,
   GENERATIONMODE,
   RawSourceData,
   SAMPLERATE,
@@ -20,7 +20,7 @@ export interface GeneratorProps {
   setMode: Function;
   recordFormat?: string;
   recordHandle?: FileSystemFileHandle | null;
-  generator: CMGeneratorType | null;
+  generator: GeneratorType | null;
 }
 export default function Generate(props: GeneratorProps) {
   const { mode, setMode, recordFormat, recordHandle, generator } = props;
@@ -43,12 +43,8 @@ export default function Generate(props: GeneratorProps) {
 
     // determine the selected generators and make sure they are ready to generate sound
     const {
-      SFPGenerators,
-      SFRGenerators,
-      NoiseGenerators,
+      AlgorithmicGenerators,
       AudioFileGenerators,
-      WienerGenerators,
-      EuclideanGenerators,
       playbackLength,
       offsetTime,
       error,
@@ -65,12 +61,8 @@ export default function Generate(props: GeneratorProps) {
     // build the generator sources
     recordLength.current = playbackLength;
     sourceData.current = buildSources({
-      SFPGenerators,
-      SFRGenerators,
-      NoiseGenerators,
+      AlgorithmicGenerators,
       AudioFileGenerators,
-      WienerGenerators,
-      EuclideanGenerators,
     });
 
     // let the system know that playing if entered

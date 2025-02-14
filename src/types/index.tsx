@@ -1,10 +1,11 @@
-import AudioFile from "../classes/audiofile";
-import CMG from "../classes/cmg";
-import Euclidean from "../classes/euclidean";
-import Noise from "../classes/noise";
-import SFPG from "../classes/sfpg";
-import SFRG from "../classes/sfrg";
-import Weiner from "../classes/wiener";
+import { Algorithmic, AudioFile, CMG } from "classes/generators";
+import {
+  AlgorithmValues,
+  MarkovianValues,
+  OscillatorValues,
+  WienerValues,
+} from "../classes/algorithmvalues";
+import RandomNumber from "../classes/randomnumber";
 import {
   sawtoothModulator,
   sineModulator,
@@ -16,33 +17,92 @@ export const SAMPLERATE: number = 44100;
 
 export const EPS: number = 1e-4;
 
-export type CMGeneratorType =
-  | CMG
-  | SFPG
-  | SFRG
-  | Noise
-  | AudioFile
-  | Weiner
-  | Euclidean;
-
-export enum GENERATORTYPE {
-  "CMG" = "CMG",
-  "SFPG" = "SFPG",
-  "SFRG" = "SFRG",
-  "Noise" = "Noise",
-  "AudioFile" = "AudioFile",
-  "Wiener" = "Wiener",
-  "Euclidean" = "Euclidean",
-}
-
 export type SFFile = { name: string };
 
 export type SFFiles = SFFiles[];
 
-export enum REPEATOPTION {
+export type GeneratorType =
+  | CMG
+  | Algorithmic
+  // | Noise
+  | AudioFile;
+
+export enum GENERATORTYPE {
+  "CMG" = "CMG",
+  "Algorithmic" = "Algorithmic",
+  "AudioFile" = "AudioFile",
+}
+export type AlgorithmType =
+  | undefined
+  | OscillatorType
+  | MarkovianType
+  | WienerType;
+
+export type Algorithm =
+  | undefined
+  | AlgorithmValues
+  | OscillatorValues
+  | MarkovianValues
+  | WienerValues;
+
+export enum ALGORITHMTYPE {
   "None" = "None",
-  "Sample" = "Sample",
-  "Beginning" = "Beginning",
+  "Oscillator" = "Oscillator",
+  "Markovian" = "Markovian",
+  "Wiener" = "Wiener",
+}
+
+export type OscillatorType = {
+  type: MODULATOR;
+  center: number;
+  frequency: number;
+  amplitude: number;
+  phase: number;
+};
+
+export enum MARKOVSTATE {
+  same = "same",
+  up = "up",
+  down = "down",
+}
+
+export type AttributeRange = {
+  lo: number;
+  hi: number;
+  step: number;
+};
+
+export type MarkovProbabilities = {
+  same: number;
+  down: number;
+  up: number;
+};
+
+export type MarkovianType = {
+  seed: string;
+  rn: RandomNumber;
+  currentState: MARKOVSTATE;
+  currentValue: number;
+  startValue: number;
+  range: AttributeRange;
+  same: MarkovProbabilities;
+  up: MarkovProbabilities;
+  down: MarkovProbabilities;
+};
+
+export type WienerType = {
+  seed: string;
+  rn: RandomNumber;
+  initialValue: number;
+  alpha: number;
+  sigma: number;
+  lo: number;
+  hi: number;
+};
+
+export enum NOISETYPE {
+  white = "white",
+  gaussian = "gaussian",
 }
 
 export enum MODULATOR {
@@ -51,6 +111,14 @@ export enum MODULATOR {
   "TRIANGLE" = "TRIANGLE",
   "SAWTOOTH" = "SAWTOOTH",
 }
+
+export type ModulatorAttributeData = {
+  value: number;
+  lo: number;
+  hi: number;
+  step: number;
+  suffix: string;
+};
 
 export const ModulatorMap: Map<
   MODULATOR,
@@ -134,62 +202,12 @@ export const TimeLineScales: TimeLineScale[] = [
   { extent: 1209600, majorDivisions: 2, minorDivisions: 7, format: 10 },
 ];
 
-export type ModulationType = {
-  type: MODULATOR;
-  center: number;
-  frequency: number; // mHz
-  amplitude: number;
-  phase: number;
+export type TimelineInterval = {
+  startOffset: number;
+  endOffset: number;
+  startTime?: number;
+  endTime?: number;
 };
-
-export type ModulationAttributeData = {
-  value: number;
-  lo: number;
-  hi: number;
-  step: number;
-  suffix: string;
-}
-
-export enum MARKOVSTATE {
-  same = "same",
-  up = "up",
-  down = "down",
-}
-
-export type AttributeRange = {
-  lo: number;
-  hi: number;
-  step: number;
-};
-
-export type MarkovProbabilities = {
-  same: number;
-  down: number;
-  up: number;
-};
-
-export type RandomSFTransitons = {
-  currentState: MARKOVSTATE;
-  currentValue: number;
-  startValue: number;
-  range: AttributeRange;
-  same: MarkovProbabilities;
-  up: MarkovProbabilities;
-  down: MarkovProbabilities;
-};
-
-export type WienerParameters = {
-  initialValue: number;
-  alpha: number;
-  sigma: number;
-  lo: number;
-  hi: number;
-};
-
-export enum NOISETYPE {
-  white = "white",
-  gaussian = "gaussian",
-}
 
 export enum GENERATIONMODE {
   record = "record",
@@ -198,17 +216,11 @@ export enum GENERATIONMODE {
   idle = "idle",
 }
 
-export type TimelineInterval = {
-  startOffset: number;
-  endOffset: number;
-  startTime?: number;
-  endTime?: number;
-};
-
 // the data that is needed to realize a source and manage it during preview and record
 export type RawSourceData = {
-  gen: CMGeneratorType;
+  gen: GeneratorType;
   source: {
+    note: number; // midi number of the source
     sample: Float32Array[]; // the sf instrument sample converted to float32 or noise as float32
     sampleRate: number; // hz/sec
     playbackRate: number; // sf playback rate or 1 for noise
@@ -219,6 +231,8 @@ export type RawSourceData = {
     duration: number; // attackInterval + holdInterval + releaseInterval
     stopTime: number; // startTime + duration
     started: boolean; // whether or not the source has started playing during preview
+    noiseAmplitude: number;
+    noiseDispersion: number;
   };
   panner: {
     value: number; // pan value from generator
@@ -237,7 +251,7 @@ export type RawSourceData = {
 
 // the attributes of a source that is managed during preview
 export type ActiveSource = {
-  gen: CMGeneratorType;
+  gen: GeneratorType;
   source: AudioBufferSourceNode;
   sourceIndex: number;
   panner: StereoPannerNode;

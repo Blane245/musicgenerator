@@ -1,6 +1,5 @@
-import SFPG from "../classes/sfpg";
-import SFRG from "../classes/sfrg";
-import { CMGeneratorType, RawSourceData } from "../types";
+import { Algorithmic } from "../classes/generators";
+import { GeneratorType, RawSourceData } from "../types";
 import { getGeneratorValues } from "./generators";
 import { samplePool } from "./samplepool";
 import { InstrumentZone, Preset, PresetZone } from "./types";
@@ -36,8 +35,10 @@ const getActiveZones = (preset: Preset, midi: number) => {
 };
 
 export const getPresetNote = (
-  gen: CMGeneratorType,
+  gen: GeneratorType,
   preset: Preset,
+  noiseAmplitude: number,
+  noiseDispersion: number,
   interval: number,
   pitchValue: number,
   volumeValue: number,
@@ -94,7 +95,7 @@ export const getPresetNote = (
       startLoop + startloopAddrsOffset + startloopAddrsCoarseOffset * 32768;
     const loopEnd =
       endLoop + endloopAddrsOffset + endloopAddrsCoarseOffset * 32768;
-    const loop = (gen as SFPG | SFRG).isLooping;
+    const loop = (gen as Algorithmic).isLooping;
 
     // get the delay, attack, hold, decay, sustain, and release intervals
     const delay = precision(tc2s(delayVolEnv), 4);
@@ -121,6 +122,7 @@ export const getPresetNote = (
     const aResult: RawSourceData = {
       gen,
       source: {
+        note: pitchValue,
         sample: [sample],
         sampleRate,
         playbackRate,
@@ -131,6 +133,8 @@ export const getPresetNote = (
         duration,
         stopTime: time + duration,
         started: false,
+        noiseAmplitude,
+        noiseDispersion,
       },
       panner: {
         value: panValue,

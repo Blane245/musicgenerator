@@ -1,6 +1,7 @@
 //TODO refresh the dialog when the file is loaded.
+//TODO loading file should set stopTime based on file duration and startTime
 import { ChangeEvent } from "react";
-import AudioFile from "../classes/audiofile";
+import {AudioFile} from "../classes/generators";
 import { precision } from "../sfcomponents/util";
 
 // provides the form fields and validators for the sfperiodic generator
@@ -33,12 +34,12 @@ export default function AudioFileDialog(
           name="volume"
           type="number"
           onChange={handleChange}
-          min={-5}
-          max={5}
-          step={.1}
+          min={-20}
+          max={20}
+          step={1}
           value={formData.volume}
         />
-        <span> (-5 to +5dB) </span>
+        <span> (-20 to +20dB) </span>
       </label>
       &nbsp;
       <input
@@ -65,15 +66,4 @@ export default function AudioFileDialog(
       ) : null}
     </>
   );
-}
-
-// validate the audiofile generator values
-// and load the audiofile contents
-export function validateAudioFileValues(values: AudioFile): string[] {
-  const messages: string[] = [];
-
-  if (values.fileName == "") {
-    messages.push("Audio file must be specified");
-  }
-  return messages;
 }

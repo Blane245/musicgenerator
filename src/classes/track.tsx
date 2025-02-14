@@ -1,18 +1,12 @@
 import { SoundFont2 } from "soundfont2";
-import { CMGeneratorType } from "../types";
+import { GENERATORTYPE, GeneratorType } from "../types";
 import { getAttributeValue, getElementElement } from "../utils/xmlfunctions";
-import AudioFile from "./audiofile";
-import CMG from "./cmg";
-import Euclidean from "./euclidean";
-import Noise from "./noise";
-import SFPG from "./sfpg";
-import SFRG from "./sfrg";
-import Wiener from "./wiener";
+import { Algorithmic, AudioFile, CMG } from "./generators";
 export default class Track {
   name: string;
   mute: boolean;
   solo: boolean;
-  generators: CMGeneratorType[];
+  generators: GeneratorType[];
   constructor(nextTrack: number) {
     this.name = "T".concat(nextTrack.toString());
     this.mute = false;
@@ -37,7 +31,7 @@ export default class Track {
     const generatorPromises: Promise<Element>[] = [];
     const generatorElements: Element[] = [];
     // for each generator, create a child element and build upon it
-    this.generators.forEach((generator: CMGeneratorType) => {
+    this.generators.forEach((generator: GeneratorType) => {
       const generatorElement = doc.createElement("generator");
       generatorElements.push(generatorElement);
       const generatorPromise: Promise<Element> = generator.appendXML(
@@ -69,7 +63,11 @@ export default class Track {
     }
   }
 
-  async getXML(elem: Element, _version: string, soundFont: SoundFont2 | null ): Promise<Track> {
+  async getXML(
+    elem: Element,
+    version: string,
+    soundFont: SoundFont2
+  ): Promise<Track> {
     try {
       // load the base attributes of the track
       this.name = getAttributeValue(elem, "name", "string") as string;
@@ -79,66 +77,37 @@ export default class Track {
       // load the generators for this track
       const generatorsElem: Element = getElementElement(elem, "generators");
       const generatorChildren: HTMLCollection = generatorsElem.children;
-      const generatorPromises: Promise<CMGeneratorType>[] = [];
+      const generatorPromises: Promise<GeneratorType>[] = [];
       for (let child of generatorChildren) {
         // read ahead the type to identify the XML loader
-        const type = child.getAttribute("type");
+        const type = child.getAttribute("type") as GENERATORTYPE;
         switch (type) {
-          case "CMG":
+          case GENERATORTYPE.CMG:
             {
-              const generatorPromise: Promise<CMG> = CMG.getXML(child, _version);
-              generatorPromises.push(generatorPromise);
-            }
-            break;
-          case "AudioFile":
-            {
-              const generatorPromise: Promise<AudioFile> =
-                AudioFile.getXML(child, _version);
-              generatorPromises.push(generatorPromise);
-            }
-            break;
-          case "Noise":
-            {
-              const generatorPromise: Promise<Noise> = Noise.getXML(child, _version);
-              generatorPromises.push(generatorPromise);
-            }
-            break;
-          case "SFPG":
-            {
-              const generatorPromise: Promise<SFPG> = SFPG.getXML(
+              const generatorPromise: Promise<CMG> = CMG.getXML(
                 child,
-                _version,
-                soundFont,
+                version,
+                soundFont
               );
               generatorPromises.push(generatorPromise);
             }
             break;
-          case "SFRG":
+          case GENERATORTYPE.AudioFile:
             {
-              const generatorPromise: Promise<SFRG> = SFRG.getXML(
+              const generatorPromise: Promise<AudioFile> = AudioFile.getXML(
                 child,
-                _version,
-                soundFont,
+                version,
+                soundFont
               );
               generatorPromises.push(generatorPromise);
             }
             break;
-          case "Wiener":
+          case GENERATORTYPE.Algorithmic:
             {
-              const generatorPromise: Promise<Wiener> = Wiener.getXML(
+              const generatorPromise: Promise<Algorithmic> = Algorithmic.getXML(
                 child,
-                _version,
-                soundFont, 
-              );
-              generatorPromises.push(generatorPromise);
-            }
-            break;
-          case "Euclidean":
-            {
-              const generatorPromise: Promise<Euclidean> = Euclidean.getXML(
-                child,
-                _version,
-                soundFont, 
+                version,
+                soundFont
               );
               generatorPromises.push(generatorPromise);
             }
@@ -148,7 +117,7 @@ export default class Track {
 
       // attach the generators to the track
       if (generatorPromises.length > 0) {
-        const generators: CMGeneratorType[] = await Promise.all(
+        const generators: GeneratorType[] = await Promise.all(
           generatorPromises
         );
         this.generators = generators;
