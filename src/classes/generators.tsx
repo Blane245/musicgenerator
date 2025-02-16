@@ -219,10 +219,10 @@ export class Algorithmic extends CMG {
         this.beatCount = parseInt(value);
         return;
       case "noiseAmplitude":
-        this.noiseAmplitude = parseInt(value);
+        this.noiseAmplitude = parseFloat(value);
         return;
       case "noiseDispersion":
-        this.noiseDispersion = parseInt(value);
+        this.noiseDispersion = parseFloat(value);
         return;
       case "noteP.algorithmType":
         switch (value) {
@@ -370,54 +370,58 @@ export class Algorithmic extends CMG {
     this.#currentRhythmEntry =
       (this.#currentRhythmEntry + 1) % this.measureLength;
     const beat = this.#beatSequence[entry] != 0;
-    let note: number = 0;
-    let speed: number = 0;
-    let volume: number = 0;
-    let pan: number = 0;
-    switch (this.noteP?.algorithmType) {
-      case ALGORITHMTYPE.Oscillator:
-        note = (this.noteP as OscillatorValues).getCurrentValue(time);
-        break;
-      case ALGORITHMTYPE.Markovian:
-        note = (this.noteP as MarkovianValues).getCurrentValue(time);
-        break;
-      case ALGORITHMTYPE.Wiener:
-        note = (this.noteP as WienerValues).getCurrentValue(time);
-        break;
-    }
-    switch (this.speedP?.algorithmType) {
-      case ALGORITHMTYPE.Oscillator:
-        note = (this.speedP as OscillatorValues).getCurrentValue(time);
-        break;
-      case ALGORITHMTYPE.Markovian:
-        note = (this.speedP as MarkovianValues).getCurrentValue(time);
-        break;
-      case ALGORITHMTYPE.Wiener:
-        note = (this.speedP as WienerValues).getCurrentValue(time);
-        break;
-    }
-    switch (this.volumeP?.algorithmType) {
-      case ALGORITHMTYPE.Oscillator:
-        note = (this.volumeP as OscillatorValues).getCurrentValue(time);
-        break;
-      case ALGORITHMTYPE.Markovian:
-        note = (this.volumeP as MarkovianValues).getCurrentValue(time);
-        break;
-      case ALGORITHMTYPE.Wiener:
-        note = (this.volumeP as WienerValues).getCurrentValue(time);
-        break;
-    }
-    switch (this.panP?.algorithmType) {
-      case ALGORITHMTYPE.Oscillator:
-        note = (this.panP as OscillatorValues).getCurrentValue(time);
-        break;
-      case ALGORITHMTYPE.Markovian:
-        note = (this.panP as MarkovianValues).getCurrentValue(time);
-        break;
-      case ALGORITHMTYPE.Wiener:
-        note = (this.panP as WienerValues).getCurrentValue(time);
-        break;
-    }
+    const note: number = (this.noteP? this.noteP.getCurrentValue(time): 0);
+    const speed: number = (this.speedP? this.speedP.getCurrentValue(time): 0);
+    const volume: number = (this.volumeP? this.volumeP.getCurrentValue(time): 0);
+    const pan: number = (this.panP? this.panP.getCurrentValue(time): 0);
+    // let note: number = 0;
+    // let speed: number = 0;
+    // let volume: number = 0;
+    // let pan: number = 0;
+    // switch (this.noteP?.algorithmType) {
+    //   case ALGORITHMTYPE.Oscillator:
+    //     note = (this.noteP as OscillatorValues).getCurrentValue(time);
+    //     break;
+    //   case ALGORITHMTYPE.Markovian:
+    //     note = (this.noteP as MarkovianValues).getCurrentValue(time);
+    //     break;
+    //   case ALGORITHMTYPE.Wiener:
+    //     note = (this.noteP as WienerValues).getCurrentValue(time);
+    //     break;
+    // }
+    // switch (this.speedP?.algorithmType) {
+    //   case ALGORITHMTYPE.Oscillator:
+    //     speed = (this.speedP as OscillatorValues).getCurrentValue(time);
+    //     break;
+    //   case ALGORITHMTYPE.Markovian:
+    //     speed = (this.speedP as MarkovianValues).getCurrentValue(time);
+    //     break;
+    //   case ALGORITHMTYPE.Wiener:
+    //     speed = (this.speedP as WienerValues).getCurrentValue(time);
+    //     break;
+    // }
+    // switch (this.volumeP?.algorithmType) {
+    //   case ALGORITHMTYPE.Oscillator:
+    //     volume = (this.volumeP as OscillatorValues).getCurrentValue(time);
+    //     break;
+    //   case ALGORITHMTYPE.Markovian:
+    //     volume = (this.volumeP as MarkovianValues).getCurrentValue(time);
+    //     break;
+    //   case ALGORITHMTYPE.Wiener:
+    //     volume = (this.volumeP as WienerValues).getCurrentValue(time);
+    //     break;
+    // }
+    // switch (this.panP?.algorithmType) {
+    //   case ALGORITHMTYPE.Oscillator:
+    //     pan = (this.panP as OscillatorValues).getCurrentValue(time);
+    //     break;
+    //   case ALGORITHMTYPE.Markovian:
+    //     pan = (this.panP as MarkovianValues).getCurrentValue(time);
+    //     break;
+    //   case ALGORITHMTYPE.Wiener:
+    //     pan = (this.panP as WienerValues).getCurrentValue(time);
+    //     break;
+    // }
     return { beat, note, speed, volume, pan };
   }
 
@@ -437,57 +441,61 @@ export class Algorithmic extends CMG {
       returnElem.setAttribute("position", this.position.toString());
 
       const notePElem: Element = doc.createElement("noteP");
-      const speedPElem: Element = doc.createElement("noteP");
-      const volumePElem: Element = doc.createElement("noteP");
-      const panPElem: Element = doc.createElement("noteP");
+      const speedPElem: Element = doc.createElement("speedP");
+      const volumePElem: Element = doc.createElement("volumeP");
+      const panPElem: Element = doc.createElement("panP");
       returnElem.appendChild(notePElem);
       returnElem.appendChild(speedPElem);
       returnElem.appendChild(volumePElem);
       returnElem.appendChild(panPElem);
-      switch (this.noteP?.algorithmType) {
-        case ALGORITHMTYPE.Oscillator:
-          (this.noteP as OscillatorValues).appendXML(doc, notePElem);
-          break;
-        case ALGORITHMTYPE.Markovian:
-          (this.noteP as MarkovianValues).appendXML(doc, notePElem);
-          break;
-        case ALGORITHMTYPE.Wiener:
-          (this.noteP as WienerValues).appendXML(doc, notePElem);
-          break;
-      }
-      switch (this.speedP?.algorithmType) {
-        case ALGORITHMTYPE.Oscillator:
-          (this.speedP as OscillatorValues).appendXML(doc, speedPElem);
-          break;
-        case ALGORITHMTYPE.Markovian:
-          (this.speedP as MarkovianValues).appendXML(doc, speedPElem);
-          break;
-        case ALGORITHMTYPE.Wiener:
-          (this.speedP as WienerValues).appendXML(doc, speedPElem);
-          break;
-      }
-      switch (this.volumeP?.algorithmType) {
-        case ALGORITHMTYPE.Oscillator:
-          (this.volumeP as OscillatorValues).appendXML(doc, volumePElem);
-          break;
-        case ALGORITHMTYPE.Markovian:
-          (this.volumeP as MarkovianValues).appendXML(doc, volumePElem);
-          break;
-        case ALGORITHMTYPE.Wiener:
-          (this.volumeP as WienerValues).appendXML(doc, volumePElem);
-          break;
-      }
-      switch (this.panP?.algorithmType) {
-        case ALGORITHMTYPE.Oscillator:
-          (this.panP as OscillatorValues).appendXML(doc, panPElem);
-          break;
-        case ALGORITHMTYPE.Markovian:
-          (this.panP as MarkovianValues).appendXML(doc, panPElem);
-          break;
-        case ALGORITHMTYPE.Wiener:
-          (this.panP as WienerValues).appendXML(doc, panPElem);
-          break;
-      }
+      this.noteP?.appendXML(doc, notePElem);
+      this.speedP?.appendXML(doc, speedPElem);
+      this.volumeP?.appendXML(doc, volumePElem);
+      this.panP?.appendXML(doc, panPElem);
+      // switch (this.noteP?.algorithmType) {
+      //   case ALGORITHMTYPE.Oscillator:
+      //     (this.noteP as OscillatorValues).appendXML(doc, notePElem);
+      //     break;
+      //   case ALGORITHMTYPE.Markovian:
+      //     (this.noteP as MarkovianValues).appendXML(doc, notePElem);
+      //     break;
+      //   case ALGORITHMTYPE.Wiener:
+      //     (this.noteP as WienerValues).appendXML(doc, notePElem);
+      //     break;
+      // }
+      // switch (this.speedP?.algorithmType) {
+      //   case ALGORITHMTYPE.Oscillator:
+      //     (this.speedP as OscillatorValues).appendXML(doc, speedPElem);
+      //     break;
+      //   case ALGORITHMTYPE.Markovian:
+      //     (this.speedP as MarkovianValues).appendXML(doc, speedPElem);
+      //     break;
+      //   case ALGORITHMTYPE.Wiener:
+      //     (this.speedP as WienerValues).appendXML(doc, speedPElem);
+      //     break;
+      // }
+      // switch (this.volumeP?.algorithmType) {
+      //   case ALGORITHMTYPE.Oscillator:
+      //     (this.volumeP as OscillatorValues).appendXML(doc, volumePElem);
+      //     break;
+      //   case ALGORITHMTYPE.Markovian:
+      //     (this.volumeP as MarkovianValues).appendXML(doc, volumePElem);
+      //     break;
+      //   case ALGORITHMTYPE.Wiener:
+      //     (this.volumeP as WienerValues).appendXML(doc, volumePElem);
+      //     break;
+      // }
+      // switch (this.panP?.algorithmType) {
+      //   case ALGORITHMTYPE.Oscillator:
+      //     (this.panP as OscillatorValues).appendXML(doc, panPElem);
+      //     break;
+      //   case ALGORITHMTYPE.Markovian:
+      //     (this.panP as MarkovianValues).appendXML(doc, panPElem);
+      //     break;
+      //   case ALGORITHMTYPE.Wiener:
+      //     (this.panP as WienerValues).appendXML(doc, panPElem);
+      //     break;
+      // }
       return Promise.resolve(returnElem);
     } catch (e: any) {
       return Promise.reject(e);
@@ -516,12 +524,12 @@ export class Algorithmic extends CMG {
       g.noiseAmplitude = getAttributeValue(
         elem,
         "noiseAmplitude",
-        "int"
+        "float"
       ) as number;
       g.noiseDispersion = getAttributeValue(
         elem,
         "noiseDispersion",
-        "int"
+        "float"
       ) as number;
 
       const notePElem: Element = getElementElement(elem, "noteP");
@@ -871,8 +879,3 @@ export class AudioFile extends CMG {
     return errors;
   }
 }
-
-// TODO the Noise generator
-
-// the noise generator - uses algorithms for speed, volume, and pan and white
-// or gaussian noise for note

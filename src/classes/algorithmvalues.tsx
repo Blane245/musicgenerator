@@ -68,6 +68,8 @@ export class OscillatorValues extends AlgorithmValues {
   constructor(
     values: OscillatorType = {
       type: MODULATOR.SINE,
+      seed: " ",
+      rn: new RandomNumber(' '),
       center: 0,
       frequency: 0,
       amplitude: 0,
@@ -139,6 +141,8 @@ export class OscillatorValues extends AlgorithmValues {
     try {
       const g: OscillatorValues = new OscillatorValues({
         type: MODULATOR.SINE,
+        seed: ' ',
+        rn: new RandomNumber(' '),
         center: 0,
         frequency: 0,
         amplitude: 0,

@@ -15,11 +15,10 @@
 // case 4 - delay > i: t1=t2=t3=t4=t5=t0, level is volume gain (no sound may result)
 // case 5 - d <= i && d+a > i: t2=t3=t4=t5=t1, t0: min, t1: gain volume (cutoff attack)
 // case 6 - d+a <=i && d+a+h > i: t3=t4=t5=t2, t0: min, t1:min, t2: gain volume (cutoffhold)
-import { midiToFrequency, normalizePermille } from "../sfcomponents/util";
+import { normalizePermille } from "../sfcomponents/util";
 import AudioFile from "../classes/audiofile";
 import { ActiveSource, RawSourceData } from "../types";
 import { v2g } from "../utils/v2g";
-import { gaussianRandom } from "../utils/gaussianrandom";
 
 export function realizeSource(
   ctx: AudioContext | OfflineAudioContext,
@@ -38,18 +37,7 @@ export function realizeSource(
       RawSourceData.source.sampleRate
     );
     const cD: Float32Array = source.buffer.getChannelData(0);
-    const noiseAmplitude: number = RawSourceData.source.noiseAmplitude;
-    const noiseDispersion: number = RawSourceData.source.noiseDispersion;
-    if (noiseAmplitude > 0 && noiseDispersion > 0) {
-      const note: number = RawSourceData.source.note;
-      const noisySample: Float32Array = addNoise(
-        RawSourceData.source.sample[0],
-        note,
-        noiseAmplitude,
-        noiseDispersion
-      );
-      cD.set(noisySample);
-    } else cD.set(RawSourceData.source.sample[0]);
+  cD.set(RawSourceData.source.sample[0]);
   } else {
     (RawSourceData.gen as AudioFile).getSample(ctx, source);
   }
@@ -215,17 +203,4 @@ export function realizeSource(
     panner,
     stopTime: RawSourceData.source.stopTime,
   };
-
-  // TODO a midi sample loops, so the added noise will loop
-  function addNoise (sample: Float32Array, note: number, amplitude: number, dispersion) {
-    const frequency: number = midiToFrequency(note);
-    const multiplier: number = Math.log2(amplitude / 10);
-
-    const nSample: number = sample.length;
-    const noisySample: Float32Array = new Float32Array(sample);
-    for (let i = 0; i = nSample; i++) {
-      noisySample[i]+= multiplier * gaussianRandom(frequency, dispersion);
-    }
-    return noisySample;
-  }
 }

@@ -478,7 +478,7 @@ div.algorithmic-table {
     grid-area: parameters;
     div.oscillator {
       display: grid;
-      grid-template-columns: 0.5fr repeat(5, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       grid-template-areas: 
       "typetitle centertitle frequencytitle amplitudetitle phasetitle"
       "type center frequency amplitude phase";

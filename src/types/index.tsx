@@ -54,6 +54,8 @@ export enum ALGORITHMTYPE {
 
 export type OscillatorType = {
   type: MODULATOR;
+  seed: string; // not used but here to reduce type checking 
+  rn: RandomNumber; // again not used
   center: number;
   frequency: number;
   amplitude: number;
@@ -231,8 +233,6 @@ export type RawSourceData = {
     duration: number; // attackInterval + holdInterval + releaseInterval
     stopTime: number; // startTime + duration
     started: boolean; // whether or not the source has started playing during preview
-    noiseAmplitude: number;
-    noiseDispersion: number;
   };
   panner: {
     value: number; // pan value from generator

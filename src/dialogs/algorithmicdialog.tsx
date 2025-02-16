@@ -95,12 +95,12 @@ export default function AlgorithmicDialog(
           name="noiseAmplitude"
           type="number"
           min={0}
-          max={100}
-          step={1}
+          max={10}
+          step={.1}
           onChange={handleChange}
           value={formData.noiseAmplitude}
         />
-        <span> (dB) </span>
+        <span> </span>
       </label>
       <label>
         &nbsp;Dispersion:&nbsp;
@@ -108,8 +108,8 @@ export default function AlgorithmicDialog(
           name="noiseDispersion"
           type="number"
           min={0}
-          max={100}
-          step={1}
+          max={10}
+          step={.1}
           onChange={handleChange}
           value={formData.noiseDispersion}
         />

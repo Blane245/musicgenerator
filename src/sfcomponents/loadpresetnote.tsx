@@ -1,9 +1,10 @@
 import { Algorithmic } from "../classes/generators";
 import { GeneratorType, RawSourceData } from "../types";
+import { gaussianRandom } from "../utils/gaussianrandom";
 import { getGeneratorValues } from "./generators";
 import { samplePool } from "./samplepool";
 import { InstrumentZone, Preset, PresetZone } from "./types";
-import { precision, tc2s } from "./util";
+import { midiToFrequency, precision, tc2s } from "./util";
 
 const isActiveZone = (
   zone: PresetZone | InstrumentZone,
@@ -118,12 +119,22 @@ export const getPresetNote = (
     // When it is > 0, and less that 960, the multiplier is between 1 and 0.040
     // When it is >= 960, multipler is 0
     let sustainLevel = sustainVolEnv;
-    
+    let noisySample: Float32Array = new Float32Array(0);
+    // add noise to the sample if necessary
+    if (noiseAmplitude > 0 && noiseDispersion > 0) {
+      noisySample = addNoise(
+        sample,
+        sampleRate,
+        pitchValue,
+        noiseAmplitude,
+        noiseDispersion
+      );
+    }
     const aResult: RawSourceData = {
       gen,
       source: {
         note: pitchValue,
-        sample: [sample],
+        sample: noisySample.length > 0 ? [noisySample] : [sample],
         sampleRate,
         playbackRate,
         loopStart,
@@ -133,8 +144,6 @@ export const getPresetNote = (
         duration,
         stopTime: time + duration,
         started: false,
-        noiseAmplitude,
-        noiseDispersion,
       },
       panner: {
         value: panValue,
@@ -150,8 +159,52 @@ export const getPresetNote = (
         value: volumeValue,
       },
     };
-    console.log("loadpresetnote result vol", aResult.vol, 'interval', interval);
+    console.log("loadpresetnote result vol", aResult.vol, "interval", interval);
     return aResult;
   });
   return result;
 };
+
+function addNoise(
+  sample: Float32Array,
+  sampleRate: number,
+  note: number,
+  amplitude: number,
+  dispersion: number
+) {
+  const frequency: number = midiToFrequency(note);
+  const std: number = midiToFrequency(dispersion);
+
+  // get the current signal level
+  let signalLevel: number = 0;
+  sample.forEach((s) => {
+    signalLevel = Math.max(Math.abs(s), signalLevel);
+  });
+
+  // add a gaussian noise signal at the request amplitude, frequency and dispersion
+  let noisySample: Float32Array = new Float32Array(sample);
+  let newSignalLevel: number = 0;
+  let time: number = 0;
+  const deltaT: number = 1 / sampleRate;
+  noisySample.forEach((s, i) => {
+    const noise: number = gaussianRandom(0, std);
+    const signal: number =
+      (amplitude * (noise + Math.cos(2 * Math.PI * frequency * time)));
+    noisySample[i] = (s + signal) / 2;
+    newSignalLevel = Math.max(newSignalLevel, Math.abs(noisySample[i]));
+    time += deltaT;
+  });
+
+  // normalize to the origianl signal level
+  noisySample = noisySample.map((s) => (s * signalLevel) / newSignalLevel);
+  console.log(
+    `add noise to sample at frequency, amplitude, std, samples, signalLevel, newSignalLevel`,
+    frequency,
+    amplitude,
+    std,
+    noisySample.length,
+    signalLevel,
+    newSignalLevel
+  );
+  return noisySample;
+}
