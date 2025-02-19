@@ -118,6 +118,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           newF.startTime = prev.startTime;
           newF.stopTime = prev.startTime;
           newF.mute = prev.mute;
+          newF.soundFont = fileContents.SoundFont?fileContents.SoundFont:undefined;
           return newF;
         }
         case GENERATORTYPE.AudioFile: {

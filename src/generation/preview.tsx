@@ -69,14 +69,15 @@ export default function Preview(params: PreviewProps): void {
   // when a source stops, disconnect and delete it when its stop time arrives
   let activeSources: ActiveSource[] = [];
   context.resume();
+  console.log('playback length', playbackLength);
   scheduler();
   function scheduler(): void {
     if (playing.current) {
       const aheadTime = context.currentTime + SCHEDULEAHEADTIME;
-      // let nStarted: number = 0;
-      // let nStopped: number = 0;
-      // let someStarted: boolean = false;
-      // let someStopped: boolean = false;
+      let nStarted: number = 0;
+      let nStopped: number = 0;
+      let someStarted: boolean = false;
+      let someStopped: boolean = false;
       while (nextTime < aheadTime) {
         // start the tones ready to start
         sourceData.forEach((s: RawSourceData, i: number) => {
@@ -92,6 +93,7 @@ export default function Preview(params: PreviewProps): void {
             activeSources.push(activeSource);
             s.source.started = true;
             nStarted++;
+            someStarted = true;
           }
         });
 
@@ -103,23 +105,24 @@ export default function Preview(params: PreviewProps): void {
             s.vol.disconnect();
             s.panner.disconnect();
             nStopped++;
+            someStopped = true;
             return false;
           } else return true;
         });
         // advance to the next scheduled time
         nextTime += SCHEDULEAHEADTIME;
       }
-      // if (someStarted || someStopped)
-      // console.log(
-      //   "at",
-      //   context.currentTime,
-      //   nStarted,
-      //   "started",
-      //   nStopped,
-      //   "stopped",
-      //   activeSources.length,
-      //   " running",
-      // );
+      if (someStarted || someStopped)
+      console.log(
+        "at",
+        context.currentTime,
+        nStarted,
+        "started",
+        nStopped,
+        "stopped",
+        activeSources.length,
+        " running",
+      );
     }
 
     // check if done or stopped
@@ -150,7 +153,7 @@ export default function Preview(params: PreviewProps): void {
     if (playing.current && context.currentTime <= playbackLength) {
       tickId = window.setTimeout(tick, tickInterval);
       setTimeProgress(tickCounter);
-      console.log(tickCounter, context.currentTime, offsetTime);
+      // console.log(tickCounter, context.currentTime, offsetTime);
       tickCounter+=tickInterval/1000;
     } else {
       tickId && clearTimeout(tickId);

@@ -1,21 +1,52 @@
+import RandomNumber from "classes/randomnumber";
 import { Algorithmic } from "../classes/generators";
 import { GeneratorType, RawSourceData } from "../types";
 import { gaussianRandom } from "../utils/gaussianrandom";
 import { getGeneratorValues } from "./generators";
 import { samplePool } from "./samplepool";
-import { InstrumentZone, Preset, PresetZone } from "./types";
+import { Instrument, InstrumentZone, Preset, PresetZone, RangeGenerator, Sample, Generator } from "./types";
 import { midiToFrequency, precision, tc2s } from "./util";
 
+// select mid range velocity Range
 const isActiveZone = (
   zone: PresetZone | InstrumentZone,
   midi: number
 ): boolean =>
   !zone.keyRange || (zone.keyRange.lo <= midi && midi <= zone.keyRange.hi);
 
+  // Soundfont2 appears to be missing the velocityRange from the zones.
+  // this change will return only the first preset zone for the midi and then
+  // the first instrument zones for the midi
 const getActiveZones = (preset: Preset, midi: number) => {
+  const activeZones: {
+    mergedGenerators: Object;
+    sample: Sample;
+    keyRange?: RangeGenerator | undefined;
+    modulators?: {};
+    generators: {
+        [key: number]: Generator;
+    };
+}[] = [];
+// find the first preset that is active
+const presetZoneIndex: number = preset.zones.findIndex((pZone) => isActiveZone(pZone, midi));
+// if there isn't one, throuh an error
+if (presetZoneIndex < 0) throw new Error(`preset ${preset.header.name} missing a zone for midi ${midi}`);
+const presetZone: PresetZone = preset.zones[presetZoneIndex];
+// find the first instrument that is active
+const instrument: Instrument = preset.zones[presetZoneIndex].instrument;
+const instrumentZoneIndex: number = instrument.zones.findIndex((iZone) => isActiveZone(iZone, midi));
+if (instrumentZoneIndex < 0) throw new Error(`instrument ${instrument.header.name} missing a zone for midi ${midi}`);
+const instrumentZone: InstrumentZone = instrument.zones[instrumentZoneIndex];
+const mergedGenerators: Object = getGeneratorValues(instrumentZone, presetZone, preset)
+activeZones.push ({...instrumentZone, mergedGenerators:mergedGenerators});
+return activeZones;
+
+}
+const getActiveZones1 = (preset: Preset, midi: number) => {
   // console.log('preset', preset);
   const activeZones = preset.zones
     .filter(
+
       (pzone: PresetZone) => isActiveZone(pzone, midi) && pzone.instrument
     )
     .map((pzone: PresetZone) => {
@@ -36,7 +67,7 @@ const getActiveZones = (preset: Preset, midi: number) => {
 };
 
 export const getPresetNote = (
-  gen: GeneratorType,
+  gen: Algorithmic,
   preset: Preset,
   noiseAmplitude: number,
   noiseDispersion: number,
@@ -90,6 +121,16 @@ export const getPresetNote = (
     const baseDetune = 100 * rootKey + pitchCorrection - fineTune;
     const cents = pitchValue * 100 - baseDetune;
     const playbackRate = 1.0 * Math.pow(2, cents / 1200);
+    console.log('getpreset',
+      'rootKey',
+      rootKey,
+      'baseDetune',
+      baseDetune,
+      'cents',
+      cents,
+      'playbackRate',
+      playbackRate,
+    )
 
     // get the sample looping parameters
     const loopStart =
@@ -123,6 +164,7 @@ export const getPresetNote = (
     // add noise to the sample if necessary
     if (noiseAmplitude > 0 && noiseDispersion > 0) {
       noisySample = addNoise(
+        (gen as Algorithmic),
         sample,
         sampleRate,
         pitchValue,
@@ -166,6 +208,7 @@ export const getPresetNote = (
 };
 
 function addNoise(
+  gen: Algorithmic,
   sample: Float32Array,
   sampleRate: number,
   note: number,
@@ -187,7 +230,7 @@ function addNoise(
   let time: number = 0;
   const deltaT: number = 1 / sampleRate;
   noisySample.forEach((s, i) => {
-    const noise: number = gaussianRandom(0, std);
+    const noise: number = gaussianRandom(0, std, gen.noteP?.values?.rn as RandomNumber);
     const signal: number =
       (amplitude * (noise + Math.cos(2 * Math.PI * frequency * time)));
     noisySample[i] = (s + signal) / 2;

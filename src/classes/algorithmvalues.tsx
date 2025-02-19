@@ -69,7 +69,7 @@ export class OscillatorValues extends AlgorithmValues {
     values: OscillatorType = {
       type: MODULATOR.SINE,
       seed: " ",
-      rn: new RandomNumber(' '),
+      rn: new RandomNumber(" "),
       center: 0,
       frequency: 0,
       amplitude: 0,
@@ -81,7 +81,9 @@ export class OscillatorValues extends AlgorithmValues {
   }
 
   override copy(): OscillatorValues {
-    return new OscillatorValues(this.values);
+    const n = new OscillatorValues();
+    n.values = { ...this.values };
+    return n;
   }
 
   override setAttribute(name: string, value: string): void {
@@ -141,8 +143,8 @@ export class OscillatorValues extends AlgorithmValues {
     try {
       const g: OscillatorValues = new OscillatorValues({
         type: MODULATOR.SINE,
-        seed: ' ',
-        rn: new RandomNumber(' '),
+        seed: " ",
+        rn: new RandomNumber(" "),
         center: 0,
         frequency: 0,
         amplitude: 0,
@@ -199,7 +201,9 @@ export class MarkovianValues extends AlgorithmValues {
   }
 
   override copy(): MarkovianValues {
-    return new MarkovianValues(this.values);
+    const n: MarkovianValues = new MarkovianValues();
+    n.values = { ...this.values };
+    return n;
   }
 
   override setAttribute(name: string, value: string): void {
@@ -304,8 +308,9 @@ export class MarkovianValues extends AlgorithmValues {
 
   override async appendXML(_doc: XMLDocument, elem: Element): Promise<Element> {
     try {
-      elem.setAttribute("parameterType", ALGORITHMTYPE.Markovian);
+      elem.setAttribute("algorithmType", ALGORITHMTYPE.Markovian);
       elem.setAttribute("seed", this.values.seed);
+      elem.setAttribute("startValue", this.values.startValue.toString());
       elem.setAttribute("range.lo", this.values.range.lo.toString());
       elem.setAttribute("range.hi", this.values.range.hi.toString());
       elem.setAttribute("range.step", this.values.range.step.toString());
@@ -448,7 +453,9 @@ export class WienerValues extends AlgorithmValues {
   }
 
   override copy(): WienerValues {
-    return new WienerValues(this.values);
+    const n: WienerValues = new WienerValues();
+    n.values = { ...this.values };
+    return n;
   }
 
   override setAttribute(name: string, value: string): void {
@@ -476,21 +483,45 @@ export class WienerValues extends AlgorithmValues {
     }
   }
 
+  #currentAlpha: number = 0
   override getCurrentValue(time: number): number {
     // determine the next Wiener series value and bound it between lo and hi
-    const result: number =
-      this.values.sigma == 0 || time == 0
-        ? this.values.initialValue
-        : this.values.initialValue +
-          this.values.alpha * time +
-          gaussianRandom(0, this.values.sigma * Math.sqrt(time));
+    // reverse the trend if the value goes too high or too low
+    let result: number = this.values.initialValue;
+    if (time == 0) {
+      this.#currentAlpha = this.values.alpha;
+      return result;
+    }
+    if (this.values.sigma == 0) {
+      return result;
+    }
+
+    const random: number = gaussianRandom(
+      0,
+      this.values.sigma * Math.sqrt(time)
+      ,this.values.rn
+    );
+    result = this.values.initialValue + this.#currentAlpha * time + random;
+    if (this.#currentAlpha == 0)
+      return Math.min(this.values.hi, Math.max(this.values.lo, result));
+
+    // check for trend reversal
+    // console.log('trend test result, lo, hi, alpha', result, this.values.lo, this.values.hi, this.values.alpha)
+    // if (
+    //   (result > this.values.hi && this.#currentAlpha > 0) ||
+    //   (result < this.values.lo && this.#currentAlpha < 0)
+    // ) {
+    //   this.#currentAlpha = -this.#currentAlpha;
+    //   result = this.values.initialValue + this.#currentAlpha * time + random;
+    //   console.log('reversing trend - result', result);
+    // }
     return Math.min(this.values.hi, Math.max(this.values.lo, result));
   }
 
   override async appendXML(_doc: XMLDocument, elem: Element): Promise<Element> {
     try {
       const returnElem: Element = elem;
-      returnElem.setAttribute("parameterType", ALGORITHMTYPE.Wiener);
+      returnElem.setAttribute("algorithmType", ALGORITHMTYPE.Wiener);
       returnElem.setAttribute("seed", this.values.seed);
       returnElem.setAttribute(
         "initialValue",
@@ -533,7 +564,7 @@ export class WienerValues extends AlgorithmValues {
     const errors: string[] = [];
     const values: WienerType = algorithm.values;
     if (values.sigma < 0) errors.push("Sigma must be nonnegative");
-    if (values.lo < 0 || values.hi <= values.lo)
+    if (values.lo < -1 || values.hi <= values.lo)
       errors.push("Lo must be nonnegative and hi must be greater than lo");
     return errors;
   }

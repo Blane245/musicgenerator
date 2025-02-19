@@ -13,6 +13,7 @@ export function samplePool(desiredSample: Sample): {
   // if the sample is in the pool, return the converted sample
   if (index >= 0) {
     const item = pool[index];
+    // console.log(`return from sample pool ${header.name}`)
     return item;
   } else {
     // if the sample is not in the pool, convert it, store it, and return
@@ -24,6 +25,7 @@ export function samplePool(desiredSample: Sample): {
       sample: fl,
       header,
     };
+    // console.log(`new sample pool entry ${header.name}`);
     pool.push(item);
     return item;
   }

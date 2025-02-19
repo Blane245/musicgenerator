@@ -90,6 +90,18 @@ export default function AlgorithmicDialog(
         />
       </label>
       <label>
+        &nbsp;Notes in Octave:&nbsp;
+        <input
+          name="noteCount"
+          type="number"
+          min={1}
+          max={12}
+          step={1}
+          onChange={handleChange}
+          value={formData.noteCount}
+        />
+      </label>
+      <label>
         &nbsp;Noise Level:&nbsp;
         <input
           name="noiseAmplitude"

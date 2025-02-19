@@ -143,6 +143,8 @@ export class Algorithmic extends CMG {
   isLooping: boolean; // should the sample loop?
   measureLength: number; // the number of beats in a measure
   beatCount: number; // the number of strokes in a measure
+  noteCount: number; // the number of active notes in an active
+  #activeNotes: number[]; // the active notes of the octave
   noiseAmplitude: number; // dB of Gaussian noise to apply
   noiseDispersion: number; // std of midi of Gaussion noise
   noteP: Algorithm;
@@ -159,6 +161,8 @@ export class Algorithmic extends CMG {
     this.isLooping = true;
     this.measureLength = 4;
     this.beatCount = 4;
+    this.noteCount = 12;
+    this.#activeNotes = euclideanRhythm(this.noteCount, 12);
     this.noiseAmplitude = 0;
     this.noiseDispersion = 0;
     this.noteP = undefined;
@@ -180,12 +184,14 @@ export class Algorithmic extends CMG {
     n.isLooping = this.isLooping;
     n.measureLength = this.measureLength;
     n.beatCount = this.beatCount;
+    n.noteCount = this.noteCount;
+    n.#activeNotes = this.#activeNotes;
     n.noiseAmplitude = this.noiseAmplitude;
     n.noiseDispersion = this.noiseDispersion;
-    n.noteP = this.noteP;
-    n.speedP = this.speedP;
-    n.volumeP = this.volumeP;
-    n.panP = this.panP;
+    n.noteP = this.noteP ? this.noteP.copy() : undefined;
+    n.speedP = this.speedP ? this.speedP.copy() : undefined;
+    n.volumeP = this.volumeP ? this.volumeP.copy() : undefined;
+    n.panP = this.panP ? this.panP.copy() : undefined;
     return n;
   }
 
@@ -217,6 +223,10 @@ export class Algorithmic extends CMG {
         return;
       case "beatCount":
         this.beatCount = parseInt(value);
+        return;
+      case "noteCount":
+        this.noteCount = parseInt(value);
+        this.#activeNotes = euclideanRhythm(this.noteCount, 12);
         return;
       case "noiseAmplitude":
         this.noiseAmplitude = parseFloat(value);
@@ -293,60 +303,19 @@ export class Algorithmic extends CMG {
     // handle all other algorithm property values
     const nameParts: string[] = name.split("."); // should be four, the third being 'values'
     const parameterName: string = nameParts[0];
-    const algorithmName: string = nameParts[1];
     const valueName: string = nameParts[3];
     switch (parameterName) {
       case "noteP":
-        switch (algorithmName) {
-          case "oscillator":
-            (this.noteP as OscillatorValues).setAttribute(valueName, value);
-            return;
-          case "markovian":
-            (this.noteP as MarkovianValues).setAttribute(valueName, value);
-            return;
-          case "wiener":
-            (this.noteP as WienerValues).setAttribute(valueName, value);
-            return;
-        }
+        if (this.noteP) this.noteP.setAttribute(valueName, value);
         break;
       case "speedP":
-        switch (algorithmName) {
-          case "oscillator":
-            (this.speedP as OscillatorValues).setAttribute(valueName, value);
-            return;
-          case "markovian":
-            (this.speedP as MarkovianValues).setAttribute(valueName, value);
-            return;
-          case "wiener":
-            (this.speedP as WienerValues).setAttribute(valueName, value);
-            return;
-        }
+        if (this.speedP) this.speedP.setAttribute(valueName, value);
         break;
       case "volumeP":
-        switch (algorithmName) {
-          case "oscillator":
-            (this.volumeP as OscillatorValues).setAttribute(valueName, value);
-            return;
-          case "markovian":
-            (this.volumeP as MarkovianValues).setAttribute(valueName, value);
-            return;
-          case "wiener":
-            (this.volumeP as WienerValues).setAttribute(valueName, value);
-            return;
-        }
+        if (this.volumeP) this.volumeP.setAttribute(valueName, value);
         break;
       case "panP":
-        switch (algorithmName) {
-          case "oscillator":
-            (this.panP as OscillatorValues).setAttribute(valueName, value);
-            return;
-          case "markovian":
-            (this.panP as MarkovianValues).setAttribute(valueName, value);
-            return;
-          case "wiener":
-            (this.panP as WienerValues).setAttribute(valueName, value);
-            return;
-        }
+        if (this.panP) this.panP.setAttribute(valueName, value);
         break;
     }
   }
@@ -370,59 +339,49 @@ export class Algorithmic extends CMG {
     this.#currentRhythmEntry =
       (this.#currentRhythmEntry + 1) % this.measureLength;
     const beat = this.#beatSequence[entry] != 0;
-    const note: number = (this.noteP? this.noteP.getCurrentValue(time): 0);
-    const speed: number = (this.speedP? this.speedP.getCurrentValue(time): 0);
-    const volume: number = (this.volumeP? this.volumeP.getCurrentValue(time): 0);
-    const pan: number = (this.panP? this.panP.getCurrentValue(time): 0);
-    // let note: number = 0;
-    // let speed: number = 0;
-    // let volume: number = 0;
-    // let pan: number = 0;
-    // switch (this.noteP?.algorithmType) {
-    //   case ALGORITHMTYPE.Oscillator:
-    //     note = (this.noteP as OscillatorValues).getCurrentValue(time);
-    //     break;
-    //   case ALGORITHMTYPE.Markovian:
-    //     note = (this.noteP as MarkovianValues).getCurrentValue(time);
-    //     break;
-    //   case ALGORITHMTYPE.Wiener:
-    //     note = (this.noteP as WienerValues).getCurrentValue(time);
-    //     break;
-    // }
-    // switch (this.speedP?.algorithmType) {
-    //   case ALGORITHMTYPE.Oscillator:
-    //     speed = (this.speedP as OscillatorValues).getCurrentValue(time);
-    //     break;
-    //   case ALGORITHMTYPE.Markovian:
-    //     speed = (this.speedP as MarkovianValues).getCurrentValue(time);
-    //     break;
-    //   case ALGORITHMTYPE.Wiener:
-    //     speed = (this.speedP as WienerValues).getCurrentValue(time);
-    //     break;
-    // }
-    // switch (this.volumeP?.algorithmType) {
-    //   case ALGORITHMTYPE.Oscillator:
-    //     volume = (this.volumeP as OscillatorValues).getCurrentValue(time);
-    //     break;
-    //   case ALGORITHMTYPE.Markovian:
-    //     volume = (this.volumeP as MarkovianValues).getCurrentValue(time);
-    //     break;
-    //   case ALGORITHMTYPE.Wiener:
-    //     volume = (this.volumeP as WienerValues).getCurrentValue(time);
-    //     break;
-    // }
-    // switch (this.panP?.algorithmType) {
-    //   case ALGORITHMTYPE.Oscillator:
-    //     pan = (this.panP as OscillatorValues).getCurrentValue(time);
-    //     break;
-    //   case ALGORITHMTYPE.Markovian:
-    //     pan = (this.panP as MarkovianValues).getCurrentValue(time);
-    //     break;
-    //   case ALGORITHMTYPE.Wiener:
-    //     pan = (this.panP as WienerValues).getCurrentValue(time);
-    //     break;
-    // }
+    let note: number = this.noteP ? this.noteP.getCurrentValue(time) : 0;
+    const speed: number = this.speedP ? this.speedP.getCurrentValue(time) : 0;
+    const volume: number = this.volumeP
+      ? this.volumeP.getCurrentValue(time)
+      : 0;
+    const pan: number = this.panP ? this.panP.getCurrentValue(time) : 0;
+
+    // modify the note based on those selectable in the octave
+    note = this.#getSelectedNote(note);
     return { beat, note, speed, volume, pan };
+  }
+
+  #getSelectedNote(note: number): number {
+    // get the midi integer and fraction parts
+    let midi = Math.round(note);
+    const midiFraction = note - midi;
+
+    // get the octave values
+    const midiOffset = midi % 12;
+    const normalizedMidiOffset = (midiOffset + 12) % 12;
+    const octave: number = Math.trunc(midi / 12);
+
+    // if the note is on, return the original note
+    if (this.#activeNotes[normalizedMidiOffset] == 1) {
+      console.log ('returning original note', note);
+      return note;
+    }
+
+    // find the two selected notes surrounding this nonselected note
+    // this assumes that the first note in the sequence is selected
+    let first: number = normalizedMidiOffset;
+    let last: number = normalizedMidiOffset;
+    while (first > 0 && this.#activeNotes[first] == 0) first--;
+    while (last < 12 && this.#activeNotes[last] == 0) last++;
+    const firstOffset: number = normalizedMidiOffset - first;
+    const lastOffset: number = last - normalizedMidiOffset;
+    // set the midi to the closest active note, favoring the lower one
+    if (firstOffset <= lastOffset) midi = octave * 12 + first;
+    else midi = octave * 12 + last;
+
+    // return with the fractional note applied
+    console.log('returning modified note', midi + midiFraction);
+    return midi + midiFraction;
   }
 
   override async appendXML(doc: XMLDocument, elem: Element): Promise<Element> {
@@ -433,6 +392,7 @@ export class Algorithmic extends CMG {
       returnElem.setAttribute("isLooping", this.isLooping ? "true" : "false");
       returnElem.setAttribute("measureLength", this.measureLength.toString());
       returnElem.setAttribute("beatCount", this.beatCount.toString());
+      returnElem.setAttribute("noteCount", this.noteCount.toString());
       returnElem.setAttribute("noiseAmplitude", this.noiseAmplitude.toString());
       returnElem.setAttribute(
         "noiseDispersion",
@@ -452,50 +412,6 @@ export class Algorithmic extends CMG {
       this.speedP?.appendXML(doc, speedPElem);
       this.volumeP?.appendXML(doc, volumePElem);
       this.panP?.appendXML(doc, panPElem);
-      // switch (this.noteP?.algorithmType) {
-      //   case ALGORITHMTYPE.Oscillator:
-      //     (this.noteP as OscillatorValues).appendXML(doc, notePElem);
-      //     break;
-      //   case ALGORITHMTYPE.Markovian:
-      //     (this.noteP as MarkovianValues).appendXML(doc, notePElem);
-      //     break;
-      //   case ALGORITHMTYPE.Wiener:
-      //     (this.noteP as WienerValues).appendXML(doc, notePElem);
-      //     break;
-      // }
-      // switch (this.speedP?.algorithmType) {
-      //   case ALGORITHMTYPE.Oscillator:
-      //     (this.speedP as OscillatorValues).appendXML(doc, speedPElem);
-      //     break;
-      //   case ALGORITHMTYPE.Markovian:
-      //     (this.speedP as MarkovianValues).appendXML(doc, speedPElem);
-      //     break;
-      //   case ALGORITHMTYPE.Wiener:
-      //     (this.speedP as WienerValues).appendXML(doc, speedPElem);
-      //     break;
-      // }
-      // switch (this.volumeP?.algorithmType) {
-      //   case ALGORITHMTYPE.Oscillator:
-      //     (this.volumeP as OscillatorValues).appendXML(doc, volumePElem);
-      //     break;
-      //   case ALGORITHMTYPE.Markovian:
-      //     (this.volumeP as MarkovianValues).appendXML(doc, volumePElem);
-      //     break;
-      //   case ALGORITHMTYPE.Wiener:
-      //     (this.volumeP as WienerValues).appendXML(doc, volumePElem);
-      //     break;
-      // }
-      // switch (this.panP?.algorithmType) {
-      //   case ALGORITHMTYPE.Oscillator:
-      //     (this.panP as OscillatorValues).appendXML(doc, panPElem);
-      //     break;
-      //   case ALGORITHMTYPE.Markovian:
-      //     (this.panP as MarkovianValues).appendXML(doc, panPElem);
-      //     break;
-      //   case ALGORITHMTYPE.Wiener:
-      //     (this.panP as WienerValues).appendXML(doc, panPElem);
-      //     break;
-      // }
       return Promise.resolve(returnElem);
     } catch (e: any) {
       return Promise.reject(e);
@@ -521,6 +437,8 @@ export class Algorithmic extends CMG {
         "int"
       ) as number;
       g.beatCount = getAttributeValue(elem, "beatCount", "int") as number;
+      g.noteCount = getAttributeValue(elem, "noteCount", "int") as number;
+      g.#activeNotes = euclideanRhythm(g.noteCount, 12);
       g.noiseAmplitude = getAttributeValue(
         elem,
         "noiseAmplitude",

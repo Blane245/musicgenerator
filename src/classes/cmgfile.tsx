@@ -1,11 +1,11 @@
 import { SoundFont2 } from "soundfont2";
-import { CMGeneratorType } from "../types";
 import { loadSoundFont } from "../utils/loadsoundfont";
 import { getAttributeValue } from "../utils/xmlfunctions";
 import Track from "./track";
 import Compressor from "./compressor";
 import Equalizer from "./equalizer";
 import Volume from "./volume";
+import { GeneratorType } from "../types";
 export default class CMGFile {
   dirty: boolean; // if the contents of the file has been changed since loaded, it is marked dirty
   name: string; // the name of the file on the disk or null if not saved
@@ -40,9 +40,9 @@ export default class CMGFile {
     newFile.equalizer = this.equalizer.copy();
     this.tracks.forEach((t) => {
       const newTrack: Track = t.copy();
-      const newGenerators: CMGeneratorType[] = [];
-      t.generators.forEach((g: CMGeneratorType) => {
-        const newGenerator: CMGeneratorType = g.copy();
+      const newGenerators: GeneratorType[] = [];
+      t.generators.forEach((g: GeneratorType) => {
+        const newGenerator: GeneratorType = g.copy();
         newGenerators.push(newGenerator);
       });
       newTracks.push(newTrack);

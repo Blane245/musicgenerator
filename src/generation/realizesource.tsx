@@ -22,84 +22,94 @@ import { v2g } from "../utils/v2g";
 
 export function realizeSource(
   ctx: AudioContext | OfflineAudioContext,
-  RawSourceData: RawSourceData,
+  rawSourceData: RawSourceData,
   sourceIndex: number,
   destination: AudioNode
 ): ActiveSource {
   // build source
   const source: AudioBufferSourceNode = ctx.createBufferSource();
-
   // the source will either have a sample or a fileBuffer
-  if (RawSourceData.source.sample) {
+  if (rawSourceData.source.sample) {
     source.buffer = ctx.createBuffer(
       1,
-      RawSourceData.source.sample[0].length,
-      RawSourceData.source.sampleRate
+      rawSourceData.source.sample[0].length,
+      rawSourceData.source.sampleRate
     );
     const cD: Float32Array = source.buffer.getChannelData(0);
-  cD.set(RawSourceData.source.sample[0]);
+    cD.set(rawSourceData.source.sample[0]);
+    console.log('sample length', rawSourceData.source.sample[0].length)
   } else {
-    (RawSourceData.gen as AudioFile).getSample(ctx, source);
+    (rawSourceData.gen as AudioFile).getSample(ctx, source);
   }
   source.loopStart =
-    RawSourceData.source.loopStart / RawSourceData.source.sampleRate;
+    rawSourceData.source.loopStart / rawSourceData.source.sampleRate;
   source.loopEnd =
-    RawSourceData.source.loopEnd / RawSourceData.source.sampleRate;
-  source.loop = RawSourceData.source.loop;
-  source.playbackRate.value = RawSourceData.source.playbackRate;
-  //   console.log(RawSourceData.source);
+    rawSourceData.source.loopEnd / rawSourceData.source.sampleRate;
+  source.loop = rawSourceData.source.loop;
+  source.playbackRate.value = rawSourceData.source.playbackRate;
+  //   console.log(rawSourceData.source);
   // build gain
   const vol: GainNode = ctx.createGain();
   // sample exists
-  if (RawSourceData.source.sample) {
+  if (rawSourceData.source.sample) {
     const min = 0.001;
-    const gain: number = v2g(RawSourceData.vol.value);
+    const gain: number = v2g(rawSourceData.vol.value);
     if (gain > min) {
-      // const gain: number = RawSourceData.vol.value;
-      const t0: number = RawSourceData.source.startTime;
-      let t1: number = RawSourceData.vol.delayInterval + t0;
-      let t2: number = RawSourceData.vol.attackInterval + t1;
-      let t3: number = RawSourceData.vol.holdInterval + t2;
-      let t4: number = RawSourceData.vol.decayInterval + t3;
-      const stopTime: number =
-        RawSourceData.source.stopTime - RawSourceData.vol.releaseInterval;
-      const t6: number = RawSourceData.source.stopTime;
-      const sustainLevel: number = Math.max(RawSourceData.vol.sustainLevel, 0);
+      // const gain: number = rawSourceData.vol.value;
+      const t0: number = rawSourceData.source.startTime;
+      let t1: number = rawSourceData.vol.delayInterval + t0;
+      let t2: number = rawSourceData.vol.attackInterval + t1;
+      let t3: number = rawSourceData.vol.holdInterval + t2;
+      let t4: number = rawSourceData.vol.decayInterval + t3;
+      const t5: number =
+        rawSourceData.source.stopTime - rawSourceData.vol.releaseInterval;
+      const t6: number = rawSourceData.source.stopTime;
+      const sustainLevel: number = Math.max(rawSourceData.vol.sustainLevel, 0);
       let sustainMultipler: number = sustainLevel;
       if (sustainMultipler == 0) sustainMultipler = 1.0;
       // When 96 dB (0.04) of attenuation is reached in the final gain amplifier, an abrupt jump to zero gain (infinite dB
       //   of attenuation) occurs. In a 16-bit system, this jump is inaudible.
       else if (sustainMultipler >= 960) sustainMultipler = 0;
       else sustainMultipler = 1 - normalizePermille(sustainMultipler);
+      // const modGain: number = Math.max(gain * sustainMultipler, 0.001);
+      const modGain: number = gain;
 
       // make use case adjustments
 
       // case 1 - delay time is greater than note duration (may not be audible)
-      if (t1 > stopTime) {
+      if (t1 >= t5) {
         vol.gain.setValueAtTime(gain, t0);
-        vol.gain.setValueAtTime(gain, stopTime);
-        vol.gain.cancelAndHoldAtTime(stopTime);
+        vol.gain.setValueAtTime(gain, t5);
+        vol.gain.cancelAndHoldAtTime(t5);
         vol.gain.exponentialRampToValueAtTime(min, t6); // release
-        console.log("t1 > stopTime, t0, t1, stoptime", t0, t1, stopTime);
+        console.log(
+          "delay >= stop, note, gain, t0, stop, release",
+          rawSourceData.source.note,
+          gain,
+          t0,
+          t5,
+          t6
+        );
       }
 
       // case 2 - delay time + attack time is greater than note duration (truncate attack)
-      else if (t2 > stopTime) {
+      else if (t2 >= t5) {
         vol.gain.setValueAtTime(min, t0);
         vol.gain.setValueAtTime(min, t1);
-        const maxAttack: number =
-          min + ((gain - min) * (stopTime - t1)) / (t2 - t1);
-        vol.gain.exponentialRampToValueAtTime(maxAttack, stopTime);
-        vol.gain.setValueAtTime(maxAttack, stopTime);
-        vol.gain.cancelAndHoldAtTime(stopTime);
+        const maxAttack: number = min + ((gain - min) * (t5 - t1)) / (t2 - t1);
+        vol.gain.exponentialRampToValueAtTime(maxAttack, t5);
+        vol.gain.setValueAtTime(maxAttack, t5);
+        vol.gain.cancelAndHoldAtTime(t5);
         vol.gain.exponentialRampToValueAtTime(min, t6);
         console.log(
-          "t2 > stopTime, maxAttack, t0, t1, t2, stoptime",
+          "attack >= stop, note, maxAttack, t0, t1, t2, stop, release",
+          rawSourceData.source.note,
           maxAttack,
           t0,
           t1,
           t2,
-          stopTime
+          t5,
+          t6
         );
         // two paths based on sustainLevel for handling t3 and t4
       } else if (sustainLevel == 0) {
@@ -107,77 +117,90 @@ export function realizeSource(
         // when sustainLevel > 0, hold and decay depend on time frames
 
         // case 3 has no hold or decay, so delay, attack, sustain, release
+
         vol.gain.setValueAtTime(min, t0);
         vol.gain.setValueAtTime(min, t1);
-        vol.gain.exponentialRampToValueAtTime(gain, t2);
-        vol.gain.setValueAtTime(gain, t2);
-        vol.gain.setValueAtTime(gain, stopTime);
-        vol.gain.cancelAndHoldAtTime(stopTime);
+        vol.gain.exponentialRampToValueAtTime(modGain, t2);
+        vol.gain.setValueAtTime(modGain, t2);
+        vol.gain.setValueAtTime(modGain, t5);
+        vol.gain.cancelAndHoldAtTime(t5);
         vol.gain.exponentialRampToValueAtTime(min, t6);
         console.log(
-          "sustain level zero, t0, t1, t2, stoptime",
+          "sustain level zero, note, modgain, t0, t1, t2, stoptime, release",
+          rawSourceData.source.note,
+          modGain,
           t0,
           t1,
           t2,
-          stopTime
+          t5,
+          t6
         );
-      } else if (sustainLevel > 0 && t3 > stopTime) {
+      } else if (sustainLevel > 0 && t3 >= t5) {
         // case 4 hold is past end, so delay, attack, hold, release
         vol.gain.setValueAtTime(min, t0);
         vol.gain.setValueAtTime(min, t1);
-        vol.gain.exponentialRampToValueAtTime(gain, t2);
-        vol.gain.setValueAtTime(gain, t2);
-        vol.gain.setValueAtTime(gain, stopTime);
-        vol.gain.cancelAndHoldAtTime(stopTime);
+        vol.gain.exponentialRampToValueAtTime(modGain, t2);
+        vol.gain.setValueAtTime(modGain, t2);
+        vol.gain.setValueAtTime(modGain, t5);
+        vol.gain.cancelAndHoldAtTime(t5);
         vol.gain.exponentialRampToValueAtTime(min, t6);
         console.log(
-          "sustainlevel > 0 && hold > end, t0, t1, t2, t3, stoptime",
+          "sustainlevel > 0 && hold >= end, note, modGain, t0, t1, t2, t3, stop, release",
+          rawSourceData.source.note,
+          modGain,
           t0,
           t1,
           t2,
           t3,
-          stopTime
+          t5,
+          t6
         );
-      } else if (sustainLevel > 0 && t4 > stopTime) {
+      } else if (sustainLevel > 0 && t4 >= t5) {
         // case 5 decay is past end, so delay, attack, hold, partial decay, release
         vol.gain.setValueAtTime(min, t0);
         vol.gain.setValueAtTime(min, t1);
-        vol.gain.exponentialRampToValueAtTime(gain, t2);
-        vol.gain.setValueAtTime(gain, t2);
-        vol.gain.setValueAtTime(gain, t3);
+        vol.gain.exponentialRampToValueAtTime(modGain, t2);
+        vol.gain.setValueAtTime(modGain, t2);
+        vol.gain.setValueAtTime(modGain, t3);
         const minDecay: number =
-          min + ((gain - min) * (stopTime - t3)) / (t4 - t3);
-        vol.gain.exponentialRampToValueAtTime(minDecay, stopTime);
-        vol.gain.setValueAtTime(gain, stopTime);
-        vol.gain.cancelAndHoldAtTime(stopTime);
+          gain + ((modGain - min) * (t5 - t3)) / (t3 - t4);
+        vol.gain.exponentialRampToValueAtTime(minDecay, t5);
+        vol.gain.setValueAtTime(minDecay, t5);
+        vol.gain.cancelAndHoldAtTime(t5);
         vol.gain.exponentialRampToValueAtTime(min, t6);
         console.log(
-          "sustainlevel > 0 && decay > end, gain, minDecay, t0, t1, t2, t3, t4, stoptime",
-          gain,
+          "sustainlevel > 0 && decay >= end, note, modGain, minDecay, t0, t1, t2, t3, t4, stop, release",
+          rawSourceData.source.note,
+          modGain,
           minDecay,
           t0,
           t1,
           t2,
           t3,
           t4,
-          stopTime
+          t5,
+          t6
         );
-      } else if (sustainLevel > 0 && t4 <= stopTime) {
-        // case 6 - decay complete before stop time - delay, attack, hold, decay
+      } else if (sustainLevel > 0 && t4 <= t5) {
+        // case 6 - decay complete before stop time - delay, attack, hold, decay, no release
         vol.gain.setValueAtTime(min, t0);
         vol.gain.setValueAtTime(min, t1);
-        vol.gain.exponentialRampToValueAtTime(gain, t2);
-        vol.gain.setValueAtTime(gain, t2);
+        vol.gain.exponentialRampToValueAtTime(modGain, t2);
+        vol.gain.setValueAtTime(modGain, t2);
+        vol.gain.setValueAtTime(modGain, t3);
         vol.gain.exponentialRampToValueAtTime(min, t4);
-        vol.gain.setValueAtTime(gain, t4);
+        vol.gain.setValueAtTime(min, t4);
         vol.gain.cancelAndHoldAtTime(t4);
         console.log(
-          "susteinLevel > 0 && decay < end, t0, t1, t2, t3, t4",
+          "sustainLevel > 0 && decay <= end, note, modGain, t0, t1, t2, t3, t4 stop",
+          rawSourceData.source.note,
+          modGain,
           t0,
           t1,
           t2,
           t3,
-          t4
+          t4,
+          t5
         );
       } else {
         vol.gain.value = gain;
@@ -188,19 +211,19 @@ export function realizeSource(
   }
 
   // array buffer exists
-  else vol.gain.value = v2g(RawSourceData.vol.value);
+  else vol.gain.value = v2g(rawSourceData.vol.value);
 
   // build pan
   const panner: StereoPannerNode = ctx.createStereoPanner();
-  panner.pan.value = RawSourceData.panner.value;
+  panner.pan.value = rawSourceData.panner.value;
   // connect everything
   source.connect(vol).connect(panner).connect(destination);
   return {
-    gen: RawSourceData.gen,
+    gen: rawSourceData.gen,
     source,
     sourceIndex,
     vol,
     panner,
-    stopTime: RawSourceData.source.stopTime,
+    stopTime: rawSourceData.source.stopTime,
   };
 }
