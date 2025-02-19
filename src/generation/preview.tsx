@@ -73,8 +73,10 @@ export default function Preview(params: PreviewProps): void {
   function scheduler(): void {
     if (playing.current) {
       const aheadTime = context.currentTime + SCHEDULEAHEADTIME;
-      let nStarted: number = 0;
-      let nStopped: number = 0;
+      // let nStarted: number = 0;
+      // let nStopped: number = 0;
+      // let someStarted: boolean = false;
+      // let someStopped: boolean = false;
       while (nextTime < aheadTime) {
         // start the tones ready to start
         sourceData.forEach((s: RawSourceData, i: number) => {
@@ -107,6 +109,7 @@ export default function Preview(params: PreviewProps): void {
         // advance to the next scheduled time
         nextTime += SCHEDULEAHEADTIME;
       }
+      // if (someStarted || someStopped)
       // console.log(
       //   "at",
       //   context.currentTime,
