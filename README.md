@@ -2,34 +2,37 @@
 
 This work is inspired by the book [Formalized Music: Thought and Mathematics in Composition](https://en.wikipedia.org/wiki/Formalized_Music). Though the principles in that book are only partially realized here, more work may be done...
 
-The music generator will play one or more voices using various note generators. The generators may be sequences, Markov random walks, or noise. Each voice can be assigned to a sound font file bank and preset.
-Voice controls include
+The music generator will play one or more voices using various algorithms or from an existing audio file. The algorithms may be an oscillator, Markovian state transisitons, or Wiener random walks. Noise may be applied to each voice Each voice can be assigned to a sound font file bank and preset. Audio files may be of any type that can be loaded by the browser being used.
+Algorithmic voice controls include
 
 - start and stop times
 - soundfont bank and preset
-- generation algorithms for note midi number, volume, and pan (sine, triangular, square, random walk, stochastic, e.g)
-- gain envelop controls (attack, hold, release) these may be changed over time
-- Sound generation can be either previewed thru the computer speakers or recorded to a wave file.  
+- generation algorithms for a voice's note, speed, volume, and pan (oscillator, Markovian, or Wiener)
+- application of gaussian noise to a voice
+- rhythm selection based on a Euclidean Rhythm algorithm
+- the number of notes used in an octave based on the Euclidean Rhythm algorithm. 
+- gain envelop controls (delay, attack, hold (sustain), decay, release) these may be changed over time that come from the soundfont preset
+- Sound generation can be either previewed thru the computer speakers or recorded to a wave or mp3 file.  
 
 # Sound Generators
-All sound generators have a time when its effect starts and stops. A generator maybe be muted.
-There are three type of sound generators in this version.
-1. A Soundfont Programmed Generator (**SFPG**). This generator creates repetitive sequences of notes using sine, sawtooth, square, or triangular wave forms. Pan and volume have the same repetitive generators. Each waveform have a center, frequency, amplitude, and phase. The waveforms are sampled at a user-provided **interval** and a audio source is generated that starts at that time and ends **interval** seconds later to be followed by another audio source until the stop time for the generator is reached.
+All sound generators have a time when its effect starts and stops. A generator maybe be muted. 
+There are two types of sound generators in this version.
+1. An algorithmic generator, which uses selectable algorithms for the assigned voice's parameter. Each of the voice's parameters may be assigned a different algorithm. The algorithm assigned to the note parameter uses midi numbers to select presets from a soundfont file. 
+    * The oscillator algorithm creates a sequence of values using sine, sawtooth, square, or triangular wave forms. Each waveform have a center, frequency, amplitude, and phase. The waveforms are sampled at each beat and a audio source is generated that starts at that time and ends at the next beat. If the amplitude is zero, the value generated is the center value.
+    * The Markovian algorithm creates a sequence of values for the assigned voice's parameter. This is a statistical Markov process that has three states with probability transitions between each state. The states are  
+        * keep the same value 
+        * move the value up 
+        * move the value down 
+    If the state transistion are such that all transistion from the same state to the same state are 1, the value generated is always the starting value.
+    Each sequence is bounded by a lower and upper limit and each move is done with a given step size. When an attribute hits an upper or lower limit, the value is reversed. For example, if pan is already at its upper limit and the suggested value is to move further up, the value is changed to move down. Thus, the containment walls are not 'sticky'.
+ 
+    * The Wiener algorithm creates a sequence values for the assigned voice's parameter. THis is a statistical Wiener process that has an assigned trend and dispersion. If the disperion if 0, the initial value is always used.
+    * A Euclidean Rhythm algorithm is used to determine a beat pattern and the notes selectable with in octave. 
+        * The number of beats in the measure is specified along with the number of 'on beats'. An 'on beat' is one that will produce a sound from the current preset, while an 'off beat' is silent no matter what preset is currently active. If the measure length and on beat count are the same, all notes will be played.
+        * The number of notes in an octave determines which presets are available for use by the note parameter. When the note algorithm midi value, the value is modifed to the closets selectable midi number. If the number of notes in the octave is set to 12, all notes in teh octive will be heard.
+    * A Guassian noise algorithm is used to apply noise the note's sample. The noise level determines the size of the noise signal, where 1 is the size of the origianl signal. The dispersion of the noise is given in midi numbers. If the dispersion if 0, no noise is applied.
 
-    Starting notes are taken from the Soundfont file preset.
-
-2. A Soundfont Random Generator (**SFRG**). This generator creates Markov sequences of notes, volumes, and pans at a speed that is also a Markov sequence. This is a 4-dimensional Markov process where each dimension has three states with probability transitions between each state. The states are  
-    * keep the same value 
-    * move the value up 
-    * move the value down 
-
-    Each sequence is bounded by a lower and upper limit and each move is done with a given step size. The speed dimension controls the time at which each transition in the other dimensions occur. When an attribute hits an upper or lower limit, the value is reversed. For example, if pan is already at its upper limit and the suggested value is to move further up, the value is changed to move down. Thus, the containment walls are not 'sticky'. The number of sources in a SPRG depends on the length of the generator time and the time frame of each random interval. 
-
-    Starting notes are taken from the Soundfont file preset. 
-
-3. A Noise Generator (**Noise**). This generator will create white or gaussian noise from the start to stop time. It is broken up into 0.1 second duration sources for this interval to provide for volume and pan changes to occur during this period. Gaussian noise have a center frequency (Hz) and standard deviation that is applied to the amplitude of the noise. Volume and pan values have center, amplitude, frequency, and phase values and have the same repetitive types as SFPG.
-
-4. An Audio File Generator (**AudioFile**). This generator contains the samples from an existing audio file, as long as the web browser audio conversion exists for the audio file type. The start time is controlable, bu the stop time is set based on the duration of the audio file. Only the volume can be adjusted as it is assumed that panning is handled in the file itself. 
+2. An Audio File Generator (**AudioFile**). This generator contains the samples from an existing audio file, as long as the web browser audio conversion exists for the audio file type. The start time is controllable, but the stop time is set based on the duration of the audio file. Only the volume can be adjusted as it is assumed that panning is handled in the file itself. 
 
 # CMG Data Structure
 
@@ -38,10 +41,10 @@ The data structure is hierarchial:
 *  Called *CMGFile*, this includes all attributes that apply to all other attributes. It includes a filename, the room compressor, the room equalizer, the name of the soundfont file and its contexts, and a collection of tracks that contain generators.
 * Called *TimeLine*, this includes attributes that define the left most time to be displayed, and the current zoom level. This data element is independent of CMGFile. i.e., time line setting persist between files and are not saved.
 * Called *Track*, this is an instance of the track collection belonging to a CMGFile. Each track has name, solo, and mute attributes and a collection of generators. This provides the means by which generators can be assigned to different tracks for organizational purposes.
-* Called *Generator*, this is an instance of a generator collection and is the source of the sound that is produced by CMG. There are currently four types of generators.
+* Called *Generator*, this is an instance of a generator collection and is the source of the sound that is produced by CMG. There are currently three types of generators.
 
     * **CMG** - this generator is the parent of sound generators and does not generate sound. It contains the attributes that are common to all generators. This includes a name, start and end times, mute flag, and a vertical position with the track's timeline. 
-    * The threefour types of generators that produce sound are listed above.
+    * The two types of generators that produce sound are listed above.
 
 # Web Audio Routing Graph
 
@@ -54,16 +57,16 @@ The upper figure focuses on overall structure from the generators to the compres
 
 The upper figure presents those sources, volumes, and pans or a generator as a single box. Each generator group is connected to the room concentrator which has a gain of 1. The lower figure illustrates a generator that creates several sources, applies volume and pan to each source.
 
-The room concentrator gain output is routed to an equalizer, then to a compressor, and to the final destination (either computer speakers or a output stream).
+The room concentrator gain output is routed to an volume, equalizer, and compressor, and to the final destination (either computer speakers or a output stream).
 
 # Application structure
 
 The CMG application provides several features:
-1. User definition of the all of the attributes of global generation environment, include Soundfont file selection, room reverb, equalizer, and compressor. A library of Soundfont files is provided for selection.
+1. User definition of the all of the attributes of global generation environment, include Soundfont file selection, room volume, equalizer, and compressor. A library of Soundfont files is provided for selection.
 2. Display of a timeline that can be panned and zoomed, and shows the progress during preview. A interval can be defined that will select generators to be recorded or previewed. 
 3. User creation, deletion, and maintenance of tracks including track renaming, solo, and mute
 4. User creation, deletion, and maintenance of generators, including all attributes of each generator.
-5. Preview and Record functions. During either preview, only the characteristics of the room equalizer, and compressor may be changed. 
+5. Preview and Record functions. During either preview, only the characteristics of the room volume, equalizer, and compressor may be changed. 
 6. The ability save and load a defined computer music generation scenario.
 
 The figure below illustrates the class structure of the application. It is implemented as a Vite client using TypeScript. A webserver is used to access a library of soundfont files.
@@ -73,19 +76,20 @@ The figure below illustrates the class structure of the application. It is imple
 The application is designed around the user interface and supported by a context provided. The three parts of the application are the header, body, and footer. 
 
 ## Component Structure
-Classes are used to define sound generator objects (CMG, SFPG, SFRG, Noise, Wiener, Euclidean) that are persisted in files while the user interface and sound generation are implemented through React functions. The general structure of the classes are
+Classes are used to define sound generator objects (CMG, Algorithmic, AudioFile) that are persisted in files while the user interface and sound generation are implemented through React functions. The general structure of the classes are
 1. A set of attributes that define the objects of the class.
 2. A *constructor* that requires a parameter to name the object. Other optional parameters may be present.
 4. A *copy* function that makes a copy of the current object. This is used to cause React to trigger hooks when one or more of the properties of the object changes.
 5. A *setAttribute* function that is called by the object maintenance functions of the user interface.
 6. An *appendXML* function that added the objects definition to an XML document to be written to external storage. 
 7. A *getXML* static function that reads the object from a XML string
+The Algorithmic class links to AlgorithmValue objects for each of the voice parameters. The AlgorithmValue object may be AlgorithmicValues, OscillatorValues, MarkovianValues, or WienerValues.
 
 Other function may be available for special needs. 
 
 ## Header
 
-The header is laid out in a grid containing, title line,  a menu and a controls display. 
+The header is laid out in a grid containing, title line, a menu and a controls display. 
 
 The title line contains the logo, the program name and versio0n, the currently open file name, and a button for adding a comment to a file. 
 
@@ -97,7 +101,7 @@ The controls display provide for selection of a Soundfont file from the soundfon
 
 The body as a scrollable area that holds all of the defined tracks. Each track has a control area and a display area. Track controls include delete, rename, solo, mute, move up and down the track list, and add generator buttons. Track display include 'icons' for each generator defined on the track.
 
-When a generator is created, it has a default type of CMG, which contains the start time and stop time attributes. The type may be changed to SFPG, SFRG, Noise, Weiner, or Euclidean as desired. If left as CMG, it is a place holder that will not generate any sound.
+When a generator is created, it has a default type of CMG, which contains the start time and stop time attributes. The type may be changed to Algorithmic or AudioFile as desired. If left as CMG, it is a place holder that will not generate any sound.
 
 The generator icons are displayed as rectangles that start and stop at the generator's times and are 1/3 of the height of the track display. This allows for movement on the icon vertically within the track display to reduce overlap. 
 
@@ -121,7 +125,7 @@ Generation involves the build of the audio routing graph for the composition. Th
 2. The room level nodes are constructed and connected to the context destination (system speakers). These include a room concentrator with unity gain, and the compressor, equalizer, and volume as defined by the composition. When the sources are placed on the graph they are connected to room concentrator.
 3. A scheduler is run that triggers every 25 milliseconds. This scheduler does the following every cycle.
     - All sources that are to be started within the next 100 milliseconds of the current context time, are collected into an array. They are then realized as audio nodes along with their effects, connected to the room concentrator, and started.
-    - All running sources that have their stop time prior to the curren time are disconnect from the routing graph.
+    - All running sources that have their stop time prior to the current time are disconnect from the routing graph.
     - When the current time is before the playback length of the composition, the next 25 milliseconds cycle is initiated. 
 
 While the composition is being previewed, the generators that are playing are identified so that they can be highlighted on the track display.
@@ -157,13 +161,11 @@ Special thanks to various people
 
 # Versions - Changes
 
-Version 2 implements 
-1. Higher quality sound by using all instruments in a preset and using some of the gain envelope generators from the preset. Full use cases for delay, attack, hold, decay, sustain, and release have been implemented.
-2. Performance enhancement by keeping a sample pool to reduce memory utilization and dynamically modifying the audio graph during execution.
-3. Overall room volume control.
+Version 3 implements 
+1. Independent algorithms for each voice parameter
+2. Euclidean selection of rhythm and octave notes
+3. Noise setting for voice samples
 4. User interface improvements.
-5. Implementation of the Weiner and Euclidean generators
-6. Refinement of he screen layout to accommodate different size monitors.
 
 ## Remaining things to do
 
@@ -178,7 +180,7 @@ This application was developed in Visual Code, using a vite/typescript project.
 
 While TypeScript goes a long way towards making JavaScript strongly data types, there is still some work that is needed. I had to have typscript compiler ignore a few lines that it was having trouble with using // @ts-ignore
 
-Note to self: The base for the build is set to /cmg.
-I am running a nginx ubuntu server for access to the CMG client. After building the application (npm run build), move the contents of the build folder (dist) to /var/www/lanedb.hopto.org/cmg via scp. The nginx configuration for the path lanedb.hopto.org/cmg is root /var/www/lanedb.hopto.org. The build index file points to /assets/... get the the app. I had to change it to /cmg/assets. Also, the assets directory had to have its mode changed via <code>sudo chmod 755 assets</code>.
+The base for the build is set to /cmg3.
+I am running a nginx ubuntu server for access to the CMG client. After building the application (npm run build), move the contents of the build folder (dist) to /var/www/lanedb.hopto.org/cmg via scp. The nginx configuration for the path lanedb.hopto.org/cmg3 is root /var/www/lanedb.hopto.org. The assets directory had to have its mode changed via <code>sudo chmod 755 assets</code>.
 
 

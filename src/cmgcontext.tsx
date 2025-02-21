@@ -15,7 +15,7 @@ import {
 import CMGFile from "./classes/cmgfile";
 import TimeLine from "./classes/timeline";
 import { Preset } from "./sfcomponents/types";
-import { CMGeneratorType, TimelineInterval } from "./types";
+import { GeneratorType, TimelineInterval } from "./types";
 
 // the elements of this application that are used at many levels
 interface CMGContextType {
@@ -44,8 +44,8 @@ interface CMGContextType {
   setTimeInterval: Dispatch<SetStateAction<TimelineInterval>>;
   mouseDown: boolean;
   setMouseDown: Dispatch<SetStateAction<boolean>>;
-  generatorsPlaying: CMGeneratorType[];
-  setGeneratorsPlaying: Dispatch<SetStateAction<CMGeneratorType[]>>;
+  generatorsPlaying: GeneratorType[];
+  setGeneratorsPlaying: Dispatch<SetStateAction<GeneratorType[]>>;
 }
 
 const CMGContext = createContext<CMGContextType | undefined>(undefined);
@@ -68,7 +68,7 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     endOffset: -1,
   });
   const [mouseDown, setMouseDown] = useState(false);
-  const [generatorsPlaying, setGeneratorsPlaying] = useState<CMGeneratorType[]>(
+  const [generatorsPlaying, setGeneratorsPlaying] = useState<GeneratorType[]>(
     []
   );
   const contextValue = {

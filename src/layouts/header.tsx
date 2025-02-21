@@ -44,7 +44,7 @@ export default function Header(props: HeaderProps) {
   }
   return (
     <>
-      <div className="page-header" style={{width:width}}>;
+      <div className="page-header" style={{width:width}}>
         <div className="page-grid">
           <div className="page-icon">
             <img

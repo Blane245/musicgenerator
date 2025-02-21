@@ -5,7 +5,7 @@ import {
   convertFromJsonAndDecompress,
 } from "../utils/gzip";
 import { getAttributeValue } from "../utils/xmlfunctions";
-import CMG from "./cmg";
+import { CMG } from "./generators";
 
 // this class represents an audio file that can be used as a generator source
 export default class AudioFile extends CMG {
@@ -128,7 +128,10 @@ export default class AudioFile extends CMG {
     }
   }
 
-  static override async getXML(elem: Element, _version:string): Promise<AudioFile> {
+  static override async getXML(
+    elem: Element,
+    _version: string
+  ): Promise<AudioFile> {
     try {
       const g: AudioFile = new AudioFile(0);
       g.name = getAttributeValue(elem, "name", "string") as string;

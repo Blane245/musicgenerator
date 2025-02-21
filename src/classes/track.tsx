@@ -66,7 +66,7 @@ export default class Track {
   async getXML(
     elem: Element,
     version: string,
-    soundFont: SoundFont2
+    soundFont: SoundFont2 | null,
   ): Promise<Track> {
     try {
       // load the base attributes of the track

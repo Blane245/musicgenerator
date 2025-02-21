@@ -6,7 +6,7 @@ import CMGFile from "../classes/cmgfile";
 import Compressor from "../classes/compressor";
 import Equalizer from "../classes/equalizer";
 import Track from "../classes/track";
-import { CMGeneratorType } from "../types";
+import { GeneratorType } from "../types";
 
 export function newFile(contents: CMGFile, setFileContents: Function): void {
   setFileContents(contents);
@@ -167,7 +167,7 @@ export function moveTrack(
 
 export function addGenerator(
   track: Track,
-  generator: CMGeneratorType,
+  generator: GeneratorType,
   setFileContents: Function
 ) {
   setFileContents((prev: CMGFile) => {
@@ -188,7 +188,7 @@ export function addGenerator(
 
 export function modifyGenerator(
   track: Track,
-  generator: CMGeneratorType,
+  generator: GeneratorType,
   oldName: string,
   setFileContents: Function
 ) {
@@ -265,7 +265,7 @@ export function flipGeneratorMute(
     );
     if (!thisTrack) return prev;
 
-    const newG: CMGeneratorType = thisTrack.generators[index];
+    const newG: GeneratorType = thisTrack.generators[index];
     newG.mute = !newG.mute;
     newF.dirty = true;
     return newF;
@@ -285,7 +285,7 @@ export function moveGeneratorBodyPosition(
     );
     if (!thisTrack) return prev;
 
-    const newG: CMGeneratorType = thisTrack.generators[index];
+    const newG: GeneratorType = thisTrack.generators[index];
     newG.position = position;
     newF.dirty = true;
     return newF;
@@ -306,7 +306,7 @@ export function moveGeneratorTime(
     );
     if (!thisTrack) return prev;
 
-    const newG: CMGeneratorType = thisTrack.generators[index];
+    const newG: GeneratorType = thisTrack.generators[index];
     if (mode == "start") {
       newG.startTime = newValue;
     } else if (mode == "stop") {

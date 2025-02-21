@@ -15,6 +15,7 @@ import {
   WienerValues,
 } from "./algorithmvalues";
 import CMGFile from "./cmgfile";
+import RandomNumber from "./randomnumber";
 
 // base class for all generator types
 // contains properties used almost all generators
@@ -89,7 +90,7 @@ export class CMG {
   static async getXML(
     elem: Element,
     _version: string,
-    _soundFont: SoundFont2
+    _soundFont: SoundFont2 | null
   ): Promise<CMG> {
     try {
       const g: CMG = new CMG(0);
@@ -145,6 +146,8 @@ export class Algorithmic extends CMG {
   beatCount: number; // the number of strokes in a measure
   noteCount: number; // the number of active notes in an active
   #activeNotes: number[]; // the active notes of the octave
+  noiseSeed: string;
+  rn: RandomNumber;
   noiseAmplitude: number; // dB of Gaussian noise to apply
   noiseDispersion: number; // std of midi of Gaussion noise
   noteP: Algorithm;
@@ -163,6 +166,8 @@ export class Algorithmic extends CMG {
     this.beatCount = 4;
     this.noteCount = 12;
     this.#activeNotes = euclideanRhythm(this.noteCount, 12);
+    this.noiseSeed = "seed";
+    this.rn = new RandomNumber(this.noiseSeed);
     this.noiseAmplitude = 0;
     this.noiseDispersion = 0;
     this.noteP = undefined;
@@ -186,6 +191,8 @@ export class Algorithmic extends CMG {
     n.beatCount = this.beatCount;
     n.noteCount = this.noteCount;
     n.#activeNotes = this.#activeNotes;
+    n.noiseSeed = this.noiseSeed;
+    n.rn = this.rn;
     n.noiseAmplitude = this.noiseAmplitude;
     n.noiseDispersion = this.noiseDispersion;
     n.noteP = this.noteP ? this.noteP.copy() : undefined;
@@ -227,6 +234,10 @@ export class Algorithmic extends CMG {
       case "noteCount":
         this.noteCount = parseInt(value);
         this.#activeNotes = euclideanRhythm(this.noteCount, 12);
+        return;
+      case "noiseSeed":
+        this.noiseSeed = value;
+        this.rn = new RandomNumber(this.noiseSeed);
         return;
       case "noiseAmplitude":
         this.noiseAmplitude = parseFloat(value);
@@ -363,7 +374,7 @@ export class Algorithmic extends CMG {
 
     // if the note is on, return the original note
     if (this.#activeNotes[normalizedMidiOffset] == 1) {
-      console.log ('returning original note', note);
+      console.log("returning original note", note);
       return note;
     }
 
@@ -380,7 +391,7 @@ export class Algorithmic extends CMG {
     else midi = octave * 12 + last;
 
     // return with the fractional note applied
-    console.log('returning modified note', midi + midiFraction);
+    console.log("returning modified note", midi + midiFraction);
     return midi + midiFraction;
   }
 
@@ -392,6 +403,7 @@ export class Algorithmic extends CMG {
       returnElem.setAttribute("isLooping", this.isLooping ? "true" : "false");
       returnElem.setAttribute("measureLength", this.measureLength.toString());
       returnElem.setAttribute("beatCount", this.beatCount.toString());
+      returnElem.setAttribute("noiseSeed", this.noiseSeed);
       returnElem.setAttribute("noteCount", this.noteCount.toString());
       returnElem.setAttribute("noiseAmplitude", this.noiseAmplitude.toString());
       returnElem.setAttribute(
@@ -420,14 +432,14 @@ export class Algorithmic extends CMG {
   static override async getXML(
     elem: Element,
     version: string,
-    soundFont: SoundFont2
+    soundFont: SoundFont2 | null
   ): Promise<Algorithmic> {
     try {
       const CMGgen: CMG = await CMG.getXML(elem, version, soundFont);
       const g: Algorithmic = new Algorithmic(0);
-      g.soundFont = soundFont;
+      g.soundFont = soundFont ? soundFont : undefined;
       g.presetName = getAttributeValue(elem, "presetName", "string") as string;
-      const { preset } = presetNameToPreset(g.presetName, soundFont);
+      const { preset } = presetNameToPreset(g.presetName, g.soundFont);
       g.preset = preset;
       g.isLooping =
         (getAttributeValue(elem, "isLooping", "string") as string) == "true";
@@ -437,8 +449,10 @@ export class Algorithmic extends CMG {
         "int"
       ) as number;
       g.beatCount = getAttributeValue(elem, "beatCount", "int") as number;
+      g.initialSequence();
       g.noteCount = getAttributeValue(elem, "noteCount", "int") as number;
       g.#activeNotes = euclideanRhythm(g.noteCount, 12);
+      g.noiseSeed = getAttributeValue(elem, "noiseSeed", "string") as string;
       g.noiseAmplitude = getAttributeValue(
         elem,
         "noiseAmplitude",
@@ -540,6 +554,7 @@ export class Algorithmic extends CMG {
       result.push(
         "The number of beats in a measure must not exceed the measurement length"
       );
+    if (values.noiseSeed == "") result.push("Seed must not be blank");
     if (values.noteP) {
       const notePType: ALGORITHMTYPE = values.noteP.algorithmType;
       switch (notePType) {
@@ -739,7 +754,7 @@ export class AudioFile extends CMG {
   static override async getXML(
     elem: Element,
     version: string,
-    soundFont: SoundFont2
+    soundFont: SoundFont2 | null
   ): Promise<AudioFile> {
     try {
       const CMGgen: CMG = await CMG.getXML(elem, version, soundFont);

@@ -14,6 +14,7 @@ export function getBufferSourceNodesFromAudioFile(gen: AudioFile): RawSourceData
     source: {
       sample: samples,
       sampleRate: sampleRate,
+      note: 0,
       playbackRate: 1.0,
       loopStart: 0,
       loopEnd: 0,

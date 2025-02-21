@@ -78,7 +78,7 @@ export default function AlgorithmicDialog(
         />
       </label>
       <label>
-        &nbsp;On beats:&nbsp;
+        &nbsp;On Beats:&nbsp;
         <input
           name="beatCount"
           type="number"
@@ -99,6 +99,16 @@ export default function AlgorithmicDialog(
           step={1}
           onChange={handleChange}
           value={formData.noteCount}
+        />
+      </label>
+      <br/>
+      <label>
+        Noise Seed:&nbsp;
+        <input
+          name="noiseSeed"
+          type="string"
+          onChange={handleChange}
+          value={formData.noiseSeed}
         />
       </label>
       <label>

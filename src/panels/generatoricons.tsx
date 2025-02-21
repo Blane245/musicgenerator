@@ -7,12 +7,11 @@ import {
   useEffect,
   useState,
 } from "react";
-import CMGenerator from "../classes/cmg";
 import Track from "../classes/track";
 import { useCMGContext } from "../cmgcontext";
 import GeneratorDialog from "../dialogs/generatordialog";
 import Generate from "../generation/generate";
-import { CMGeneratorType, GENERATIONMODE } from "../types";
+import { GeneratorType, GENERATIONMODE } from "../types";
 import {
   addGenerator,
   flipGeneratorMute,
@@ -25,7 +24,7 @@ export interface GeneratorIconProps {
   track: Track;
 }
 type GeneratorBox = {
-  generator: CMGenerator;
+  generator: GeneratorType;
   generatorIndex: number;
   position: { x: number; y: number };
   width: number;
@@ -34,7 +33,6 @@ type GeneratorBox = {
   playing: boolean;
 };
 
-// const GeneratorIcons = forwardRef((props: GeneratorIconProps) => {
 export default function GeneratorIcons (props: GeneratorIconProps) {
   const { track } = props;
   const {
@@ -57,22 +55,11 @@ export default function GeneratorIcons (props: GeneratorIconProps) {
   const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [copyDialog, setCopyDialog] = useState<boolean>(false);
   const [selectedTrackName, setSelectedTrackName] = useState<string>("");
-  const [preview, setPreview] = useState<CMGenerator | null>(null);
+  const [preview, setPreview] = useState<GeneratorType | null>(null);
   const [mode, setMode] = useState<GENERATIONMODE>(GENERATIONMODE.idle);
   const [trackWidth, setTrackWidth] = useState<number>(100);
   const [trackHeight, setTrackHeight] = useState<number>(100);
 
-  // useEffect(() => {
-  //   const resizeObserver: ResizeObserver = new ResizeObserver(
-  //     (event: ResizeObserverEntry[]) => {
-  //       setTrackWidth(event[0].contentBoxSize[0].inlineSize);
-  //       setTrackHeight(event[0].contentBoxSize[0].blockSize);
-  //     }
-  //   );
-  //   if (elementRef && elementRef.current) {
-  //     resizeObserver.observe(elementRef.current[trackIndex]);
-  //   }
-  // }, [elementRef]);
   // set the visible generator icon boxes based on the generator times and timeLine
   // handle highlighting from timeline interval selection and preview playing
   useEffect(() => {
@@ -81,7 +68,7 @@ export default function GeneratorIcons (props: GeneratorIconProps) {
     // get all of the generator boxes
     setSelectedTrackName(track.name);
     const boxes: GeneratorBox[] = [];
-    track.generators.forEach((g: CMGeneratorType, i: number) => {
+    track.generators.forEach((g: GeneratorType, i: number) => {
       // is the generator out of the currently displayed current time?
       const tStop =
         timeLine.startTime + timeLine.timeLineScale.extent;
@@ -277,7 +264,7 @@ export default function GeneratorIcons (props: GeneratorIconProps) {
     setStatus(``);
   }
 
-  function isSelected(g: CMGenerator): boolean {
+  function isSelected(g: GeneratorType): boolean {
     if (
       timeInterval.startTime != undefined &&
       timeInterval.endTime != undefined
@@ -292,7 +279,7 @@ export default function GeneratorIcons (props: GeneratorIconProps) {
     return false;
   }
 
-  function isPlaying(gen: CMGenerator): boolean {
+  function isPlaying(gen: GeneratorType): boolean {
     return generatorsPlaying.findIndex((g) => g.name == gen.name) >= 0;
   }
 

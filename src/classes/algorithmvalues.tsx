@@ -181,7 +181,7 @@ export class MarkovianValues extends AlgorithmValues {
   constructor(
     values: MarkovianType = {
       seed: "seed",
-      rn: new RandomNumber(""),
+      rn: new RandomNumber("seed"),
       currentState: MARKOVSTATE.same,
       currentValue: 0,
       startValue: 0,
@@ -392,6 +392,7 @@ export class MarkovianValues extends AlgorithmValues {
 
   static override validate(algorithm: MarkovianValues): string[] {
     const errors: string[] = [];
+    if (algorithm.values.seed == '') errors.push("Seed must not be blank");
     // validate cumulative probabilities
     let cum: number = 0;
     cum =
@@ -563,6 +564,7 @@ export class WienerValues extends AlgorithmValues {
   static override validate(algorithm: WienerValues): string[] {
     const errors: string[] = [];
     const values: WienerType = algorithm.values;
+    if (values.seed == '') errors.push("Seed must not be blank");
     if (values.sigma < 0) errors.push("Sigma must be nonnegative");
     if (values.lo < -1 || values.hi <= values.lo)
       errors.push("Lo must be nonnegative and hi must be greater than lo");

@@ -1,6 +1,6 @@
-things to do when inmplementing a new generator
+things to do when inmplementing a new generator and algorithm values
 1. Class - add the class filling in the CMG parent requirements
-1. Types - Add the generator name to type CMGeneratorType and enum GENERATORTYPE
+1. Types - Add the generator name to type GeneratorType and enum GENERATORTYPE
 1. Track - add the generator to the Track class getXML switch statement
 1. 'generator' Dialog - create the dialog for the generator
 1. GeneratorDialog

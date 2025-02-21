@@ -24,7 +24,6 @@ export type SFFiles = SFFiles[];
 export type GeneratorType =
   | CMG
   | Algorithmic
-  // | Noise
   | AudioFile;
 
 export enum GENERATORTYPE {

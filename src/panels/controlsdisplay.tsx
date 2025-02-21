@@ -254,7 +254,7 @@ export default function ControlsDisplay() {
               newPresetName = bankPresettoName(newPreset);
             } else {
               errors.push(
-                `Track ${t.name}, generator ${g.name} has no preset for bank ${bank}, channel${channel}. Setting first preset`
+                `Track ${t.name}, generator ${g.name} has no preset for bank ${bank}, channel ${channel}. Setting first preset`
               );
               newPreset = (sf.presets as Preset[])[0];
               newPresetName = bankPresettoName(newPreset);

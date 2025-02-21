@@ -1,6 +1,6 @@
 import RandomNumber from "classes/randomnumber";
 import { Algorithmic } from "../classes/generators";
-import { GeneratorType, RawSourceData } from "../types";
+import { RawSourceData } from "../types";
 import { gaussianRandom } from "../utils/gaussianrandom";
 import { getGeneratorValues } from "./generators";
 import { samplePool } from "./samplepool";
@@ -42,29 +42,34 @@ activeZones.push ({...instrumentZone, mergedGenerators:mergedGenerators});
 return activeZones;
 
 }
-const getActiveZones1 = (preset: Preset, midi: number) => {
-  // console.log('preset', preset);
-  const activeZones = preset.zones
-    .filter(
+// TODO this version has problems with presets that have multiple 
+// velocity ranges for the same notes sicen there is no velocity range
+// filter. All of the presets for a given midi are loaded and
+// are all played. Some investigations is needed to understand 
+// velocity ranges better and why SoundFont2 does not include them
+// const getActiveZones1 = (preset: Preset, midi: number) => {
+//   // console.log('preset', preset);
+//   const activeZones = preset.zones
+//     .filter(
 
-      (pzone: PresetZone) => isActiveZone(pzone, midi) && pzone.instrument
-    )
-    .map((pzone: PresetZone) => {
-      return pzone.instrument.zones
-        .filter((izone: InstrumentZone) => isActiveZone(izone, midi))
-        .map((izone: InstrumentZone) => {
-          const mergedGenerators = getGeneratorValues(izone, pzone, preset);
-          // console.log('generators', mergedGenerators);
-          return {
-            ...izone,
-            mergedGenerators: mergedGenerators,
-          };
-        });
-    })
-    .flat();
-  // console.log('activeZones', activeZones);
-  return activeZones;
-};
+//       (pzone: PresetZone) => isActiveZone(pzone, midi) && pzone.instrument
+//     )
+//     .map((pzone: PresetZone) => {
+//       return pzone.instrument.zones
+//         .filter((izone: InstrumentZone) => isActiveZone(izone, midi))
+//         .map((izone: InstrumentZone) => {
+//           const mergedGenerators = getGeneratorValues(izone, pzone, preset);
+//           // console.log('generators', mergedGenerators);
+//           return {
+//             ...izone,
+//             mergedGenerators: mergedGenerators,
+//           };
+//         });
+//     })
+//     .flat();
+//   // console.log('activeZones', activeZones);
+//   return activeZones;
+// };
 
 export const getPresetNote = (
   gen: Algorithmic,
@@ -230,7 +235,7 @@ function addNoise(
   let time: number = 0;
   const deltaT: number = 1 / sampleRate;
   noisySample.forEach((s, i) => {
-    const noise: number = gaussianRandom(0, std, gen.noteP?.values?.rn as RandomNumber);
+    const noise: number = gaussianRandom(0, std, gen.rn as RandomNumber);
     const signal: number =
       (amplitude * (noise + Math.cos(2 * Math.PI * frequency * time)));
     noisySample[i] = (s + signal) / 2;

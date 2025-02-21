@@ -32,7 +32,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     open,
     setOpen,
   } = props;
-  const { fileContents, setFileContents, presets, setStatus } = useCMGContext();
+  const { fileContents, setFileContents, setStatus } = useCMGContext();
   const [showModal, setShowModal] = useState<boolean>(false);
   const [deleteModal, setDeleteModal] = useState<boolean>(false);
   const [oldName, setOldName] = useState<string>("");
