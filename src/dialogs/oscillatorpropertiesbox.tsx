@@ -6,6 +6,7 @@ type OscillatorProperitesBoxProps = {
   type: string;
   frequency: ModulatorAttributeData;
   center: ModulatorAttributeData;
+  centerSuffix: Function;
   amplitude: ModulatorAttributeData;
   phase: ModulatorAttributeData;
   handleChange: (
@@ -17,7 +18,7 @@ type OscillatorProperitesBoxProps = {
 export default function OscillatorPropertiesBox(
   props: OscillatorProperitesBoxProps
 ): JSX.Element {
-  const { name, type, center, frequency, amplitude, phase, handleChange } =
+  const { name, type, center, centerSuffix, frequency, amplitude, phase, handleChange } =
     props;
   return (
     <div className="oscillator">
@@ -49,7 +50,7 @@ export default function OscillatorPropertiesBox(
           onChange={handleChange}
           value={center.value}
         />
-        <span style={{ fontSize: "small" }}>&nbsp;{center.suffix}</span>
+        <span style={{ fontSize: "small" }}>&nbsp;{centerSuffix(center.value)}</span>
       </div>
       <div className="frequency">
         <input

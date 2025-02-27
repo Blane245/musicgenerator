@@ -1,5 +1,5 @@
 // preview the selected source nodes
-// as current time progresses, add near pending nodes to the 
+// as current time progresses, add near pending nodes to the
 // audio node graph. As they complete disconnect them
 // this keeps the audio node graph as small as possible
 // preventing menory and CPU overload
@@ -10,11 +10,12 @@ import {
   GeneratorType,
   GENERATIONMODE,
   RawSourceData,
+  GENERATORTYPE,
 } from "../types";
 import { buildRoomNodes } from "./buildroomnodes";
 import { realizeSource } from "./realizesource";
 
-// as this function is non-reactive, many of its props 
+// as this function is non-reactive, many of its props
 // are CMG context variables
 export interface PreviewProps {
   fileContents: CMGFile;
@@ -29,9 +30,9 @@ export interface PreviewProps {
 }
 
 export default function Preview(params: PreviewProps): void {
-  let { sourceData } = params;
   const {
     fileContents,
+    sourceData,
     playbackLength,
     offsetTime,
     setMode,
@@ -47,17 +48,33 @@ export default function Preview(params: PreviewProps): void {
   context.suspend();
   setTimeProgress(0);
 
-  // prepare the room compressor and equalizer
-  fileContents.compressor.setContext(context);
-  fileContents.equalizer.setContext(context);
-
   // construct the room concentrator and connect to the compressor and equalizer
   const concentrator: GainNode = buildRoomNodes(
-    fileContents.compressor,
-    fileContents.equalizer,
-    fileContents.volume,
+    fileContents.compressor.copy(),
+    fileContents.equalizer.copy(),
+    fileContents.volume.copy(),
+    fileContents.reverb.copy(),
     context
   );
+
+  // determine the amount of time that the early reflections start
+  let reflectionDelay: number = 0;
+  if (fileContents.reverb.leftWall.gain > 0)
+    reflectionDelay = Math.max(
+      reflectionDelay,
+      fileContents.reverb.leftWall.delay
+    );
+  if (fileContents.reverb.rightWall.gain > 0)
+    reflectionDelay = Math.max(
+      reflectionDelay,
+      fileContents.reverb.rightWall.delay
+    );
+  if (fileContents.reverb.ceiling.gain > 0)
+    reflectionDelay = Math.max(
+      reflectionDelay,
+      fileContents.reverb.ceiling.delay
+    );
+  console.log("reflection delay", reflectionDelay);
 
   const SCHEDULEAHEADTIME: number = 0.1; // how far ahead to schedule audio (seconds)
   const LOOKAHEAD: number = 25.0; // how frequently to call the schedule function (ms)
@@ -69,7 +86,7 @@ export default function Preview(params: PreviewProps): void {
   // when a source stops, disconnect and delete it when its stop time arrives
   let activeSources: ActiveSource[] = [];
   context.resume();
-  console.log('playback length', playbackLength);
+  console.log("playback length", playbackLength);
   scheduler();
   function scheduler(): void {
     if (playing.current) {
@@ -88,9 +105,21 @@ export default function Preview(params: PreviewProps): void {
               i,
               concentrator
             );
-            activeSource.source.start(s.source.startTime, 0, s.source.duration);
-            console.log('source started at ', context.currentTime, 'starttime', s.source.startTime);
+            if (activeSource.gen.type != GENERATORTYPE.CMG) {
+              activeSource.source.start(
+                s.source.startTime,
+                0,
+                s.source.duration
+              );
+            }
+            console.log(
+              "source started at ",
+              context.currentTime,
+              "starttime",
+              s.source.startTime
+            );
             activeSources.push(activeSource);
+            console.log('active source count', activeSources.length);
             s.source.started = true;
             nStarted++;
             someStarted = true;
@@ -99,13 +128,23 @@ export default function Preview(params: PreviewProps): void {
 
         // disconnect all of the nodes that have finished playing
         // and delete them
-        activeSources = activeSources.filter((s: ActiveSource) => {
-          if (context.currentTime > s.stopTime) {
-            s.source.disconnect();
-            s.vol.disconnect();
-            s.panner.disconnect();
+        // don't turn them off until the early reflections stop
+        activeSources = activeSources.filter((s: ActiveSource, i) => {
+          const stopTime: number =
+            s.stopTime +
+            (reflectionDelay == 0
+              ? 0
+              : reflectionDelay / 1000 + sourceData[s.sourceIndex].source.duration);
+          console.log("source stop time", s.sourceIndex, stopTime);
+          if (context.currentTime > stopTime) {
+            if (s.gen.type != GENERATORTYPE.CMG) {
+              s.source.disconnect();
+              s.vol.disconnect();
+              s.panner.disconnect();
+            }
             nStopped++;
             someStopped = true;
+            console.log('source stopped', context.currentTime, i);
             return false;
           } else return true;
         });
@@ -113,16 +152,16 @@ export default function Preview(params: PreviewProps): void {
         nextTime += SCHEDULEAHEADTIME;
       }
       if (someStarted || someStopped)
-      console.log(
-        "at",
-        context.currentTime,
-        nStarted,
-        "started",
-        nStopped,
-        "stopped",
-        activeSources.length,
-        " running",
-      );
+        console.log(
+          "at",
+          context.currentTime,
+          nStarted,
+          "started",
+          nStopped,
+          "stopped",
+          activeSources.length,
+          " running"
+        );
     }
 
     // check if done or stopped
@@ -154,7 +193,7 @@ export default function Preview(params: PreviewProps): void {
       tickId = window.setTimeout(tick, tickInterval);
       setTimeProgress(tickCounter);
       // console.log(tickCounter, context.currentTime, offsetTime);
-      tickCounter+=tickInterval/1000;
+      tickCounter += tickInterval / 1000;
     } else {
       tickId && clearTimeout(tickId);
       setTimeProgress(-1);
@@ -186,6 +225,5 @@ export default function Preview(params: PreviewProps): void {
     } else {
       playingId && clearTimeout(playingId);
     }
-
   }
 }

@@ -178,7 +178,8 @@ fieldset {
 
 .page-footer {
   display: grid;
-  grid-template-columns: 8fr 0.4fr 1.1fr 1.5fr;
+  grid-template-columns: 7fr 0.4fr 0.4fr 1fr 1.5fr;
+  grid-template-areas: 'status volume reverb compressor equalizer';
   position: fixed;
   top: auto;
   bottom: 0;
@@ -189,7 +190,7 @@ fieldset {
 
 .page-footer-status {
   display: block;
-  grid-column: span 1;
+  grid-area: status;
   align-self: flex-end;
   margin-bottom: 5px;
   cursor: inherit;
@@ -197,7 +198,7 @@ fieldset {
 
 .page-footer-compressor {
   display: block;
-  grid-column: span 1;
+  grid-area: compressor;
   justify-self: right;
   max-width: 300px;
   width: 100%;
@@ -252,10 +253,68 @@ fieldset {
     cursor: inherit;
   }
 }
+.page-footer-reverb {
+  display: block;
+  grid-area: reverb;
+  justify-self: right;
+  max-width: 300px;
+  width: 100%;
+  height: 170px;
+  justify-content: center;
+  align-items: center;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  outline: solid #5c75b8;
+  cursor: inherit;
+
+  .title {
+    line-height: normal;
+    font-size: 10px;
+    text-align: center;
+    color: black;
+    cursor: inherit;
+    .button {
+      font-size: 5px;
+    }
+  }
+
+  .sliders {
+    display: flex;
+    cursor: inherit;
+  }
+  .slider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 40px;
+  height: 150px;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0;
+  margin: 0;
+  cursor: inherit;
+
+  .param {
+    color: black;
+    font-size: 10px;
+    line-height: 10px;
+    text-align: center;
+    cursor: inherit;
+  }
+    input[type="range"] {
+    writing-mode: vertical-lr;
+    direction: rtl;
+    height: 90px;
+    width: 30px;
+    cursor: inherit;
+  }
+
+}
+}
 
 .page-footer-equalizer {
   display: block;
-  grid-column: span 1;
+  grid-column: equalizer;
   justify-self: right;
   max-width: 300px;
   width: 100%;
@@ -283,30 +342,6 @@ fieldset {
     cursor: inherit;
   }
 }
-
-.page-footer-volume {
-  display: block;
-  grid-column: span 1;
-  justify-self: right;
-  max-width: 300px;
-  width: 100%;
-  height: 170px;
-  justify-content: center;
-  align-items: center;
-  margin-right: 10px;
-  margin-bottom: 10px;
-  outline: solid #5c75b8;
-  cursor: inherit;
-
-  .title {
-    line-height: normal;
-    font-size: 10px;
-    text-align: center;
-    color: black;
-    cursor: inherit;
-  }
-}
-
 .equalizer-slider {
   display: flex;
   align-items: center;
@@ -334,6 +369,30 @@ fieldset {
     cursor: inherit;
   }
 }
+
+.page-footer-volume {
+  display: block;
+  grid-area: volume;
+  justify-self: right;
+  max-width: 300px;
+  width: 100%;
+  height: 170px;
+  justify-content: center;
+  align-items: center;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  outline: solid #5c75b8;
+  cursor: inherit;
+
+  .title {
+    line-height: normal;
+    font-size: 10px;
+    text-align: center;
+    color: black;
+    cursor: inherit;
+  }
+}
+
 .volume-slider {
   display: flex;
   align-items: center;
@@ -403,7 +462,7 @@ fieldset {
 /* Modal Content */
 .modal-content {
   position: absolute;
-  z-index: 2;
+  z-index: 10;
   top: 160px;
   left: 200px;
   width: 50em;

@@ -246,11 +246,12 @@ function addNoise(
   // normalize to the origianl signal level
   noisySample = noisySample.map((s) => (s * signalLevel) / newSignalLevel);
   console.log(
-    `add noise to sample at frequency, amplitude, std, samples, signalLevel, newSignalLevel`,
+    `add noise to sample at frequency, amplitude, std, samples, sampleRate, signalLevel, newSignalLevel`,
     frequency,
     amplitude,
     std,
     noisySample.length,
+    sampleRate,
     signalLevel,
     newSignalLevel
   );

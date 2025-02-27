@@ -77,19 +77,21 @@ export default function ControlsDisplay() {
       setReadyGenerate(false);
       return;
     }
+
+    // make sure generators require presets have them
     let goodGeneratorCount: number = 0;
     fileContents.tracks.forEach((t: Track) => {
       t.generators.forEach((g: GeneratorType) => {
-        if (g.type != GENERATORTYPE.CMG) {
-          if (
-            g.type == GENERATORTYPE.Algorithmic &&
-            (g as Algorithmic).presetName != "" &&
-            (g as Algorithmic).preset
-          ) {
-            goodGeneratorCount++;
-          } else if (g.type == GENERATORTYPE.AudioFile) {
-            goodGeneratorCount++;
-          }
+        if (
+          g.type == GENERATORTYPE.Algorithmic &&
+          (g as Algorithmic).presetName != "" &&
+          (g as Algorithmic).preset
+        ) {
+          goodGeneratorCount++;
+        } else if (g.type == GENERATORTYPE.AudioFile) {
+          goodGeneratorCount++;
+        } else if (g.type == GENERATORTYPE.CMG) {
+          goodGeneratorCount++;
         }
       });
     });
@@ -105,15 +107,19 @@ export default function ControlsDisplay() {
   async function handleFileNameChange(event: ChangeEvent<HTMLSelectElement>) {
     const fileName = event.target.value;
     if (fileName != "select a file") {
+      const page = document.getElementById("page");
       try {
+        if (page) page.inert = true;
         const sf: SoundFont2 = await loadSoundFont(fileName);
         setSoundFont(fileName, sf, setFileContents);
         updatePresets(sf);
         setStatus(`Soundfont file '${fileName}' loaded`);
+        if (page) page.inert = false;
       } catch (e) {
         setStatus(
           `controlsdisplay: error file reading soundfont file '${fileName}':, ${e}`
         );
+        if (page) page.inert = false;
       }
     } else {
       // ignore default selection and restore to original selection
@@ -201,6 +207,7 @@ export default function ControlsDisplay() {
       <Generate
         mode={mode}
         setMode={setMode}
+        setRecordHandle={setRecordHandle}
         recordFormat={recordFormat}
         recordHandle={recordHandle}
         generator={null}

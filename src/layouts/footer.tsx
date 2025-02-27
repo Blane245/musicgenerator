@@ -3,6 +3,7 @@ import { useCMGContext } from "../cmgcontext";
 import RoomCompressorDialog from "../dialogs/roomcompressordialog";
 import RoomEqualizerDialog from "../dialogs/roomequalizerdialog";
 import RoomVolumeDialog from "../dialogs/roomvolumedialog";
+import RoomReverbDialog from "../dialogs/roomreverbdialog";
 
 // the footer will contain the equalizer
 export default function Footer() {
@@ -12,6 +13,7 @@ export default function Footer() {
     <div className="page-footer">
       <div className="page-footer-status">{status}</div>
       <RoomVolumeDialog />
+      <RoomReverbDialog />
       <RoomCompressorDialog />
       <RoomEqualizerDialog />
     </div>

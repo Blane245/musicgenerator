@@ -81,6 +81,7 @@ export class CMG {
       returnElem.setAttribute("stopTime", this.stopTime.toString());
       returnElem.setAttribute("type", this.type);
       returnElem.setAttribute("mute", this.mute.toString());
+      returnElem.setAttribute("position", this.position.toString());
       return Promise.resolve(returnElem);
     } catch (e: any) {
       return Promise.reject(e);
@@ -99,7 +100,7 @@ export class CMG {
       g.stopTime = getAttributeValue(elem, "stopTime", "float") as number;
       g.type = getAttributeValue(elem, "type", "string") as GENERATORTYPE;
       g.mute = getAttributeValue(elem, "mute", "string") == "true";
-      g.position = getAttributeValue(elem, "position", "int") as number;
+      g.position = getAttributeValue(elem, "position", "float") as number;
       return Promise.resolve(g);
     } catch (e) {
       return Promise.reject(e);
@@ -410,7 +411,6 @@ export class Algorithmic extends CMG {
         "noiseDispersion",
         this.noiseDispersion.toString()
       );
-      returnElem.setAttribute("position", this.position.toString());
 
       const notePElem: Element = doc.createElement("noteP");
       const speedPElem: Element = doc.createElement("speedP");

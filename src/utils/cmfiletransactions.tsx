@@ -5,6 +5,7 @@ import { SoundFont2 } from "soundfont2";
 import CMGFile from "../classes/cmgfile";
 import Compressor from "../classes/compressor";
 import Equalizer from "../classes/equalizer";
+import Reverb from "../classes/reverb";
 import Track from "../classes/track";
 import { GeneratorType } from "../types";
 
@@ -71,6 +72,18 @@ export function setCompressor(
     const nc: CMGFile = c.copy();
     nc.dirty = true;
     nc.compressor = newCompressor;
+    return nc;
+  });
+}
+
+export function setReverb(
+  newReverb: Reverb,
+  setFileContents: Function
+): void {
+  setFileContents((c: CMGFile) => {
+    const nc: CMGFile = c.copy();
+    nc.dirty = true;
+    nc.reverb = newReverb;
     return nc;
   });
 }

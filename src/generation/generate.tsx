@@ -18,12 +18,13 @@ import Record from "./record";
 export interface GeneratorProps {
   mode: GENERATIONMODE;
   setMode: Function;
+  setRecordHandle: Function;
   recordFormat?: string;
   recordHandle?: FileSystemFileHandle | null;
   generator: GeneratorType | null;
 }
 export default function Generate(props: GeneratorProps) {
-  const { mode, setMode, recordFormat, recordHandle, generator } = props;
+  const { mode, setMode, setRecordHandle, recordFormat, recordHandle, generator } = props;
   const {
     setStatus,
     playing,
@@ -45,6 +46,7 @@ export default function Generate(props: GeneratorProps) {
     const {
       AlgorithmicGenerators,
       AudioFileGenerators,
+      CMGenerators,
       playbackLength,
       offsetTime,
       error,
@@ -63,6 +65,7 @@ export default function Generate(props: GeneratorProps) {
     sourceData.current = buildSources({
       AlgorithmicGenerators,
       AudioFileGenerators,
+      CMGenerators,
     });
 
     // let the system know that playing if entered
@@ -99,6 +102,7 @@ export default function Generate(props: GeneratorProps) {
       {mode == GENERATIONMODE.record && recordHandle ? (
         <Record
           recordHandle={recordHandle}
+          setRecordHandle={setRecordHandle}
           sourceData={sourceData.current}
           sampleRate={SAMPLERATE}
           playbackLength={recordLength.current}

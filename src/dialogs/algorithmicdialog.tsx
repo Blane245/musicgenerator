@@ -131,7 +131,7 @@ export default function AlgorithmicDialog(
           type="number"
           min={0}
           max={10}
-          step={.1}
+          step={.01}
           onChange={handleChange}
           value={formData.noiseDispersion}
         />
@@ -175,6 +175,10 @@ export default function AlgorithmicDialog(
                 hi: 127,
                 step: 1,
                 suffix: "(midi)",
+              }}
+              centerSuffix={(value: number) => {
+                if (value < 0) return "";
+                else return " ".concat(toNote(value));
               }}
               frequency={{
                 value: (formData.noteP as OscillatorValues).values.frequency,
@@ -266,6 +270,7 @@ export default function AlgorithmicDialog(
                 step: 1,
                 suffix: "(BPM)",
               }}
+              centerSuffix={() => "BPM"}
               frequency={{
                 value: (formData.speedP as OscillatorValues).values.frequency,
                 lo: 0,
@@ -355,6 +360,7 @@ export default function AlgorithmicDialog(
                 step: 1,
                 suffix: "(dB)",
               }}
+              centerSuffix={() => "dB"}
               frequency={{
                 value: (formData.volumeP as OscillatorValues).values.frequency,
                 lo: 0,
@@ -440,8 +446,9 @@ export default function AlgorithmicDialog(
                 lo: -1,
                 hi: 1,
                 step: 0.1,
-                suffix: "(dB)",
+                suffix: "[-1,1]",
               }}
+              centerSuffix={() => "[-1,1]"}
               frequency={{
                 value: (formData.panP as OscillatorValues).values.frequency,
                 lo: 0,
@@ -454,7 +461,7 @@ export default function AlgorithmicDialog(
                 lo: 0,
                 hi: 1,
                 step: 0.1,
-                suffix: "(dB)",
+                suffix: "[0,1]",
               }}
               phase={{
                 value: (formData.panP as OscillatorValues).values.phase,

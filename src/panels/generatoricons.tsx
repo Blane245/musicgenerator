@@ -398,7 +398,7 @@ export default function GeneratorIcons (props: GeneratorIconProps) {
         open={openDialog}
         setOpen={setOpenDialog}
       />
-      <Generate mode={mode} setMode={setMode} generator={preview} />
+      <Generate mode={mode} setMode={setMode} generator={preview} setRecordHandle={()=>{}} />
       <div
         className="modal-content"
         style={{ display: copyDialog ? "block" : "none" }}

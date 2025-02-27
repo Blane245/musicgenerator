@@ -20,9 +20,10 @@
 import { useEffect, useRef, useState } from "react";
 import Compressor from "../classes/compressor";
 import Equalizer from "../classes/equalizer";
+import Reverb from "../classes/reverb";
 import Volume from "../classes/volume";
 import { useCMGContext } from "../cmgcontext";
-import { GENERATIONMODE, RawSourceData } from "../types";
+import { GENERATIONMODE, GENERATORTYPE, RawSourceData } from "../types";
 import { bufferToMp3 } from "../utils/buffertomp3";
 import { bufferToWav } from "../utils/buffertowav";
 import { buildRoomNodes } from "./buildroomnodes";
@@ -34,6 +35,7 @@ export interface RecordProps {
   sampleRate: number;
   playbackLength: number;
   setMode: Function;
+  setRecordHandle: Function;
   recordFormat: string;
 }
 
@@ -45,6 +47,7 @@ export default function Record(params: RecordProps) {
     playbackLength,
     recordFormat,
     setMode,
+    setRecordHandle,
   } = params;
   const { fileContents, setStatus, playing } = useCMGContext();
   const BATCHSIZE: number = 200; // the number of sources in a batch
@@ -121,6 +124,7 @@ export default function Record(params: RecordProps) {
       } catch (e: any) {
         console.error(e);
         setMode(GENERATIONMODE.idle);
+        setRecordHandle(null);
         setStatus(`Error during recording: '${e.description}`);
         playing.current = false;
       }
@@ -154,6 +158,7 @@ export default function Record(params: RecordProps) {
               )} seconds`
             );
             setMode(GENERATIONMODE.idle);
+            setRecordHandle(null);
             playing.current = false;
             completeTimerId.current && clearTimeout(completeTimerId.current);
             recordingActive.current = false;
@@ -174,6 +179,7 @@ export default function Record(params: RecordProps) {
       completeTimerId.current && clearTimeout(completeTimerId.current);
       recordingActive.current = false;
       setMode(GENERATIONMODE.idle);
+      setRecordHandle(null);
       setStatus(`Recording stopped early`);
     }
   }
@@ -263,10 +269,12 @@ export default function Record(params: RecordProps) {
           const compressor: Compressor = fileContents.compressor.copy();
           const equalizer: Equalizer = fileContents.equalizer.copy();
           const volume: Volume = fileContents.volume.copy();
+          const reverb: Reverb = fileContents.reverb.copy();
           const concentrator: GainNode = buildRoomNodes(
             compressor,
             equalizer,
             volume,
+            reverb,
             context
           );
 
@@ -274,11 +282,12 @@ export default function Record(params: RecordProps) {
           // render the batch and write it and its data to session storage
           for (let i = sourceStart; i <= sourceEnd; i++) {
             const s = sortedSources.current[i];
-            realizeSource(context, s, i, concentrator).source.start(
-              s.source.startTime,
-              0,
-              s.source.duration
-            );
+            if (s.gen.type != GENERATORTYPE.CMG)
+              realizeSource(context, s, i, concentrator).source.start(
+                s.source.startTime,
+                0,
+                s.source.duration
+              );
           }
           // console.log(
           //   "rendering for batch ",

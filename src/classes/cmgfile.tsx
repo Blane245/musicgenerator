@@ -6,6 +6,7 @@ import Compressor from "./compressor";
 import Equalizer from "./equalizer";
 import Volume from "./volume";
 import { GeneratorType } from "../types";
+import Reverb from "./reverb";
 export default class CMGFile {
   dirty: boolean; // if the contents of the file has been changed since loaded, it is marked dirty
   name: string; // the name of the file on the disk or null if not saved
@@ -13,6 +14,7 @@ export default class CMGFile {
   compressor: Compressor;
   equalizer: Equalizer;
   volume: Volume;
+  reverb: Reverb;
   tracks: Track[];
   SFFileName: string; // the file name of the soundfont
   SoundFont: SoundFont2 | null; // the soundfont selected for this file
@@ -25,6 +27,7 @@ export default class CMGFile {
     this.compressor = new Compressor("roomcompressor");
     this.equalizer = new Equalizer("roomequalizer");
     this.volume = new Volume("roomvolume");
+    this.reverb = new Reverb("roomreverb");
     this.tracks = [];
     this.SFFileName = "";
     this.SoundFont = null;
@@ -38,6 +41,7 @@ export default class CMGFile {
     const newTracks: Track[] = [];
     newFile.compressor = this.compressor.copy();
     newFile.equalizer = this.equalizer.copy();
+    newFile.reverb = this.reverb.copy();
     this.tracks.forEach((t) => {
       const newTrack: Track = t.copy();
       const newGenerators: GeneratorType[] = [];
@@ -62,6 +66,7 @@ export default class CMGFile {
     this.compressor.appendXML(doc, elem);
     this.equalizer.appendXML(doc, elem);
     this.volume.appendXML(doc, elem);
+    this.reverb.appendXML(doc, elem);
   }
 
   async getXML(fcElem: Element, fileName: string) {
@@ -87,5 +92,6 @@ export default class CMGFile {
     this.compressor.getXML(fcElem, this.version);
     this.equalizer.getXML(fcElem, this.version);
     this.volume.getXML(fcElem, this.version);
+    this.reverb.getXML(fcElem, this.version);
   }
 }
