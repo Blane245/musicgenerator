@@ -1,7 +1,7 @@
 // this prepares for playing a loaded audiofile without any modulation other than
 // a volume setting
 
-import AudioFile from "../classes/audiofile";
+import { AudioFile } from "../classes/generators";
 import { RawSourceData } from "../types";
 
 export function getBufferSourceNodesFromAudioFile(gen: AudioFile): RawSourceData[] {

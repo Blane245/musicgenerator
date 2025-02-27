@@ -2,7 +2,7 @@
 
 This work is inspired by the book [Formalized Music: Thought and Mathematics in Composition](https://en.wikipedia.org/wiki/Formalized_Music). Though the principles in that book are only partially realized here, more work may be done...
 
-The music generator will play one or more voices using various algorithms or from an existing audio file. The algorithms may be an oscillator, Markovian state transisitons, or Wiener random walks. Noise may be applied to each voice Each voice can be assigned to a sound font file bank and preset. Audio files may be of any type that can be loaded by the browser being used.
+The music generator will play one or more voices using various algorithms or from an existing audio file. The algorithms may be an oscillator, Markovian state transitions, or Wiener random walks. Noise may be applied to each voice Each voice can be assigned to a sound font file bank and preset. Audio files may be of any type that can be loaded by the browser being used.
 Algorithmic voice controls include
 
 - start and stop times
@@ -14,6 +14,8 @@ Algorithmic voice controls include
 - gain envelop controls (delay, attack, hold (sustain), decay, release) these may be changed over time that come from the soundfont preset
 - Sound generation can be either previewed thru the computer speakers or recorded to a wave or mp3 file.  
 
+Room effects and controls are implemented. They include volume, reverb (both early reflections and diffuse noise), compression, and equalization.
+
 # Sound Generators
 All sound generators have a time when its effect starts and stops. A generator maybe be muted. 
 There are two types of sound generators in this version.
@@ -23,14 +25,14 @@ There are two types of sound generators in this version.
         * keep the same value 
         * move the value up 
         * move the value down 
-    If the state transistion are such that all transistion from the same state to the same state are 1, the value generated is always the starting value.
+    If the state transition are such that all transition from the same state to the same state are 1, the value generated is always the starting value.
     Each sequence is bounded by a lower and upper limit and each move is done with a given step size. When an attribute hits an upper or lower limit, the value is reversed. For example, if pan is already at its upper limit and the suggested value is to move further up, the value is changed to move down. Thus, the containment walls are not 'sticky'.
  
-    * The Wiener algorithm creates a sequence values for the assigned voice's parameter. THis is a statistical Wiener process that has an assigned trend and dispersion. If the disperion if 0, the initial value is always used.
+    * The Wiener algorithm creates a sequence values for the assigned voice's parameter. THis is a statistical Wiener process that has an assigned trend and dispersion. If the dispersion if 0, the initial value is always used.
     * A Euclidean Rhythm algorithm is used to determine a beat pattern and the notes selectable with in octave. 
         * The number of beats in the measure is specified along with the number of 'on beats'. An 'on beat' is one that will produce a sound from the current preset, while an 'off beat' is silent no matter what preset is currently active. If the measure length and on beat count are the same, all notes will be played.
-        * The number of notes in an octave determines which presets are available for use by the note parameter. When the note algorithm midi value, the value is modifed to the closets selectable midi number. If the number of notes in the octave is set to 12, all notes in teh octive will be heard.
-    * A Guassian noise algorithm is used to apply noise the note's sample. The noise level determines the size of the noise signal, where 1 is the size of the origianl signal. The dispersion of the noise is given in midi numbers. If the dispersion if 0, no noise is applied.
+        * The number of notes in an octave determines which presets are available for use by the note parameter. When the note algorithm midi value, the value is modified to the closets selectable midi number. If the number of notes in the octave is set to 12, all notes in teh octave will be heard.
+    * A Gaussian noise algorithm is used to apply noise the note's sample. The noise level determines the size of the noise signal, where 1 is the size of the original signal. The dispersion of the noise is given in midi numbers. If the dispersion if 0, no noise is applied.
 
 2. An Audio File Generator (**AudioFile**). This generator contains the samples from an existing audio file, as long as the web browser audio conversion exists for the audio file type. The start time is controllable, but the stop time is set based on the duration of the audio file. Only the volume can be adjusted as it is assumed that panning is handled in the file itself. 
 
@@ -66,7 +68,7 @@ The CMG application provides several features:
 2. Display of a timeline that can be panned and zoomed, and shows the progress during preview. A interval can be defined that will select generators to be recorded or previewed. 
 3. User creation, deletion, and maintenance of tracks including track renaming, solo, and mute
 4. User creation, deletion, and maintenance of generators, including all attributes of each generator.
-5. Preview and Record functions. During either preview, only the characteristics of the room volume, equalizer, and compressor may be changed. 
+5. Preview and Record functions. During either preview, only the characteristics of the room volume, reverb, equalizer, and compressor may be changed. 
 6. The ability save and load a defined computer music generation scenario.
 
 The figure below illustrates the class structure of the application. It is implemented as a Vite client using TypeScript. A webserver is used to access a library of soundfont files.
@@ -91,7 +93,7 @@ Other function may be available for special needs.
 
 The header is laid out in a grid containing, title line, a menu and a controls display. 
 
-The title line contains the logo, the program name and versio0n, the currently open file name, and a button for adding a comment to a file. 
+The title line contains the logo, the program name and version, the currently open file name, and a button for adding a comment to a file. 
 
 The menu has options for starting a new file, opening an existing file, save a file, and creating a new track. 
 
@@ -109,7 +111,7 @@ These icons have a menu that provides for generator editing, mute, and preview f
 
 ## Footer
 
-The footer includes areas for a status message, volume, equalizer, and compressor attributes. 
+The footer includes areas for a status message, volume, reverb, equalizer, and compressor attributes. 
 
 ## Preview and Record Generation
 
@@ -122,7 +124,7 @@ Generation involves the build of the audio routing graph for the composition. Th
 ### Preview Realization
 
 1. An audio context is constructed to hold the dynamically changing routing graph.
-2. The room level nodes are constructed and connected to the context destination (system speakers). These include a room concentrator with unity gain, and the compressor, equalizer, and volume as defined by the composition. When the sources are placed on the graph they are connected to room concentrator.
+2. The room level nodes are constructed and connected to the context destination (system speakers). These include a room concentrator with unity gain, and the reverb, compressor, equalizer, and volume as defined by the composition. When the sources are placed on the graph they are connected to room concentrator.
 3. A scheduler is run that triggers every 25 milliseconds. This scheduler does the following every cycle.
     - All sources that are to be started within the next 100 milliseconds of the current context time, are collected into an array. They are then realized as audio nodes along with their effects, connected to the room concentrator, and started.
     - All running sources that have their stop time prior to the current time are disconnect from the routing graph.
@@ -142,8 +144,8 @@ Before recording can begin, the user is asked to identify the file that is to co
 4. A timer is used to construct up to 10 batches in for simultaneous rendering when the previous group of batches has completed. 
 5. When the batches are identified the following occurs for each
     - an offline audio context is created for the batch
-    - a copy of the room compressor, equalizer and volume is created and connected to the a room concentrator and offline context destination
-    - the sources in teh batch are realized and connected to the room concentrator
+    - a copy of the room reverb, compressor, equalizer and volume is created and connected to the a room concentrator and offline context destination
+    - the sources in the batch are realized and connected to the room concentrator
     - rendering is started for the context. When complete, the rendered buffer to added to the total, sample by sample. The number of batches completed is incremented.
 6. When all batches are completed, the total is encoded to the audio file and the timer is stopped.
 7. Another timer is used to update a progress bar than displayed the percentage of buffers completed or the total required. 
@@ -156,7 +158,7 @@ Special thanks to various people
 - [sfumato](https://github.com/felixroos/sfumato) - who revealed to me the complexities of soundfont signal processing
 - WebAudio documentation, particularly the authors of the page [Advanced techniques: Creating and sequencing audio](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Advanced_techniques).
 - Russell Good for his blog [How to Convert an AudioBuffer to an Audio File with JavaScript](https://russellgood.com/how-to-convert-audiobuffer-to-audio-file/).
-- Mathew Willox for his blog [Making Reverb with the Web Audio API](https://blog.gskinner.com/archives/2019/02/reverb-web-audio-api.html). I have yet to make reverberatio work, but haven't given up on it yet.
+- Mathew Willox for his blog [Making Reverb with the Web Audio API](https://blog.gskinner.com/archives/2019/02/reverb-web-audio-api.html). I have yet to make reverberation work, but haven't given up on it yet.
 - The Duckduckgo search engine that helped me hack my way through this.
 
 # Versions - Changes
@@ -178,7 +180,7 @@ This application was developed in Visual Code, using a vite/typescript project.
 
 ## Typescript and Vite build tweaks
 
-While TypeScript goes a long way towards making JavaScript strongly data types, there is still some work that is needed. I had to have typscript compiler ignore a few lines that it was having trouble with using // @ts-ignore
+While TypeScript goes a long way towards making JavaScript strongly data types, there is still some work that is needed. I had to have typescript compiler ignore a few lines that it was having trouble with using // @ts-ignore
 
 The base for the build is set to /cmg3.
 I am running a nginx ubuntu server for access to the CMG client. After building the application (npm run build), move the contents of the build folder (dist) to /var/www/lanedb.hopto.org/cmg via scp. The nginx configuration for the path lanedb.hopto.org/cmg3 is root /var/www/lanedb.hopto.org. The assets directory had to have its mode changed via <code>sudo chmod 755 assets</code>.
