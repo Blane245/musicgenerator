@@ -39,7 +39,7 @@ export default function RoomCompressorDialog() {
     setCompressor(n, setFileContents);
   }
   return (
-    <div className="page-footer-compressor">
+    <div className="compressor">
       <p className="title">
         Compressor Reset:&nbsp;
         <button className="button" onClick={reset}>
@@ -52,7 +52,7 @@ export default function RoomCompressorDialog() {
           : ""}
       </p>
       <div className="sliders">
-        <div className="compressor-slider">
+        <div className="slider">
           <span className="param">Threshold (dB)</span>
           <span className="param">{compressorData.threshold}</span>
           <input
@@ -65,7 +65,7 @@ export default function RoomCompressorDialog() {
             onChange={(event) => handleChange(event)}
           />
         </div>
-        <div className="compressor-slider">
+        <div className="slider">
           <span className="param">Knee (dB)</span>
           <span className="param">{compressorData.knee}</span>
           <input
@@ -78,7 +78,7 @@ export default function RoomCompressorDialog() {
             onChange={(event) => handleChange(event)}
           />
         </div>
-        <div className="compressor-slider">
+        <div className="slider">
           <span className="param">Ratio (____)</span>
           <span className="param">{compressorData.ratio}</span>
           <input
@@ -91,7 +91,7 @@ export default function RoomCompressorDialog() {
             onChange={(event) => handleChange(event)}
           />
         </div>
-        <div className="compressor-slider">
+        <div className="slider">
           <span className="param">Attack (msec)</span>
           <span className="param">{compressorData.attack * 1000}</span>
           <input
@@ -104,7 +104,7 @@ export default function RoomCompressorDialog() {
             onChange={(event) => handleChange(event)}
           />
         </div>
-        <div className="compressor-slider">
+        <div className="slider">
           <span className="param">Release (msec)</span>
           <span className="param">{compressorData.release * 1000}</span>
           <input

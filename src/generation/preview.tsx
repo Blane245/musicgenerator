@@ -49,11 +49,16 @@ export default function Preview(params: PreviewProps): void {
   setTimeProgress(0);
 
   // construct the room concentrator and connect to the compressor and equalizer
+  fileContents.equalizer.setContext(context);
+  fileContents.compressor.setContext(context);
+  fileContents.volume.setContext(context);
+  fileContents.reverb.setContext(context);
+
   const concentrator: GainNode = buildRoomNodes(
-    fileContents.compressor.copy(),
-    fileContents.equalizer.copy(),
-    fileContents.volume.copy(),
-    fileContents.reverb.copy(),
+    fileContents.compressor,
+    fileContents.equalizer,
+    fileContents.volume,
+    fileContents.reverb,
     context
   );
 

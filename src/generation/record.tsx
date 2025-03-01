@@ -270,6 +270,10 @@ export default function Record(params: RecordProps) {
           const equalizer: Equalizer = fileContents.equalizer.copy();
           const volume: Volume = fileContents.volume.copy();
           const reverb: Reverb = fileContents.reverb.copy();
+          compressor.setContext(context);
+          equalizer.setContext(context);
+          volume.setContext(context);
+          reverb.setContext(context);
           const concentrator: GainNode = buildRoomNodes(
             compressor,
             equalizer,

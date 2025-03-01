@@ -11,10 +11,6 @@ export function buildRoomNodes(
   reverb: Reverb,
   context: AudioContext | OfflineAudioContext
 ): GainNode {
-  equalizer.setContext(context);
-  compressor.setContext(context);
-  volume.setContext(context);
-  reverb.setContext(context);
   const concentrator: GainNode = context.createGain();
   concentrator.connect(volume.effect as GainNode);
   // reverb connect source to destination as well as insert convolution if defined
