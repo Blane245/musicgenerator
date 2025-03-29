@@ -1,12 +1,6 @@
 // Display the generator icons for all generators on a track
 // Handle icon positioning and menu selection
-import {
-  ChangeEvent,
-  FormEvent,
-  MouseEvent,
-  useEffect,
-  useState,
-} from "react";
+import { ChangeEvent, FormEvent, MouseEvent, useEffect, useState } from "react";
 import Track from "../classes/track";
 import { useCMGContext } from "../cmgcontext";
 import GeneratorDialog from "../dialogs/generatordialog";
@@ -33,7 +27,7 @@ type GeneratorBox = {
   playing: boolean;
 };
 
-export default function GeneratorIcons (props: GeneratorIconProps) {
+export default function GeneratorIcons(props: GeneratorIconProps) {
   const { track } = props;
   const {
     setFileContents,
@@ -70,8 +64,7 @@ export default function GeneratorIcons (props: GeneratorIconProps) {
     const boxes: GeneratorBox[] = [];
     track.generators.forEach((g: GeneratorType, i: number) => {
       // is the generator out of the currently displayed current time?
-      const tStop =
-        timeLine.startTime + timeLine.timeLineScale.extent;
+      const tStop = timeLine.startTime + timeLine.timeLineScale.extent;
       const tStart = timeLine.startTime;
       const gStart = g.startTime;
       const gStop = g.stopTime;
@@ -372,7 +365,35 @@ export default function GeneratorIcons (props: GeneratorIconProps) {
           zIndex: 99,
         }}
       >
-        <p style={{ margin: "0" }} onClick={() => handleEditClick()}>
+        {/* convert to a dropdown menu */}
+        <div className="navbar">
+          <div className="dropdown">
+            <div className="dropbtn">
+              Menu
+              <i className="fa fa-caret-down"></i>
+            </div>
+            <div className="dropdown-one">
+              <div className="dItem" onClick={() => handleEditClick()}>
+                Edit
+              </div>
+              <div className="dItem" onClick={() => handleCopyClick()}>
+                Copy
+              </div>
+              <div className="dItem" onClick={() => handleMuteClick()}>
+                {generatorIndex >= 0 && track.generators[generatorIndex].mute
+                  ? "Unmute"
+                  : "Mute"}
+              </div>
+              <div className="dItem" onClick={() => handlePreviewClick()}>
+                Preview
+              </div>
+              <div className="dItem" onClick={() => setMenuEnabled(false)}>
+                Exit
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* <p style={{ margin: "0" }} onClick={() => handleEditClick()}>
           Edit
         </p>
         <p style={{ margin: "0" }} onClick={() => handleCopyClick()}>
@@ -388,7 +409,7 @@ export default function GeneratorIcons (props: GeneratorIconProps) {
         </p>
         <p style={{ margin: "0" }} onClick={() => setMenuEnabled(false)}>
           Exit
-        </p>
+        </p> */}
       </div>
       <GeneratorDialog
         track={track}
@@ -398,7 +419,12 @@ export default function GeneratorIcons (props: GeneratorIconProps) {
         open={openDialog}
         setOpen={setOpenDialog}
       />
-      <Generate mode={mode} setMode={setMode} generator={preview} setRecordHandle={()=>{}} />
+      <Generate
+        mode={mode}
+        setMode={setMode}
+        generator={preview}
+        setRecordHandle={() => {}}
+      />
       <div
         className="modal-content"
         style={{ display: copyDialog ? "block" : "none" }}

@@ -1,3 +1,5 @@
+import { SoundFont2 } from "soundfont2";
+
 export interface SampleHeader {
   name: string;
   end: number;
@@ -14,6 +16,11 @@ export interface SampleHeader {
 export interface Sample {
   header: SampleHeader;
   data: Int16Array;
+}
+
+export interface SoundFontItem {
+  name: string;
+  soundFont: SoundFont2;
 }
 
 export interface RangeGenerator {

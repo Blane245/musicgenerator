@@ -3,10 +3,8 @@
 import { useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import CMGFile from "../classes/cmgfile";
-import Track from "../classes/track";
 import { useCMGContext } from "../cmgcontext";
-import { addTrack, newFile, setDirty } from "../utils/cmfiletransactions";
-import { getTrackUID } from "../utils/gettrackuid";
+import { newFile, setDirty } from "../utils/cmfiletransactions";
 import { loadXML, writeFile } from "./filehandlers";
 
 export default function FileMenu() {
@@ -75,26 +73,38 @@ export default function FileMenu() {
   function handleFileSave() {
     saveFileContents();
   }
-  function handleNewTrack() {
-    // find a track number that is unique, start wiith the next number
-    const next = getTrackUID(fileContents.tracks);
 
-    // create a track with this UID;
-    const newTrack = new Track(next);
-    // and added to the file
-    addTrack(newTrack, setFileContents);
-    setStatus(`Track ${newTrack.name}' Added`);
+  function handleMenuSelect(action: string) {
+    switch (action) {
+      case "new":
+        handleFileNew();
+        break;
+      case "open":
+        handleOpen();
+        break;
+      case "save":
+        handleFileSave();
+        break;
+      default:
+        break;
+    }
   }
 
   return (
     <fieldset disabled={playing.current}>
-      <button onClick={() => handleFileNew()}>New File</button>
-      <span>&nbsp;</span>
-      <button onClick={() => handleOpen()}>Open File...</button>
-      <span>&nbsp;</span>
-      <button onClick={() => handleFileSave()}>Save File...</button>
-      <span>&nbsp;</span>
-      <button onClick={() => handleNewTrack()}>New Track</button>
+      <div className="navbar">
+        <div className="dropdown">
+          <div className="dropbtn">
+            File
+            <i className="fa fa-caret-down"></i>
+          </div>
+          <div className="dropdown-one">
+            <a className="dItem" onClick={() => handleMenuSelect("new")}>New File... </a>
+            <a className="dItem" onClick={() => handleMenuSelect("open")}>Open File...</a>
+            <a className="dItem" onClick={() => handleMenuSelect("save")}>Save File...</a>
+          </div>
+        </div>
+      </div>
 
       <div
         style={{ display: open == "" ? "none" : "block" }}

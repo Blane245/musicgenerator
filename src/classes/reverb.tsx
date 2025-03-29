@@ -33,8 +33,9 @@ export default class Reverb {
     if (impulse) {
       this.effect = this.context.createConvolver();
       this.effect.buffer = impulse;
-      console.log(`convolution effect ${this.effect.buffer?.length}`);
-    } else console.log(`no reverb effect`);
+      // console.log(`convolution effect ${this.effect.buffer?.length}`);
+    } 
+    // else console.log(`no reverb effect`);
   }
 
   // generate far field impulse reverb response
@@ -65,7 +66,7 @@ export default class Reverb {
       source.connect(gain);
       gain.connect(this.effect);
       this.effect.connect(destination);
-      console.log("reverb effect connected");
+      // console.log("reverb effect connected");
       this.context.createDelay();
     }
 
@@ -79,7 +80,7 @@ export default class Reverb {
       source.connect(delayNode);
       delayNode.connect(gainNode);
       gainNode.connect(destination);
-      console.log("left wall delay connected");
+      // console.log("left wall delay connected");
     }
     if (this.context && this.rightWall.gain > 0 && this.rightWall.delay > 0) {
       const delayNode: DelayNode = this.context.createDelay(1);
@@ -89,7 +90,7 @@ export default class Reverb {
       source.connect(delayNode);
       delayNode.connect(gainNode);
       gainNode.connect(destination);
-      console.log("right wall delay connected");
+      // console.log("right wall delay connected");
     }
     if (this.context && this.ceiling.gain > 0 && this.ceiling.delay > 0) {
       const delayNode: DelayNode = this.context.createDelay(1);
@@ -99,7 +100,7 @@ export default class Reverb {
       source.connect(delayNode);
       delayNode.connect(gainNode);
       gainNode.connect(destination);
-      console.log("ceiling delay connected");
+      // console.log("ceiling delay connected");
     }
 
     // connect the source to the destination at any rate

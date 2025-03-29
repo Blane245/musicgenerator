@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect } from "react";
+import { ChangeEvent } from "react";
 import { ALGORITHMTYPE } from "../types";
 import {
   MarkovianValues,
@@ -11,51 +11,59 @@ import { bankPresettoName, toNote } from "../sfcomponents/util";
 import MarkovianPropertiesBox from "./markovianpropertiesbox";
 import OscillatorPropertiesBox from "./oscillatorpropertiesbox";
 import WienerPropertiesBox from "./wienerpropertiesbox";
-import { Preset } from "sfcomponents/types";
-// provides the form fields and validators for the sfperiodic generator
+
+// provides the form fields and validators for the algorithmic generator
+
+
 export interface AlgorithmicDialogProps {
   formData: Algorithmic;
   handleChange: (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
 }
+
 export default function AlgorithmicDialog(
   props: AlgorithmicDialogProps
 ): JSX.Element {
+  const { SFFileList } = useCMGContext();
   const { formData, handleChange } = props;
-  const { presets, fileContents } = useCMGContext();
-
-  // initialize the preset when the soundFont changes
-  useEffect(() => {
-    if (!formData.preset && fileContents.SoundFont) {
-      formData.preset = fileContents.SoundFont.presets[0] as Preset;
-      formData.presetName = bankPresettoName(formData.preset);
-    }
-  }, [fileContents.SoundFont]);
 
   return (
     <>
-      <label htmlFor="presetName">Preset:&nbsp;</label>
-      <select
-        name="presetName"
-        onChange={handleChange}
-        value={formData.presetName}
-      >
-        {presets
-          .sort((a, b) => {
-            if (a.header.bank < b.header.bank) return -1;
-            if (a.header.bank > b.header.bank) return 1;
-            return a.header.preset - b.header.preset;
-          })
-          .map((p) => {
-            const pName = bankPresettoName(p);
+      <label>
+        SoundFont File:&nbsp;
+        <select
+          name="soundfontfile"
+          onChange={handleChange}
+          value={formData.soundFontFile}
+        >
+          {SFFileList.map((p) => {
             return (
-              <option key={`preset-${pName}`} value={pName}>
-                {pName}
+              <option key={`SF-${p}`} value={p}>
+                {p}
               </option>
             );
           })}
-      </select>
+        </select>
+      </label>
+      <label>
+        Preset:&nbsp;
+        <select
+          name="presetName"
+          onChange={handleChange}
+          value={formData.presetName}
+        >
+          {formData.presets
+            .map((p) => {
+              const pName = bankPresettoName(p);
+              return (
+                <option key={`preset-${pName}`} value={pName}>
+                  {pName}
+                </option>
+              );
+            })}
+        </select>
+      </label>
       <label>
         &nbsp;Looping?:&nbsp;
         <input
@@ -65,8 +73,9 @@ export default function AlgorithmicDialog(
           onChange={handleChange}
         />
       </label>
+      <br />
       <label>
-        &nbsp;Measure Length:&nbsp;
+        Measure Length:&nbsp;
         <input
           name="measureLength"
           type="number"
@@ -101,7 +110,7 @@ export default function AlgorithmicDialog(
           value={formData.noteCount}
         />
       </label>
-      <br/>
+      <br />
       <label>
         Noise Seed:&nbsp;
         <input
@@ -118,7 +127,7 @@ export default function AlgorithmicDialog(
           type="number"
           min={0}
           max={10}
-          step={.1}
+          step={0.1}
           onChange={handleChange}
           value={formData.noiseAmplitude}
         />
@@ -131,7 +140,7 @@ export default function AlgorithmicDialog(
           type="number"
           min={0}
           max={10}
-          step={.01}
+          step={0.01}
           onChange={handleChange}
           value={formData.noiseDispersion}
         />

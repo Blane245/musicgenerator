@@ -83,7 +83,7 @@ export const getPresetNote = (
   time: number
 ): RawSourceData[] => {
   const zones = getActiveZones(preset, Math.round(pitchValue));
-  console.log("zones", zones);
+  // console.log("zones", zones);
   const result: RawSourceData[] = zones.map((zone) => {
     // get the sample
     const { sample, header } = samplePool(zone.sample);
@@ -126,16 +126,16 @@ export const getPresetNote = (
     const baseDetune = 100 * rootKey + pitchCorrection - fineTune;
     const cents = pitchValue * 100 - baseDetune;
     const playbackRate = 1.0 * Math.pow(2, cents / 1200);
-    console.log('getpreset',
-      'rootKey',
-      rootKey,
-      'baseDetune',
-      baseDetune,
-      'cents',
-      cents,
-      'playbackRate',
-      playbackRate,
-    )
+    // console.log('getpreset',
+    //   'rootKey',
+    //   rootKey,
+    //   'baseDetune',
+    //   baseDetune,
+    //   'cents',
+    //   cents,
+    //   'playbackRate',
+    //   playbackRate,
+    // )
 
     // get the sample looping parameters
     const loopStart =
@@ -206,7 +206,7 @@ export const getPresetNote = (
         value: volumeValue,
       },
     };
-    console.log("loadpresetnote result vol", aResult.vol, "interval", interval);
+    // console.log("loadpresetnote result vol", aResult.vol, "interval", interval);
     return aResult;
   });
   return result;
@@ -245,15 +245,15 @@ function addNoise(
 
   // normalize to the origianl signal level
   noisySample = noisySample.map((s) => (s * signalLevel) / newSignalLevel);
-  console.log(
-    `add noise to sample at frequency, amplitude, std, samples, sampleRate, signalLevel, newSignalLevel`,
-    frequency,
-    amplitude,
-    std,
-    noisySample.length,
-    sampleRate,
-    signalLevel,
-    newSignalLevel
-  );
+  // console.log(
+  //   `add noise to sample at frequency, amplitude, std, samples, sampleRate, signalLevel, newSignalLevel`,
+  //   frequency,
+  //   amplitude,
+  //   std,
+  //   noisySample.length,
+  //   sampleRate,
+  //   signalLevel,
+  //   newSignalLevel
+  // );
   return noisySample;
 }

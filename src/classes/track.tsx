@@ -1,4 +1,3 @@
-import { SoundFont2 } from "soundfont2";
 import { GENERATORTYPE, GeneratorType } from "../types";
 import { getAttributeValue, getElementElement } from "../utils/xmlfunctions";
 import { Algorithmic, AudioFile, CMG } from "./generators";
@@ -66,7 +65,6 @@ export default class Track {
   async getXML(
     elem: Element,
     version: string,
-    soundFont: SoundFont2 | null,
   ): Promise<Track> {
     try {
       // load the base attributes of the track
@@ -87,7 +85,6 @@ export default class Track {
               const generatorPromise: Promise<CMG> = CMG.getXML(
                 child,
                 version,
-                soundFont
               );
               generatorPromises.push(generatorPromise);
             }
@@ -97,7 +94,6 @@ export default class Track {
               const generatorPromise: Promise<AudioFile> = AudioFile.getXML(
                 child,
                 version,
-                soundFont
               );
               generatorPromises.push(generatorPromise);
             }
@@ -107,7 +103,6 @@ export default class Track {
               const generatorPromise: Promise<Algorithmic> = Algorithmic.getXML(
                 child,
                 version,
-                soundFont
               );
               generatorPromises.push(generatorPromise);
             }

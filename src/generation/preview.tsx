@@ -79,7 +79,7 @@ export default function Preview(params: PreviewProps): void {
       reflectionDelay,
       fileContents.reverb.ceiling.delay
     );
-  console.log("reflection delay", reflectionDelay);
+  // console.log("reflection delay", reflectionDelay);
 
   const SCHEDULEAHEADTIME: number = 0.1; // how far ahead to schedule audio (seconds)
   const LOOKAHEAD: number = 25.0; // how frequently to call the schedule function (ms)
@@ -91,15 +91,15 @@ export default function Preview(params: PreviewProps): void {
   // when a source stops, disconnect and delete it when its stop time arrives
   let activeSources: ActiveSource[] = [];
   context.resume();
-  console.log("playback length", playbackLength);
+  // console.log("playback length", playbackLength);
   scheduler();
   function scheduler(): void {
     if (playing.current) {
       const aheadTime = context.currentTime + SCHEDULEAHEADTIME;
       let nStarted: number = 0;
       let nStopped: number = 0;
-      let someStarted: boolean = false;
-      let someStopped: boolean = false;
+      // let someStarted: boolean = false;
+      // let someStopped: boolean = false;
       while (nextTime < aheadTime) {
         // start the tones ready to start
         sourceData.forEach((s: RawSourceData, i: number) => {
@@ -117,30 +117,30 @@ export default function Preview(params: PreviewProps): void {
                 s.source.duration
               );
             }
-            console.log(
-              "source started at ",
-              context.currentTime,
-              "starttime",
-              s.source.startTime
-            );
+            // console.log(
+            //   "source started at ",
+            //   context.currentTime,
+            //   "starttime",
+            //   s.source.startTime
+            // );
             activeSources.push(activeSource);
-            console.log('active source count', activeSources.length);
+            // console.log('active source count', activeSources.length);
             s.source.started = true;
             nStarted++;
-            someStarted = true;
+            // someStarted = true;
           }
         });
 
         // disconnect all of the nodes that have finished playing
         // and delete them
         // don't turn them off until the early reflections stop
-        activeSources = activeSources.filter((s: ActiveSource, i) => {
+        activeSources = activeSources.filter((s: ActiveSource) => {
           const stopTime: number =
             s.stopTime +
             (reflectionDelay == 0
               ? 0
               : reflectionDelay / 1000 + sourceData[s.sourceIndex].source.duration);
-          console.log("source stop time", s.sourceIndex, stopTime);
+          // console.log("source stop time", s.sourceIndex, stopTime);
           if (context.currentTime > stopTime) {
             if (s.gen.type != GENERATORTYPE.CMG) {
               s.source.disconnect();
@@ -148,25 +148,25 @@ export default function Preview(params: PreviewProps): void {
               s.panner.disconnect();
             }
             nStopped++;
-            someStopped = true;
-            console.log('source stopped', context.currentTime, i);
+            // someStopped = true;
+            // console.log('source stopped', context.currentTime, i);
             return false;
           } else return true;
         });
         // advance to the next scheduled time
         nextTime += SCHEDULEAHEADTIME;
       }
-      if (someStarted || someStopped)
-        console.log(
-          "at",
-          context.currentTime,
-          nStarted,
-          "started",
-          nStopped,
-          "stopped",
-          activeSources.length,
-          " running"
-        );
+      // if (someStarted || someStopped)
+        // console.log(
+        //   "at",
+        //   context.currentTime,
+        //   nStarted,
+        //   "started",
+        //   nStopped,
+        //   "stopped",
+        //   activeSources.length,
+        //   " running"
+        // );
     }
 
     // check if done or stopped

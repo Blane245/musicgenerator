@@ -37,7 +37,7 @@ export function realizeSource(
     );
     const cD: Float32Array = source.buffer.getChannelData(0);
     cD.set(rawSourceData.source.sample[0]);
-    console.log("sample length", rawSourceData.source.sample[0].length);
+    // console.log("sample length", rawSourceData.source.sample[0].length);
   } else if (rawSourceData.gen.type == GENERATORTYPE.AudioFile) {
     (rawSourceData.gen as AudioFile).getSample(ctx, source);
   }
@@ -86,14 +86,14 @@ export function realizeSource(
           vol.gain.setValueAtTime(gain, t5);
           vol.gain.cancelAndHoldAtTime(t5);
           vol.gain.exponentialRampToValueAtTime(min, t6); // release
-          console.log(
-            "delay >= stop, note, gain, t0, stop, release",
-            rawSourceData.source.note,
-            gain,
-            t0,
-            t5,
-            t6
-          );
+          // console.log(
+          //   "delay >= stop, note, gain, t0, stop, release",
+          //   rawSourceData.source.note,
+          //   gain,
+          //   t0,
+          //   t5,
+          //   t6
+          // );
         }
 
         // case 2 - delay time + attack time is greater than note duration (truncate attack)
@@ -106,16 +106,16 @@ export function realizeSource(
           vol.gain.setValueAtTime(maxAttack, t5);
           vol.gain.cancelAndHoldAtTime(t5);
           vol.gain.exponentialRampToValueAtTime(min, t6);
-          console.log(
-            "attack >= stop, note, maxAttack, t0, t1, t2, stop, release",
-            rawSourceData.source.note,
-            maxAttack,
-            t0,
-            t1,
-            t2,
-            t5,
-            t6
-          );
+          // console.log(
+          //   "attack >= stop, note, maxAttack, t0, t1, t2, stop, release",
+          //   rawSourceData.source.note,
+          //   maxAttack,
+          //   t0,
+          //   t1,
+          //   t2,
+          //   t5,
+          //   t6
+          // );
           // two paths based on sustainLevel for handling t3 and t4
         } else if (sustainLevel == 0) {
           // when sustainLevel = 0, there is no hold or decay
@@ -130,16 +130,16 @@ export function realizeSource(
           vol.gain.setValueAtTime(modGain, t5);
           vol.gain.cancelAndHoldAtTime(t5);
           vol.gain.exponentialRampToValueAtTime(min, t6);
-          console.log(
-            "sustain level zero, note, modgain, t0, t1, t2, stoptime, release",
-            rawSourceData.source.note,
-            modGain,
-            t0,
-            t1,
-            t2,
-            t5,
-            t6
-          );
+          // console.log(
+          //   "sustain level zero, note, modgain, t0, t1, t2, stoptime, release",
+          //   rawSourceData.source.note,
+          //   modGain,
+          //   t0,
+          //   t1,
+          //   t2,
+          //   t5,
+          //   t6
+          // );
         } else if (sustainLevel > 0 && t3 >= t5) {
           // case 4 hold is past end, so delay, attack, hold, release
           vol.gain.setValueAtTime(min, t0);
@@ -149,17 +149,17 @@ export function realizeSource(
           vol.gain.setValueAtTime(modGain, t5);
           vol.gain.cancelAndHoldAtTime(t5);
           vol.gain.exponentialRampToValueAtTime(min, t6);
-          console.log(
-            "sustainlevel > 0 && hold >= end, note, modGain, t0, t1, t2, t3, stop, release",
-            rawSourceData.source.note,
-            modGain,
-            t0,
-            t1,
-            t2,
-            t3,
-            t5,
-            t6
-          );
+          // console.log(
+          //   "sustainlevel > 0 && hold >= end, note, modGain, t0, t1, t2, t3, stop, release",
+          //   rawSourceData.source.note,
+          //   modGain,
+          //   t0,
+          //   t1,
+          //   t2,
+          //   t3,
+          //   t5,
+          //   t6
+          // );
         } else if (sustainLevel > 0 && t4 >= t5) {
           // case 5 decay is past end, so delay, attack, hold, partial decay, release
           vol.gain.setValueAtTime(min, t0);
@@ -173,19 +173,19 @@ export function realizeSource(
           vol.gain.setValueAtTime(minDecay, t5);
           vol.gain.cancelAndHoldAtTime(t5);
           vol.gain.exponentialRampToValueAtTime(min, t6);
-          console.log(
-            "sustainlevel > 0 && decay >= end, note, modGain, minDecay, t0, t1, t2, t3, t4, stop, release",
-            rawSourceData.source.note,
-            modGain,
-            minDecay,
-            t0,
-            t1,
-            t2,
-            t3,
-            t4,
-            t5,
-            t6
-          );
+          // console.log(
+          //   "sustainlevel > 0 && decay >= end, note, modGain, minDecay, t0, t1, t2, t3, t4, stop, release",
+          //   rawSourceData.source.note,
+          //   modGain,
+          //   minDecay,
+          //   t0,
+          //   t1,
+          //   t2,
+          //   t3,
+          //   t4,
+          //   t5,
+          //   t6
+          // );
         } else if (sustainLevel > 0 && t4 <= t5) {
           // case 6 - decay complete before stop time - delay, attack, hold, decay, no release
           vol.gain.setValueAtTime(min, t0);
@@ -196,20 +196,20 @@ export function realizeSource(
           vol.gain.exponentialRampToValueAtTime(min, t4);
           vol.gain.setValueAtTime(min, t4);
           vol.gain.cancelAndHoldAtTime(t4);
-          console.log(
-            "sustainLevel > 0 && decay <= end, note, modGain, t0, t1, t2, t3, t4 stop",
-            rawSourceData.source.note,
-            modGain,
-            t0,
-            t1,
-            t2,
-            t3,
-            t4,
-            t5
-          );
+          // console.log(
+          //   "sustainLevel > 0 && decay <= end, note, modGain, t0, t1, t2, t3, t4 stop",
+          //   rawSourceData.source.note,
+          //   modGain,
+          //   t0,
+          //   t1,
+          //   t2,
+          //   t3,
+          //   t4,
+          //   t5
+          // );
         } else {
           vol.gain.value = gain;
-          console.log("no condition set - set gain");
+          // console.log("no condition set - set gain");
         }
       }
       vol.gain.value = min;

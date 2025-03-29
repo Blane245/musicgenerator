@@ -14,7 +14,6 @@ import {
 } from "react";
 import CMGFile from "./classes/cmgfile";
 import TimeLine from "./classes/timeline";
-import { Preset } from "./sfcomponents/types";
 import { GeneratorType, TimelineInterval } from "./types";
 
 // the elements of this application that are used at many levels
@@ -27,6 +26,8 @@ interface CMGContextType {
   setBodyHeight: Dispatch<SetStateAction<number>>;
   verticalScrollWidth: number;
   setVerticalScrollWidth: Dispatch<SetStateAction<number>>;
+  SFFileList: string[];
+  setSFFileList: Dispatch<SetStateAction<string[]>>;
   fileName: string;
   setFileName: Dispatch<SetStateAction<string>>;
   fileContents: CMGFile;
@@ -35,8 +36,6 @@ interface CMGContextType {
   setStatus: Dispatch<SetStateAction<string>>;
   timeLine: TimeLine;
   setTimeLine: Dispatch<SetStateAction<TimeLine>>;
-  presets: Preset[];
-  setPresets: Dispatch<SetStateAction<Preset[]>>;
   playing: MutableRefObject<boolean>;
   timeProgress: number;
   setTimeProgress: Dispatch<SetStateAction<number>>;
@@ -46,6 +45,8 @@ interface CMGContextType {
   setMouseDown: Dispatch<SetStateAction<boolean>>;
   generatorsPlaying: GeneratorType[];
   setGeneratorsPlaying: Dispatch<SetStateAction<GeneratorType[]>>;
+  recordFormat: string;
+  setRecordFormat: Dispatch<SetStateAction<string>>;
 }
 
 const CMGContext = createContext<CMGContextType | undefined>(undefined);
@@ -55,12 +56,12 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
   const [screenWidth, setScreenWidth] = useState<number>(0);
   const [bodyHeight, setBodyHeight] = useState<number>(0);
   const [verticalScrollWidth, setVerticalScrollWidth] = useState<number>(0);
+  const [SFFileList, setSFFileList] = useState<string[]>([]);
   const [fileContents, setFileContents] = useState<CMGFile>(new CMGFile());
   const [status, setStatus] = useState<string>("");
   const [timeLine, setTimeLine] = useState<TimeLine>(new TimeLine(0, 0));
   const [fileName, setFileName] = useState<string>("");
 
-  const [presets, setPresets] = useState<Preset[]>([]);
   const playing = useRef<boolean>(false);
   const [timeProgress, setTimeProgress] = useState<number>(0);
   const [timeInterval, setTimeInterval] = useState<TimelineInterval>({
@@ -71,6 +72,7 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
   const [generatorsPlaying, setGeneratorsPlaying] = useState<GeneratorType[]>(
     []
   );
+  const [recordFormat, setRecordFormat] = useState<string>("mp3");
   const contextValue = {
     screenHeight,
     setScreenHeight,
@@ -80,6 +82,8 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     setBodyHeight,
     verticalScrollWidth,
     setVerticalScrollWidth,
+    SFFileList,
+    setSFFileList,
     fileName,
     setFileName,
     fileContents,
@@ -88,8 +92,6 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     setStatus,
     timeLine,
     setTimeLine,
-    presets,
-    setPresets,
     playing,
     timeProgress,
     setTimeProgress,
@@ -99,6 +101,8 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     setMouseDown,
     generatorsPlaying,
     setGeneratorsPlaying,
+    recordFormat,
+    setRecordFormat,
   };
 
   return (

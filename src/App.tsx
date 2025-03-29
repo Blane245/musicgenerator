@@ -5,6 +5,7 @@ import { useCMGContext } from "./cmgcontext";
 import Body from "./layouts/body";
 import Footer from "./layouts/footer";
 import Header from "./layouts/header";
+import fetchData from "./utils/fetchdata";
 
 export default function App() {
   const {
@@ -13,6 +14,8 @@ export default function App() {
     setBodyHeight,
     setVerticalScrollWidth,
     setMouseDown,
+    setSFFileList,
+    setStatus,
   } = useCMGContext();
 
   // set up the the layout and handle screen size changes
@@ -28,14 +31,13 @@ export default function App() {
   // context attributes are set, affording components to make necessary
   // adjusts to sizes
 
-  const titleHeight: number = 180;
   const footerHeight: number = 180;
 
   useEffect(() => {
     const handleResize = () => {
       setScreenHeight(window.innerHeight);
       setScreenWidth(window.innerWidth);
-      setBodyHeight(window.innerHeight - titleHeight - footerHeight);
+      setBodyHeight(window.innerHeight - 80 - footerHeight);
       setVerticalScrollWidth(
         window.innerWidth - document.documentElement.clientWidth
       );
@@ -47,6 +49,22 @@ export default function App() {
     };
   }, []);
 
+  // load the list of soundfont files at startup
+  useEffect(() => {
+    async function getSFFileList() {
+      const uri = "/soundfonts/list";
+      const response = await fetchData(uri, "GET");
+      if (!response.error) {
+        const newList = response.list;
+        newList.unshift("select a file");
+        setSFFileList(newList);
+      } else
+        setStatus("CMG: error file reading soundfont file list");
+    }
+    getSFFileList();
+  }, []);
+
+
   return (
     <>
       <Helmet>
@@ -57,7 +75,7 @@ export default function App() {
           appName="Computer Music Generator"
           appVersion={import.meta.env.PACKAGE_VERSION}
         />
-        <Body top={titleHeight} />
+        <Body />
         <Footer />
       </div>
     </>

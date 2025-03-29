@@ -56,18 +56,24 @@ export default function Generate(props: GeneratorProps) {
       fileContents,
       timeInterval,
     });
+
+    // catch any errors will selecting generators
     setError(error);
     if (error != "") return;
     // console.log("playback length ", playbackLength);
 
     // build the generator sources
     recordLength.current = playbackLength;
-    sourceData.current = buildSources({
+    const {sources: buildSourceData, error: buildError} = buildSources({
       AlgorithmicGenerators,
       AudioFileGenerators,
       CMGenerators,
     });
 
+    // catch any errors during build
+    setError(buildError);
+    if (buildError != "") return;
+    sourceData.current = buildSourceData;
     // let the system know that playing if entered
     playing.current = true;
 

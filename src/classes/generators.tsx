@@ -1,12 +1,13 @@
+import { SoundFontPool } from "../sfcomponents/soundfontpool";
 import { SoundFont2 } from "soundfont2";
-import {
-  compressAndConvertToString,
-  convertFromJsonAndDecompress,
-} from "../utils/gzip";
 import { Preset } from "../sfcomponents/types";
 import { precision, presetNameToPreset } from "../sfcomponents/util";
 import { Algorithm, ALGORITHMTYPE, GENERATORTYPE } from "../types";
 import { euclideanRhythm } from "../utils/euclidean-rhythm";
+import {
+  compressAndConvertToString,
+  convertFromJsonAndDecompress,
+} from "../utils/gzip";
 import { getAttributeValue, getElementElement } from "../utils/xmlfunctions";
 import {
   AlgorithmValues,
@@ -88,11 +89,7 @@ export class CMG {
     }
   }
 
-  static async getXML(
-    elem: Element,
-    _version: string,
-    _soundFont: SoundFont2 | null
-  ): Promise<CMG> {
+  static async getXML(elem: Element, _version: string): Promise<CMG> {
     try {
       const g: CMG = new CMG(0);
       g.name = getAttributeValue(elem, "name", "string") as string;
@@ -139,7 +136,9 @@ export class CMG {
 // uses the euclidean beats from the parent class
 
 export class Algorithmic extends CMG {
+  soundFontFile: string;
   soundFont: SoundFont2 | undefined;
+  presets: Preset[]; // the soundfont preset list (not needed for AudioFile or Noise)
   presetName: string; // the soundfont preset name (not needed for AudioFile or Noise)
   preset: Preset | undefined; // the soundfont preset object (derived from the presetName and the soundFont file)
   isLooping: boolean; // should the sample loop?
@@ -159,9 +158,11 @@ export class Algorithmic extends CMG {
   constructor(nextGenerator: number) {
     super(nextGenerator);
     this.type = GENERATORTYPE.Algorithmic;
+    this.soundFontFile = "";
     this.soundFont = undefined;
     this.presetName = "";
     this.preset = undefined;
+    this.presets = [];
     this.isLooping = true;
     this.measureLength = 4;
     this.beatCount = 4;
@@ -184,9 +185,11 @@ export class Algorithmic extends CMG {
     n.stopTime = this.stopTime;
     n.mute = this.mute;
     n.position = this.position;
+    n.soundFontFile = this.soundFontFile;
     n.soundFont = this.soundFont;
     n.presetName = this.presetName;
     n.preset = this.preset;
+    n.presets = this.presets;
     n.isLooping = this.isLooping;
     n.measureLength = this.measureLength;
     n.beatCount = this.beatCount;
@@ -204,20 +207,28 @@ export class Algorithmic extends CMG {
   }
 
   // when the soundfont file is changed update the preset
-  setSoundFont(soundFont: SoundFont2) {
-    this.soundFont = soundFont;
-    const { preset, name } = presetNameToPreset(
-      this.presetName,
-      this.soundFont
-    );
-    this.preset = preset;
-    this.presetName = name;
-  }
+  // setSoundFont(soundFont: SoundFont2) {
+  //   this.soundFont = soundFont;
+  //   const { preset, name } = presetNameToPreset(
+  //     this.presetName,
+  //     this.soundFont
+  //   );
+  //   this.preset = preset;
+  //   this.presetName = name;
+  // }
 
-  override setAttribute(name: string, value: string): void {
+  override async setAttribute(name: string, value: string) {
     // handle a change of the algorithm type
     super.setAttribute(name, value);
     switch (name) {
+      case "soundfontfile": {
+        if (value != "select a file") {
+          this.soundFontFile = value;
+          // this will trigger the soundfont to be loaded and the presets to be set
+          // by the calling dialog
+        }
+        return;
+      }
       case "presetName":
         this.presetName = value;
         const { preset } = presetNameToPreset(this.presetName, this.soundFont);
@@ -375,7 +386,7 @@ export class Algorithmic extends CMG {
 
     // if the note is on, return the original note
     if (this.#activeNotes[normalizedMidiOffset] == 1) {
-      console.log("returning original note", note);
+      // console.log("returning original note", note);
       return note;
     }
 
@@ -392,7 +403,7 @@ export class Algorithmic extends CMG {
     else midi = octave * 12 + last;
 
     // return with the fractional note applied
-    console.log("returning modified note", midi + midiFraction);
+    // console.log("returning modified note", midi + midiFraction);
     return midi + midiFraction;
   }
 
@@ -400,6 +411,7 @@ export class Algorithmic extends CMG {
     try {
       const returnElem: Element = elem;
       await super.appendXML(doc, returnElem);
+      returnElem.setAttribute("soundFontFile", this.soundFontFile);
       returnElem.setAttribute("presetName", this.presetName);
       returnElem.setAttribute("isLooping", this.isLooping ? "true" : "false");
       returnElem.setAttribute("measureLength", this.measureLength.toString());
@@ -431,13 +443,18 @@ export class Algorithmic extends CMG {
   }
   static override async getXML(
     elem: Element,
-    version: string,
-    soundFont: SoundFont2 | null
+    version: string
   ): Promise<Algorithmic> {
     try {
-      const CMGgen: CMG = await CMG.getXML(elem, version, soundFont);
+      const CMGgen: CMG = await CMG.getXML(elem, version);
       const g: Algorithmic = new Algorithmic(0);
-      g.soundFont = soundFont ? soundFont : undefined;
+      g.soundFontFile = getAttributeValue(
+        elem,
+        "soundFontFile",
+        "string"
+      ) as string;
+      g.soundFont = await SoundFontPool(g.soundFontFile);
+      g.presets = g.soundFont.presets as Preset[];
       g.presetName = getAttributeValue(elem, "presetName", "string") as string;
       const { preset } = presetNameToPreset(g.presetName, g.soundFont);
       g.preset = preset;
@@ -753,11 +770,10 @@ export class AudioFile extends CMG {
 
   static override async getXML(
     elem: Element,
-    version: string,
-    soundFont: SoundFont2 | null
+    version: string
   ): Promise<AudioFile> {
     try {
-      const CMGgen: CMG = await CMG.getXML(elem, version, soundFont);
+      const CMGgen: CMG = await CMG.getXML(elem, version);
       const g: AudioFile = new AudioFile(0);
 
       g.fileName = getAttributeValue(elem, "fileName", "string") as string;

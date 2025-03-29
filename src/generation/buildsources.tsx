@@ -11,13 +11,15 @@ export interface buildSourcesProps {
   AudioFileGenerators: AudioFile[];
   CMGenerators: CMG[];
 }
-export function buildSources(params: buildSourcesProps): RawSourceData[] {
+export function buildSources(params: buildSourcesProps): {sources: RawSourceData[], error: string} {
   const {
     AlgorithmicGenerators,
     AudioFileGenerators,
     CMGenerators,
   } = params;
+  let error:string = "";
   const sourceData: RawSourceData[] = [];
+  try {
   AlgorithmicGenerators.forEach((g) => {
     const AlgorithmicData: RawSourceData[] = getBufferSourceNodesFromAlgorithmic(g);
     sourceData.push(...AlgorithmicData);
@@ -34,5 +36,9 @@ export function buildSources(params: buildSourcesProps): RawSourceData[] {
   });
 
   // console.log("raw source count", sourceData.length);
-  return sourceData.sort((a:RawSourceData, b: RawSourceData) => a.source.startTime - b.source.startTime);
+  return ({sources: sourceData.sort((a:RawSourceData, b: RawSourceData) => a.source.startTime - b.source.startTime), error: error});
+} catch (e: any) {
+  error = (e as Error).message;
+  return ({sources: sourceData, error: error});
+}
 }

@@ -12,6 +12,7 @@ import {
   squareModulator,
   triangleModulator,
 } from "../modulators";
+import { SoundFont2 } from "soundfont2";
 
 export const SAMPLERATE: number = 44100;
 
@@ -157,7 +158,7 @@ export const TIMEFORMATS: TimeFormat[] = [
   { value: "00:00", type: TIMEFORMATTYPE.TIME },
   { value: "0:00:00", type: TIMEFORMATTYPE.TIME },
   { value: "0:00:00", type: TIMEFORMATTYPE.TIME },
-  { value: "000:00:00", type: TIMEFORMATTYPE.TIME },
+  { value: "int", type: TIMEFORMATTYPE.TIME },
 ];
 export type TimeLineScale = {
   extent: number; // the extents of the time scale in seconds

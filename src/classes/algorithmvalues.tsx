@@ -484,38 +484,35 @@ export class WienerValues extends AlgorithmValues {
     }
   }
 
-  #currentAlpha: number = 0
+  #firstValue: boolean = true;
+  #startTime: number = 0;
   override getCurrentValue(time: number): number {
     // determine the next Wiener series value and bound it between lo and hi
     // reverse the trend if the value goes too high or too low
     let result: number = this.values.initialValue;
-    if (time == 0) {
-      this.#currentAlpha = this.values.alpha;
+    if (this.#firstValue || this.values.sigma == 0) {
+      this.#firstValue = false;
+      this.#startTime = time;
       return result;
     }
-    if (this.values.sigma == 0) {
-      return result;
-    }
-
     const random: number = gaussianRandom(
       0,
-      this.values.sigma * Math.sqrt(time)
+      this.values.sigma * Math.sqrt(time - this.#startTime)
       ,this.values.rn
     );
-    result = this.values.initialValue + this.#currentAlpha * time + random;
-    if (this.#currentAlpha == 0)
-      return Math.min(this.values.hi, Math.max(this.values.lo, result));
-
-    // check for trend reversal
-    // console.log('trend test result, lo, hi, alpha', result, this.values.lo, this.values.hi, this.values.alpha)
-    // if (
-    //   (result > this.values.hi && this.#currentAlpha > 0) ||
-    //   (result < this.values.lo && this.#currentAlpha < 0)
-    // ) {
-    //   this.#currentAlpha = -this.#currentAlpha;
-    //   result = this.values.initialValue + this.#currentAlpha * time + random;
-    //   console.log('reversing trend - result', result);
-    // }
+    result = this.values.initialValue + this.values.alpha * (time - this.#startTime) + random;
+    // console.log('Wiener values',
+    //   'time', time,
+    //   'startTime', this.#startTime, 
+    //   'seed', this.values.seed,
+    //   'initial', this.values.initialValue,
+    //   'alpha', this.values.alpha,
+    //   'sigma', this.values.sigma,
+    //   'random', random,
+    //   'result', result,
+    //   'lo', this.values.lo,
+    //   'hi', this.values.hi
+    // );
     return Math.min(this.values.hi, Math.max(this.values.lo, result));
   }
 

@@ -1,7 +1,6 @@
 // Update various parts of the CMGFile based
 // various transactions within the system
 import Volume from "classes/volume";
-import { SoundFont2 } from "soundfont2";
 import CMGFile from "../classes/cmgfile";
 import Compressor from "../classes/compressor";
 import Equalizer from "../classes/equalizer";
@@ -19,22 +18,6 @@ export function setFileComment(comment: string, setFileContents: Function): void
     n.comment = comment;
     n.dirty = true;
     return n;
-  });
-}
-
-export function setSoundFont(
-  fileName: string,
-  sf: SoundFont2,
-  setFileContents: Function
-): void {
-  setFileContents((c: CMGFile) => {
-    if (c.SFFileName != fileName) {
-      const newC: CMGFile = c.copy();
-      newC.SFFileName = fileName;
-      newC.SoundFont = sf;
-      newC.dirty = true;
-      return newC;
-    } else return c;
   });
 }
 

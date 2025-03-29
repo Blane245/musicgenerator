@@ -9,16 +9,10 @@ import {
 } from "react-icons/ci";
 import TimeLine from "../classes/timeline";
 import { useCMGContext } from "../cmgcontext";
-import {
-  TimeLineScales,
-} from "../types";
+import { TimeLineScales } from "../types";
 // render the timeline and control the timeline interval
 export default function TimeLineControlsDisplay() {
-  const {
-    timeLine,
-    setTimeLine,
-    playing,
-  } = useCMGContext();
+  const { timeLine, setTimeLine, playing } = useCMGContext();
 
   const handleZoomIn = (): void => {
     setTimeLine((c: TimeLine) => {
@@ -55,33 +49,31 @@ export default function TimeLineControlsDisplay() {
   };
 
   return (
-      <div className="page-time-control">
-        <fieldset disabled={playing.current} style={{ width: "inherit" }}>
-          <button
-            style={{ fontSize: "15px" }}
-            disabled={timeLine.currentZoomLevel == 0}
-            onClick={handleZoomIn}
-          >
-            <CiZoomIn />
-          </button>
-          <button
-            style={{ fontSize: "15px" }}
-            disabled={timeLine.currentZoomLevel == TimeLineScales.length - 1}
-            onClick={handleZoomOut}
-          >
-            <CiZoomOut />
-          </button>
-          <button
-            style={{ fontSize: "15px" }}
-            disabled={timeLine.startTime == 0}
-            onClick={handleShiftLeft}
-          >
-            <CiCircleChevLeft />
-          </button>
-          <button style={{ fontSize: "15px" }} onClick={handleShiftRight}>
-            <CiCircleChevRight />
-          </button>
-        </fieldset>
-      </div>
-  )
+    <fieldset disabled={playing.current} style={{ width: "inherit" }}>
+      <button
+        style={{ fontSize: "15px" }}
+        disabled={timeLine.currentZoomLevel == 0}
+        onClick={handleZoomIn}
+      >
+        <CiZoomIn />
+      </button>
+      <button
+        style={{ fontSize: "15px" }}
+        disabled={timeLine.currentZoomLevel == TimeLineScales.length - 1}
+        onClick={handleZoomOut}
+      >
+        <CiZoomOut />
+      </button>
+      <button
+        style={{ fontSize: "15px" }}
+        disabled={timeLine.startTime == 0}
+        onClick={handleShiftLeft}
+      >
+        <CiCircleChevLeft />
+      </button>
+      <button style={{ fontSize: "15px" }} onClick={handleShiftRight}>
+        <CiCircleChevRight />
+      </button>
+    </fieldset>
+  );
 }

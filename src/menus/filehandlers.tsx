@@ -90,7 +90,6 @@ export async function loadXML(
       const trackPromise: Promise<Track> = track.getXML(
         child,
         fileContents.version,
-        fileContents.SoundFont
       );
       trackPromises.push(trackPromise);
     }

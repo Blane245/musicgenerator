@@ -1,9 +1,12 @@
 // provides CRUD for all types of generators
 import { ChangeEvent, FormEvent, MouseEvent, useEffect, useState } from "react";
+import { SoundFont2 } from "soundfont2";
 import { Algorithmic, AudioFile, CMG } from "../classes/generators";
 import Track from "../classes/track";
 import { useCMGContext } from "../cmgcontext";
-import { precision } from "../sfcomponents/util";
+import { SoundFontPool } from "../sfcomponents/soundfontpool";
+import { Preset } from "../sfcomponents/types";
+import { bankPresettoName, precision } from "../sfcomponents/util";
 import { GeneratorType, GENERATORTYPE } from "../types";
 import {
   addGenerator,
@@ -32,6 +35,13 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     open,
     setOpen,
   } = props;
+  type SFDataType = {
+    soundFont: SoundFont2 | undefined;
+    presets: Preset[];
+    preset: Preset | undefined;
+    presetName: string;
+  };
+
   const { fileContents, setFileContents, setStatus } = useCMGContext();
   const [showModal, setShowModal] = useState<boolean>(false);
   const [deleteModal, setDeleteModal] = useState<boolean>(false);
@@ -39,6 +49,14 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
   const [generatorName, setGeneratorName] = useState<string>("");
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [formData, setFormData] = useState<GeneratorType>(new CMG(0));
+  const [soundFontData, setSoundFontData] = useState<SFDataType>({
+    soundFont: undefined,
+    presets: [],
+    preset: undefined,
+    presetName: "",
+  });
+  const [locked, setLocked] = useState<boolean>(false);
+
   useEffect(() => {
     if (open) {
       // either get the generator from the track or build a new one if being added
@@ -56,6 +74,19 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     }
     setErrorMessages([]);
   }, [open]);
+
+  // when the soundfont data has been loaded, update the algorithmic generator form
+  useEffect(() => {
+    setFormData((prev: GeneratorType) => {
+      const n: Algorithmic = (prev as Algorithmic).copy();
+      n.soundFont = soundFontData.soundFont;
+      n.preset = soundFontData.preset;
+      n.presetName = soundFontData.presetName;
+      n.presets = soundFontData.presets;
+      setLocked(false);
+      return n;
+    });
+  }, [soundFontData]);
 
   function handleChange(
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -80,6 +111,35 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
         case GENERATORTYPE.Algorithmic: {
           const newFormData: Algorithmic = (prev as Algorithmic).copy();
           newFormData.setAttribute(eventName, eventValue);
+
+          // when the soundfont filename changes, load the new soundfont and presets
+          if (eventName == "soundfontfile") {
+            setLocked(true);
+            // load the soundfont file and set the presets
+            async function LoadFile(fileName: string) {
+              const soundFont: SoundFont2 = await SoundFontPool(fileName);
+              setSoundFontData(() => {
+                const presets: Preset[] = (soundFont.presets as Preset[]).sort(
+                  (a, b) => {
+                    if (a.header.bank < b.header.bank) return -1;
+                    if (a.header.bank > b.header.bank) return 1;
+                    return a.header.preset - b.header.preset;
+                  }
+                );
+                const preset: Preset = presets[0] as Preset;
+                const presetName: string = bankPresettoName(preset);
+                const newSoundFontData: SFDataType = {
+                  soundFont: soundFont,
+                  presets: presets,
+                  preset: preset,
+                  presetName: presetName,
+                };
+                return newSoundFontData;
+              });
+            }
+            LoadFile(eventValue);
+          }
+
           return newFormData;
         }
         case GENERATORTYPE.AudioFile: {
@@ -100,7 +160,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
   function handleTypeChange(event: ChangeEvent<HTMLSelectElement>): void {
     const newType: GENERATORTYPE = event.target["value"] as GENERATORTYPE;
 
-    // switching generator type - copy the CMG values and default the preset name
+    // switching generator type - copy the CMG values
     setFormData((prev: GeneratorType) => {
       switch (newType) {
         case GENERATORTYPE.CMG: {
@@ -118,7 +178,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           newF.startTime = prev.startTime;
           newF.stopTime = prev.startTime;
           newF.mute = prev.mute;
-          newF.soundFont = fileContents.SoundFont?fileContents.SoundFont:undefined;
+          newF.position = prev.position;
           return newF;
         }
         case GENERATORTYPE.AudioFile: {
@@ -239,7 +299,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     setStatus("");
   }
   return (
-    <>
+    <fieldset disabled={locked}>
       {open ? (
         <>
           <div
@@ -273,7 +333,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                   />
                 </label>
                 <label>
-                &nbsp;Type:&nbsp;
+                  &nbsp;Type:&nbsp;
                   <select
                     name="type"
                     onChange={handleTypeChange}
@@ -290,7 +350,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                   </select>
                 </label>
                 <label>
-                &nbsp;Start Time:&nbsp;
+                  &nbsp;Start Time:&nbsp;
                   <input
                     name="startTime"
                     type="number"
@@ -302,7 +362,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                   <span> (sec) </span>
                 </label>
                 <label>
-                &nbsp;Stop Time:&nbsp;
+                  &nbsp;Stop Time:&nbsp;
                   <input
                     name="stopTime"
                     type="number"
@@ -370,6 +430,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           </div>
         </>
       ) : null}
-    </>
+    </fieldset>
   );
 }
