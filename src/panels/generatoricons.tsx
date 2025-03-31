@@ -5,9 +5,10 @@ import Track from "../classes/track";
 import { useCMGContext } from "../cmgcontext";
 import GeneratorDialog from "../dialogs/generatordialog";
 import Generate from "../generation/generate";
-import { GeneratorType, GENERATIONMODE } from "../types";
+import { GENERATIONMODE, GeneratorType, TimeLineScales } from "../types";
 import {
   addGenerator,
+  deleteGenerator,
   flipGeneratorMute,
   moveGeneratorBodyPosition,
 } from "../utils/cmfiletransactions";
@@ -53,6 +54,8 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
   const [mode, setMode] = useState<GENERATIONMODE>(GENERATIONMODE.idle);
   const [trackWidth, setTrackWidth] = useState<number>(100);
   const [trackHeight, setTrackHeight] = useState<number>(100);
+  const [deleteModal, setDeleteModal] = useState<boolean>(false);
+  const [generatorName, setGeneratorName] = useState<string>("");
 
   // set the visible generator icon boxes based on the generator times and timeLine
   // handle highlighting from timeline interval selection and preview playing
@@ -64,7 +67,8 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     const boxes: GeneratorBox[] = [];
     track.generators.forEach((g: GeneratorType, i: number) => {
       // is the generator out of the currently displayed current time?
-      const tStop = timeLine.startTime + timeLine.timeLineScale.extent;
+      const tStop =
+        timeLine.startTime + TimeLineScales[timeLine.currentZoomLevel].extent;
       const tStart = timeLine.startTime;
       const gStart = g.startTime;
       const gStop = g.stopTime;
@@ -203,6 +207,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     setMode(GENERATIONMODE.solo);
     setPreview(generatorBoxes[boxIndex].generator);
     setStatus(``);
+    setMenuEnabled(false);
   }
 
   function handleEditClick() {
@@ -210,6 +215,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     setMenuEnabled(false);
     setCursor("default");
     setStatus(``);
+    setMenuEnabled(false);
   }
 
   function handleMuteClick() {
@@ -217,6 +223,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     setMenuEnabled(false);
     setCursor("default");
     setStatus(``);
+    setMenuEnabled(false);
   }
 
   function handleCopyClick() {
@@ -224,6 +231,33 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     setCopyDialog(true);
     setMenuEnabled(false);
     setStatus(``);
+    setMenuEnabled(false);
+  }
+  function handleDeleteClick() {
+    const gName: string = generatorBoxes[boxIndex].generator.name;
+    console.log(gName);
+    setGeneratorName(gName);
+    setDeleteModal(true);
+    setStatus(``);
+  }
+
+  function handleDeleteOK(event: MouseEvent<Element>): void {
+    event.preventDefault();
+    const gName = event.currentTarget.id.split(":")[1];
+    const index = track.generators.findIndex((g) => g.name == gName);
+    if (index < 0) return;
+
+    deleteGenerator(track, gName, setFileContents);
+    setDeleteModal(false);
+    setGeneratorIndex(-1);
+    setMenuEnabled(false);
+    setStatus(`Generator '${gName}' deleted from track '${track.name}'`);
+  }
+
+  function handleDeleteCancel() {
+    setDeleteModal(false);
+    setStatus("");
+    setMenuEnabled(false);
   }
 
   function handleSelectedTrackChange(event: ChangeEvent<HTMLSelectElement>) {
@@ -241,14 +275,14 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
 
     // get a copy of the selected generator
     // and find a unique name for the generator
-    const newG = generatorBoxes[generatorIndex].generator.copy();
+    const newG = generatorBoxes[boxIndex].generator.copy();
     let next = getGeneratorUID(fileContents.tracks);
     newG.name = "G".concat(next.toString());
 
     //add the generator to the track
     addGenerator(targetTrack, newG, setFileContents);
     setStatus(
-      `Generator '${generatorBoxes[generatorIndex].generator.name}' copied to track '${targetTrack.name}' with name '${newG.name}'`
+      `Generator '${generatorBoxes[boxIndex].generator.name}' copied to track '${targetTrack.name}' with name '${newG.name}'`
     );
   }
 
@@ -355,24 +389,41 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
 
       <div
         className="modal-menu"
-        id="gen-menu"
+        id={"genmenu"}
+        key={"genmenu"}
         style={{
           display: menuEnabled ? "block" : "none",
           position: "relative",
           top: menuY.toString() + "px",
           left: menuX.toString() + "px",
-          width: "100px",
+          width: "60px",
+          height: "20px",
           zIndex: 99,
         }}
       >
-        {/* convert to a dropdown menu */}
-        <div className="navbar">
-          <div className="dropdown">
+        <div
+          className="navbar"
+          style={{
+            position: "relative",
+            top: "0px",
+            visibility: "hidden",
+          }}
+        >
+          <div
+            className="dropdown"
+            style={{
+              position: "fixed",
+              visibility: "visible",
+            }}
+          >
             <div className="dropbtn">
               Menu
               <i className="fa fa-caret-down"></i>
             </div>
             <div className="dropdown-one">
+              <div className="dItem" onClick={() => handlePreviewClick()}>
+                Preview
+              </div>
               <div className="dItem" onClick={() => handleEditClick()}>
                 Edit
               </div>
@@ -384,8 +435,8 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
                   ? "Unmute"
                   : "Mute"}
               </div>
-              <div className="dItem" onClick={() => handlePreviewClick()}>
-                Preview
+              <div className="dItem" onClick={() => handleDeleteClick()}>
+                Delete
               </div>
               <div className="dItem" onClick={() => setMenuEnabled(false)}>
                 Exit
@@ -393,23 +444,6 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
             </div>
           </div>
         </div>
-        {/* <p style={{ margin: "0" }} onClick={() => handleEditClick()}>
-          Edit
-        </p>
-        <p style={{ margin: "0" }} onClick={() => handleCopyClick()}>
-          Copy
-        </p>
-        <p style={{ margin: "0" }} onClick={() => handleMuteClick()}>
-          {generatorIndex >= 0 && track.generators[generatorIndex].mute
-            ? "Unmute"
-            : "Mute"}
-        </p>
-        <p style={{ margin: "0" }} onClick={() => handlePreviewClick()}>
-          Preview
-        </p>
-        <p style={{ margin: "0" }} onClick={() => setMenuEnabled(false)}>
-          Exit
-        </p> */}
       </div>
       <GeneratorDialog
         track={track}
@@ -461,6 +495,24 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
         <div className="modal-footer">
           <button onClick={handleCopyOK}>Copy</button>
           <button onClick={handleCopyCancel}>Cancel</button>
+        </div>
+      </div>
+      <div
+        style={{ display: deleteModal ? "block" : "none" }}
+        className="modal-content"
+      >
+        <div className="modal-header">
+          <span className="close">&times;</span>
+          <h2>Confirm deletion of generator '{generatorName}'</h2>
+        </div>
+        <div className="modal-body">
+          <p>Select OK to delete generator or Cancel to abort deletion.</p>
+        </div>
+        <div className="modal-footer">
+          <button id={"track-delete:" + generatorName} onClick={handleDeleteOK}>
+            OK
+          </button>
+          <button onClick={handleDeleteCancel}>Cancel</button>
         </div>
       </div>
     </>

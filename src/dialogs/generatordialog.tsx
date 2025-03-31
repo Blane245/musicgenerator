@@ -1,5 +1,5 @@
 // provides CRUD for all types of generators
-import { ChangeEvent, FormEvent, MouseEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, MouseEvent, useEffect, useRef, useState } from "react";
 import { SoundFont2 } from "soundfont2";
 import { Algorithmic, AudioFile, CMG } from "../classes/generators";
 import Track from "../classes/track";
@@ -10,7 +10,7 @@ import { bankPresettoName, precision } from "../sfcomponents/util";
 import { GeneratorType, GENERATORTYPE } from "../types";
 import {
   addGenerator,
-  deleteGenerator,
+  // deleteGenerator,
   modifyGenerator,
 } from "../utils/cmfiletransactions";
 import { getGeneratorUID } from "../utils/getgeneratoruid";
@@ -27,14 +27,7 @@ export interface GeneratorDialogProps {
 }
 
 export default function GeneratorDialog(props: GeneratorDialogProps) {
-  const {
-    track,
-    generatorIndex,
-    setGeneratorIndex,
-    closeTrackGenerator,
-    open,
-    setOpen,
-  } = props;
+  const { track, generatorIndex, closeTrackGenerator, open, setOpen } = props;
   type SFDataType = {
     soundFont: SoundFont2 | undefined;
     presets: Preset[];
@@ -44,9 +37,9 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
 
   const { fileContents, setFileContents, setStatus } = useCMGContext();
   const [showModal, setShowModal] = useState<boolean>(false);
-  const [deleteModal, setDeleteModal] = useState<boolean>(false);
+  // const [deleteModal, setDeleteModal] = useState<boolean>(false);
   const [oldName, setOldName] = useState<string>("");
-  const [generatorName, setGeneratorName] = useState<string>("");
+  // const [generatorName, setGeneratorName] = useState<string>("");
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [formData, setFormData] = useState<GeneratorType>(new CMG(0));
   const [soundFontData, setSoundFontData] = useState<SFDataType>({
@@ -55,7 +48,11 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     preset: undefined,
     presetName: "",
   });
+  const [audioFileData, setAudioFileData] = useState<AudioFile>(
+    new AudioFile(0)
+  );
   const [locked, setLocked] = useState<boolean>(false);
+  const filePicker = useRef<boolean>(false);
 
   useEffect(() => {
     if (open) {
@@ -88,6 +85,14 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     });
   }, [soundFontData]);
 
+  useEffect(() => {
+    setFormData((prev: GeneratorType) => {
+      const n: AudioFile = (prev as AudioFile).copy();
+      return n;
+    });
+    setLocked(false);
+  }, [audioFileData]);
+
   function handleChange(
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ): void {
@@ -114,37 +119,16 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
 
           // when the soundfont filename changes, load the new soundfont and presets
           if (eventName == "soundfontfile") {
-            setLocked(true);
-            // load the soundfont file and set the presets
-            async function LoadFile(fileName: string) {
-              const soundFont: SoundFont2 = await SoundFontPool(fileName);
-              setSoundFontData(() => {
-                const presets: Preset[] = (soundFont.presets as Preset[]).sort(
-                  (a, b) => {
-                    if (a.header.bank < b.header.bank) return -1;
-                    if (a.header.bank > b.header.bank) return 1;
-                    return a.header.preset - b.header.preset;
-                  }
-                );
-                const preset: Preset = presets[0] as Preset;
-                const presetName: string = bankPresettoName(preset);
-                const newSoundFontData: SFDataType = {
-                  soundFont: soundFont,
-                  presets: presets,
-                  preset: preset,
-                  presetName: presetName,
-                };
-                return newSoundFontData;
-              });
-            }
-            LoadFile(eventValue);
+            loadSoundFontandUpdate(eventValue);
           }
-
           return newFormData;
         }
         case GENERATORTYPE.AudioFile: {
           const newFormData: AudioFile = (prev as AudioFile).copy();
           newFormData.setAttribute(eventName, eventValue);
+          // if (eventName == "filename") {
+          //   loadAudioFileandUpdate();
+          // }
           return newFormData;
         }
         default:
@@ -272,32 +256,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     setStatus("");
   }
 
-  function handleDeleteClick(event: MouseEvent<Element>) {
-    event.preventDefault();
-    console.log(event.currentTarget.id);
-    const gName = event.currentTarget.id.split(":")[1];
-    setGeneratorName(gName);
-    setDeleteModal(true);
-    setStatus(``);
-  }
-
-  function handleDeleteOK(event: MouseEvent<Element>): void {
-    event.preventDefault();
-    const gName = event.currentTarget.id.split(":")[1];
-    const index = track.generators.findIndex((g) => g.name == gName);
-    if (index < 0) return;
-
-    deleteGenerator(track, gName, setFileContents);
-    setDeleteModal(false);
-    setGeneratorIndex(-1);
-    closeTrackGenerator();
-    setStatus(`Generator '${gName}' deleted from track '${track.name}'`);
-  }
-
-  function handleDeleteCancel() {
-    setDeleteModal(false);
-    setStatus("");
-  }
   return (
     <fieldset disabled={locked}>
       {open ? (
@@ -387,13 +345,13 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
               </form>
             </div>
             <div className="generator-footer">
-              <button
+              {/* <button
                 hidden={generatorIndex < 0}
                 id={"generator-delete:" + formData.name}
                 onClick={handleDeleteClick}
               >
                 Delete
-              </button>
+              </button> */}
               <button
                 id={"generator-update:" + formData.name}
                 onClick={handleCancelClick}
@@ -407,29 +365,81 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
               ))}
             </div>
           </div>
-          <div
-            style={{ display: deleteModal ? "block" : "none" }}
-            className="modal-content"
-          >
-            <div className="modal-header">
-              <span className="close">&times;</span>
-              <h2>Confirm deletion of generator '{generatorName}'</h2>
-            </div>
-            <div className="modal-body">
-              <p>Select OK to delete generator or Cancel to abort deletion.</p>
-            </div>
-            <div className="modal-footer">
-              <button
-                id={"track-delete:" + generatorName}
-                onClick={handleDeleteOK}
-              >
-                OK
-              </button>
-              <button onClick={handleDeleteCancel}>Cancel</button>
-            </div>
-          </div>
         </>
       ) : null}
     </fieldset>
   );
+
+  function loadSoundFontandUpdate(fileName: string) {
+    if (!filePicker) setLocked(true);
+    // load the soundfont file and set the presets
+    async function LoadFile(fileName: string) {
+      const { soundFont } = await SoundFontPool(fileName);
+      setSoundFontData(() => {
+        const presets: Preset[] = (soundFont.presets as Preset[]).sort(
+          (a, b) => {
+            if (a.header.bank < b.header.bank) return -1;
+            if (a.header.bank > b.header.bank) return 1;
+            return a.header.preset - b.header.preset;
+          }
+        );
+        const preset: Preset = presets[0] as Preset;
+        const presetName: string = bankPresettoName(preset);
+        const newSoundFontData: SFDataType = {
+          soundFont: soundFont,
+          presets: presets,
+          preset: preset,
+          presetName: presetName,
+        };
+        return newSoundFontData;
+      });
+    }
+    LoadFile(fileName);
+  }
+
+  function loadAudioFileandUpdate() {
+    // load the data from the file selected by the user
+    if (!filePicker.current) {
+      filePicker.current = true;
+      setLocked(true);
+      try {
+        window
+          .showOpenFilePicker({
+            multiple: false,
+            types: [
+              {
+                description: "Audio Files",
+                accept: { "audio/*": [".mp3", ".wav"] },
+              },
+            ],
+          })
+          .then((rhs: FileSystemFileHandle[]) => {
+            rhs[0].getFile().then((file: File) => {
+              file.arrayBuffer().then((buffer: ArrayBuffer) => {
+                const context: AudioContext = new AudioContext();
+                context.decodeAudioData(buffer).then((audio: AudioBuffer) => {
+                  setAudioFileData((prev: AudioFile) => {
+                    const n = prev.copy();
+                    n.fileName = file.name;
+                    n.sampleRate = audio.sampleRate;
+                    n.duration = precision(audio.duration, 1);
+                    n.stopTime = n.startTime + n.duration;
+                    n.samples = [];
+                    for (let i = 0; i < audio.numberOfChannels; i++) {
+                      const channelData: Float32Array = audio.getChannelData(i);
+                      n.samples.push(channelData);
+                    }
+                    return n;
+                  });
+                  filePicker.current = false;
+                });
+              });
+            });
+          });
+      } catch (e) {
+      } finally {
+        filePicker.current = false;
+      }
+    }
+  }
 }

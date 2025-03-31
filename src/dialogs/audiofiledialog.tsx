@@ -1,8 +1,9 @@
 //TODO refresh the dialog when the file is loaded.
 //TODO loading file should set stopTime based on file duration and startTime
-import { ChangeEvent } from "react";
+import { ChangeEvent, useEffect } from "react";
 import {AudioFile} from "../classes/generators";
 import { precision } from "../sfcomponents/util";
+import { GeneratorType } from "types";
 
 // provides the form fields and validators for the sfperiodic generator
 export interface AudioFileDialogProps {
@@ -15,7 +16,6 @@ export default function AudioFileDialog(
   props: AudioFileDialogProps
 ): JSX.Element {
   const { formData, handleChange } = props;
-
   // ask the user for an audio file
   // read the file
   // decode the audio
@@ -23,7 +23,13 @@ export default function AudioFileDialog(
   function handleFileClick() {
     // tell the audiofile object to ask to load a file
     // and then decode it
-    formData.setAttribute("fileName", "");
+    formData.setAttribute("filename", "");
+    // handleChange({
+    //   target: {
+    //     name: 'filename',
+    //     value: 'TBD',
+    //   },
+    // } as ChangeEvent<HTMLInputElement>);
   }
 
   return (

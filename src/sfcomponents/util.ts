@@ -79,15 +79,15 @@ export function bankPresettoName(preset: Preset): string {
 // preset to the first one in the file
 export function presetNameToPreset(
   name: string | undefined,
-  soundFont: SoundFont2 | undefined
+ presets: Preset[],
 ): { preset: Preset | undefined; name: string } {
-  if (!name || name == "" || !soundFont) return { preset: undefined, name: "" };
+  if (!name || name == "" || presets.length == 0) return { preset: undefined, name: "" };
   const presetName: string = name.split(":")[2];
-  let preset: Preset = soundFont.presets.find(
+  let preset: Preset = presets.find(
     (p) => p.header.name === presetName
   ) as Preset;
   if (!preset) {
-    preset = soundFont.presets[0] as Preset;
+    preset = presets[0] as Preset;
     name = bankPresettoName(preset);
   }
   return { preset, name };

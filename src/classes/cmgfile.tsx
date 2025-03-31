@@ -1,10 +1,10 @@
+import { GeneratorType } from "../types";
 import { getAttributeValue } from "../utils/xmlfunctions";
-import Track from "./track";
 import Compressor from "./compressor";
 import Equalizer from "./equalizer";
-import Volume from "./volume";
-import { GeneratorType } from "../types";
 import Reverb from "./reverb";
+import Track from "./track";
+import Volume from "./volume";
 export default class CMGFile {
   dirty: boolean; // if the contents of the file has been changed since loaded, it is marked dirty
   name: string; // the name of the file on the disk or null if not saved
@@ -68,9 +68,9 @@ export default class CMGFile {
       this.comment = "";
     }
     try {
-      this.version = getAttributeValue(fcElem, 'version', 'string') as string;
+      this.version = getAttributeValue(fcElem, "version", "string") as string;
     } catch {
-      this.version = '1';
+      this.version = "1";
     }
     this.compressor.getXML(fcElem, this.version);
     this.equalizer.getXML(fcElem, this.version);

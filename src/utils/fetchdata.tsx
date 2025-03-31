@@ -2,7 +2,8 @@
 export default async function fetchData(
   uri: string,
   method: string,
-  body?: object
+  body?: object,
+  retries = 3,
 ) {
   try {
     const thisBody: string | null = body ? JSON.stringify(body) : null;
@@ -24,7 +25,11 @@ export default async function fetchData(
     } else {
       return { error: true };
     }
-  } catch (e) {
+  } catch (e:any) {
+    // if (retries > 0 && e.message == "Failed to fetch") {
+    //   console.warn(`Retrying fetch to ${uri} (${retries} retries left)`);
+    //   return fetchData(uri, method, body, retries - 1);
+    // }
     return { error: true };
   }
 }

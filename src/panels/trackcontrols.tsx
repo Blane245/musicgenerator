@@ -21,13 +21,13 @@ import {
   renameTrack,
 } from "../utils/cmfiletransactions";
 
-export interface TrackControlsDisplayProps {
+export interface TrackControlsProps {
   tracks: Track[];
   track: Track;
   trackIndex: number;
   setEnableGeneratorDialog: Function;
 }
-export default function TrackControlsDisplay(props: TrackControlsDisplayProps) {
+export default function TrackControls(props: TrackControlsProps) {
   const { track, trackIndex, tracks, setEnableGeneratorDialog } = props;
   const { fileContents, setFileContents, playing, setStatus } = useCMGContext();
   const [trackName, setTrackName] = useState<string>("");
@@ -115,7 +115,6 @@ export default function TrackControlsDisplay(props: TrackControlsDisplayProps) {
 
   function handleAddGenerator(event: MouseEvent<Element>, index: number): void {
     event.preventDefault();
-    // console.log("index", index);
     setEnableGeneratorDialog(index);
   }
 

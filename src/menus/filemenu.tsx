@@ -1,6 +1,6 @@
 // The file menu handles creating new files, opening existing ones,
 // saving current ones, and adding tracks to current ones
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import CMGFile from "../classes/cmgfile";
 import { useCMGContext } from "../cmgcontext";
@@ -99,9 +99,15 @@ export default function FileMenu() {
             <i className="fa fa-caret-down"></i>
           </div>
           <div className="dropdown-one">
-            <a className="dItem" onClick={() => handleMenuSelect("new")}>New File... </a>
-            <a className="dItem" onClick={() => handleMenuSelect("open")}>Open File...</a>
-            <a className="dItem" onClick={() => handleMenuSelect("save")}>Save File...</a>
+            <a className="dItem" onClick={() => handleMenuSelect("new")}>
+              New File...{" "}
+            </a>
+            <a className="dItem" onClick={() => handleMenuSelect("open")}>
+              Open File...
+            </a>
+            <a className="dItem" onClick={() => handleMenuSelect("save")}>
+              Save File...
+            </a>
           </div>
         </div>
       </div>
@@ -112,7 +118,10 @@ export default function FileMenu() {
       >
         <div className="modal-header">
           <span className="close">&times;</span>
-          <h2>Confirm {open} file</h2>
+          {open == "new" || open == "open" ? (
+            <h2>Confirm {open} file</h2>
+          ) : null}
+          {open == "exit" ? <h2>Confirm exit</h2> : null}
         </div>
         <div className="modal-body">
           <p>

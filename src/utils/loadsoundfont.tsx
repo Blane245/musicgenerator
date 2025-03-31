@@ -1,4 +1,4 @@
-// load a soundfont file from the server and 
+// load a soundfont file from the server and
 // place it in a SoundFont2 object
 import { SoundFont2 } from "soundfont2";
 import fetchData from "./fetchdata";
@@ -14,6 +14,6 @@ export async function loadSoundFont(fileName: string): Promise<SoundFont2> {
     const data: number[] = response.file.data;
     const array = new Uint8Array(data);
     const sf: SoundFont2 = new SoundFont2(array);
-    return sf;
-  } else return(new SoundFont2(new Uint8Array([])));
+    return Promise.resolve(sf);
+  } else return Promise.resolve(new SoundFont2(new Uint8Array([])));
 }

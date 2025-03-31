@@ -67,6 +67,7 @@ fieldset {
 .navbar {
   height: 40px;
   background-color: white;
+  overflow:visible;
 }
 
 .navbar a {
@@ -76,12 +77,15 @@ fieldset {
     text-align: center;
     padding: 10px 5px;
     text-decoration: none;
-}
+    overflow:visible;
+  }
 
 .dropdown {
     float: left;
     position: relative;
-}
+    z-index: 99;
+    overflow:visible;
+  }
 
 .dropdown .dropbtn {
     font-size: 16px;    
@@ -92,7 +96,8 @@ fieldset {
     background-color: inherit;
     font-family: inherit;
     margin: 0;
-}
+    overflow:visible;
+  }
 
 .navbar a:hover, .dropdown:hover .dropbtn {
     background-color: red;
@@ -106,6 +111,7 @@ fieldset {
   color:black;
   min-width: 100px;
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  overflow:visible;
 }
 
 .dropdown-two {
@@ -118,6 +124,8 @@ fieldset {
   background-color: #ddd;
   color:black;
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 99;
+  overflow:visible;
 }
 
 .dropdown:hover .dropdown-one, #link1:hover > .dropdown-two {
@@ -130,7 +138,8 @@ fieldset {
     padding: 10px 10px;
     display: block;
     text-align: left;
-}
+    overflow:visible;
+  }
 
 .dropdown-one .dItem:hover, .dropdown-two a:hover {
     background-color: #ddd;
@@ -216,6 +225,7 @@ fieldset {
   width: 100%;
   cursor: inherit;
   overflow: auto;
+  overflow-x:hidden;
 }
 
 .page-track-control {
@@ -760,7 +770,7 @@ div.algorithmic-table {
 .modal-menu {
   background: rgba(219, 215, 208, 1);
   cursor: inherit;
-  z-index: 2;
+  overflow:visible;
 }
 
 .cursor-default {

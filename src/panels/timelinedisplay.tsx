@@ -96,7 +96,7 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
   useEffect(() => {
     if (timeProgress >= 0 && ticks.scaleExtent > 0) {
       // shift left or right if the time progress is to the left or right of the start time
-      const extent = timeLine.timeLineScale.extent;
+      const extent = TimeLineScales[timeLine.currentZoomLevel].extent;
       let startTime = timeLine.startTime;
       if (timeProgress < startTime || timeProgress > startTime + extent) {
         while (timeProgress < startTime && startTime != 0) {
@@ -132,7 +132,7 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
       timeLine.currentZoomLevel >= 0 &&
       timeLine.currentZoomLevel < TimeLineScales.length
     ) {
-      const scale: TimeLineScale = timeLine.timeLineScale;
+      const scale: TimeLineScale = TimeLineScales[timeLine.currentZoomLevel];
       setTicks({
         majorTickCount: scale.majorDivisions,
         scaleExtent: scale.extent,
@@ -150,7 +150,7 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
         if (prev.startTime != undefined && prev.endTime != undefined) {
           const newInterval: TimelineInterval = { ...prev };
           const tStart: number = timeLine.startTime;
-          const tStop: number = tStart + timeLine.timeLineScale.extent;
+          const tStop: number = tStart + scale.extent;
           newInterval.startOffset = Math.min(
             Math.max(
               (timeLine.width * (prev.startTime - tStart)) / (tStop - tStart),
@@ -273,17 +273,18 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
   // calculate the resulting start and end times
   // and signal the CMG context so the generator can get to it
   function getTimes(interval: TimelineInterval): TimelineInterval {
+    const scale: TimeLineScale = TimeLineScales[timeLine.currentZoomLevel];
     if (interval.startOffset >= 0 && interval.endOffset >= 0) {
       const newInterval: TimelineInterval = { ...interval };
       newInterval.startTime = precision(
         timeLine.startTime +
-          (timeLine.timeLineScale.extent * interval.startOffset) /
+          (scale.extent * interval.startOffset) /
             timeLine.width,
         1
       );
       newInterval.endTime = precision(
         timeLine.startTime +
-          (timeLine.timeLineScale.extent * interval.endOffset) / timeLine.width,
+          (scale.extent * interval.endOffset) / timeLine.width,
         1
       );
       return newInterval;

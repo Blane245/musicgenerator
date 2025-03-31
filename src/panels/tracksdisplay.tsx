@@ -5,7 +5,7 @@ import Track from "../classes/track";
 import { useCMGContext } from "../cmgcontext";
 import GeneratorDialog from "../dialogs/generatordialog";
 import GeneratorIcons from "./generatoricons";
-import TrackControlsDisplay from "./trackcontrolsdisplay";
+import TrackControls from "./trackcontrols";
 
 export default function TracksDisplay() {
   const { fileContents, timeLine } = useCMGContext();
@@ -28,7 +28,7 @@ export default function TracksDisplay() {
       {tracks.map((t, i) => {
         return (
           <>
-            <TrackControlsDisplay
+            <TrackControls
               key={`track-control:${t.name}`}
               tracks={tracks}
               track={t}
@@ -45,12 +45,13 @@ export default function TracksDisplay() {
               }}
               style={{width: timeLine.width}}
             >
-              <GeneratorIcons track={t}/>
+              <GeneratorIcons track={t} key={`track-generators:${t.name}`}/>
             </div>
           </>
         );
       })}
       <GeneratorDialog
+      key={`generator-dialog`}
         track={tracks[enableGeneratorDialog]}
         generatorIndex={-1}
         setGeneratorIndex={() => {}}

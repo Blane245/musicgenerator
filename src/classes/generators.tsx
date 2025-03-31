@@ -1,8 +1,13 @@
-import { SoundFontPool } from "../sfcomponents/soundfontpool";
 import { SoundFont2 } from "soundfont2";
 import { Preset } from "../sfcomponents/types";
 import { precision, presetNameToPreset } from "../sfcomponents/util";
-import { Algorithm, ALGORITHMTYPE, GENERATORTYPE } from "../types";
+import {
+  Algorithm,
+  ALGORITHMTYPE,
+  GENERATORTYPE,
+  SoundFontGenerators,
+  SoundFontGeneratorsType,
+} from "../types";
 import { euclideanRhythm } from "../utils/euclidean-rhythm";
 import {
   compressAndConvertToString,
@@ -206,17 +211,6 @@ export class Algorithmic extends CMG {
     return n;
   }
 
-  // when the soundfont file is changed update the preset
-  // setSoundFont(soundFont: SoundFont2) {
-  //   this.soundFont = soundFont;
-  //   const { preset, name } = presetNameToPreset(
-  //     this.presetName,
-  //     this.soundFont
-  //   );
-  //   this.preset = preset;
-  //   this.presetName = name;
-  // }
-
   override async setAttribute(name: string, value: string) {
     // handle a change of the algorithm type
     super.setAttribute(name, value);
@@ -231,7 +225,7 @@ export class Algorithmic extends CMG {
       }
       case "presetName":
         this.presetName = value;
-        const { preset } = presetNameToPreset(this.presetName, this.soundFont);
+        const { preset } = presetNameToPreset(this.presetName, this.presets);
         this.preset = preset;
         return;
       case "isLooping":
@@ -448,16 +442,33 @@ export class Algorithmic extends CMG {
     try {
       const CMGgen: CMG = await CMG.getXML(elem, version);
       const g: Algorithmic = new Algorithmic(0);
+      g.name = CMGgen.name;
+      g.startTime = CMGgen.startTime;
+      g.stopTime = CMGgen.stopTime;
+      g.mute = CMGgen.mute;
+      g.position = CMGgen.position;
+
+      g.presetName = getAttributeValue(elem, "presetName", "string") as string;
       g.soundFontFile = getAttributeValue(
         elem,
         "soundFontFile",
         "string"
       ) as string;
-      g.soundFont = await SoundFontPool(g.soundFontFile);
-      g.presets = g.soundFont.presets as Preset[];
-      g.presetName = getAttributeValue(elem, "presetName", "string") as string;
-      const { preset } = presetNameToPreset(g.presetName, g.soundFont);
-      g.preset = preset;
+      // need to load the list of unique soundfont files
+      // and when they are all assembled retrieve files to the pool and
+      // and update the generators that are using them with the
+      // correct soundFont, presets, and preset
+      // the latter is done in the file handler afer all tracks have been read
+      const foundSoundFont: SoundFontGeneratorsType | undefined =
+        SoundFontGenerators.find((s) => s.name == g.soundFontFile);
+      if (foundSoundFont == undefined) {
+        SoundFontGenerators.push({
+          name: g.soundFontFile,
+          generators: [g],
+        });
+      } else {
+        foundSoundFont.generators.push(g);
+      }
       g.isLooping =
         (getAttributeValue(elem, "isLooping", "string") as string) == "true";
       g.measureLength = getAttributeValue(
@@ -549,11 +560,6 @@ export class Algorithmic extends CMG {
           g.panP = await WienerValues.getXML(panPElem, version);
           break;
       }
-      g.name = CMGgen.name;
-      g.startTime = CMGgen.startTime;
-      g.stopTime = CMGgen.stopTime;
-      g.mute = CMGgen.mute;
-      g.position = CMGgen.position;
 
       return Promise.resolve(g);
     } catch (e) {
@@ -696,15 +702,21 @@ export class AudioFile extends CMG {
     }
   }
 
-  override setAttribute(name: string, value: string): void {
+  override setAttribute(name: string, value: string) {
     super.setAttribute(name, value);
     switch (name) {
-      case "fileName":
+      case "filename":
         // load the data from the file
         // the filename will not update if there is an error
         window
           .showOpenFilePicker({
             multiple: false,
+            types: [
+              {
+                description: "Audio Files",
+                accept: { "audio/*": [".mp3", ".wav"] },
+              },
+            ],
           })
           .then((rh: FileSystemFileHandle[]) => {
             rh[0].getFile().then((file: File) => {

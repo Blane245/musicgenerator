@@ -19,8 +19,17 @@
 // components. First, the file contents, and then the
 // tracks and thie generators asynchornously and in paralle
 
+import { SoundFont2 } from "soundfont2";
 import CMGFile from "../classes/cmgfile";
 import Track from "../classes/track";
+import { SoundFontPool } from "../sfcomponents/soundfontpool";
+import { Preset } from "../sfcomponents/types";
+import { presetNameToPreset } from "../sfcomponents/util";
+import {
+  SFPromiseType,
+  SoundFontGenerators,
+  SoundFontGeneratorsType,
+} from "../types";
 import { getDocElement } from "../utils/xmlfunctions";
 
 //
@@ -89,7 +98,7 @@ export async function loadXML(
       const track: Track = new Track(0);
       const trackPromise: Promise<Track> = track.getXML(
         child,
-        fileContents.version,
+        fileContents.version
       );
       trackPromises.push(trackPromise);
     }
@@ -98,6 +107,39 @@ export async function loadXML(
       const tracks: Track[] = await Promise.all(trackPromises);
       fileContents.tracks = tracks;
     }
+    // retrieve all of the soundfont files that are neeeded by the composition
+
+    const soundFontPromises: Promise<SFPromiseType>[] = [];
+    SoundFontGenerators.forEach(async (sff) => {
+      const soundFontPromise: Promise<SFPromiseType> = SoundFontPool(sff.name);
+      soundFontPromises.push(soundFontPromise);
+    });
+
+    // wait for the all of the soundfont files to load, then update the
+    // generators with the soundfont file and preset
+    if (soundFontPromises.length > 0) {
+      const data: { name: string; soundFont: SoundFont2 }[] = await Promise.all(
+        soundFontPromises
+      );
+
+      data.forEach((d) => {
+        const thisOne: SoundFontGeneratorsType | undefined =
+          SoundFontGenerators.find((sff) => sff.name == d.name);
+        if (thisOne != undefined) {
+          thisOne.generators.forEach((g) => {
+            g.soundFont = d.soundFont;
+            g.presets = (d.soundFont.presets as Preset[]).sort((a, b) => {
+              if (a.header.bank < b.header.bank) return -1;
+              if (a.header.bank > b.header.bank) return 1;
+              return a.header.preset - b.header.preset;
+            });
+            const { preset } = presetNameToPreset(g.presetName, g.presets);
+            g.preset = preset;
+          });
+        }
+      });
+    }
+
     return Promise.resolve(fileContents);
   } catch (e) {
     return Promise.reject(e);

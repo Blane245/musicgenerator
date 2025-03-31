@@ -13,6 +13,7 @@ import {
   triangleModulator,
 } from "../modulators";
 import { SoundFont2 } from "soundfont2";
+import { Preset } from "sfcomponents/types";
 
 export const SAMPLERATE: number = 44100;
 
@@ -142,11 +143,25 @@ export enum TIMEFORMATTYPE {
   TIME,
 }
 
+// place to hold the soundfont file and the presets in it
+export type SoundFontGeneratorsType = {
+  name: string; // the name of the soundfont file 
+  generators: Algorithmic[]; // the generators that are using this soundfont
+}
+
+// the soundfont file collection for algorithmic generators
+// used during loading a CMG file
+export const SoundFontGenerators: SoundFontGeneratorsType[] = [];
+
 export type TimeFormat = {
   value: string;
   type: TIMEFORMATTYPE;
 };
 
+export type SFPromiseType = {
+  name: string;
+  soundFont: SoundFont2;
+};
 export const TIMEFORMATS: TimeFormat[] = [
   { value: "0.000000", type: TIMEFORMATTYPE.NUMBER },
   { value: "0.0000", type: TIMEFORMATTYPE.NUMBER },
