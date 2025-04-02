@@ -196,7 +196,7 @@ export default function Preview(params: PreviewProps): void {
   function tick(): void {
     if (playing.current && context.currentTime <= playbackLength) {
       tickId = window.setTimeout(tick, tickInterval);
-      setTimeProgress(tickCounter);
+      setTimeProgress(context.currentTime);
       // console.log(tickCounter, context.currentTime, offsetTime);
       tickCounter += tickInterval / 1000;
     } else {

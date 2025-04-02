@@ -13,7 +13,6 @@ import {
   triangleModulator,
 } from "../modulators";
 import { SoundFont2 } from "soundfont2";
-import { Preset } from "sfcomponents/types";
 
 export const SAMPLERATE: number = 44100;
 

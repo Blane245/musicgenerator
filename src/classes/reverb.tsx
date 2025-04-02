@@ -67,7 +67,6 @@ export default class Reverb {
       gain.connect(this.effect);
       this.effect.connect(destination);
       // console.log("reverb effect connected");
-      this.context.createDelay();
     }
 
     // connect the early delays if they exist

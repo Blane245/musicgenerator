@@ -1,6 +1,6 @@
 // The file menu handles creating new files, opening existing ones,
 // saving current ones, and adding tracks to current ones
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import CMGFile from "../classes/cmgfile";
 import { useCMGContext } from "../cmgcontext";

@@ -146,6 +146,32 @@ export default function AlgorithmicDialog(
         />
         <span> (midi) </span>
       </label>
+      <label>
+        &nbsp;Reverb Duration:&nbsp;
+        <input
+          name="reverbDuration"
+          type="number"
+          min={0}
+          max={10}
+          step={0.01}
+          onChange={handleChange}
+          value={formData.reverbDuration}
+        />
+        <span> (sec) </span>
+      </label>
+      <label>
+        &nbsp;Reverb Decay:&nbsp;
+        <input
+          name="reverbDecay"
+          type="number"
+          min={0}
+          max={10}
+          step={0.01}
+          onChange={handleChange}
+          value={formData.reverbDecay}
+        />
+        <span> (sec) </span>
+      </label>
       <hr />
       <div className="algorithmic-table">
         <div className="attribute">Note (midi)</div>

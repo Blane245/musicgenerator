@@ -3,7 +3,7 @@ export default async function fetchData(
   uri: string,
   method: string,
   body?: object,
-  retries = 3,
+  // retries = 3,
 ) {
   try {
     const thisBody: string | null = body ? JSON.stringify(body) : null;

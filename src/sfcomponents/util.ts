@@ -1,4 +1,3 @@
-import { SoundFont2 } from "soundfont2";
 import { Preset } from "./types";
 export const tokenizeNote = (note: any) => {
   if (typeof note !== "string") {

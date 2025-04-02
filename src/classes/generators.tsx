@@ -155,6 +155,10 @@ export class Algorithmic extends CMG {
   rn: RandomNumber;
   noiseAmplitude: number; // dB of Gaussian noise to apply
   noiseDispersion: number; // std of midi of Gaussion noise
+  reverb: ConvolverNode | undefined;
+  context: AudioContext | OfflineAudioContext | undefined;
+  reverbDuration: number;
+  reverbDecay: number;
   noteP: Algorithm;
   speedP: Algorithm;
   volumeP: Algorithm;
@@ -177,10 +181,56 @@ export class Algorithmic extends CMG {
     this.rn = new RandomNumber(this.noiseSeed);
     this.noiseAmplitude = 0;
     this.noiseDispersion = 0;
+    this.reverb = undefined;
+    this.context = undefined;
+    this.reverbDecay = 0;
+    this.reverbDuration = 0;
     this.noteP = undefined;
     this.speedP = undefined;
     this.volumeP = undefined;
     this.panP = undefined;
+  }
+
+  setContext(context: AudioContext | OfflineAudioContext) {
+    this.context = context;
+    const impulse: AudioBuffer | undefined = this.#impulseResponse(
+      this.reverbDuration,
+      this.reverbDecay
+    );
+    if (impulse) {
+      this.reverb = this.context.createConvolver();
+      this.reverb.buffer = impulse;
+    }
+  }
+  #impulseResponse(duration: number, decay: number): AudioBuffer | undefined {
+    if (this.context && duration > 0 && decay > 0) {
+      const length = this.context.sampleRate * duration;
+      const impulse = this.context.createBuffer(
+        1,
+        length,
+        this.context.sampleRate
+      );
+      const IR = impulse?.getChannelData(0);
+      for (let i = 0; i < length; i++) {
+        IR[i] = (1 * Math.random() - 1) * Math.pow(1 - 1 / length, decay);
+      }
+      return impulse;
+    } else {
+      return undefined;
+    }
+  }
+
+  connect(source: AudioNode, destination: AudioNode) {
+    if (
+      this.reverb &&
+      this.context &&
+      this.reverbDuration > 0 &&
+      this.reverbDecay > 0
+    ) {
+      const gain: GainNode = this.context.createGain();
+      gain.gain.value = 1.0;
+      source.connect(gain).connect(this.reverb).connect(destination);
+    }
   }
 
   override copy(): Algorithmic {
@@ -204,6 +254,10 @@ export class Algorithmic extends CMG {
     n.rn = this.rn;
     n.noiseAmplitude = this.noiseAmplitude;
     n.noiseDispersion = this.noiseDispersion;
+    n.reverb = this.reverb;
+    n.context = this.context;
+    n.reverbDuration = this.reverbDuration;
+    n.reverbDecay = this.reverbDecay;
     n.noteP = this.noteP ? this.noteP.copy() : undefined;
     n.speedP = this.speedP ? this.speedP.copy() : undefined;
     n.volumeP = this.volumeP ? this.volumeP.copy() : undefined;
@@ -250,6 +304,12 @@ export class Algorithmic extends CMG {
         return;
       case "noiseDispersion":
         this.noiseDispersion = parseFloat(value);
+        return;
+      case "reverbDuration":
+        this.reverbDuration = parseFloat(value);
+        return;
+      case "reverbDecay":
+        this.reverbDecay = parseFloat(value);
         return;
       case "noteP.algorithmType":
         switch (value) {
@@ -417,6 +477,8 @@ export class Algorithmic extends CMG {
         "noiseDispersion",
         this.noiseDispersion.toString()
       );
+      returnElem.setAttribute("reverbDuration", this.reverbDuration.toString());
+      returnElem.setAttribute("reverbDecay", this.reverbDecay.toString());
 
       const notePElem: Element = doc.createElement("noteP");
       const speedPElem: Element = doc.createElement("speedP");
@@ -491,6 +553,21 @@ export class Algorithmic extends CMG {
         "noiseDispersion",
         "float"
       ) as number;
+      try {
+      g.reverbDuration = getAttributeValue(
+        elem,
+        "reverbDuration",
+        "float"
+      ) as number;
+      g.reverbDecay = getAttributeValue(
+        elem,
+        "reverbDecay",
+        "float"
+      ) as number;
+    } catch (e) {
+      g.reverbDecay = 0;
+      g.reverbDuration = 0;
+    }
 
       const notePElem: Element = getElementElement(elem, "noteP");
       const speedPElem: Element = getElementElement(elem, "speedP");

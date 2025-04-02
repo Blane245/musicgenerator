@@ -16,7 +16,7 @@
 // case 5 - d <= i && d+a > i: t2=t3=t4=t5=t1, t0: min, t1: gain volume (cutoff attack)
 // case 6 - d+a <=i && d+a+h > i: t3=t4=t5=t2, t0: min, t1:min, t2: gain volume (cutoffhold)
 import { normalizePermille } from "../sfcomponents/util";
-import { AudioFile } from "../classes/generators";
+import { Algorithmic, AudioFile } from "../classes/generators";
 import { ActiveSource, GENERATORTYPE, RawSourceData } from "../types";
 import { v2g } from "../utils/v2g";
 
@@ -223,6 +223,14 @@ export function realizeSource(
     panner.pan.value = rawSourceData.panner.value;
     // connect everything
     source.connect(vol).connect(panner).connect(destination);
+    // connect the reverb if implemented
+    if (rawSourceData.gen.type == GENERATORTYPE.Algorithmic) {
+    const gen = (rawSourceData.gen as Algorithmic);
+    if (gen.reverbDecay > 0 && gen.reverbDuration > 0) {
+        gen.setContext(ctx);
+        gen.connect(vol, destination);
+      }
+    }
     return {
       gen: rawSourceData.gen,
       source,

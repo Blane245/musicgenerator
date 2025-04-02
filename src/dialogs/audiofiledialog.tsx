@@ -1,9 +1,8 @@
 //TODO refresh the dialog when the file is loaded.
 //TODO loading file should set stopTime based on file duration and startTime
-import { ChangeEvent, useEffect } from "react";
+import { ChangeEvent } from "react";
 import {AudioFile} from "../classes/generators";
 import { precision } from "../sfcomponents/util";
-import { GeneratorType } from "types";
 
 // provides the form fields and validators for the sfperiodic generator
 export interface AudioFileDialogProps {

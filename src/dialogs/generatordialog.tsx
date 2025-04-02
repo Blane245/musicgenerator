@@ -1,5 +1,5 @@
 // provides CRUD for all types of generators
-import { ChangeEvent, FormEvent, MouseEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, MouseEvent, useEffect, useState } from "react";
 import { SoundFont2 } from "soundfont2";
 import { Algorithmic, AudioFile, CMG } from "../classes/generators";
 import Track from "../classes/track";
@@ -48,11 +48,10 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     preset: undefined,
     presetName: "",
   });
-  const [audioFileData, setAudioFileData] = useState<AudioFile>(
+  const [audioFileData] = useState<AudioFile>(
     new AudioFile(0)
   );
   const [locked, setLocked] = useState<boolean>(false);
-  const filePicker = useRef<boolean>(false);
 
   useEffect(() => {
     if (open) {
@@ -371,7 +370,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
   );
 
   function loadSoundFontandUpdate(fileName: string) {
-    if (!filePicker) setLocked(true);
+    setLocked(true);
     // load the soundfont file and set the presets
     async function LoadFile(fileName: string) {
       const { soundFont } = await SoundFontPool(fileName);
@@ -397,49 +396,49 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     LoadFile(fileName);
   }
 
-  function loadAudioFileandUpdate() {
-    // load the data from the file selected by the user
-    if (!filePicker.current) {
-      filePicker.current = true;
-      setLocked(true);
-      try {
-        window
-          .showOpenFilePicker({
-            multiple: false,
-            types: [
-              {
-                description: "Audio Files",
-                accept: { "audio/*": [".mp3", ".wav"] },
-              },
-            ],
-          })
-          .then((rhs: FileSystemFileHandle[]) => {
-            rhs[0].getFile().then((file: File) => {
-              file.arrayBuffer().then((buffer: ArrayBuffer) => {
-                const context: AudioContext = new AudioContext();
-                context.decodeAudioData(buffer).then((audio: AudioBuffer) => {
-                  setAudioFileData((prev: AudioFile) => {
-                    const n = prev.copy();
-                    n.fileName = file.name;
-                    n.sampleRate = audio.sampleRate;
-                    n.duration = precision(audio.duration, 1);
-                    n.stopTime = n.startTime + n.duration;
-                    n.samples = [];
-                    for (let i = 0; i < audio.numberOfChannels; i++) {
-                      const channelData: Float32Array = audio.getChannelData(i);
-                      n.samples.push(channelData);
-                    }
-                    return n;
-                  });
-                  filePicker.current = false;
-                });
-              });
-            });
-          });
-      } catch (e) {
-      } finally {
-        filePicker.current = false;
-      }
-    }
-  }
+  // function loadAudioFileandUpdate() {
+  //   // load the data from the file selected by the user
+  //   if (!filePicker.current) {
+  //     filePicker.current = true;
+  //     setLocked(true);
+  //     try {
+  //       window
+  //         .showOpenFilePicker({
+  //           multiple: false,
+  //           types: [
+  //             {
+  //               description: "Audio Files",
+  //               accept: { "audio/*": [".mp3", ".wav"] },
+  //             },
+  //           ],
+  //         })
+  //         .then((rhs: FileSystemFileHandle[]) => {
+  //           rhs[0].getFile().then((file: File) => {
+  //             file.arrayBuffer().then((buffer: ArrayBuffer) => {
+  //               const context: AudioContext = new AudioContext();
+  //               context.decodeAudioData(buffer).then((audio: AudioBuffer) => {
+  //                 setAudioFileData((prev: AudioFile) => {
+  //                   const n = prev.copy();
+  //                   n.fileName = file.name;
+  //                   n.sampleRate = audio.sampleRate;
+  //                   n.duration = precision(audio.duration, 1);
+  //                   n.stopTime = n.startTime + n.duration;
+  //                   n.samples = [];
+  //                   for (let i = 0; i < audio.numberOfChannels; i++) {
+  //                     const channelData: Float32Array = audio.getChannelData(i);
+  //                     n.samples.push(channelData);
+  //                   }
+  //                   return n;
+  //                 });
+  //                 filePicker.current = false;
+  //               });
+  //             });
+  //           });
+  //         });
+  //     } catch (e) {
+  //     } finally {
+  //       filePicker.current = false;
+  //     }
+  //   }
+  // }
 }
