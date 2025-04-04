@@ -9,7 +9,7 @@ margin-left: auto;
 margin-right: auto;
 }
 </style>
-Computer Music Generator (CMG) User's Guide, Version 3.1
+Computer Music Generator (CMG) User's Guide, Version 3.2
 ========================================================
 **Table of Contents**
 - [Introduction](#Introduction)
