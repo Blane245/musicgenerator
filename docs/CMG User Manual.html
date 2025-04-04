@@ -365,17 +365,18 @@ code {
           : 'default'
     });
   </script>
-<style>
+<h1 id="stylenote-background-color-rgb114746color-whitepicture-displayblockmargin-left-automargin-right-autostylecomputer-music-generator-cmg-users-guide-version-31"><style>
 .note {
-  background-color: rgb(114,74,6);
-  color: white;
+background-color: rgb(114,74,6);
+color: white;
 }
 .picture {
-display:block; 
-margin-left: auto; 
+display:block;
+margin-left: auto;
 margin-right: auto;
 }
 </style>
+Computer Music Generator (CMG) User's Guide, Version 3.1</h1>
 <p><strong>Table of Contents</strong></p>
 <ul>
 <li><a href="#Introduction">Introduction</a></li>
@@ -386,7 +387,6 @@ margin-right: auto;
 <li><a href="#OpeningaCMGFile">Opening a CMG File</a></li>
 </ul>
 </li>
-<li><a href="#SelectingaSoundFontFile">Selecting a SoundFont File</a></li>
 <li><a href="#EditingTracks">Editing Tracks</a>
 <ul>
 <li><a href="#TracksandGenerators">Tracks and Generators</a></li>
@@ -429,9 +429,9 @@ margin-right: auto;
 <ul>
 <li>Retention of defined sound generation files between working sessions,</li>
 <li>The use of SoundFont files to produce Midi sounds,</li>
-<li>The separation of sound generator into tracks that mimics the parts in a music score,</li>
+<li>The separation of sound generators into tracks that mimics the parts in a music score,</li>
 <li>Two types of sound generators,</li>
-<li>Room level sound volume, compression, and equalization controls, and</li>
+<li>Room level sound volume, reverb, compression, and equalization controls, and</li>
 <li>Previewing and recording of assembled compositions.</li>
 </ul>
 <p>An example of a composition in progress is shown here:</p>
@@ -441,9 +441,8 @@ margin-right: auto;
 <li>
 <p>The header provides</p>
 <ul>
-<li>the name of the application, the name of the file currently being displayed, and a comment button useful for adding comments to the composition,</li>
-<li>buttons for handling the composition file and tracks,</li>
-<li>a SoundFont file selector, and Record and Preview buttons, and</li>
+<li>File, Edit, Generate, and Help pulldown menus</li>
+<li>the name of the application, the name of the file currently being displayed</li>
 <li>time line controls and the timeline.</li>
 </ul>
 </li>
@@ -457,32 +456,27 @@ margin-right: auto;
 <p>Each of these are explained further in the upcoming sections.</p>
 <p><a id="HandlingCMGFiles"></a></p>
 <h1 id="handling-cmg-files">Handling CMG Files</h1>
-<p>CMG files are handled by the File Menu Items:</p>
-<p><img src="./images/FileMenuItems.png" alt="The File Menu"></p>
-<p><a id="CreatingaNewCMGFile"></a></p>
-<h2 id="creating-a-new-cmg-file">Creating a New CMG File</h2>
-<p>When CMG starts, it has is ready to define a new composition file, no identified SoundFont file, default room volume, compressor, and equalizer settings, and no tracks or generators. At any time, the menu item <em><strong>New File</strong></em> can be selected to clear the existing workspace. If changes have been made to the workspace since the last save, you will prompted to confirm that you want to delete these changes without saving:</p>
-<p><img src="./images/ConfirmNewFile.png" alt="alt text"></p>
+<p>CMG files are handled by the File Menu Items:
+<a id="CreatingaNewCMGFile"></a></p>
+<ul>
+<li><em><strong>New File ...</strong></em> - When CMG starts, it has is ready to define a new composition file, default room volume, reverb, compressor, and equalizer settings, and no tracks or generators. At any time, this can be selected to clear the existing workspace. If changes have been made to the workspace since the last save, you will prompted to confirm that you want to delete these changes without saving:
+<img src="./images/ConfirmNewFile.png" alt="alt text"></li>
+</ul>
 <blockquote>
 <div class="note">*Note: The CMG screen header shows the name of the file currently being edited. If changes have been made since the last save, an asterisk <span style='color:lightblue'>(*)</span> will follow the file name.</div><br/>
 </blockquote>
 <p><img src="./images/TitleLine.png" alt="alt text"></p>
+<p><a id="OpeningaCMGFile"></a></p>
+<ul>
+<li><em><strong>Open File ...</strong></em> - CMG files are opened by clicking the menu item <em><strong>Open File...</strong></em> button or by pressing <strong>ctrl-o</strong> on the keyboard. Files with the extent of <em><strong>.cmg</strong></em> are displayed and the one selected will be read. This includes all of the items that were saved (room compressor setting, room equalizer settings, room volume setting, room reverb settings, and all tracks and generators). If the file is not in proper format, a status message will be displayed and the file will not be opened.</li>
+</ul>
 <p><a id="SavingaCMGFile"></a></p>
-<h2 id="saving-a-cmg-file">Saving a CMG File</h2>
-<p>CMG files are created by accessing the menu item <em><strong>Save File...</strong></em> or by pressing <strong>ctrl-s</strong> on the keyboard. Files may be placed anywhere that they can be accessed within the file system. Files are saved with a <em><strong>.cmg</strong></em> extent. If the file already exists, you will be prompted to agree with overwriting the existing file. This saves the name of the SoundFont file, the room compressor settings, room equalizer settings, and all of the tracks and generators defined.</p>
+<ul>
+<li><em><strong>Save File ...</strong></em> - CMG files are created by accessing the menu item <em><strong>Save File...</strong></em> or by pressing <strong>ctrl-s</strong> on the keyboard. Files may be placed anywhere that they can be accessed within the file system. Files are saved with a <em><strong>.cmg</strong></em> extent. If the file already exists, you will be prompted to agree with overwriting the existing file. This saves the room compressor settings, room equalizer settings, room volume settings, and room reverb settings, and all of the tracks and generators defined.</li>
+</ul>
 <blockquote>
 <div class="note">*Note: Long projects contain a lot of data and take some time to create. <span style='font-weight:bold;font-style:italic'>Ensure the file is fully saved before existing CMG or shutting done the computer. </span> The <span style='color:lightblue'>Status Bar</span> at the bottom shows a message when the file has been saved.</div>
 </blockquote>
-<p><a id="OpeningaCMGFile"></a></p>
-<h2 id="opening-a-cmg-file">Opening a CMG File</h2>
-<p>CMG files are opened by clicking the menu item <em><strong>Open File...</strong></em> button or by pressing <strong>ctrl-o</strong> on the keyboard. Files with the extent of <em><strong>.cmg</strong></em> are displayed and the one selected will be read. This includes all of the items that were saved (SoundFont file, room compressor setting, room equalizer settings, room volume setting, and all tracks and generators). If the file is not in proper format, a status message will be displayed and the file will not be opened.</p>
-<p><a id="SelectingaSoundFontFile"></a></p>
-<h1 id="selecting-a-soundfont-file">Selecting a SoundFont File</h1>
-<p>The CMG application has a library of available SoundFont files that are used by the Algorithmic the sound generator. SoundFont files contain sample-based synthesized sounds that are most frequently used by MIDI (Musical Instrument Digital Interface) devices. There are hundreds of SoundFont files existing today. This application has a small collection of them available. More can be added as desired.</p>
-<p>One SoundFont file can be selected for use by a CMG composition. It is selected from the list of those available using the selection pulldown:</p>
-<p><img src="./images/SoundFont Selection.png" alt="SoundFont File Selection"></p>
-<div class="note">*Note: Changing from one SoundFont file to another is allowed but may have an undesirable side effect. If there are generators existing that are using presets from the current SoundFont file, these will be remapped to those in the new SoundFont file using the bank and channel number of the preset (not the name). If none exists in the new file, the first preset is assigned and a warning message displayed.</div><br/>
-<p>More information about SoundFont files can be found in <a href="https://en.wikipedia.org/wiki/SoundFont">Wikipedia</a>.</p>
 <p><a id="EditingTracks"></a></p>
 <h1 id="editing-tracks">Editing Tracks</h1>
 <p>The computer generated piece of music is constructed by defining tracks and placing generators along them at various start time and end times. By clicking the menu item <em><strong>New Track</strong></em> button a new track is added to the end of the list of existing tracks.</p>
@@ -520,16 +514,26 @@ margin-right: auto;
 <p><a id="EditingGenerators"></a></p>
 <h1 id="editing-generators">Editing Generators</h1>
 <p>Generators are the heart of CMG. There can be as many generators in a CMG file
-as is needed to produce the composition desired. There are three types of generators: one place holder and two sound producers.</p>
+as is needed to produce the composition desired. There are three types of generators: one silent and two sound producers.</p>
 <p>One of the generators use a SoundFont presets. Each preset has a bank, channel number, and name. More information about SoundFont presets can be found <a href="https://www.synthfont.com/Tutorial6.html">here</a>.</p>
 <p><a id='GeneratorTypes'></a></p>
 <h2 id="generator-types">Generator Types</h2>
 <ol>
-<li>Computer Music Generator (<strong>CMG</strong>). This generator does not produce any sound.
-Its role is to provide silence and is useful at the beginning and end of a composition. It is used by the other generators to define the generators name, and the time that the sound generator start and stops.</li>
-<li>Algorithmic (<strong>Algorithmic</strong>). This generator uses various algorithms to set the values for which notes are to be played, at which rhythm, speed, volume, and pan. A different algorithm can be assigned to each of the attributes.</li>
-</ol>
+<li>
+<p>Computer Music Generator (<strong>CMG</strong>). This generator does not produce any sound.
+Its role is to provide silence and is useful at the beginning and end of a composition. It is used by the other generators to define the generators name, and the time that the sound generator start and stops.</p>
+</li>
+<li>
+<p>Algorithmic (<strong>Algorithmic</strong>). This generator uses various algorithms to set the values for which notes are to be played, at which rhythm, speed, volume, and pan. A different algorithm can be assigned to each of the attributes.</p>
 <ul>
+<li>
+<p>SoundFont File - Each Algorithmic generator may have a differen SoundFont file. SoundFont files contain sample-based synthesized sounds that are most frequently used by MIDI (Musical Instrument Digital Interface) devices. There are hundreds of SoundFont files existing today. This application has a small collection of them available. More can be added as desired. It is selected from the list of those available using the selection pulldown:</p>
+<p><img src="./images/SoundFont Selection.png" alt="SoundFont File Selection"></p>
+<p>More information about SoundFont files can be found in <a href="https://en.wikipedia.org/wiki/SoundFont">Wikipedia</a>.</p>
+</li>
+<li>
+<p>Preset - The preset is selected from a pulldown list. Each item display shte bank, midi number, and name of the preset. The preset is used to genrate the tones for the note attribute.</p>
+</li>
 <li>
 <p>Rhythm - The beat of the sequence of notes (tones) is determined by a <a href="https://en.wikipedia.org/wiki/Euclidean_rhythm">Euclidean Rhythm</a> algorithm. The beats that are silent will cause any note to be not heard. For example, a rhythm that has 4 beats in a measure with 3 of them one will produce a 3/4 rhythm with the first 3 'on' and the last one silent. This is particularly used when applied to percussive voices, but can be applied to any voice.</p>
 </li>
@@ -537,25 +541,24 @@ Its role is to provide silence and is useful at the beginning and end of a compo
 <p>Notes in Octave - How may notes to be used within an octave is determined by a Euclidean Rhythm algorithm where the larger number is 12. For example, if the number of notes in an octave is 7, the notes selected are (0, 2, 3, 5, 7, 8, 10). If primary note is C, the notes to be used in the octave are C, D, D#, F, G, G#, and A#. When a note is generated by one of the algorithms described below, it is moved to the closed selectable note in the octave. If the notes in the octave are set to 12, then all notes are selectable.</p>
 </li>
 <li>
-<p>Seed - a string used to seed teh Gaussian noise random number generator.</p>
+<p>Seed - a string used to seed the Gaussian noise random number generator.</p>
 </li>
 <li>
-<p>Noise Level - <a href="https://en.wikipedia.org/wiki/Gaussian_noise">Gaussian noise</a> can be applied to the generated notes. The level of noise is relative to the original note's signal. A value of 1 means the noise and the original note have the same volume. The center frequency of the noise is at note's frequency.
-Gaussian probability density function is used to generate noise:
-$$\varphi(z)=\frac {1}{2\pi\sigma}e^{-\frac {(z-\mu)^2}{2\sigma^2}}$$</p>
+<p>Noise Level - <a href="https://en.wikipedia.org/wiki/Gaussian_noise">Gaussian noise</a> can be applied to the generated notes. The level of noise is relative to the original note's signal. A value of 1 means the noise and the original note have the same volume. The center frequency of the noise is at note's frequency. Gaussian probability density function is used to generate noise: $$\varphi(z)=\frac {1}{2\pi\sigma}e^{-\frac {(z-\mu)^2}{2\sigma^2}}$$</p>
 </li>
 <li>
-<p>Noise Dispersion - This is the standard deviation of the noise expressed in midi numbers.</p>
-<p>If the noise level or dispersion is zero, no noise will be added to the note.</p>
+<p>Noise Dispersion - This is the standard deviation of the noise expressed in midi numbers. If the noise level or dispersion is zero, no noise will be added to the note.</p>
 </li>
 </ul>
 <p>The values of the following attributes can be determined by one of three algorithms. These algorithms are discussed below.</p>
 <ul>
-<li>Speed - This determines the rate at which notes will be played. It is expressed in beats per minute (BPM).</li>
 <li>Note - This determines which note is to be used from the selected SoundFont preset. Sometimes call the midi number, a note may be fractional so that it lies between two integer midi numbers.</li>
+<li>Speed - This determines the rate at which notes will be played. It is expressed in beats per minute (BPM).</li>
 <li>Volume - The volume of a selected note is expressed in decibels (dB) relative to the original sample level. Every 10dB reduces or increased the signal level by 2.</li>
 <li>Pan - The sound of the note can be panned left (-1) and right (1). Zero (0) is the pan center.</li>
 </ul>
+</li>
+</ol>
 <p>The following algorithms may be assigned to the speed, note, volume, or pan attributes. They may all be different.</p>
 <ul>
 <li>
@@ -580,8 +583,7 @@ The states are</p>
 <p>The transition probabilities from one state to the itself and the others must be between 0 and 1 and add up to 1. If the transition probabilities are such that the same state is never left, the attribute value will always be its starting value.</p>
 </li>
 <li>
-<p>Wiener - This generator uses the <a href="https://en.wikipedia.org/wiki/Wiener_process">Wiener Process</a> to create what may be called a random walk or Brownian motion of the attribute. It starts at some value and randomly walks with a trend and dispersion at each beat. A zero trend will keep the random walk centered around the initial value. A negative trend decrease the value over time, and a positive trend increases the value. The dispersion affects how far from the trend line the value will be. Dispersion increases over time. Values are generated using the Wiener Process
-$$x_t=x_0+\alpha t+N(0,\sigma\sqrt{t})$$
+<p>Wiener - This generator uses the <a href="https://en.wikipedia.org/wiki/Wiener_process">Wiener Process</a> to create what may be called a random walk or Brownian motion of the attribute. It starts at some value and randomly walks with a trend and dispersion at each beat. A zero trend will keep the random walk centered around the initial value. A negative trend decrease the value over time, and a positive trend increases the value. The dispersion affects how far from the trend line the value will be. Dispersion increases over time. Values are generated using the Wiener Process $$x_t=x_0+\alpha t+N(0,\sigma\sqrt{t})$$
 where $x_t$ is the new attribute value at time $t$, $x_0$ is initial attribute value, $\alpha$ is the trend, $\sigma$ is the dispersion variable, and $\N$ is the Gaussian noise function which generates a random variable with mean $0$ and standard deviation $\sigma\sqrt{t}$.</p>
 </li>
 </ul>
@@ -683,12 +685,11 @@ Each of the attributes has different units. Notes are expressed in midi numbers,
 <p><img src="./images/AudioFileGenerator.png" alt="alt text"></p>
 <p><a id="GeneratorPulldownMenu"></a></p>
 <h2 id="generator-pulldown-menu">Generator Pulldown Menu</h2>
-<p>Each generator has a pulldown menu that is activated by clicking on the name of the generator in the track timeline display.</p>
-<p><img src="./images/GeneratorPulldown.png" alt="alt text"></p>
-<p>The following functions are available:</p>
+<p>Each generator has a pulldown menu that is activated by clicking on the name of the generator in the track timeline display. The following functions are available:</p>
 <p><a id="editinggenerators"></a></p>
 <ul>
-<li><strong>Edit</strong> A entry panel is displayed containing all of the values of the fields for the generator. All fields can be modified. If the <em>Delete</em> button is clicked a confirmation panel will be displayed before the deletion occurs:</li>
+<li><strong>Preview</strong>: The sound created by the generator may be previewed on its own without hearing any other generators. The sound will start as if the generator had been defined to start a time 0 (the start of the composition). See <a href="#Previewing">Preview</a> for more details.</li>
+<li><strong>Edit</strong>: A entry panel is displayed containing all of the values of the fields for the generator. All fields can be modified. If the <em>Delete</em> button is clicked a confirmation panel will be displayed before the deletion occurs:</li>
 </ul>
 <blockquote>
 <blockquote>
@@ -699,7 +700,7 @@ Each of the attributes has different units. Notes are expressed in midi numbers,
 </blockquote>
 </blockquote>
 <ul>
-<li><strong>Copy</strong> A panel is displayed providing the means to copy the selected generator to any of the existing tracks. The default is the track where the generator currently lies. A new generator is created with all of the same values as the selected generator, except a unique name is assigned to it. The panel may be exited by either clicking <em>Cancel</em> or the <em>x</em> in the upper left hand corner of the panel.</li>
+<li><strong>Copy</strong>: A panel is displayed providing the means to copy the selected generator to any of the existing tracks. The default is the track where the generator currently lies. A new generator is created with all of the same values as the selected generator, except a unique name is assigned to it. The panel may be exited by either clicking <em>Cancel</em> or the <em>x</em> in the upper left hand corner of the panel.</li>
 </ul>
 <blockquote>
 <blockquote>
@@ -709,9 +710,8 @@ Each of the attributes has different units. Notes are expressed in midi numbers,
 </blockquote>
 </blockquote>
 <ul>
-<li><strong>Mute/Un-mute</strong> A generator may be muted or un-muted. This affects whether or not it will be heard during Preview or Record. When a generator is muted, its name and type in the track is displayed in <span style='color:red'>red</span>.</li>
-<li><strong>Preview</strong> The sound created by the generator may be previewed on its own without hearing any other generators. The sound will start as if the generator had been defined to start a time 0 (the start of the composition). See <a href="#Previewing">Preview</a> for more details.</li>
-<li><strong>Exit</strong> The generator pulldown menu is hidden.</li>
+<li><strong>Mute/Un-mute</strong>: A generator may be muted or un-muted. This affects whether or not it will be heard during Preview or Record. When a generator is muted, its name and type in the track is displayed in <span style='color:red'>red</span>.</li>
+<li><strong>Exit</strong>: The generator pulldown menu is hidden.</li>
 </ul>
 <p><a id="MovingaGeneratorWithinItsTrack"></a></p>
 <h2 id="moving-a-generator-within-its-track">Moving a Generator Within Its Track</h2>
@@ -781,8 +781,14 @@ There are five controls to the compressor:</p>
 </blockquote>
 </blockquote>
 </blockquote>
-<p>If there are no generators that pass these tests a panel is displayed
+<blockquote>
+<blockquote>
+<blockquote>
+<p>If there are no generators that pass these tests a panel is displayed:
 <img src="./images/nogenerators.png" alt="alt text"></p>
+</blockquote>
+</blockquote>
+</blockquote>
 <p><a id='Recording'></a></p>
 <h2 id="recording">Recording</h2>
 <p>When the <em>Record</em> button is clicked, you will be prompted to provide a file name and location where the result audio file will be placed. The audio file may be either a WAV or a MP3 file. Once that has been identified, the selected generators are rendered and the wave file is written.</p>
@@ -855,19 +861,6 @@ There are five controls to the compressor:</p>
 </tr>
 </tbody>
 </table>
-<p>superscript<sup>2</sup></p>
-<p>Inline equation: $equation$
-Display equation: $$equation$$</p>
-<ul>
-<li>$x + y$</li>
-<li>$x - y$</li>
-<li>$x \times y$</li>
-<li>$x \div y$</li>
-<li>$\dfrac{x}{y}$</li>
-<li>$\sqrt{x}$</li>
-</ul>
-<p>Gaussian probability density function
-$\varphi(z)=\frac {1}{2\pi\sigma}e^{-\frac {(z-\mu)^2}{2\sigma^2}}$</p>
 
 </body>
 </html>
