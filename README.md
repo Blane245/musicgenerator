@@ -9,6 +9,7 @@ Algorithmic voice controls include
 - soundfont bank and preset
 - generation algorithms for a voice's note, speed, volume, and pan (oscillator, Markovian, or Wiener)
 - application of gaussian noise to a voice
+- optional reverberation for each generator
 - rhythm selection based on a Euclidean Rhythm algorithm
 - the number of notes used in an octave based on the Euclidean Rhythm algorithm. 
 - gain envelop controls (delay, attack, hold (sustain), decay, release) these may be changed over time that come from the soundfont preset
@@ -57,14 +58,14 @@ The upper figure focuses on overall structure from the generators to the compres
 
 ![Web Audio Routine Graph](AudioRoutingGraph.png)
 
-The upper figure presents those sources, volumes, and pans or a generator as a single box. Each generator group is connected to the room concentrator which has a gain of 1. The lower figure illustrates a generator that creates several sources, applies volume and pan to each source.
+The upper figure presents those sources, volumes, pans, and reverbs or a generator as a single box. Each generator group is connected to the room concentrator which has a gain of 1. The lower figure illustrates a generator that creates several sources, applies volume and pan to each source.
 
 The room concentrator gain output is routed to an volume, equalizer, and compressor, and to the final destination (either computer speakers or a output stream).
 
 # Application structure
 
 The CMG application provides several features:
-1. User definition of the all of the attributes of global generation environment, include Soundfont file selection, room volume, equalizer, and compressor. A library of Soundfont files is provided for selection.
+1. User definition of the all of the attributes of global generation environment, including room volume, equalizer, and compressor. 
 2. Display of a timeline that can be panned and zoomed, and shows the progress during preview. A interval can be defined that will select generators to be recorded or previewed. 
 3. User creation, deletion, and maintenance of tracks including track renaming, solo, and mute
 4. User creation, deletion, and maintenance of generators, including all attributes of each generator.
@@ -85,19 +86,16 @@ Classes are used to define sound generator objects (CMG, Algorithmic, AudioFile)
 5. A *setAttribute* function that is called by the object maintenance functions of the user interface.
 6. An *appendXML* function that added the objects definition to an XML document to be written to external storage. 
 7. A *getXML* static function that reads the object from a XML string
-The Algorithmic class links to AlgorithmValue objects for each of the voice parameters. The AlgorithmValue object may be AlgorithmicValues, OscillatorValues, MarkovianValues, or WienerValues.
+The Algorithmic class links to AlgorithmValue objects for each of the voice parameters. The AlgorithmValue object may be AlgorithmicValues, OscillatorValues, MarkovianValues, or WienerValues. It also implements generator reverb.
 
 Other function may be available for special needs. 
 
 ## Header
 
-The header is laid out in a grid containing, title line, a menu and a controls display. 
+The header conyains the app icon, a set of puddown menus, the app title and version, and the name and state of the current file being edited at the top and the timeline controls and display below.
 
-The title line contains the logo, the program name and version, the currently open file name, and a button for adding a comment to a file. 
-
-The menu has options for starting a new file, opening an existing file, save a file, and creating a new track. 
-
-The controls display provide for selection of a Soundfont file from the soundfont file server, manages the time line display pan and zoom, time line interval, and provides for control of the execution of preview and record.
+There are File, Edit, Generate, and Help pulldown menus.
+The timeline controls manage the time line display pan and zoom, time line interval.
 
 ## Body
 

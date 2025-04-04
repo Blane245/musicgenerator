@@ -17,7 +17,6 @@ Computer Music Generator (CMG) User's Guide, Version 3.1
   - [Creating a New CMG File](#CreatingaNewCMGFile)
   - [Saving a CMG File](#SavingaCMGFile)
   - [Opening a CMG File](#OpeningaCMGFile)
-- [Selecting a SoundFont File](#SelectingaSoundFontFile)
 - [Editing Tracks](#EditingTracks)
   - [Tracks and Generators](#TracksandGenerators)
   - [Adding and Modifying Generators](#AddingandModifyingGenerators)
@@ -47,9 +46,9 @@ The Computer Music Generator (CMG) application was inspired by the book [Formali
 The features of the CMG include:
 - Retention of defined sound generation files between working sessions,
 - The use of SoundFont files to produce Midi sounds,
-- The separation of sound generator into tracks that mimics the parts in a music score,
+- The separation of sound generators into tracks that mimics the parts in a music score,
 - Two types of sound generators,
-- Room level sound volume, compression, and equalization controls, and
+- Room level sound volume, reverb, compression, and equalization controls, and
 - Previewing and recording of assembled compositions.
 
 An example of a composition in progress is shown here:
@@ -58,10 +57,9 @@ An example of a composition in progress is shown here:
 
 The layout of the screen includes a header section, a body section, and a footer section. 
 * The header provides 
-    * the name of the application, the name of the file currently being displayed, and a comment button useful for adding comments to the composition,
-    * buttons for handling the composition file and tracks,
-    * a SoundFont file selector, and Record and Preview buttons, and
-    * time line controls and the timeline.
+  * File, Edit, Generate, and Help pulldown menus
+  * the name of the application, the name of the file currently being displayed
+  * time line controls and the timeline.
 
 * The body provides the display and control of composition tracks and generators.
 * The footer has a status message display area, and controls for room level volume, compression, and equalization. 
@@ -72,44 +70,22 @@ Each of these are explained further in the upcoming sections.
 # Handling CMG Files 
 
 CMG files are handled by the File Menu Items:
-
-![The File Menu](./images/FileMenuItems.png)
-
 <a id="CreatingaNewCMGFile"></a>
-## Creating a New CMG File
-
-When CMG starts, it has is ready to define a new composition file, no identified SoundFont file, default room volume, compressor, and equalizer settings, and no tracks or generators. At any time, the menu item ***New File*** can be selected to clear the existing workspace. If changes have been made to the workspace since the last save, you will prompted to confirm that you want to delete these changes without saving: 
-
+* ***New File ...*** - When CMG starts, it has is ready to define a new composition file, default room volume, reverb, compressor, and equalizer settings, and no tracks or generators. At any time, this can be selected to clear the existing workspace. If changes have been made to the workspace since the last save, you will prompted to confirm that you want to delete these changes without saving:
 ![alt text](./images/ConfirmNewFile.png)
 
 > <div class="note">*Note: The CMG screen header shows the name of the file currently being edited. If changes have been made since the last save, an asterisk <span style='color:lightblue'>(*)</span> will follow the file name.</div><br/>
 
 ![alt text](./images/TitleLine.png)
 
-<a id="SavingaCMGFile"></a>
-## Saving a CMG File
+<a id="OpeningaCMGFile"></a>
+* ***Open File ...*** - CMG files are opened by clicking the menu item ***Open File...*** button or by pressing **ctrl-o** on the keyboard. Files with the extent of ***.cmg*** are displayed and the one selected will be read. This includes all of the items that were saved (room compressor setting, room equalizer settings, room volume setting, room reverb settings, and all tracks and generators). If the file is not in proper format, a status message will be displayed and the file will not be opened.
 
-CMG files are created by accessing the menu item ***Save File...*** or by pressing **ctrl-s** on the keyboard. Files may be placed anywhere that they can be accessed within the file system. Files are saved with a ***.cmg*** extent. If the file already exists, you will be prompted to agree with overwriting the existing file. This saves the name of the SoundFont file, the room compressor settings, room equalizer settings, and all of the tracks and generators defined. 
+<a id="SavingaCMGFile"></a>
+* ***Save File ...*** - CMG files are created by accessing the menu item ***Save File...*** or by pressing **ctrl-s** on the keyboard. Files may be placed anywhere that they can be accessed within the file system. Files are saved with a ***.cmg*** extent. If the file already exists, you will be prompted to agree with overwriting the existing file. This saves the room compressor settings, room equalizer settings, room volume settings, and room reverb settings, and all of the tracks and generators defined. 
 
 > <div class="note">*Note: Long projects contain a lot of data and take some time to create. <span style='font-weight:bold;font-style:italic'>Ensure the file is fully saved before existing CMG or shutting done the computer. </span> The <span style='color:lightblue'>Status Bar</span> at the bottom shows a message when the file has been saved.</div>
 
-<a id="OpeningaCMGFile"></a>
-## Opening a CMG File
-
-CMG files are opened by clicking the menu item ***Open File...*** button or by pressing **ctrl-o** on the keyboard. Files with the extent of ***.cmg*** are displayed and the one selected will be read. This includes all of the items that were saved (SoundFont file, room compressor setting, room equalizer settings, room volume setting, and all tracks and generators). If the file is not in proper format, a status message will be displayed and the file will not be opened.
-
-<a id="SelectingaSoundFontFile"></a>
-# Selecting a SoundFont File
-
-The CMG application has a library of available SoundFont files that are used by the Algorithmic the sound generator. SoundFont files contain sample-based synthesized sounds that are most frequently used by MIDI (Musical Instrument Digital Interface) devices. There are hundreds of SoundFont files existing today. This application has a small collection of them available. More can be added as desired. 
-
-One SoundFont file can be selected for use by a CMG composition. It is selected from the list of those available using the selection pulldown:
-
-![SoundFont File Selection](<./images/SoundFont Selection.png>)
-
-<div class="note">*Note: Changing from one SoundFont file to another is allowed but may have an undesirable side effect. If there are generators existing that are using presets from the current SoundFont file, these will be remapped to those in the new SoundFont file using the bank and channel number of the preset (not the name). If none exists in the new file, the first preset is assigned and a warning message displayed.</div><br/>
-
-More information about SoundFont files can be found in [Wikipedia](https://en.wikipedia.org/wiki/SoundFont).
 
 <a id="EditingTracks"></a>
 # Editing Tracks
@@ -148,7 +124,7 @@ The control section displays the name of the track and provides several track le
 # Editing Generators
 
 Generators are the heart of CMG. There can be as many generators in a CMG file 
-as is needed to produce the composition desired. There are three types of generators: one place holder and two sound producers.
+as is needed to produce the composition desired. There are three types of generators: one silent and two sound producers.
 
 One of the generators use a SoundFont presets. Each preset has a bank, channel number, and name. More information about SoundFont presets can be found [here](https://www.synthfont.com/Tutorial6.html).
 
@@ -157,23 +133,30 @@ One of the generators use a SoundFont presets. Each preset has a bank, channel n
 
 1. Computer Music Generator (**CMG**). This generator does not produce any sound.
 Its role is to provide silence and is useful at the beginning and end of a composition. It is used by the other generators to define the generators name, and the time that the sound generator start and stops. 
-2. Algorithmic (**Algorithmic**). This generator uses various algorithms to set the values for which notes are to be played, at which rhythm, speed, volume, and pan. A different algorithm can be assigned to each of the attributes. 
-  * Rhythm - The beat of the sequence of notes (tones) is determined by a [Euclidean Rhythm](https://en.wikipedia.org/wiki/Euclidean_rhythm) algorithm. The beats that are silent will cause any note to be not heard. For example, a rhythm that has 4 beats in a measure with 3 of them one will produce a 3/4 rhythm with the first 3 'on' and the last one silent. This is particularly used when applied to percussive voices, but can be applied to any voice.
-  * Notes in Octave - How may notes to be used within an octave is determined by a Euclidean Rhythm algorithm where the larger number is 12. For example, if the number of notes in an octave is 7, the notes selected are (0, 2, 3, 5, 7, 8, 10). If primary note is C, the notes to be used in the octave are C, D, D#, F, G, G#, and A#. When a note is generated by one of the algorithms described below, it is moved to the closed selectable note in the octave. If the notes in the octave are set to 12, then all notes are selectable.  
-  * Seed - a string used to seed teh Gaussian noise random number generator.
-  * Noise Level - [Gaussian noise](https://en.wikipedia.org/wiki/Gaussian_noise) can be applied to the generated notes. The level of noise is relative to the original note's signal. A value of 1 means the noise and the original note have the same volume. The center frequency of the noise is at note's frequency.
-  Gaussian probability density function is used to generate noise:
-$$\varphi(z)=\frac {1}{2\pi\sigma}e^{-\frac {(z-\mu)^2}{2\sigma^2}}$$
+2. Algorithmic (**Algorithmic**). This generator uses various algorithms to set the values for which notes are to be played, at which rhythm, speed, volume, and pan. A different algorithm can be assigned to each of the attributes.
 
-  * Noise Dispersion - This is the standard deviation of the noise expressed in midi numbers. 
+    * SoundFont File - Each Algorithmic generator may have a differen SoundFont file. SoundFont files contain sample-based synthesized sounds that are most frequently used by MIDI (Musical Instrument Digital Interface) devices. There are hundreds of SoundFont files existing today. This application has a small collection of them available. More can be added as desired. It is selected from the list of those available using the selection pulldown:
 
-    If the noise level or dispersion is zero, no noise will be added to the note.
+      ![SoundFont File Selection](<./images/SoundFont Selection.png>)
 
-  The values of the following attributes can be determined by one of three algorithms. These algorithms are discussed below.
-  * Speed - This determines the rate at which notes will be played. It is expressed in beats per minute (BPM). 
-  * Note - This determines which note is to be used from the selected SoundFont preset. Sometimes call the midi number, a note may be fractional so that it lies between two integer midi numbers. 
-  * Volume - The volume of a selected note is expressed in decibels (dB) relative to the original sample level. Every 10dB reduces or increased the signal level by 2. 
-  * Pan - The sound of the note can be panned left (-1) and right (1). Zero (0) is the pan center.
+      More information about SoundFont files can be found in [Wikipedia](https://en.wikipedia.org/wiki/SoundFont).
+
+    * Preset - The preset is selected from a pulldown list. Each item display shte bank, midi number, and name of the preset. The preset is used to genrate the tones for the note attribute.
+    * Rhythm - The beat of the sequence of notes (tones) is determined by a [Euclidean Rhythm](https://en.wikipedia.org/wiki/Euclidean_rhythm) algorithm. The beats that are silent will cause any note to be not heard. For example, a rhythm that has 4 beats in a measure with 3 of them one will produce a 3/4 rhythm with the first 3 'on' and the last one silent. This is particularly used when applied to percussive voices, but can be applied to any voice.
+
+    * Notes in Octave - How may notes to be used within an octave is determined by a Euclidean Rhythm algorithm where the larger number is 12. For example, if the number of notes in an octave is 7, the notes selected are (0, 2, 3, 5, 7, 8, 10). If primary note is C, the notes to be used in the octave are C, D, D#, F, G, G#, and A#. When a note is generated by one of the algorithms described below, it is moved to the closed selectable note in the octave. If the notes in the octave are set to 12, then all notes are selectable. 
+
+    * Seed - a string used to seed the Gaussian noise random number generator.
+
+    * Noise Level - [Gaussian noise](https://en.wikipedia.org/wiki/Gaussian_noise) can be applied to the generated notes. The level of noise is relative to the original note's signal. A value of 1 means the noise and the original note have the same volume. The center frequency of the noise is at note's frequency. Gaussian probability density function is used to generate noise: $$\varphi(z)=\frac {1}{2\pi\sigma}e^{-\frac {(z-\mu)^2}{2\sigma^2}}$$
+
+    * Noise Dispersion - This is the standard deviation of the noise expressed in midi numbers. If the noise level or dispersion is zero, no noise will be added to the note.
+
+    The values of the following attributes can be determined by one of three algorithms. These algorithms are discussed below.
+    * Note - This determines which note is to be used from the selected SoundFont preset. Sometimes call the midi number, a note may be fractional so that it lies between two integer midi numbers. 
+    * Speed - This determines the rate at which notes will be played. It is expressed in beats per minute (BPM). 
+    * Volume - The volume of a selected note is expressed in decibels (dB) relative to the original sample level. Every 10dB reduces or increased the signal level by 2. 
+    * Pan - The sound of the note can be panned left (-1) and right (1). Zero (0) is the pan center.
 
   The following algorithms may be assigned to the speed, note, volume, or pan attributes. They may all be different. 
   * Oscillator - 
@@ -195,8 +178,7 @@ The states are
     Each sequence is bounded by a lower and upper limit and each move is done with a given step size. When an attribute hits an upper or lower limit, the value is reversed. For example, if pan is already at its upper limit (1 or right) and the suggested value is to move further up (right), the value is changed to move down (left). Thus, the containment walls are not 'sticky'.
 
     The transition probabilities from one state to the itself and the others must be between 0 and 1 and add up to 1. If the transition probabilities are such that the same state is never left, the attribute value will always be its starting value.
-  * Wiener - This generator uses the [Wiener Process](https://en.wikipedia.org/wiki/Wiener_process) to create what may be called a random walk or Brownian motion of the attribute. It starts at some value and randomly walks with a trend and dispersion at each beat. A zero trend will keep the random walk centered around the initial value. A negative trend decrease the value over time, and a positive trend increases the value. The dispersion affects how far from the trend line the value will be. Dispersion increases over time. Values are generated using the Wiener Process 
-  $$x_t=x_0+\alpha t+N(0,\sigma\sqrt{t})$$
+  * Wiener - This generator uses the [Wiener Process](https://en.wikipedia.org/wiki/Wiener_process) to create what may be called a random walk or Brownian motion of the attribute. It starts at some value and randomly walks with a trend and dispersion at each beat. A zero trend will keep the random walk centered around the initial value. A negative trend decrease the value over time, and a positive trend increases the value. The dispersion affects how far from the trend line the value will be. Dispersion increases over time. Values are generated using the Wiener Process $$x_t=x_0+\alpha t+N(0,\sigma\sqrt{t})$$
 where $x_t$ is the new attribute value at time $t$, $x_0$ is initial attribute value, $\alpha$ is the trend, $\sigma$ is the dispersion variable, and $\N$ is the Gaussian noise function which generates a random variable with mean $0$ and standard deviation $\sigma\sqrt{t}$.
 
 
@@ -297,21 +279,17 @@ The AudioFile generator has a volume setting and a button which allows the selec
 <a id="GeneratorPulldownMenu"></a>
 ## Generator Pulldown Menu
 
-Each generator has a pulldown menu that is activated by clicking on the name of the generator in the track timeline display. 
-
-![alt text](./images/GeneratorPulldown.png)
-
-The following functions are available:
+Each generator has a pulldown menu that is activated by clicking on the name of the generator in the track timeline display. The following functions are available:
 
 <a id="editinggenerators"></a>
-- **Edit** A entry panel is displayed containing all of the values of the fields for the generator. All fields can be modified. If the *Delete* button is clicked a confirmation panel will be displayed before the deletion occurs:
+- **Preview**: The sound created by the generator may be previewed on its own without hearing any other generators. The sound will start as if the generator had been defined to start a time 0 (the start of the composition). See [Preview](#Previewing) for more details.
+- **Edit**: A entry panel is displayed containing all of the values of the fields for the generator. All fields can be modified. If the *Delete* button is clicked a confirmation panel will be displayed before the deletion occurs:
 >>>![alt text](./images/confirmgeneratordelete.png)
 >>> <div class="note">*Note: Changing the generator type will cause all of the values currently assigned to be forgotten.</div><br/>
-- **Copy** A panel is displayed providing the means to copy the selected generator to any of the existing tracks. The default is the track where the generator currently lies. A new generator is created with all of the same values as the selected generator, except a unique name is assigned to it. The panel may be exited by either clicking *Cancel* or the *x* in the upper left hand corner of the panel. 
+- **Copy**: A panel is displayed providing the means to copy the selected generator to any of the existing tracks. The default is the track where the generator currently lies. A new generator is created with all of the same values as the selected generator, except a unique name is assigned to it. The panel may be exited by either clicking *Cancel* or the *x* in the upper left hand corner of the panel. 
 >>>![alt text](./images/copypanel.png)
-- **Mute/Un-mute** A generator may be muted or un-muted. This affects whether or not it will be heard during Preview or Record. When a generator is muted, its name and type in the track is displayed in <span style='color:red'>red</span>. 
-- **Preview** The sound created by the generator may be previewed on its own without hearing any other generators. The sound will start as if the generator had been defined to start a time 0 (the start of the composition). See [Preview](#Previewing) for more details.
-- **Exit** The generator pulldown menu is hidden.
+- **Mute/Un-mute**: A generator may be muted or un-muted. This affects whether or not it will be heard during Preview or Record. When a generator is muted, its name and type in the track is displayed in <span style='color:red'>red</span>. 
+- **Exit**: The generator pulldown menu is hidden.
 
 <a id="MovingaGeneratorWithinItsTrack"></a>
 ## Moving a Generator Within Its Track
@@ -391,7 +369,8 @@ Generator selection occurs by evaluating some filters:
 - **Timeline Interval** If a timeline interval is defined, only the generators that are selected by the timeline will be previewed or recorded. The time of the preview or record is started at the start time of the earliest selected generator.
 - **Active Generators** Tracks may be soloed or muted and generators may be muted. All of the tracks and generators are checked for these conditions. If a track is both muted and soloed, solo takes precedence. 
 >>> <div class="note">*Note: CMG generators produce no sound and are removed in any case.</div>
-If there are no generators that pass these tests a panel is displayed 
+
+>>>If there are no generators that pass these tests a panel is displayed:
 ![alt text](./images/nogenerators.png)
 
 <a id='Recording'></a>
@@ -430,19 +409,5 @@ The definition of many of the terms used in this manual can be found online, par
 | Q Value | This is parameter os a band-pass filter as defined by [Wikipedia](#https://en.wikipedia.org/wiki/Band-pass_filter) |
 | Weiner Series | This is used by the Algorithmic generator to determine values for one or more of the attributes. The series is described in [Wikipedia](https://en.wikipedia.org/wiki/Wiener_series). |
 | Euclidean Rhythm | This is used by the Algorithm generator to create [Euclidean Rhythm](https://en.wikipedia.org/wiki/Euclidean_rhythm) patterns and to select notes from the 12-note scale. |
-
-superscript<sup>2</sup>
-
-Inline equation: $equation$
-Display equation: $$equation$$
-- $x + y$
-- $x - y$
-- $x \times y$ 
-- $x \div y$
-- $\dfrac{x}{y}$
-- $\sqrt{x}$
-
-Gaussian probability density function 
-$\varphi(z)=\frac {1}{2\pi\sigma}e^{-\frac {(z-\mu)^2}{2\sigma^2}}$
 
 
