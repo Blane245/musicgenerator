@@ -170,6 +170,10 @@ export const getPresetNote = (
     if (noiseAmplitude > 0 && noiseDispersion > 0) {
       noisySample = addNoise(
         (gen as Algorithmic),
+        loopStart,
+        loopEnd,
+        loop,
+        duration,
         sample,
         sampleRate,
         pitchValue,
@@ -214,6 +218,10 @@ export const getPresetNote = (
 
 function addNoise(
   gen: Algorithmic,
+  loopStart: number,
+  loopEnd: number,
+  isLooping: boolean,
+  duration: number,
   sample: Float32Array,
   sampleRate: number,
   note: number,
@@ -223,14 +231,31 @@ function addNoise(
   const frequency: number = midiToFrequency(note);
   const std: number = midiToFrequency(dispersion);
 
+  // build the looping sample
+  let thisSample:Float32Array = sample;
+  if (isLooping) {
+    const nSamples = Math.ceil(duration * sampleRate);
+    thisSample = new Float32Array(nSamples);
+    let iSample: number = loopStart;
+    for (let i = 0; i < nSamples; i++) {
+      if (i < sample.length) {
+        thisSample[i] = sample[i];
+      } else {
+        thisSample[i] = sample[iSample];
+        iSample++;
+        if (iSample >= loopEnd) iSample = loopStart;
+      }
+    }
+  }
+
   // get the current signal level
   let signalLevel: number = 0;
-  sample.forEach((s) => {
+  thisSample.forEach((s) => {
     signalLevel = Math.max(Math.abs(s), signalLevel);
   });
 
   // add a gaussian noise signal at the request amplitude, frequency and dispersion
-  let noisySample: Float32Array = new Float32Array(sample);
+  let noisySample: Float32Array = new Float32Array(thisSample);
   let newSignalLevel: number = 0;
   let time: number = 0;
   const deltaT: number = 1 / sampleRate;

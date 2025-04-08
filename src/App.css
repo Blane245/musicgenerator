@@ -249,8 +249,8 @@ fieldset {
 
 .page-footer {
   display: grid;
-  grid-template-columns: 7fr 0.4fr 0.4fr 1fr 1.5fr;
-  grid-template-areas: "status volume reverb compressor equalizer";
+  grid-template-columns: 1fr 300px 200px 300px 40px;
+  grid-template-areas: "status reverb compressor equalizer volume";
   position: fixed;
   top: auto;
   bottom: 0;

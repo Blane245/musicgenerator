@@ -46,7 +46,7 @@ export default function Preview(params: PreviewProps): void {
   // undtile the room nodes can be built
   const context: AudioContext = new AudioContext();
   context.suspend();
-  setTimeProgress(0);
+  setTimeProgress(offsetTime);
 
   // construct the room concentrator and connect to the compressor and equalizer
   fileContents.equalizer.setContext(context);
@@ -196,7 +196,7 @@ export default function Preview(params: PreviewProps): void {
   function tick(): void {
     if (playing.current && context.currentTime <= playbackLength) {
       tickId = window.setTimeout(tick, tickInterval);
-      setTimeProgress(context.currentTime);
+      setTimeProgress(context.currentTime + offsetTime);
       // console.log(tickCounter, context.currentTime, offsetTime);
       tickCounter += tickInterval / 1000;
     } else {
