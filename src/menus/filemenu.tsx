@@ -74,6 +74,7 @@ export default function FileMenu() {
     saveFileContents();
   }
 
+
   function handleMenuSelect(action: string) {
     switch (action) {
       case "new":
@@ -82,10 +83,10 @@ export default function FileMenu() {
       case "open":
         handleOpen();
         break;
-      case "save":
-        handleFileSave();
-        break;
-      default:
+        case "save":
+          handleFileSave();
+          break;
+          default:
         break;
     }
   }
@@ -111,7 +112,6 @@ export default function FileMenu() {
           </div>
         </div>
       </div>
-
       <div
         style={{ display: open == "" ? "none" : "block" }}
         className="modal-content"
@@ -209,4 +209,5 @@ export default function FileMenu() {
       if (page) page.inert = false;
     }
   }
+
 }

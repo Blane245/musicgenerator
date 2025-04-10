@@ -1,0 +1,315 @@
+import { ALGORITHMTYPE, GENERATORTYPE, GeneratorType } from "../../types";
+import { Algorithmic, AudioFile } from "../../classes/generators";
+import {
+  MarkovianValues,
+  OscillatorValues,
+  WienerValues,
+} from "../../classes/algorithmvalues";
+import SourceReport from "./sourcereport";
+import CMGFile from "../../classes/cmgfile";
+
+export interface GeneratorReportProps {
+  generator: GeneratorType;
+  fileContents: CMGFile;
+}
+
+export default function GeneratorReport(
+  props: GeneratorReportProps
+): JSX.Element {
+  const { generator, fileContents } = props;
+
+  return (
+    <>
+    <table>
+      <thead>
+        <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Start Time<br/>(sec)</th>
+        <th>Stop Time<br/>(sec)</th>
+        </tr>
+      </thead>
+      <tbody>
+      <td>{generator.name}</td>
+      <td>{generator.type}</td>
+      <td>{generator.startTime}</td>
+      <td>{generator.stopTime}</td>
+      </tbody>
+    </table>
+      {generator.type == GENERATORTYPE.Algorithmic ? (
+        <AlgorithmicReport generator={generator as Algorithmic}/>
+      ) : null}
+      {generator.type == GENERATORTYPE.AudioFile ? (
+        <AudioFileReport generator={generator as AudioFile}/>
+      ) : null}
+      <SourceReport generator={generator} fileContents={fileContents} />
+    </>
+  );
+}
+interface AlgorithmicReportProps {
+  generator: Algorithmic;
+}
+
+function AlgorithmicReport(props: AlgorithmicReportProps): JSX.Element {
+  const { generator: g} = props;
+  return (
+    <>
+      <table>
+        <tbody>
+        <tr>
+        <th> Soundfont File </th>
+            <th> Preset </th>
+            <th> Looping </th>
+          </tr>
+          <tr>
+            <td> {g.soundFontFile} </td>
+            <td> {g.presetName} </td>
+            <td> {g.isLooping.toString()} </td>
+          </tr>
+          <tr>
+          <th> Measure Length </th>
+            <th> On Beats </th>
+            <th> Notes in Octave </th>
+          </tr>
+          <tr>
+            <td> {g.measureLength} </td>
+            <td> {g.beatCount} </td>
+            <td> {g.noteCount} </td>
+          </tr>
+          <tr>
+          <th> Noise seed </th>
+            <th> Noise Level<br/>(dB) </th>
+            <th> Notes in Octave </th>
+          </tr>
+          <tr>
+            <td> {g.noiseSeed} </td>
+            <td> {g.noiseAmplitude} </td>
+            <td> {g.noiseDispersion} </td>
+          </tr>
+          <tr>
+          <th> Reverb Duration<br/>(sec) </th>
+            <th> Reverb Decay<br/> (sec)</th>
+            <th> </th>
+          </tr>
+          <tr>
+            <th> {g.reverbDuration} </th>
+            <th> {g.reverbDecay} </th>
+            <th>  </th>
+          </tr>
+        </tbody>
+      </table>
+      <h4>
+        Note (midi){"\t"}GeneratorType: {g.noteP?.algorithmType}
+      </h4>
+      {g.noteP?.algorithmType == ALGORITHMTYPE.Oscillator ? (
+        <OscillatorReport values={g.noteP as OscillatorValues} />
+      ) : null}
+      {g.noteP?.algorithmType == ALGORITHMTYPE.Markovian ? (
+        <MarkovianReport values={g.noteP as MarkovianValues} />
+      ) : null}
+      {g.noteP?.algorithmType == ALGORITHMTYPE.Wiener ? (
+        <WeinerReport values={g.noteP as WienerValues} />
+      ) : null}
+      <h4>
+        Speed (BPM){"\t"}GeneratorType: {g.speedP?.algorithmType}
+      </h4>
+      {g.speedP?.algorithmType == ALGORITHMTYPE.Oscillator ? (
+        <OscillatorReport values={g.speedP as OscillatorValues} />
+      ) : null}
+      {g.speedP?.algorithmType == ALGORITHMTYPE.Markovian ? (
+        <MarkovianReport values={g.speedP as MarkovianValues} />
+      ) : null}
+      {g.speedP?.algorithmType == ALGORITHMTYPE.Wiener ? (
+        <WeinerReport values={g.speedP as WienerValues} />
+      ) : null}
+      <h4>
+        Volume (dB){"\t"}GeneratorType: {g.volumeP?.algorithmType}
+      </h4>
+      {g.volumeP?.algorithmType == ALGORITHMTYPE.Oscillator ? (
+        <OscillatorReport values={g.volumeP as OscillatorValues} />
+      ) : null}
+      {g.volumeP?.algorithmType == ALGORITHMTYPE.Markovian ? (
+        <MarkovianReport values={g.volumeP as MarkovianValues} />
+      ) : null}
+      {g.volumeP?.algorithmType == ALGORITHMTYPE.Wiener ? (
+        <WeinerReport values={g.volumeP as WienerValues} />
+      ) : null}
+      <h4>
+        Pan{"\t"}GeneratorType: {g.panP?.algorithmType}
+      </h4>
+      {g.panP?.algorithmType == ALGORITHMTYPE.Oscillator ? (
+        <OscillatorReport values={g.panP as OscillatorValues} />
+      ) : null}
+      {g.panP?.algorithmType == ALGORITHMTYPE.Markovian ? (
+        <MarkovianReport values={g.panP as MarkovianValues} />
+      ) : null}
+      {g.panP?.algorithmType == ALGORITHMTYPE.Wiener ? (
+        <WeinerReport values={g.panP as WienerValues} />
+      ) : null}
+      <hr />
+    </>
+  );
+}
+
+interface OscillatorReportProps {
+  values: OscillatorValues;
+}
+
+function OscillatorReport(props: OscillatorReportProps): JSX.Element {
+  const { values: v } = props;
+  return (
+    <table>
+      <thead>
+        <tr>
+          <th>Modulator Type</th>
+          <th>Center</th>
+          <th>
+            Frequency
+            <br />
+            (mHz)
+          </th>
+          <th>Amplitude</th>
+          <th>
+            Phase
+            <br />
+            (deg)
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <td>{v.values.type}</td>
+        <td>{v.values.center}</td>
+        <td>{v.values.frequency}</td>
+        <td>{v.values.amplitude}</td>
+        <td>{v.values.phase}</td>
+      </tbody>
+    </table>
+  );
+}
+
+interface MarkovianReportProps {
+  values: MarkovianValues;
+}
+
+function MarkovianReport(props: MarkovianReportProps): JSX.Element {
+  const { values: v } = props;
+  return (
+    <>
+      <table>
+        <thead>
+          <tr>
+            <th>Seed</th>
+            <th>Start</th>
+            <th>Lo</th>
+            <th>Hi</th>
+            <th>Step</th>
+          </tr>
+        </thead>
+        <tbody>
+          <td>{v.values.seed}</td>
+          <td>{v.values.startValue}</td>
+          <td>{v.values.range.lo}</td>
+          <td>{v.values.range.hi}</td>
+          <td>{v.values.range.step}</td>
+        </tbody>
+      </table>
+      <br />
+      <table>
+        <thead>
+          <tr>
+            <th>From/To</th>
+            <th>Same</th>
+            <th>Up</th>
+            <th>Down</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Same</td>
+            <td>{v.values.same.same}</td>
+            <td>{v.values.same.up}</td>
+            <td>{v.values.same.down}</td>
+          </tr>
+          <tr>
+            <td>Up</td>
+            <td>{v.values.up.same}</td>
+            <td>{v.values.up.up}</td>
+            <td>{v.values.up.down}</td>
+          </tr>
+          <tr>
+            <td>Down</td>
+            <td>{v.values.down.same}</td>
+            <td>{v.values.down.up}</td>
+            <td>{v.values.down.down}</td>
+          </tr>
+        </tbody>
+      </table>
+    </>
+  );
+}
+
+interface WeinerReportProps {
+  values: WienerValues;
+}
+
+function WeinerReport(props: WeinerReportProps): JSX.Element {
+  const { values: v } = props;
+  return (
+    <table>
+      <thead>
+        <tr>
+          <th>Seed</th>
+          <th>Initial Value</th>
+          <th>
+            Trend
+            <br />
+            (1/sec)
+          </th>
+          <th>
+            Dispersion
+            <br />
+            (1/sqrt(sec))
+          </th>
+          <th>Lo</th>
+          <th>Hi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <td>{v.values.seed}</td>
+        <td>{v.values.initialValue}</td>
+        <td>{v.values.alpha}</td>
+        <td>{v.values.sigma}</td>
+        <td>{v.values.lo}</td>
+        <td>{v.values.hi}</td>
+      </tbody>
+    </table>
+  );
+}
+
+interface AudioFileReportProps {
+  generator: AudioFile;
+}
+
+function AudioFileReport(props: AudioFileReportProps): JSX.Element {
+  const { generator: g } = props;
+  return (
+    <table>
+      <thead>
+        <tr>
+          <th>File Name</th>
+          <th>Sample Count</th>
+          <th>Sample Rate</th>
+          <th>Duration</th>
+          <th>Volume</th>
+        </tr>
+      </thead>
+      <tbody>
+        <td>{g.fileName}</td>
+        <td>{g.samples.length}</td>
+        <td>{g.sampleRate}</td>
+        <td>{g.duration}</td>
+        <td>{g.volume}</td>
+      </tbody>
+    </table>
+  );
+}

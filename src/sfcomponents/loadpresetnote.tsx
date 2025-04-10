@@ -176,7 +176,6 @@ export const getPresetNote = (
         duration,
         sample,
         sampleRate,
-        pitchValue,
         noiseAmplitude,
         noiseDispersion
       );
@@ -224,12 +223,9 @@ function addNoise(
   duration: number,
   sample: Float32Array,
   sampleRate: number,
-  note: number,
   amplitude: number,
   dispersion: number
 ) {
-  const frequency: number = midiToFrequency(note);
-  const std: number = midiToFrequency(dispersion);
 
   // build the looping sample
   let thisSample:Float32Array = sample;
@@ -260,15 +256,13 @@ function addNoise(
   let time: number = 0;
   const deltaT: number = 1 / sampleRate;
   noisySample.forEach((s, i) => {
-    const noise: number = gaussianRandom(0, std, gen.rn as RandomNumber);
-    const signal: number =
-      (amplitude * (noise + Math.cos(2 * Math.PI * frequency * time)));
-    noisySample[i] = (s + signal) / 2;
+    const noise: number = amplitude * gaussianRandom(0, dispersion, gen.rn);
+    noisySample[i] = s + noise;
     newSignalLevel = Math.max(newSignalLevel, Math.abs(noisySample[i]));
     time += deltaT;
   });
 
-  // normalize to the origianl signal level
+  // normalize to the original signal level
   noisySample = noisySample.map((s) => (s * signalLevel) / newSignalLevel);
   // console.log(
   //   `add noise to sample at frequency, amplitude, std, samples, sampleRate, signalLevel, newSignalLevel`,

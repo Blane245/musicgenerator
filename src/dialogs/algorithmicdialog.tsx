@@ -144,7 +144,6 @@ export default function AlgorithmicDialog(
           onChange={handleChange}
           value={formData.noiseDispersion}
         />
-        <span> (midi) </span>
       </label>
       <label>
         &nbsp;Reverb Duration:&nbsp;

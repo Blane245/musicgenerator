@@ -1,13 +1,13 @@
 import { useEffect } from "react";
 import { Helmet } from "react-helmet-async";
-import "./App.css";
-import { useCMGContext } from "./cmgcontext";
-import Body from "./layouts/body";
-import Footer from "./layouts/footer";
-import Header from "./layouts/header";
-import fetchData from "./utils/fetchdata";
+import "./home.css";
+import { useCMGContext } from "../cmgcontext";
+import Body from "../layouts/body";
+import Footer from "../layouts/footer";
+import Header from "../layouts/header";
+import fetchData from "../utils/fetchdata";
 
-export default function App() {
+export default function Home() {
   const {
     setScreenHeight,
     setScreenWidth,
