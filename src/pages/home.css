@@ -170,7 +170,7 @@ fieldset {
   cursor: inherit;
   display: grid;
   grid-template-columns: repeat(5, 50px)  repeat(7, 1fr);
-  grid-template-areas: "icon menu menu menu menu menu title title title title title title"
+  grid-template-areas: "icon menu menu menu menu menu title title title title left right"
   "timecontrol timecontrol timecontrol timecontrol timedisplay timedisplay timedisplay timedisplay timedisplay timedisplay timedisplay timedisplay";
   grid-template-rows: repeat(2, 40px);
   gap: 0;
@@ -198,6 +198,21 @@ fieldset {
   align-content: top;
   padding:0%;
   text-align: center;
+}
+.page .left {
+  display:block;
+  grid-template-columns: subgrid;
+  grid-area: left;
+  align-content: top;
+  padding:0%;
+}
+
+.page .right {
+  display:block;
+  grid-template-columns: subgrid;
+  grid-area: right;
+  align-content: top;
+  padding:0%;
 }
 
 .page .time-control {

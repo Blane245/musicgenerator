@@ -130,15 +130,15 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
               <td>{s.source.duration.toFixed(3)}</td>
               <td>{s.source.note.toFixed(2)}</td>
               <td>{s.source.sample[0].length}</td>
-              <td>{s.vol.delayInterval.toFixed(3)}</td>
-              <td>{s.vol.attackInterval.toFixed(3)}</td>
-              <td>{s.vol.holdInterval.toFixed(3)}</td>
-              <td>{s.vol.decayInterval.toFixed(3)}</td>
-              <td>{s.vol.sustainInterval.toFixed(3)}</td>
+              <td>{(s.source.startTime + s.vol.delayInterval).toFixed(3)}</td>
+              <td>{(s.source.startTime + s.vol.attackInterval).toFixed(3)}</td>
+              <td>{(s.source.startTime + s.vol.holdInterval).toFixed(3)}</td>
+              <td>{(s.source.startTime + s.vol.decayInterval).toFixed(3)}</td>
+              <td>{(s.source.startTime + s.vol.sustainInterval).toFixed(3)}</td>
               <td>{s.vol.sustainLevel}</td>
-              <td>{s.vol.releaseInterval.toFixed(3)}</td>
-              <td>{s.vol.value}</td>
-              <td>{s.panner.value}</td>
+              <td>{(s.source.startTime + s.vol.releaseInterval).toFixed(3)}</td>
+              <td>{s.vol.value.toFixed(3)}</td>
+              <td>{s.panner.value.toFixed(3)}</td>
             </tr>
           ))}
         </tbody>

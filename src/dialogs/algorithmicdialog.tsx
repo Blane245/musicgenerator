@@ -207,7 +207,7 @@ export default function AlgorithmicDialog(
                 value: (formData.noteP as OscillatorValues).values.center,
                 lo: 0,
                 hi: 127,
-                step: 1,
+                step: 0.001,
                 suffix: "(midi)",
               }}
               centerSuffix={(value: number) => {
@@ -225,7 +225,7 @@ export default function AlgorithmicDialog(
                 value: (formData.noteP as OscillatorValues).values.amplitude,
                 lo: 0,
                 hi: 127,
-                step: 1,
+                step: 0.001,
                 suffix: "(midi)",
               }}
               phase={{

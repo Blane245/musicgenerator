@@ -17,9 +17,10 @@ export interface HeaderProps {
 
 export default function Header(props: HeaderProps) {
   const { appName, appVersion } = props;
-  const { screenWidth, fileName, fileContents } = useCMGContext();
+  const { screenWidth, fileName, fileContents, signalLevels } = useCMGContext();
   const [isDirty, setIsDirty] = useState("");
   const [width, setWidth] = useState<number>(screenWidth);
+  const [signals, setSignals] = useState<{left: number, right: number}>({left: 0, right: 0});
   const timeLineRef: MutableRefObject<HTMLDivElement[]> = useRef<
     HTMLDivElement[]
   >([]);
@@ -30,6 +31,10 @@ export default function Header(props: HeaderProps) {
   useEffect(() => {
     setIsDirty(fileContents.dirty ? "*" : "");
   }, [fileContents]);
+
+  useEffect(() => {
+    setSignals({left: signalLevels.left, right: signalLevels.right})
+  },[signalLevels]);
 
   return (
     <>
@@ -51,6 +56,12 @@ export default function Header(props: HeaderProps) {
           <EditMenu />
           <GenerateMenu />
           <HelpMenu />
+        </div>
+        <div className="left">
+          <input type="range" value={signals.left} min={-90} max={0} ></input>
+        </div>
+        <div className="right">
+          <input type="range" value={signals.right} min={-90} max={0}></input>
         </div>
         <div className="time-control">
           <TimeLineControlsDisplay />

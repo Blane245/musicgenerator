@@ -47,6 +47,8 @@ interface CMGContextType {
   setGeneratorsPlaying: Dispatch<SetStateAction<GeneratorType[]>>;
   recordFormat: string;
   setRecordFormat: Dispatch<SetStateAction<string>>;
+  signalLevels: {left: number, right: number};
+  setSignalLevels: Dispatch<SetStateAction<{left: number, right: number}>>;
 }
 
 const CMGContext = createContext<CMGContextType | undefined>(undefined);
@@ -73,6 +75,7 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     []
   );
   const [recordFormat, setRecordFormat] = useState<string>("mp3");
+  const [signalLevels, setSignalLevels] = useState<{left: number, right: number}>({left:-90,right:-90});
   const contextValue = {
     screenHeight,
     setScreenHeight,
@@ -103,6 +106,8 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     setGeneratorsPlaying,
     recordFormat,
     setRecordFormat,
+    signalLevels,
+    setSignalLevels,
   };
 
   return (

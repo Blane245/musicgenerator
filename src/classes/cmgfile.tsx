@@ -36,6 +36,7 @@ export default class CMGFile {
     newFile.compressor = this.compressor.copy();
     newFile.equalizer = this.equalizer.copy();
     newFile.reverb = this.reverb.copy();
+    newFile.volume = this.volume.copy();
     this.tracks.forEach((t) => {
       const newTrack: Track = t.copy();
       const newGenerators: GeneratorType[] = [];

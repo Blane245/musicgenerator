@@ -99,9 +99,9 @@ export function realizeSource(
         // case 2 - delay time + attack time is greater than note duration (truncate attack)
         else if (t2 >= t5) {
           vol.gain.setValueAtTime(min, t0);
-          vol.gain.setValueAtTime(min, t1);
+          if (t0 != t1) vol.gain.setValueAtTime(min, t1);
           const maxAttack: number =
-            min + ((gain - min) * (t5 - t1)) / (t2 - t1);
+            t2 != t1 ? min + ((gain - min) * (t5 - t1)) / (t2 - t1) : min;
           vol.gain.exponentialRampToValueAtTime(maxAttack, t5);
           vol.gain.setValueAtTime(maxAttack, t5);
           vol.gain.cancelAndHoldAtTime(t5);
@@ -124,9 +124,11 @@ export function realizeSource(
           // case 3 has no hold or decay, so delay, attack, sustain, release
 
           vol.gain.setValueAtTime(min, t0);
-          vol.gain.setValueAtTime(min, t1);
-          vol.gain.exponentialRampToValueAtTime(modGain, t2);
-          vol.gain.setValueAtTime(modGain, t2);
+          if (t0 != t1) vol.gain.setValueAtTime(min, t1);
+          if (t1 != t2) {
+            vol.gain.exponentialRampToValueAtTime(modGain, t2);
+            vol.gain.setValueAtTime(modGain, t2);
+          }
           vol.gain.setValueAtTime(modGain, t5);
           vol.gain.cancelAndHoldAtTime(t5);
           vol.gain.exponentialRampToValueAtTime(min, t6);
@@ -143,9 +145,11 @@ export function realizeSource(
         } else if (sustainLevel > 0 && t3 >= t5) {
           // case 4 hold is past end, so delay, attack, hold, release
           vol.gain.setValueAtTime(min, t0);
-          vol.gain.setValueAtTime(min, t1);
-          vol.gain.exponentialRampToValueAtTime(modGain, t2);
-          vol.gain.setValueAtTime(modGain, t2);
+          if (t0 != t1) vol.gain.setValueAtTime(min, t1);
+          if (t1 != t2) {
+            vol.gain.exponentialRampToValueAtTime(modGain, t2);
+            vol.gain.setValueAtTime(modGain, t2);
+          }
           vol.gain.setValueAtTime(modGain, t5);
           vol.gain.cancelAndHoldAtTime(t5);
           vol.gain.exponentialRampToValueAtTime(min, t6);
@@ -163,12 +167,14 @@ export function realizeSource(
         } else if (sustainLevel > 0 && t4 >= t5) {
           // case 5 decay is past end, so delay, attack, hold, partial decay, release
           vol.gain.setValueAtTime(min, t0);
-          vol.gain.setValueAtTime(min, t1);
-          vol.gain.exponentialRampToValueAtTime(modGain, t2);
-          vol.gain.setValueAtTime(modGain, t2);
-          vol.gain.setValueAtTime(modGain, t3);
+          if (t0 != t1) vol.gain.setValueAtTime(min, t1);
+          if (t1 != t2) {
+            vol.gain.exponentialRampToValueAtTime(modGain, t2);
+            vol.gain.setValueAtTime(modGain, t2);
+          }
+          if (t2 != t3) vol.gain.setValueAtTime(modGain, t3);
           const minDecay: number =
-            gain + ((modGain - min) * (t5 - t3)) / (t3 - t4);
+            t3 != t4 ? gain + ((modGain - min) * (t5 - t3)) / (t3 - t4) : gain;
           vol.gain.exponentialRampToValueAtTime(minDecay, t5);
           vol.gain.setValueAtTime(minDecay, t5);
           vol.gain.cancelAndHoldAtTime(t5);
@@ -189,12 +195,16 @@ export function realizeSource(
         } else if (sustainLevel > 0 && t4 <= t5) {
           // case 6 - decay complete before stop time - delay, attack, hold, decay, no release
           vol.gain.setValueAtTime(min, t0);
-          vol.gain.setValueAtTime(min, t1);
-          vol.gain.exponentialRampToValueAtTime(modGain, t2);
-          vol.gain.setValueAtTime(modGain, t2);
-          vol.gain.setValueAtTime(modGain, t3);
-          vol.gain.exponentialRampToValueAtTime(min, t4);
-          vol.gain.setValueAtTime(min, t4);
+          if (t0 != t1) vol.gain.setValueAtTime(min, t1);
+          if (t1 != t2) {
+            vol.gain.exponentialRampToValueAtTime(modGain, t2);
+            vol.gain.setValueAtTime(modGain, t2);
+          }
+          if (t2 != t3) vol.gain.setValueAtTime(modGain, t3);
+          if (t3 != t4) {
+            vol.gain.exponentialRampToValueAtTime(min, t4);
+            vol.gain.setValueAtTime(min, t4);
+          }
           vol.gain.cancelAndHoldAtTime(t4);
           // console.log(
           //   "sustainLevel > 0 && decay <= end, note, modGain, t0, t1, t2, t3, t4 stop",
@@ -211,7 +221,7 @@ export function realizeSource(
           vol.gain.value = gain;
           // console.log("no condition set - set gain");
         }
-      }
+      } else
       vol.gain.value = min;
     }
 
@@ -225,8 +235,8 @@ export function realizeSource(
     source.connect(vol).connect(panner).connect(destination);
     // connect the reverb if implemented
     if (rawSourceData.gen.type == GENERATORTYPE.Algorithmic) {
-    const gen = (rawSourceData.gen as Algorithmic);
-    if (gen.reverbDecay > 0 && gen.reverbDuration > 0) {
+      const gen = rawSourceData.gen as Algorithmic;
+      if (gen.reverbDecay > 0 && gen.reverbDuration > 0) {
         gen.setContext(ctx);
         gen.connect(vol, destination);
       }

@@ -55,46 +55,34 @@ function AlgorithmicReport(props: AlgorithmicReportProps): JSX.Element {
   return (
     <>
       <table>
-        <tbody>
-        <tr>
+        <thead>
+          <tr>
         <th> Soundfont File </th>
             <th> Preset </th>
             <th> Looping </th>
-          </tr>
+            <th> Measure Length </th>
+            <th> On Beats </th>
+            <th> Notes in Octave </th>
+            <th> Noise Level<br/>(dB) </th>
+            <th> Notes in Octave </th>
+            <th> Noise seed </th>
+            <th> Reverb Duration<br/>(sec) </th>
+            <th> Reverb Decay<br/> (sec)</th>
+            </tr>
+        </thead>
+        <tbody>
           <tr>
             <td> {g.soundFontFile} </td>
             <td> {g.presetName} </td>
             <td> {g.isLooping.toString()} </td>
-          </tr>
-          <tr>
-          <th> Measure Length </th>
-            <th> On Beats </th>
-            <th> Notes in Octave </th>
-          </tr>
-          <tr>
             <td> {g.measureLength} </td>
             <td> {g.beatCount} </td>
             <td> {g.noteCount} </td>
-          </tr>
-          <tr>
-          <th> Noise seed </th>
-            <th> Noise Level<br/>(dB) </th>
-            <th> Notes in Octave </th>
-          </tr>
-          <tr>
             <td> {g.noiseSeed} </td>
             <td> {g.noiseAmplitude} </td>
             <td> {g.noiseDispersion} </td>
-          </tr>
-          <tr>
-          <th> Reverb Duration<br/>(sec) </th>
-            <th> Reverb Decay<br/> (sec)</th>
-            <th> </th>
-          </tr>
-          <tr>
-            <th> {g.reverbDuration} </th>
-            <th> {g.reverbDecay} </th>
-            <th>  </th>
+            <td> {g.reverbDuration} </td>
+            <td> {g.reverbDecay} </td>
           </tr>
         </tbody>
       </table>
@@ -146,7 +134,6 @@ function AlgorithmicReport(props: AlgorithmicReportProps): JSX.Element {
       {g.panP?.algorithmType == ALGORITHMTYPE.Wiener ? (
         <WeinerReport values={g.panP as WienerValues} />
       ) : null}
-      <hr />
     </>
   );
 }
@@ -195,6 +182,8 @@ function MarkovianReport(props: MarkovianReportProps): JSX.Element {
   const { values: v } = props;
   return (
     <>
+    <div className="container">
+      <div>
       <table>
         <thead>
           <tr>
@@ -213,7 +202,8 @@ function MarkovianReport(props: MarkovianReportProps): JSX.Element {
           <td>{v.values.range.step}</td>
         </tbody>
       </table>
-      <br />
+      </div>
+      <div>
       <table>
         <thead>
           <tr>
@@ -244,6 +234,8 @@ function MarkovianReport(props: MarkovianReportProps): JSX.Element {
           </tr>
         </tbody>
       </table>
+      </div>
+      </div>
     </>
   );
 }

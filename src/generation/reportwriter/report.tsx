@@ -75,6 +75,14 @@ th {
 td {
   border: 1px solid #ddd;
   padding: 8px;
+}
+.container {
+  display: grid;
+  grid-template-columns: auto auto;
+  padding: 0px;
+}
+.container > div {
+  border-right: 2px;
 }            
 `}
         </style>

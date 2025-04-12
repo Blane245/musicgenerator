@@ -416,12 +416,12 @@ export class Algorithmic extends CMG {
     this.#currentRhythmEntry =
       (this.#currentRhythmEntry + 1) % this.measureLength;
     const beat = this.#beatSequence[entry] != 0;
-    let note: number = this.noteP ? this.noteP.getCurrentValue(time) : 0;
-    const speed: number = this.speedP ? this.speedP.getCurrentValue(time) : 0;
+    let note: number = this.noteP ? this.noteP.getCurrentValue(time - this.startTime) : 0;
+    const speed: number = this.speedP ? this.speedP.getCurrentValue(time - this.startTime) : 0;
     const volume: number = this.volumeP
-      ? this.volumeP.getCurrentValue(time)
+      ? this.volumeP.getCurrentValue(time - this.startTime)
       : 0;
-    const pan: number = this.panP ? this.panP.getCurrentValue(time) : 0;
+    const pan: number = this.panP ? this.panP.getCurrentValue(time - this.startTime) : 0;
 
     // modify the note based on those selectable in the octave
     note = this.#getSelectedNote(note);

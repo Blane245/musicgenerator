@@ -14,6 +14,8 @@ import {
 } from "../types";
 import { buildRoomNodes } from "./buildroomnodes";
 import { realizeSource } from "./realizesource";
+import SignalLevel from "../classes/signallevel";
+import Volume from "../classes/volume";
 
 // as this function is non-reactive, many of its props
 // are CMG context variables
@@ -27,6 +29,8 @@ export interface PreviewProps {
   setTimeProgress: Function;
   setStatus: Function;
   setGeneratorsPlaying: Function;
+  signalLevels: {left: number, right: number},
+  setSignalLevels: Function,
 }
 
 export default function Preview(params: PreviewProps): void {
@@ -40,6 +44,8 @@ export default function Preview(params: PreviewProps): void {
     setTimeProgress,
     setGeneratorsPlaying,
     setStatus,
+    signalLevels,
+    setSignalLevels,
   } = params;
 
   // set up the real time context and hold up the playback
@@ -85,6 +91,9 @@ export default function Preview(params: PreviewProps): void {
   const LOOKAHEAD: number = 25.0; // how frequently to call the schedule function (ms)
   let timerID: number = 0; // the timer used to set the schedule
   let nextTime: number = 0.0;
+
+  // connect to the signal analyzer to the output of the volume (assumed to be last)
+  const analyzer = new SignalLevel(context, (fileContents.volume as Volume).effect as GainNode);
 
   // the real time scheduler
   // when a source starts, realize and connect it to the room concentrator
@@ -204,6 +213,8 @@ export default function Preview(params: PreviewProps): void {
       setTimeProgress(-1);
     }
   }
+
+  // generator highlighter running every 1/2 seconds
   let playingId: number = 0;
   playingGenerators();
   function playingGenerators() {
@@ -229,6 +240,24 @@ export default function Preview(params: PreviewProps): void {
       playingId = window.setTimeout(playingGenerators, 500);
     } else {
       playingId && clearTimeout(playingId);
+    }
+  }
+
+  // volume level monitor running every 1/2 second
+  let signalId = 0;
+  volumeMonitor();
+  function volumeMonitor() {
+    if (playing.current && context.currentTime <= playbackLength) {
+      // get the current volume levels
+      setSignalLevels(() => {
+        const {left, right} = analyzer.getValues();
+        console.log('signal levels', left, right);
+        return {left, right};
+      });
+      signalId = window.setTimeout(volumeMonitor, 500);
+    } else {
+      signalId && clearTimeout(signalId);
+      setSignalLevels({left: -90, right: -90});
     }
   }
 }

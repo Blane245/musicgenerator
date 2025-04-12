@@ -31,7 +31,10 @@ export const toMidi = (note: any) => {
 };
 
 // timecents to seconds
-export const tc2s = (timecents: number) => Math.pow(2, timecents / 1200);
+export const tc2s = (timecents: number) => {
+  const result = timecents == -12000? 0: Math.pow(2, timecents / 1200);
+  return result
+}
 // seconds to timecents
 export const s2tc = (seconds: number) => Math.round(Math.log2(seconds) * 1200);
 export const normalizePermille = (permille: number) => permille / 1000;
@@ -95,4 +98,8 @@ export function presetNameToPreset(
 //curtesy of https://inspiredacoustics.com/en/MIDI_note_numbers_and_center_frequencies
 export function midiToFrequency (midi: number) : number {
   return 440.0 * Math.pow(2, (midi - 69)/12);
+}
+
+export function frequencyToMidi(frequency: number) : number {
+  return 69 + Math.log2(frequency / 440.0);
 }
