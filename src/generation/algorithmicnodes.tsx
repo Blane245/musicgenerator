@@ -38,7 +38,7 @@ export function getBufferSourceNodesFromAlgorithmic(
 
   // loop through time from start to stop
   while (time < stopTime) {
-    const duration = 60.0 / speed;
+    const duration = Math.min(60.0 / speed, stopTime - time);
     if (beat) {
       const connections: RawSourceData[] = getPresetNote(
         gen,

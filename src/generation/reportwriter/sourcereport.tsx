@@ -70,42 +70,41 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
             <th>Duration</th>
             <th>Note</th>
             <th>Sample Count</th>
+            <th>Playback<br/>Rate</th>
             <th>
-              Vol
-              <br />
               Delay
+              <br/>
+              (sec)
             </th>
             <th>
-              Vol
-              <br />
               Attack
+              <br/>
+              (sec)
             </th>
             <th>
-              Vol
-              <br />
               Hold
+              <br/>
+              (sec)
             </th>
             <th>
-              Vol
-              <br />
               Decay
+              <br/>
+              (sec)
             </th>
             <th>
-              Vol
-              <br />
               Sustain
+              <br/>
+              (sec)
             </th>
             <th>
-              Vol
-              <br />
               Sustain
               <br />
               Level
             </th>
             <th>
-              Vol
-              <br />
               Release
+              <br/>
+              (sec)
             </th>
             <th>
               Vol
@@ -130,13 +129,14 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
               <td>{s.source.duration.toFixed(3)}</td>
               <td>{s.source.note.toFixed(2)}</td>
               <td>{s.source.sample[0].length}</td>
+              <td>{s.source.playbackRate.toFixed(3)}</td>
               <td>{(s.source.startTime + s.vol.delayInterval).toFixed(3)}</td>
               <td>{(s.source.startTime + s.vol.attackInterval).toFixed(3)}</td>
               <td>{(s.source.startTime + s.vol.holdInterval).toFixed(3)}</td>
               <td>{(s.source.startTime + s.vol.decayInterval).toFixed(3)}</td>
               <td>{(s.source.startTime + s.vol.sustainInterval).toFixed(3)}</td>
               <td>{s.vol.sustainLevel}</td>
-              <td>{(s.source.startTime + s.vol.releaseInterval).toFixed(3)}</td>
+              <td>{(s.source.stopTime).toFixed(3)}</td>
               <td>{s.vol.value.toFixed(3)}</td>
               <td>{s.panner.value.toFixed(3)}</td>
             </tr>

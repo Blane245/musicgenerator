@@ -62,13 +62,14 @@ export function realizeSource(
         let t2: number = rawSourceData.vol.attackInterval + t1;
         let t3: number = rawSourceData.vol.holdInterval + t2;
         let t4: number = rawSourceData.vol.decayInterval + t3;
-        const t5: number =
-          rawSourceData.source.stopTime - rawSourceData.vol.releaseInterval;
+        const t5: number = rawSourceData.gen.stopTime;
+        // rawSourceData.source.stopTime - rawSourceData.vol.releaseInterval;
         const t6: number = rawSourceData.source.stopTime;
         const sustainLevel: number = Math.max(
           rawSourceData.vol.sustainLevel,
           0
         );
+        // console.log('times', t0, t1, t2, t3, t4, t5, t6);
         let sustainMultipler: number = sustainLevel;
         if (sustainMultipler == 0) sustainMultipler = 1.0;
         // When 96 dB (0.04) of attenuation is reached in the final gain amplifier, an abrupt jump to zero gain (infinite dB
@@ -128,7 +129,7 @@ export function realizeSource(
           if (t1 != t2) {
             vol.gain.exponentialRampToValueAtTime(modGain, t2);
             vol.gain.setValueAtTime(modGain, t2);
-          }
+          } else vol.gain.setValueAtTime(modGain, t2);
           vol.gain.setValueAtTime(modGain, t5);
           vol.gain.cancelAndHoldAtTime(t5);
           vol.gain.exponentialRampToValueAtTime(min, t6);
@@ -144,8 +145,10 @@ export function realizeSource(
           // );
         } else if (sustainLevel > 0 && t3 >= t5) {
           // case 4 hold is past end, so delay, attack, hold, release
-          vol.gain.setValueAtTime(min, t0);
-          if (t0 != t1) vol.gain.setValueAtTime(min, t1);
+          if (t0 != t1) {
+            vol.gain.setValueAtTime(min, t0);
+            vol.gain.setValueAtTime(min, t1);
+          } else vol.gain.setValueAtTime(modGain, t0);
           if (t1 != t2) {
             vol.gain.exponentialRampToValueAtTime(modGain, t2);
             vol.gain.setValueAtTime(modGain, t2);
@@ -166,8 +169,10 @@ export function realizeSource(
           // );
         } else if (sustainLevel > 0 && t4 >= t5) {
           // case 5 decay is past end, so delay, attack, hold, partial decay, release
-          vol.gain.setValueAtTime(min, t0);
-          if (t0 != t1) vol.gain.setValueAtTime(min, t1);
+          if (t0 != t1) {
+            vol.gain.setValueAtTime(min, t0);
+            vol.gain.setValueAtTime(min, t1);
+          } else vol.gain.setValueAtTime(modGain, t0);
           if (t1 != t2) {
             vol.gain.exponentialRampToValueAtTime(modGain, t2);
             vol.gain.setValueAtTime(modGain, t2);
@@ -194,8 +199,10 @@ export function realizeSource(
           // );
         } else if (sustainLevel > 0 && t4 <= t5) {
           // case 6 - decay complete before stop time - delay, attack, hold, decay, no release
-          vol.gain.setValueAtTime(min, t0);
-          if (t0 != t1) vol.gain.setValueAtTime(min, t1);
+          if (t0 != t1) {
+            vol.gain.setValueAtTime(min, t0);
+            vol.gain.setValueAtTime(min, t1);
+          } else vol.gain.setValueAtTime(modGain, t0);
           if (t1 != t2) {
             vol.gain.exponentialRampToValueAtTime(modGain, t2);
             vol.gain.setValueAtTime(modGain, t2);
@@ -221,8 +228,7 @@ export function realizeSource(
           vol.gain.value = gain;
           // console.log("no condition set - set gain");
         }
-      } else
-      vol.gain.value = min;
+      } else vol.gain.value = min;
     }
 
     // array buffer exists

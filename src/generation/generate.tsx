@@ -66,7 +66,7 @@ export default function Generate(props: GeneratorProps) {
 
     // build the generator sources
     recordLength.current = playbackLength;
-    const {sources: buildSourceData, error: buildError} = buildSources({
+    const {sources: builtSourceData, error: buildError} = buildSources({
       AlgorithmicGenerators,
       AudioFileGenerators,
       CMGenerators,
@@ -75,7 +75,7 @@ export default function Generate(props: GeneratorProps) {
     // catch any errors during build
     setError(buildError);
     if (buildError != "") return;
-    sourceData.current = buildSourceData;
+    sourceData.current = builtSourceData;
     // let the system know that playing if entered
     playing.current = true;
 

@@ -301,7 +301,7 @@ export default function AlgorithmicDialog(
                 value: (formData.speedP as OscillatorValues).values.center,
                 lo: 1,
                 hi: 1000,
-                step: 1,
+                step: 0.01,
                 suffix: "(BPM)",
               }}
               centerSuffix={() => "BPM"}

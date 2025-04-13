@@ -29,12 +29,10 @@ export default class SignalLevel {
     if (dataArray.length > 0) {
       analyser.getFloatTimeDomainData(dataArray);
       let average: number = 0;
-    //   console.log('sample length', dataArray.length);
       for (let index = 0; index < dataArray.length; index++) {
         average +=dataArray[index]*dataArray[index];
       }
       average = average / dataArray.length;
-      console.log('average', average);
       return 10 * Math.log10(average);
     } else return 0;
   }

@@ -251,7 +251,6 @@ export default function Preview(params: PreviewProps): void {
       // get the current volume levels
       setSignalLevels(() => {
         const {left, right} = analyzer.getValues();
-        console.log('signal levels', left, right);
         return {left, right};
       });
       signalId = window.setTimeout(volumeMonitor, 500);
