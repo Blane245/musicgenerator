@@ -58,10 +58,10 @@ export default function Header(props: HeaderProps) {
           <HelpMenu />
         </div>
         <div className="left">
-          <input type="range" value={signals.left} min={-90} max={0} ></input>
+          <input type="range" readOnly value={signals.left} min={-90} max={0} ></input>
         </div>
         <div className="right">
-          <input type="range" value={signals.right} min={-90} max={0}></input>
+          <input type="range" readOnly value={signals.right} min={-90} max={0}></input>
         </div>
         <div className="time-control">
           <TimeLineControlsDisplay />

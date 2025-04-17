@@ -32,7 +32,6 @@ export default function Generate(props: GeneratorProps) {
     fileContents,
     timeInterval,
     setGeneratorsPlaying,
-    signalLevels,
     setSignalLevels,
   } = useCMGContext();
   const [error, setError] = useState<string>("");
@@ -93,7 +92,6 @@ export default function Generate(props: GeneratorProps) {
         setTimeProgress,
         setGeneratorsPlaying,
         setStatus,
-        signalLevels,
         setSignalLevels,
       });
     // console.log("mode is", mode, "record handle is ", recordHandle);

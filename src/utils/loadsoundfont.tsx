@@ -1,6 +1,6 @@
 // load a soundfont file from the server and
 // place it in a SoundFont2 object
-import { SoundFont2 } from "soundfont2";
+import { SoundFont2 } from "../soundfont2";
 import fetchData from "./fetchdata";
 
 export async function loadSoundFont(fileName: string): Promise<SoundFont2> {

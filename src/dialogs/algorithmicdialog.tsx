@@ -1,4 +1,4 @@
-import { ChangeEvent } from "react";
+import { ChangeEvent, useState } from "react";
 import { ALGORITHMTYPE } from "../types";
 import {
   MarkovianValues,
@@ -7,7 +7,7 @@ import {
 } from "../classes/algorithmvalues";
 import { Algorithmic } from "../classes/generators";
 import { useCMGContext } from "../cmgcontext";
-import { bankPresettoName, toNote } from "../sfcomponents/util";
+import { bankPresettoName, frequencyToMidi, midiToFrequency, toNote } from "../sfcomponents/util";
 import MarkovianPropertiesBox from "./markovianpropertiesbox";
 import OscillatorPropertiesBox from "./oscillatorpropertiesbox";
 import WienerPropertiesBox from "./wienerpropertiesbox";
@@ -27,6 +27,18 @@ export default function AlgorithmicDialog(
 ): JSX.Element {
   const { SFFileList } = useCMGContext();
   const { formData, handleChange } = props;
+  const [open, setOpen] = useState<boolean>(false);
+  const [midiFrequency, setMidiFrequency] = useState<number>(0);
+  const [frequencyMidi, setFrequencyMidi] = useState<number>(0);
+  function handleMidiChange(e: ChangeEvent<HTMLInputElement>) {
+    const midi: number = parseFloat(e.currentTarget.value);
+    setMidiFrequency(midiToFrequency(midi));
+  }
+  function handleFrequencyChange(e: ChangeEvent<HTMLInputElement>) {
+    const frequency: number = parseFloat(e.currentTarget.value);
+    setFrequencyMidi(frequencyToMidi(frequency));
+  }
+
 
   return (
     <>
@@ -65,6 +77,18 @@ export default function AlgorithmicDialog(
         </select>
       </label>
       <label>
+      &nbsp;Velocity:&nbsp;
+        <input
+          name="velocity"
+          type="number"
+          min={0}
+          max={127}
+          step={1}
+          onChange={handleChange}
+          value={formData.velocity}
+        />
+      </label>
+      <label>
         &nbsp;Looping?:&nbsp;
         <input
           name="isLooping"
@@ -73,6 +97,8 @@ export default function AlgorithmicDialog(
           onChange={handleChange}
         />
       </label>
+      <span>{" "}</span>
+      <button type="button" style={{fontSize:"12px"}} onClick={()=>setOpen(true)}>{"Frequency<->Midi"}</button>
       <br />
       <label>
         Measure Length:&nbsp;
@@ -534,6 +560,38 @@ export default function AlgorithmicDialog(
           ) : null}
         </div>
       </div>
+      {open ? (
+        <>
+          <div className="modal-content" style={{ display: "block" }}>
+            <div className="modal-header">
+              <h2>{"Midi<->Frequency Converter"}</h2>
+            </div>
+            <div className="modal-body">
+              <label>
+                Midi{" "}                
+                <input
+                  type="number"
+                  onChange={(e) => handleMidiChange(e)}
+                  defaultValue={0}
+                ></input>
+              </label>
+              <text>{" "}{midiFrequency.toFixed(3)} (Hz)</text>
+              <br />
+              <label>
+                Frequency (Hz)&nbsp;
+                <input
+                  type="number"
+                  onChange={(e) => handleFrequencyChange(e)}
+                  defaultValue={0}
+                ></input>
+                <text>{" "}{frequencyMidi.toFixed(3)}</text>
+              </label>
+              <br/>
+              <button onClick={()=>setOpen(false)}>Close</button>
+            </div>
+          </div>
+        </>
+      ) : null}
     </>
   );
 }

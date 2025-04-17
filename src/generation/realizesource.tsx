@@ -62,7 +62,7 @@ export function realizeSource(
         let t2: number = rawSourceData.vol.attackInterval + t1;
         let t3: number = rawSourceData.vol.holdInterval + t2;
         let t4: number = rawSourceData.vol.decayInterval + t3;
-        const t5: number = rawSourceData.gen.stopTime;
+        const t5: number = rawSourceData.source.stopTime - rawSourceData.vol.releaseInterval;
         // rawSourceData.source.stopTime - rawSourceData.vol.releaseInterval;
         const t6: number = rawSourceData.source.stopTime;
         const sustainLevel: number = Math.max(
@@ -179,7 +179,8 @@ export function realizeSource(
           }
           if (t2 != t3) vol.gain.setValueAtTime(modGain, t3);
           const minDecay: number =
-            t3 != t4 ? gain + ((modGain - min) * (t5 - t3)) / (t3 - t4) : gain;
+            t3 != t4 ? modGain + ((modGain - min) * (t5 - t3)) / (t3 - t4) : modGain;
+          vol.gain.setValueAtTime(modGain, t3);
           vol.gain.exponentialRampToValueAtTime(minDecay, t5);
           vol.gain.setValueAtTime(minDecay, t5);
           vol.gain.cancelAndHoldAtTime(t5);

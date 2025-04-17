@@ -1,8 +1,17 @@
 {
   "name": "musicgenerator",
   "private": true,
-  "version": "3.3.0",
+  "version": "3.4.0",
   "type": "module",
+  "homepage": "https://lanedb.hopto.org/cmg3/",
+  "author": {
+    "name": "Bob Lane",
+    "url": "https://blane.fun/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/blane245/musicgenerator"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build --base=/cmg3 --mode=production",
@@ -41,6 +50,7 @@
     "typescript-eslint": "^8.15.0",
     "vite": "^6.0.1",
     "vite-plugin-checker": "^0.8.0",
-    "vite-plugin-svgr": "^4.3.0"
+    "vite-plugin-svgr": "^4.3.0",
+    "vite-tsconfig-paths": "^5.1.4"
   }
 }

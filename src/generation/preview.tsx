@@ -29,7 +29,6 @@ export interface PreviewProps {
   setTimeProgress: Function;
   setStatus: Function;
   setGeneratorsPlaying: Function;
-  signalLevels: {left: number, right: number},
   setSignalLevels: Function,
 }
 
@@ -44,7 +43,6 @@ export default function Preview(params: PreviewProps): void {
     setTimeProgress,
     setGeneratorsPlaying,
     setStatus,
-    signalLevels,
     setSignalLevels,
   } = params;
 

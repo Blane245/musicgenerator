@@ -146,6 +146,7 @@ export class Algorithmic extends CMG {
   presets: Preset[]; // the soundfont preset list (not needed for AudioFile or Noise)
   presetName: string; // the soundfont preset name (not needed for AudioFile or Noise)
   preset: Preset | undefined; // the soundfont preset object (derived from the presetName and the soundFont file)
+  velocity: number;
   isLooping: boolean; // should the sample loop?
   measureLength: number; // the number of beats in a measure
   beatCount: number; // the number of strokes in a measure
@@ -172,6 +173,7 @@ export class Algorithmic extends CMG {
     this.presetName = "";
     this.preset = undefined;
     this.presets = [];
+    this.velocity = 63;
     this.isLooping = true;
     this.measureLength = 4;
     this.beatCount = 4;
@@ -245,6 +247,7 @@ export class Algorithmic extends CMG {
     n.presetName = this.presetName;
     n.preset = this.preset;
     n.presets = this.presets;
+    n.velocity = this.velocity;
     n.isLooping = this.isLooping;
     n.measureLength = this.measureLength;
     n.beatCount = this.beatCount;
@@ -281,6 +284,9 @@ export class Algorithmic extends CMG {
         this.presetName = value;
         const { preset } = presetNameToPreset(this.presetName, this.presets);
         this.preset = preset;
+        return;
+      case "velocity" :
+        this.velocity = parseInt(value);
         return;
       case "isLooping":
         this.isLooping = value == "true";
@@ -407,6 +413,7 @@ export class Algorithmic extends CMG {
 
   getCurrentValues(time: number): {
     beat: boolean;
+    velocity: number;
     note: number;
     speed: number;
     volume: number;
@@ -416,6 +423,7 @@ export class Algorithmic extends CMG {
     this.#currentRhythmEntry =
       (this.#currentRhythmEntry + 1) % this.measureLength;
     const beat = this.#beatSequence[entry] != 0;
+    const velocity = this.velocity;
     let note: number = this.noteP ? this.noteP.getCurrentValue(time - this.startTime) : 0;
     const speed: number = this.speedP ? this.speedP.getCurrentValue(time - this.startTime) : 0;
     const volume: number = this.volumeP
@@ -425,7 +433,7 @@ export class Algorithmic extends CMG {
 
     // modify the note based on those selectable in the octave
     note = this.#getSelectedNote(note);
-    return { beat, note, speed, volume, pan };
+    return { beat, note, velocity, speed, volume, pan };
   }
 
   #getSelectedNote(note: number): number {
@@ -467,6 +475,7 @@ export class Algorithmic extends CMG {
       await super.appendXML(doc, returnElem);
       returnElem.setAttribute("soundFontFile", this.soundFontFile);
       returnElem.setAttribute("presetName", this.presetName);
+      returnElem.setAttribute("velocity", this.velocity.toString());
       returnElem.setAttribute("isLooping", this.isLooping ? "true" : "false");
       returnElem.setAttribute("measureLength", this.measureLength.toString());
       returnElem.setAttribute("beatCount", this.beatCount.toString());
@@ -530,6 +539,11 @@ export class Algorithmic extends CMG {
         });
       } else {
         foundSoundFont.generators.push(g);
+      }
+      try {
+        g.velocity = getAttributeValue(elem, "velocity", "int") as number;
+      } catch {
+        g.velocity = 63;
       }
       g.isLooping =
         (getAttributeValue(elem, "isLooping", "string") as string) == "true";

@@ -6,7 +6,7 @@
     "module": "ESNext",
     "skipLibCheck": true,
     "outDir": "./build",
-    "baseUrl": "src",
+    "baseUrl": "./src",
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -25,5 +25,5 @@
     "noImplicitOverride": true
   },
   "include": ["src/**/*.tsx", "vite-env.d.ts"],
-  "exclude": ["public"]
+  "exclude": ["public", "node_modules"]
 }
