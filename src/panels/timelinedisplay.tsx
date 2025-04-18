@@ -168,10 +168,10 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
 
           // broadcast change
           setTimeInterval(newInterval);
-          console.log(
-            "new timeline interval after timeline change",
-            newInterval
-          );
+          // console.log(
+          //   "new timeline interval after timeline change",
+          //   newInterval
+          // );
           return newInterval;
         } else return prev;
       });

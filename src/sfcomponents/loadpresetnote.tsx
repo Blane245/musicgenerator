@@ -4,7 +4,7 @@ import { gaussianRandom } from "../utils/gaussianrandom";
 import { getGeneratorValues } from "./generators";
 import { samplePool } from "./samplepool";
 import { InstrumentZone, Preset, PresetZone } from "./types";
-import { precision, tc2s } from "./util";
+import { attenuate, precision, tc2s } from "./util";
 
 // select mid range velocity Range
 const isActiveZone = (
@@ -174,11 +174,7 @@ export const getPresetNote = (
     );
     const releaseInterval: number = release;
     const duration: number = interval + release;
-    // sustain level multiplier has some special cases
-    // When it is <= 0, there is decay and the multiplier is 1
-    // When it is > 0, and less that 960, the multiplier is between 1 and 0.040
-    // When it is >= 960, multipler is 0
-    let sustainLevel = sustainVolEnv;
+    let sustainLevel = attenuate(1.0, sustainVolEnv/ 10);
     let noisySample: Float32Array = new Float32Array(0);
     // add noise to the sample if necessary
     if (noiseAmplitude > 0 && noiseDispersion > 0) {
