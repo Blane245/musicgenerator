@@ -14,7 +14,7 @@ import {
 } from "react";
 import CMGFile from "./classes/cmgfile";
 import TimeLine from "./classes/timeline";
-import { GeneratorType, TimelineInterval } from "./types";
+import { GeneratorType, SOUNDFONTLOCATIONOPTIONS, TimelineInterval } from "./types";
 
 // the elements of this application that are used at many levels
 interface CMGContextType {
@@ -26,6 +26,12 @@ interface CMGContextType {
   setBodyHeight: Dispatch<SetStateAction<number>>;
   verticalScrollWidth: number;
   setVerticalScrollWidth: Dispatch<SetStateAction<number>>;
+  SFFileLocation: SOUNDFONTLOCATIONOPTIONS;
+  setSFFileLocation: Dispatch<SetStateAction<SOUNDFONTLOCATIONOPTIONS>>;
+  SFLocalURI: string;
+  setSFLocalURI: Dispatch<SetStateAction<string>>;
+  SFServerURI: string;
+  setSFServerURI: Dispatch<SetStateAction<string>>;
   SFFileList: string[];
   setSFFileList: Dispatch<SetStateAction<string[]>>;
   fileName: string;
@@ -58,7 +64,11 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
   const [screenWidth, setScreenWidth] = useState<number>(0);
   const [bodyHeight, setBodyHeight] = useState<number>(0);
   const [verticalScrollWidth, setVerticalScrollWidth] = useState<number>(0);
+  const [SFFileLocation, setSFFileLocation] = useState<SOUNDFONTLOCATIONOPTIONS>(SOUNDFONTLOCATIONOPTIONS.Server);
   const [SFFileList, setSFFileList] = useState<string[]>([]);
+  const [SFLocalURI, setSFLocalURI] = useState<string>("");
+  const [SFServerURI, setSFServerURI] = useState<string>("");
+
   const [fileContents, setFileContents] = useState<CMGFile>(new CMGFile());
   const [status, setStatus] = useState<string>("");
   const [timeLine, setTimeLine] = useState<TimeLine>(new TimeLine(0, 0));
@@ -85,8 +95,14 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     setBodyHeight,
     verticalScrollWidth,
     setVerticalScrollWidth,
+    SFFileLocation,
+    setSFFileLocation,
     SFFileList,
     setSFFileList,
+    SFLocalURI, 
+    setSFLocalURI,
+    SFServerURI, 
+    setSFServerURI,
     fileName,
     setFileName,
     fileContents,

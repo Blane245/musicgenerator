@@ -2,6 +2,7 @@
 // saving current ones, and adding tracks to current ones
 import { useState } from "react";
 import { renderToString } from "react-dom/server";
+import { useHotkeys } from "react-hotkeys-hook";
 import { useCMGContext } from "../cmgcontext";
 import Generate from "../generation/generate";
 import Report from "../generation/reportwriter/report";
@@ -14,6 +15,23 @@ export default function GenerateMenu() {
   const [recordHandle, setRecordHandle] = useState<FileSystemFileHandle | null>(
     null
   );
+    // a couple of hot keys are supported for preview and record
+    useHotkeys(
+      "ctrl+p",
+      (event) => {
+        event.preventDefault();
+        if (!playing.current) handlePreview;
+      },
+    );
+  
+    useHotkeys(
+      "ctrl+r",
+      (event) => {
+        event.preventDefault();
+        if (!playing.current) handleRecord;
+      },
+    );
+  
 
   // handle request to create a new file
   // If the curretn one is 'dirty' the user is

@@ -1,4 +1,4 @@
-import { SoundFont2 } from "soundfont2";
+import { SoundFont2 } from "../soundfont2";
 
 export interface SampleHeader {
   name: string;

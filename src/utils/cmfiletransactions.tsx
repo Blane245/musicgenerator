@@ -1,6 +1,6 @@
 // Update various parts of the CMGFile based
 // various transactions within the system
-import Volume from "classes/volume";
+import Volume from "../classes/volume";
 import CMGFile from "../classes/cmgfile";
 import Compressor from "../classes/compressor";
 import Equalizer from "../classes/equalizer";

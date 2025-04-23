@@ -1,13 +1,13 @@
 // provides CRUD for all types of generators
 import { ChangeEvent, FormEvent, MouseEvent, useEffect, useState } from "react";
-import { SoundFont2 } from "soundfont2";
+import { SoundFont2 } from "../soundfont2";
 import { Algorithmic, AudioFile, CMG } from "../classes/generators";
 import Track from "../classes/track";
 import { useCMGContext } from "../cmgcontext";
 import { SoundFontPool } from "../sfcomponents/soundfontpool";
 import { Preset } from "../sfcomponents/types";
 import { bankPresettoName, precision } from "../sfcomponents/util";
-import { GeneratorType, GENERATORTYPE } from "../types";
+import { GENERATIONMODE, GeneratorType, GENERATORTYPE } from "../types";
 import {
   addGenerator,
   // deleteGenerator,
@@ -15,6 +15,9 @@ import {
 } from "../utils/cmfiletransactions";
 import { getGeneratorUID } from "../utils/getgeneratoruid";
 import GeneratorTypeForm from "./generatortypeform";
+import Preview from "../generation/preview";
+import ReadyGenerate from "../generation/readygenerate";
+import { buildSources } from "../generation/buildsources";
 
 // The icon starts at the generator's start time and ends at the generators endtime
 export interface GeneratorDialogProps {
@@ -35,7 +38,19 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     presetName: string;
   };
 
-  const { fileContents, setFileContents, setStatus } = useCMGContext();
+  const {
+    fileContents,
+    setFileContents,
+    setStatus,
+    timeInterval,
+    playing,
+    setTimeProgress,
+    setGeneratorsPlaying,
+    setSignalLevels,
+    SFFileLocation,
+    SFLocalURI,
+    SFServerURI,
+  } = useCMGContext();
   const [showModal, setShowModal] = useState<boolean>(false);
   // const [deleteModal, setDeleteModal] = useState<boolean>(false);
   const [oldName, setOldName] = useState<string>("");
@@ -48,10 +63,9 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     preset: undefined,
     presetName: "",
   });
-  const [audioFileData] = useState<AudioFile>(
-    new AudioFile(0)
-  );
+  const [audioFileData] = useState<AudioFile>(new AudioFile(0));
   const [locked, setLocked] = useState<boolean>(false);
+  const [isPreview, setIsPreview] = useState<boolean>(false);
 
   useEffect(() => {
     if (open) {
@@ -91,6 +105,11 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     });
     setLocked(false);
   }, [audioFileData]);
+
+  // when playing stops take donw the stop preview popup
+  useEffect(() => {
+    if (!playing.current) setIsPreview(false);
+  }, [playing.current]);
 
   function handleChange(
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -179,8 +198,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     });
   }
 
-  function handleSubmit(event: FormEvent<Element>): void {
-    event.preventDefault();
+  function validate(formData: GeneratorType): string[] {
     const msgs: string[] = [];
     switch (formData.type) {
       case GENERATORTYPE.CMG:
@@ -192,7 +210,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           );
           msgs.push(...newMessages);
           setErrorMessages(msgs);
-          if (msgs.length > 0) return;
         }
         break;
       case GENERATORTYPE.Algorithmic:
@@ -204,7 +221,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           );
           msgs.push(...newMessages);
           setErrorMessages(msgs);
-          if (msgs.length > 0) return;
         }
         break;
       case GENERATORTYPE.AudioFile:
@@ -216,16 +232,19 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           );
           msgs.push(...newMessages);
           setErrorMessages(msgs);
-          if (msgs.length > 0) return;
         }
         break;
       default: {
         msgs.push(`Invalid generator type ${formData.type}`);
         setErrorMessages(msgs);
-        return;
       }
     }
+    return msgs;
+  }
+  function handleSubmit(event: FormEvent<Element>): void {
+    event.preventDefault();
 
+    const msgs: string[] = validate(formData);
     if (msgs.length == 0) {
       if (generatorIndex < 0) {
         // add a new generator to the current track
@@ -247,6 +266,53 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     }
   }
 
+  function handlePreview() {
+    const msgs: string[] = validate(formData);
+    if (msgs.length != 0) return;
+    const {
+      AlgorithmicGenerators,
+      AudioFileGenerators,
+      CMGenerators,
+      playbackLength,
+      offsetTime,
+      error,
+    } = ReadyGenerate({
+      mode: GENERATIONMODE.solo,
+      generator: formData,
+      fileContents,
+      timeInterval,
+    });
+    if (error != "") {
+      setStatus(`Error occurred while getting ready to preview: ${error}`);
+      return;
+    }
+    const { sources: builtSourceData, error: buildError } = buildSources({
+      AlgorithmicGenerators,
+      AudioFileGenerators,
+      CMGenerators,
+    });
+    if (buildError != "") {
+      setStatus(
+        `Error occurred while building source to preview: ${buildError}`
+      );
+      return;
+    }
+    playing.current = true;
+    setIsPreview(true);
+    Preview({
+      fileContents,
+      playbackLength,
+      offsetTime,
+      sourceData: builtSourceData,
+      setMode: () => {},
+      playing,
+      setTimeProgress,
+      setGeneratorsPlaying,
+      setStatus,
+      setSignalLevels,
+    });
+  }
+
   function handleCancelClick(event: MouseEvent<Element>) {
     event.preventDefault();
     setShowModal(false);
@@ -256,124 +322,153 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
   }
 
   return (
-    <fieldset disabled={locked}>
-      {open ? (
-        <>
-          <div
-            aria-modal="true"
-            style={{ display: showModal ? "block" : "none" }}
-            className="generator-content"
-          >
-            <div className="generator-header">
-              <span className="close" onClick={handleCancelClick}>
-                &times;
-              </span>
-              <span>
-                {generatorIndex < 0
-                  ? "  New Generator"
-                  : "  Generator: " + formData.name}
-              </span>
-            </div>
-            <div className="generator-body">
-              <form
-                name="generator_CRUD"
-                id="generator_CRUD"
-                onSubmit={handleSubmit}
-              >
-                <label>
-                  Name:&nbsp;
-                  <input
-                    name="name"
-                    type="text"
-                    onChange={handleChange}
-                    value={formData.name}
-                  />
-                </label>
-                <label>
-                  &nbsp;Type:&nbsp;
-                  <select
-                    name="type"
-                    onChange={handleTypeChange}
-                    value={formData.type}
-                  >
-                    {Object.keys(GENERATORTYPE).map((t, i) => {
-                      if (!parseInt(t) && t != "0")
-                        return (
-                          <option key={`GT-${i}`} value={t}>
-                            {t}
-                          </option>
-                        );
-                    })}
-                  </select>
-                </label>
-                <label>
-                  &nbsp;Start Time:&nbsp;
-                  <input
-                    name="startTime"
-                    type="number"
-                    min={0}
-                    step={0.1}
-                    onChange={handleChange}
-                    value={precision(formData.startTime, 1)}
-                  />
-                  <span> (sec) </span>
-                </label>
-                <label>
-                  &nbsp;Stop Time:&nbsp;
-                  <input
-                    name="stopTime"
-                    type="number"
-                    min={0}
-                    step={0.1}
-                    onChange={handleChange}
-                    value={precision(formData.stopTime, 1)}
-                  />
-                  <span> (sec) </span>
-                </label>
-                <br />
+    <>
+      <fieldset disabled={locked}>
+        {open ? (
+          <>
+            <div
+              aria-modal="true"
+              style={{ display: showModal ? "block" : "none" }}
+              className="generator-content"
+            >
+              <div className="generator-header">
+                <span className="close" onClick={handleCancelClick}>
+                  &times;
+                </span>
+                <span>
+                  {generatorIndex < 0
+                    ? "  New Generator"
+                    : "  Generator: " + formData.name}
+                </span>
+              </div>
+              <div className="generator-body">
+                <form
+                  name="generator_CRUD"
+                  id="generator_CRUD"
+                  onSubmit={handleSubmit}
+                >
+                  <label>
+                    Name:&nbsp;
+                    <input
+                      name="name"
+                      type="text"
+                      onChange={handleChange}
+                      value={formData.name}
+                    />
+                  </label>
+                  <label>
+                    &nbsp;Type:&nbsp;
+                    <select
+                      name="type"
+                      onChange={handleTypeChange}
+                      value={formData.type}
+                    >
+                      {Object.keys(GENERATORTYPE).map((t, i) => {
+                        if (!parseInt(t) && t != "0")
+                          return (
+                            <option key={`GT-${i}`} value={t}>
+                              {t}
+                            </option>
+                          );
+                      })}
+                    </select>
+                  </label>
+                  <label>
+                    &nbsp;Start Time:&nbsp;
+                    <input
+                      name="startTime"
+                      type="number"
+                      min={0}
+                      step={0.1}
+                      onChange={handleChange}
+                      value={precision(formData.startTime, 1)}
+                    />
+                    <span> (sec) </span>
+                  </label>
+                  <label>
+                    &nbsp;Stop Time:&nbsp;
+                    <input
+                      name="stopTime"
+                      type="number"
+                      min={0}
+                      step={0.1}
+                      onChange={handleChange}
+                      value={precision(formData.stopTime, 1)}
+                    />
+                    <span> (sec) </span>
+                  </label>
+                  <br />
 
-                <GeneratorTypeForm
-                  formData={formData}
-                  handleChange={handleChange}
-                />
-                <hr />
-                <input
-                  type="submit"
-                  value={generatorIndex < 0 ? "Add" : "Modify"}
-                />
-              </form>
+                  <GeneratorTypeForm
+                    formData={formData}
+                    handleChange={handleChange}
+                  />
+                  <hr />
+                  <input
+                    type="submit"
+                    value={generatorIndex < 0 ? "Add" : "Modify"}
+                  />
+                </form>
+              </div>
+              <div className="generator-footer">
+                <button
+                  type="button"
+                  id={"generator-preview:" + formData.name}
+                  onClick={handlePreview}
+                >
+                  Preview
+                </button>
+                <button
+                  id={"generator-update:" + formData.name}
+                  onClick={handleCancelClick}
+                >
+                  Cancel
+                </button>
+                {errorMessages.map((m, i) => (
+                  <h3 color="red" key={`error-${i}`}>
+                    {m}
+                  </h3>
+                ))}
+              </div>
             </div>
-            <div className="generator-footer">
-              {/* <button
-                hidden={generatorIndex < 0}
-                id={"generator-delete:" + formData.name}
-                onClick={handleDeleteClick}
-              >
-                Delete
-              </button> */}
-              <button
-                id={"generator-update:" + formData.name}
-                onClick={handleCancelClick}
-              >
-                Cancel
-              </button>
-              {errorMessages.map((m, i) => (
-                <h3 color="red" key={`error-${i}`}>
-                  {m}
-                </h3>
-              ))}
-            </div>
-          </div>
-        </>
-      ) : null}
-    </fieldset>
+          </>
+        ) : null}
+      </fieldset>
+      <div
+        style={{ display: isPreview ? "block" : "none" }}
+        className="modal-content"
+      >
+        <div className="modal-header">
+          <span className="close">&times;</span>
+          Preview In Progress
+        </div>
+        <div className="modal-body">
+          <p>Click Stop to Exit Preview</p>
+        </div>
+        <div className="modal-footer">
+          <button
+            onClick={() => {
+              setIsPreview(false);
+              playing.current = false;
+            }}
+          >
+            Stop
+          </button>
+        </div>
+      </div>
+    </>
   );
 
   function loadSoundFontandUpdate(fileName: string) {
     setLocked(true);
     // load the soundfont file and set the presets
     async function LoadFile(fileName: string) {
-      const { soundFont } = await SoundFontPool(fileName);
+      const { soundFont } = await SoundFontPool(
+        fileName,
+        SFFileLocation,
+        SFLocalURI,
+        SFServerURI
+      );
       setSoundFontData(() => {
         const presets: Preset[] = (soundFont.presets as Preset[]).sort(
           (a, b) => {
@@ -395,50 +490,4 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     }
     LoadFile(fileName);
   }
-
-  // function loadAudioFileandUpdate() {
-  //   // load the data from the file selected by the user
-  //   if (!filePicker.current) {
-  //     filePicker.current = true;
-  //     setLocked(true);
-  //     try {
-  //       window
-  //         .showOpenFilePicker({
-  //           multiple: false,
-  //           types: [
-  //             {
-  //               description: "Audio Files",
-  //               accept: { "audio/*": [".mp3", ".wav"] },
-  //             },
-  //           ],
-  //         })
-  //         .then((rhs: FileSystemFileHandle[]) => {
-  //           rhs[0].getFile().then((file: File) => {
-  //             file.arrayBuffer().then((buffer: ArrayBuffer) => {
-  //               const context: AudioContext = new AudioContext();
-  //               context.decodeAudioData(buffer).then((audio: AudioBuffer) => {
-  //                 setAudioFileData((prev: AudioFile) => {
-  //                   const n = prev.copy();
-  //                   n.fileName = file.name;
-  //                   n.sampleRate = audio.sampleRate;
-  //                   n.duration = precision(audio.duration, 1);
-  //                   n.stopTime = n.startTime + n.duration;
-  //                   n.samples = [];
-  //                   for (let i = 0; i < audio.numberOfChannels; i++) {
-  //                     const channelData: Float32Array = audio.getChannelData(i);
-  //                     n.samples.push(channelData);
-  //                   }
-  //                   return n;
-  //                 });
-  //                 filePicker.current = false;
-  //               });
-  //             });
-  //           });
-  //         });
-  //     } catch (e) {
-  //     } finally {
-  //       filePicker.current = false;
-  //     }
-  //   }
-  // }
 }

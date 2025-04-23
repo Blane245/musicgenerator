@@ -232,7 +232,7 @@ fieldset {
 .page .body {
   display: grid;
   grid-template-columns: 200px repeat(11, 1fr);
-  grid-template-rows: 100px 100px 100px 100px 100px;
+  grid-template-rows: repeat(8, 100px);
   gap: 0;
   position: absolute;
   top: 80px;
@@ -244,7 +244,6 @@ fieldset {
 }
 
 .page-track-control {
-  /* grid-template-columns: subgrid; */
   display: block;
   grid-column: span 1;
   border: 1px black solid;
@@ -253,7 +252,6 @@ fieldset {
 }
 
 .page-track-display {
-  /* grid-template-columns: subgrid; */
   display: block;
   grid-column: span 11;
   border: 1px black solid;

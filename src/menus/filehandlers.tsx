@@ -19,7 +19,7 @@
 // components. First, the file contents, and then the
 // tracks and thie generators asynchornously and in paralle
 
-import { SoundFont2 } from "soundfont2";
+import { SoundFont2 } from "../soundfont2";
 import CMGFile from "../classes/cmgfile";
 import Track from "../classes/track";
 import { SoundFontPool } from "../sfcomponents/soundfontpool";
@@ -29,6 +29,7 @@ import {
   SFPromiseType,
   SoundFontGenerators,
   SoundFontGeneratorsType,
+  SOUNDFONTLOCATIONOPTIONS,
 } from "../types";
 import { getDocElement } from "../utils/xmlfunctions";
 
@@ -85,7 +86,11 @@ export async function writeFile(
 
 export async function loadXML(
   xmlDoc: XMLDocument,
-  fileName: string
+  fileName: string,
+  SFFileLocation: SOUNDFONTLOCATIONOPTIONS,
+  SFLocalURI: string,
+  SFServerURI,
+
 ): Promise<CMGFile> {
   try {
     const fileContents = new CMGFile();
@@ -111,7 +116,8 @@ export async function loadXML(
 
     const soundFontPromises: Promise<SFPromiseType>[] = [];
     SoundFontGenerators.forEach(async (sff) => {
-      const soundFontPromise: Promise<SFPromiseType> = SoundFontPool(sff.name);
+      const soundFontPromise: Promise<SFPromiseType> = 
+      SoundFontPool(sff.name, SFFileLocation, SFLocalURI, SFServerURI);
       soundFontPromises.push(soundFontPromise);
     });
 

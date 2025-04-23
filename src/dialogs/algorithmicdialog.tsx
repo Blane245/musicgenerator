@@ -287,7 +287,7 @@ export default function AlgorithmicDialog(
               handleChange={handleChange}
               min={0}
               max={127}
-              step={1}
+              step={.1}
             />
           ) : null}
         </div>

@@ -6,10 +6,22 @@ import CMGFile from "../classes/cmgfile";
 import { useCMGContext } from "../cmgcontext";
 import { newFile, setDirty } from "../utils/cmfiletransactions";
 import { loadXML, writeFile } from "./filehandlers";
+import { getSFFileList } from "../utils/getsffilelist";
+import { SOUNDFONTLOCATIONOPTIONS } from "../types";
 
 export default function FileMenu() {
-  const { fileContents, setFileContents, setStatus, setFileName, playing } =
-    useCMGContext();
+  const {
+    fileContents,
+    setFileContents,
+    setStatus,
+    setFileName,
+    playing,
+    SFFileList,
+    setSFFileList,
+    SFFileLocation,
+    SFLocalURI,
+    SFServerURI,
+  } = useCMGContext();
   const [open, setOpen] = useState<string>("");
 
   // a couple of hot keys are supported for faile saving and opening
@@ -40,6 +52,18 @@ export default function FileMenu() {
       setFileName("");
       setStatus("New file started");
       setOpen("");
+
+      // load the list of soundfonts, if not already done
+      if (SFFileList.length == 0) {
+        getSFFileList(
+          // SFFileLocation,
+          SFFileLocation == SOUNDFONTLOCATIONOPTIONS.Server
+            ? SFServerURI
+            : SFLocalURI,
+          setSFFileList,
+          setStatus
+        );
+      }
     }
   }
 
@@ -66,6 +90,17 @@ export default function FileMenu() {
     if (fileContents.dirty) setOpen("open");
     else {
       setOpen("");
+      // load the list of soundfonts, if not already done
+      if (SFFileList.length == 0) {
+        getSFFileList(
+          // SFFileLocation,
+          SFFileLocation == SOUNDFONTLOCATIONOPTIONS.Server
+            ? SFServerURI
+            : SFLocalURI,
+          setSFFileList,
+          setStatus
+        );
+      }
       readFileContents();
     }
   }
@@ -73,7 +108,6 @@ export default function FileMenu() {
   function handleFileSave() {
     saveFileContents();
   }
-
 
   function handleMenuSelect(action: string) {
     switch (action) {
@@ -83,10 +117,10 @@ export default function FileMenu() {
       case "open":
         handleOpen();
         break;
-        case "save":
-          handleFileSave();
-          break;
-          default:
+      case "save":
+        handleFileSave();
+        break;
+      default:
         break;
     }
   }
@@ -196,7 +230,13 @@ export default function FileMenu() {
       const xmlDoc: XMLDocument = parser.parseFromString(xmlString, "text/xml");
 
       // load the file contents from the XML
-      const fileContents = await loadXML(xmlDoc, file.name);
+      const fileContents = await loadXML(
+        xmlDoc,
+        file.name,
+        SFFileLocation,
+        SFLocalURI,
+        SFServerURI
+      );
       fileContents.dirty = false;
       newFile(fileContents, setFileContents);
       setStatus(`File '${file.name}' loaded`);
@@ -209,5 +249,4 @@ export default function FileMenu() {
       if (page) page.inert = false;
     }
   }
-
 }

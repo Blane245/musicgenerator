@@ -1,4 +1,4 @@
-import { DEFAULT_GENERATOR_VALUES } from "soundfont2";
+import { DEFAULT_GENERATOR_VALUES } from "../soundfont2";
 import { Instrument, InstrumentZone, Preset, PresetZone } from "./types.d";
 
 // http://www.synthfont.com/SFSPEC21.PDF page 38
@@ -66,9 +66,10 @@ export const generators = {
   60: "endOper",
 };
 
-export const defaultGeneratorValues = Object.fromEntries(
+      export const defaultGeneratorValues = Object.fromEntries(
   Object.entries(DEFAULT_GENERATOR_VALUES).map(([key, value]) => [
-    generators[key],
+      // @ts-ignore
+      generators[key],
     value,
   ])
 );
@@ -95,7 +96,8 @@ an instrument with two zones, one with the default attackVelEnv and one with an 
 1200 timecents would cause the default zone to actually have a value of -9600 timecents or 4 msec, and the other to have a
 value of 3600 timecents or 8 seconds attack time.
   */
-  const defaultValue = DEFAULT_GENERATOR_VALUES[index];
+      // @ts-ignore
+      const defaultValue = DEFAULT_GENERATOR_VALUES[index];
   if (typeof defaultValue !== "number") {
     throw new Error(`no default value found for generator with index ${index}`);
   }
@@ -130,7 +132,8 @@ value of 3600 timecents or 8 seconds attack time.
 };
 
 export const hasDefaultValue = (index: string): boolean => {
-  return DEFAULT_GENERATOR_VALUES[index] !== undefined;
+      // @ts-ignore
+      return DEFAULT_GENERATOR_VALUES[index] !== undefined;
 };
 // console.log('DEFAULT_GENERATOR_VALUES',DEFAULT_GENERATOR_VALUES);
 
@@ -152,7 +155,8 @@ export const getGeneratorValues = (
     )
       .filter(hasDefaultValue)
       .map((key: string) => [
-        generators[key],
+      // @ts-ignore
+      generators[key],
         getGeneratorValue(
           parseInt(key),
           izone,

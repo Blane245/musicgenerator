@@ -5,8 +5,7 @@ import { useCMGContext } from "../cmgcontext";
 import Body from "../layouts/body";
 import Footer from "../layouts/footer";
 import Header from "../layouts/header";
-import fetchData from "../utils/fetchdata";
-
+import { DEFAULTLOCALSFURI, DEFAULTSERVERSFURI, SFFILELOCATIONITEM, SFLOCALURIITEM, SFSERVERURIITEM, SOUNDFONTLOCATIONOPTIONS } from "../types";
 export default function Home() {
   const {
     setScreenHeight,
@@ -14,8 +13,8 @@ export default function Home() {
     setBodyHeight,
     setVerticalScrollWidth,
     setMouseDown,
-    setSFFileList,
-    setStatus,
+    setSFLocalURI,
+    setSFServerURI,
   } = useCMGContext();
 
   // set up the the layout and handle screen size changes
@@ -49,20 +48,43 @@ export default function Home() {
     };
   }, []);
 
-  // load the list of soundfont files at startup
+  // get the soundfont file location from local storage at startup
+  // default to server
   useEffect(() => {
-    async function getSFFileList() {
-      const uri = "/soundfonts/list";
-      const response = await fetchData(uri, "GET");
-      if (!response.error) {
-        const newList = response.list;
-        newList.unshift("select a file");
-        setSFFileList(newList);
-      } else
-        setStatus("CMG: error file reading soundfont file list");
+    let location: string | null = window.localStorage.getItem(SFFILELOCATIONITEM);
+    if (!location) {
+      window.localStorage.setItem(SFFILELOCATIONITEM, SOUNDFONTLOCATIONOPTIONS.Server)
+      window.localStorage.setItem(SFLOCALURIITEM, DEFAULTLOCALSFURI);
+      location = SOUNDFONTLOCATIONOPTIONS.Server; 
     }
-    getSFFileList();
-  }, []);
+    location = window.localStorage.getItem(SFLOCALURIITEM);
+    if (!location) {
+      window.localStorage.setItem(SFLOCALURIITEM, DEFAULTLOCALSFURI);
+      location = DEFAULTLOCALSFURI; 
+    }
+    setSFLocalURI(location);    
+    location = window.localStorage.getItem(SFSERVERURIITEM);
+    if (!location) {
+      window.localStorage.setItem(SFSERVERURIITEM, DEFAULTSERVERSFURI);
+      location = DEFAULTSERVERSFURI; 
+    }
+    setSFServerURI(location);    
+
+  },[])
+  // load the list of soundfont files at startup
+  // useEffect(() => {
+  //   async function getSFFileList() {
+  //     const uri = "/soundfonts/list";
+  //     const response = await fetchData(uri, "GET");
+  //     if (!response.error) {
+  //       const newList = response.list;
+  //       newList.unshift("select a file");
+  //       setSFFileList(newList);
+  //     } else
+  //       setStatus("CMG: error file reading soundfont file list");
+  //   }
+  //   getSFFileList();
+  // }, []);
 
 
   return (
@@ -73,7 +95,7 @@ export default function Home() {
       <div className="page" id="page" onMouseUp={() => setMouseDown(false)}>
         <Header
           appName="Computer Music Generator"
-          appVersion={import.meta.env.PACKAGE_VERSION}
+          appVersion={import.meta.env.VERSION}
         />
         <Body />
         <Footer />

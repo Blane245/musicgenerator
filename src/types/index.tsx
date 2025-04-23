@@ -1,4 +1,4 @@
-import { Algorithmic, AudioFile, CMG } from "classes/generators";
+import { Algorithmic, AudioFile, CMG } from "../classes/generators";
 import {
   AlgorithmValues,
   MarkovianValues,
@@ -12,15 +12,24 @@ import {
   squareModulator,
   triangleModulator,
 } from "../modulators";
-import { SoundFont2 } from "soundfont2";
+import { SoundFont2 } from "../soundfont2";
 
 export const SAMPLERATE: number = 44100;
 
 export const EPS: number = 1e-4;
 
-export type SFFile = { name: string };
+export enum SOUNDFONTLOCATIONOPTIONS {
+  "Local" = "Local",
+  "Server" = "Server"
+}
 
-export type SFFiles = SFFiles[];
+export const SFFILELOCATIONITEM:string = "SFFileLocation";
+export const SFLOCALURIITEM: string = "SFLocalURI";
+export const SFSERVERURIITEM: string = "SFServerURI";
+
+export const DEFAULTLOCALSFURI: string = "/local_soundfonts";
+
+export const DEFAULTSERVERSFURI: string = "/soundfonts";
 
 export type GeneratorType =
   | CMG
@@ -259,6 +268,7 @@ export type RawSourceData = {
     sustainInterval: number;
     releaseInterval: number; // release time from sf as limited
     sustainLevel: number;
+    initialAttenuation: number;
     value: number; // the current volume value
   };
 };

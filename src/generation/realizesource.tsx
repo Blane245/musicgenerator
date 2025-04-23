@@ -3,6 +3,7 @@
 // there are several use cases for the gain envelop
 // see volumeprocessing.md for details
 import { Algorithmic, AudioFile } from "../classes/generators";
+import { attenuate } from "../sfcomponents/util";
 import { ActiveSource, GENERATORTYPE, RawSourceData } from "../types";
 import { v2g } from "../utils/v2g";
 
@@ -40,7 +41,7 @@ export function realizeSource(
     // sample exists
     if (rawSourceData.source.sample) {
       const minGain = 0.001;
-      const gain: number = v2g(rawSourceData.vol.value);
+      const gain: number = v2g(rawSourceData.vol.value) * attenuate(1, rawSourceData.vol.initialAttenuation / 10);
       if (gain > minGain) {
         const t0: number = rawSourceData.source.startTime;
         let t1: number = rawSourceData.vol.delayInterval + t0;
@@ -49,10 +50,6 @@ export function realizeSource(
         let t4: number = rawSourceData.vol.decayInterval + t3;
         const t5: number = rawSourceData.source.stopTime - rawSourceData.vol.releaseInterval;
         const t6: number = rawSourceData.source.stopTime;
-        // const sustainLevel: number = Math.max(
-        //   rawSourceData.vol.sustainLevel,
-        //   0
-        // );
         // console.log('times', t0, t1, t2, t3, t4, t5, t6);
         const sustainGain: number = rawSourceData.vol.sustainLevel * gain;
 

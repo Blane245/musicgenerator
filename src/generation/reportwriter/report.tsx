@@ -1,4 +1,4 @@
-import CMGFile from "classes/cmgfile";
+import CMGFile from "../../classes/cmgfile";
 import TrackReport from "./trackreport";
 import Track from "../../classes/track";
 import SourceReport from "./sourcereport";

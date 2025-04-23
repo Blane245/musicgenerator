@@ -9,7 +9,7 @@ export default function HelpMenu() {
   const [about, setAbout] = useState<boolean>(false);
   const [midiFrequency, setMidiFrequency] = useState<number>(0);
   const [frequencyMidi, setFrequencyMidi] = useState<number>(0);
-
+  
   // handle request to open a file.
   // if the current one is 'dirty' the user is asked to confirm over-write
   function handleGuide() {}
@@ -109,26 +109,30 @@ export default function HelpMenu() {
                 <tbody>
                 <tr>
                   <th>Version</th>
-                  <td>{import.meta.env.PACKAGE_VERSION}</td>
+                  <td>{import.meta.env.VERSION}</td>
                 </tr>
                 <tr>
                   <th>Author</th>
                   <td>{import.meta.env.AUTHOR.name}</td>
                 </tr>
                 <tr>
+                  <th>Home Page</th>
+                  <td><a href={import.meta.env.REPOSITORY.url}>{import.meta.env.REPOSITORY.url}</a></td>
+                </tr>
+                <tr>
                   <th>Repository</th>
-                  <td>{import.meta.env.REPOSITORY.url}</td>
+                  <td><a href={import.meta.env.REPOSITORY.url}>{import.meta.env.REPOSITORY.url}</a></td>
                 </tr>
                 <tr>
                   <th>Build Date</th>
-                  <td>{import.meta.env.VITE_BUILD_DATE}</td>
+                  <td>{import.meta.env.BUILD_DATE}</td>
                 </tr>
                 </tbody>
               </table>
-              <div className="modal-footer">
+            </div>
+            <div className="modal-footer">
                 <button onClick={() => setAbout(false)}>Close</button>
               </div>
-            </div>
           </div>
         </>
       ) : null}

@@ -24,6 +24,6 @@
     "noImplicitAny": false,
     "noImplicitOverride": true
   },
-  "include": ["src/**/*.tsx", "vite-env.d.ts"],
+  "include": ["src", "vite.config.ts", "vite-env.d.ts", "./package.json"],
   "exclude": ["public", "node_modules"]
 }

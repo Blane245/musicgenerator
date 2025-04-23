@@ -12,8 +12,6 @@ const isActiveZone = (
   midi: number,
   velocity: number
 ): boolean => {
-  // const keyRange: any = zone.generators[43];
-  // const velRange: any = zone.generators[44];
   const keyRange: any = zone.keyRange;
   const velRange: any = zone.velRange;
   // console.log('ranges', 'key', keyRange, 'vel', velRange);
@@ -22,39 +20,6 @@ const isActiveZone = (
   return keyCheck && velCheck;
 };
 
-// Soundfont2 appears to be missing the velocityRange from the zones.
-// this change will return only the first preset zone for the midi and then
-// the first instrument zones for the midi
-// const getActiveZones = (preset: Preset, midi: number) => {
-//   const activeZones: {
-//     mergedGenerators: Object;
-//     sample: Sample;
-//     keyRange?: RangeGenerator | undefined;
-//     modulators?: {};
-//     generators: {
-//         [key: number]: Generator;
-//     };
-// }[] = [];
-// // find the first preset that is active
-// const presetZoneIndex: number = preset.zones.findIndex((pZone) => isActiveZone(pZone, midi));
-// // if there isn't one, throuh an error
-// if (presetZoneIndex < 0) throw new Error(`preset ${preset.header.name} missing a zone for midi ${midi}`);
-// const presetZone: PresetZone = preset.zones[presetZoneIndex];
-// // find the first instrument that is active
-// const instrument: Instrument = preset.zones[presetZoneIndex].instrument;
-// const instrumentZoneIndex: number = instrument.zones.findIndex((iZone) => isActiveZone(iZone, midi));
-// if (instrumentZoneIndex < 0) throw new Error(`instrument ${instrument.header.name} missing a zone for midi ${midi}`);
-// const instrumentZone: InstrumentZone = instrument.zones[instrumentZoneIndex];
-// const mergedGenerators: Object = getGeneratorValues(instrumentZone, presetZone, preset)
-// activeZones.push ({...instrumentZone, mergedGenerators:mergedGenerators});
-// return activeZones;
-
-// }
-// TODO this version has problems with presets that have multiple
-// velocity ranges for the same notes sicen there is no velocity range
-// filter. All of the presets for a given midi are loaded and
-// are all played. Some investigations is needed to understand
-// velocity ranges better and why SoundFont2 does not include them
 const getActiveZones = (preset: Preset, midi: number, velocity: number) => {
   // console.log('preset', preset);
   const activeZones = preset.zones
@@ -126,6 +91,8 @@ export const getPresetNote = (
       releaseVolEnv = -12000,
       // @ts-ignore
       sampleModes = 0,
+      // @ts-ignore
+      initialAttenuation = 0,
     } = zone.mergedGenerators;
 
     // get the playback rate
@@ -216,6 +183,7 @@ export const getPresetNote = (
         sustainInterval,
         releaseInterval,
         sustainLevel,
+        initialAttenuation,
         value: volumeValue,
       },
     };

@@ -1,7 +1,7 @@
 import { RawSourceData } from "../types";
 import { Algorithmic } from "../classes/generators";
 import { getPresetNote } from "../sfcomponents/loadpresetnote";
-import { AlgorithmValues } from "classes/algorithmvalues";
+import { AlgorithmValues } from "../classes/algorithmvalues";
 import RandomNumber from "../classes/randomnumber";
 
 export function getBufferSourceNodesFromAlgorithmic(

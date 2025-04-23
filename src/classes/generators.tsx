@@ -1,4 +1,4 @@
-import { SoundFont2 } from "soundfont2";
+import { SoundFont2 } from "../soundfont2";
 import { Preset } from "../sfcomponents/types";
 import { precision, presetNameToPreset } from "../sfcomponents/util";
 import {
@@ -285,7 +285,7 @@ export class Algorithmic extends CMG {
         const { preset } = presetNameToPreset(this.presetName, this.presets);
         this.preset = preset;
         return;
-      case "velocity" :
+      case "velocity":
         this.velocity = parseInt(value);
         return;
       case "isLooping":
@@ -424,12 +424,18 @@ export class Algorithmic extends CMG {
       (this.#currentRhythmEntry + 1) % this.measureLength;
     const beat = this.#beatSequence[entry] != 0;
     const velocity = this.velocity;
-    let note: number = this.noteP ? this.noteP.getCurrentValue(time - this.startTime) : 0;
-    const speed: number = this.speedP ? this.speedP.getCurrentValue(time - this.startTime) : 0;
+    let note: number = this.noteP
+      ? this.noteP.getCurrentValue(time - this.startTime)
+      : 0;
+    const speed: number = this.speedP
+      ? this.speedP.getCurrentValue(time - this.startTime)
+      : 0;
     const volume: number = this.volumeP
       ? this.volumeP.getCurrentValue(time - this.startTime)
       : 0;
-    const pan: number = this.panP ? this.panP.getCurrentValue(time - this.startTime) : 0;
+    const pan: number = this.panP
+      ? this.panP.getCurrentValue(time - this.startTime)
+      : 0;
 
     // modify the note based on those selectable in the octave
     note = this.#getSelectedNote(note);
@@ -568,20 +574,20 @@ export class Algorithmic extends CMG {
         "float"
       ) as number;
       try {
-      g.reverbDuration = getAttributeValue(
-        elem,
-        "reverbDuration",
-        "float"
-      ) as number;
-      g.reverbDecay = getAttributeValue(
-        elem,
-        "reverbDecay",
-        "float"
-      ) as number;
-    } catch (e) {
-      g.reverbDecay = 0;
-      g.reverbDuration = 0;
-    }
+        g.reverbDuration = getAttributeValue(
+          elem,
+          "reverbDuration",
+          "float"
+        ) as number;
+        g.reverbDecay = getAttributeValue(
+          elem,
+          "reverbDecay",
+          "float"
+        ) as number;
+      } catch (e) {
+        g.reverbDecay = 0;
+        g.reverbDuration = 0;
+      }
 
       const notePElem: Element = getElementElement(elem, "noteP");
       const speedPElem: Element = getElementElement(elem, "speedP");
@@ -793,40 +799,38 @@ export class AudioFile extends CMG {
     }
   }
 
-  override setAttribute(name: string, value: string) {
+  override async setAttribute(name: string, value: string) {
     super.setAttribute(name, value);
     switch (name) {
       case "filename":
-        // load the data from the file
-        // the filename will not update if there is an error
-        window
-          .showOpenFilePicker({
-            multiple: false,
-            types: [
-              {
-                description: "Audio Files",
-                accept: { "audio/*": [".mp3", ".wav"] },
-              },
-            ],
-          })
-          .then((rh: FileSystemFileHandle[]) => {
-            rh[0].getFile().then((file: File) => {
-              file.arrayBuffer().then((buffer: ArrayBuffer) => {
-                const context: AudioContext = new AudioContext();
-                context.decodeAudioData(buffer).then((audio: AudioBuffer) => {
-                  this.fileName = file.name;
-                  this.sampleRate = audio.sampleRate;
-                  this.duration = precision(audio.duration, 1);
-                  this.stopTime = this.startTime + this.duration;
-                  this.samples = [];
-                  for (let i = 0; i < audio.numberOfChannels; i++) {
-                    const channelData: Float32Array = audio.getChannelData(i);
-                    this.samples.push(channelData);
-                  }
-                });
-              });
+        {
+          // load the data from the file
+          // the filename will not update if there is an error
+          const handles: FileSystemFileHandle[] | void =
+            await window.showOpenFilePicker({
+              multiple: false,
+              types: [
+                {
+                  description: "Audio Files",
+                  accept: { "audio/*": [".mp3", ".wav"] },
+                },
+              ],
             });
-          });
+          if (!handles) return;
+          const file: File = await handles[0].getFile();
+          const buffer: ArrayBuffer = await file.arrayBuffer();
+          const context: AudioContext = new AudioContext();
+          const audio: AudioBuffer = await context.decodeAudioData(buffer);
+          this.fileName = file.name;
+          this.sampleRate = audio.sampleRate;
+          this.duration = precision(audio.duration, 1);
+          this.stopTime = this.startTime + this.duration;
+          this.samples = [];
+          for (let i = 0; i < audio.numberOfChannels; i++) {
+            const channelData: Float32Array = audio.getChannelData(i);
+            this.samples.push(channelData);
+          }
+        }
         break;
       case "volume":
         this.volume = parseFloat(value);

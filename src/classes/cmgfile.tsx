@@ -19,7 +19,8 @@ export default class CMGFile {
   constructor() {
     this.dirty = false;
     this.name = "";
-    this.version = import.meta.env.PACKAGE_VERSION;
+    // @ts-ignore
+    this.version = import.meta.env.VERSION;
     this.compressor = new Compressor("roomcompressor");
     this.equalizer = new Equalizer("roomequalizer");
     this.volume = new Volume("roomvolume");

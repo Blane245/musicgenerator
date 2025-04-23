@@ -35,6 +35,7 @@ export function getBufferSourceNodesFromCMG(gen: CMG): RawSourceData[] {
       sustainInterval: 0,
       sustainLevel: 0,
       value: 0,
+      initialAttenuation: 0,
 
     },
   });

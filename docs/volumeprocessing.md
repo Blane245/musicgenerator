@@ -19,6 +19,7 @@ Soundfont2, following the SoundFont Specifiction 2.1, defines several generators
 | decay | decayVolEnv | The time from the end of the hold interval to the start of the start of the sustain interval. The gain decreases to the level as defined by sustainVolEnv. The default value is -12000 timecents. |
 | release | releaseVolEnv | The time from the end of the note to the completion of the release phase. During this time, the gain decreases to the minimum value.  The default value is -12000 timecents.|
 | sustain | sustainVolEnv | This is the decrease in level, expressed in centibels, to which the gain ramps during the decay phase. This is called the sustained gain. A value less than or equal to zero implies no decay. A positive value indicates a decrease in gain the corresponding level. The default value is 0 centibels. |
+| attenuation | initialAttention | This is the amount of attenutation, expressed in centibels, to apply to the gain requested by the user. The default value is zero. |
 
 CMG starts and stop notes based on algorithms, not based on a human pressing and releasing keys. The note start and stop times are determined from the start and stop times of the generator and, in the case of the algorithmic generator, the speed parameter which start and stop individual notes. 
 

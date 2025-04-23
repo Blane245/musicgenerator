@@ -36,6 +36,7 @@ export function getBufferSourceNodesFromAudioFile(gen: AudioFile): RawSourceData
       sustainInterval: 0.001,
       sustainLevel: 0.001,
       value: volume,
+      initialAttenuation: 0,
 
     },
   });

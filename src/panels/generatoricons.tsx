@@ -49,6 +49,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
   const [generatorBoxes, setGeneratorBoxes] = useState<GeneratorBox[]>([]);
   const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [copyDialog, setCopyDialog] = useState<boolean>(false);
+  const [moveDialog, setMoveDialog] = useState<boolean>(false);
   const [selectedTrackName, setSelectedTrackName] = useState<string>("");
   const [preview, setPreview] = useState<GeneratorType | null>(null);
   const [mode, setMode] = useState<GENERATIONMODE>(GENERATIONMODE.idle);
@@ -233,6 +234,15 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     setStatus(``);
     setMenuEnabled(false);
   }
+
+  function handleMoveClick() {
+    setSelectedTrackName(track.name);
+    setMoveDialog(true);
+    setMenuEnabled(false);
+    setStatus(``);
+    setMenuEnabled(false);
+  }
+
   function handleDeleteClick() {
     const gName: string = generatorBoxes[boxIndex].generator.name;
     console.log(gName);
@@ -264,6 +274,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     setSelectedTrackName(event.target.value);
     setStatus(``);
   }
+
   function handleCopyOK(event: FormEvent<Element>): void {
     event.preventDefault();
     setCopyDialog(false);
@@ -288,6 +299,30 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
 
   function handleCopyCancel() {
     setCopyDialog(false);
+    setStatus(``);
+  }
+
+  function handleMoveOK(event: FormEvent<Element>): void {
+    event.preventDefault();
+    setMoveDialog(false);
+
+    const targetTrack = fileContents.tracks.find(
+      (t) => t.name == selectedTrackName
+    );
+    if (!targetTrack) return;
+
+    //add the generator to the new track and delete from the current track
+    const thisGen = generatorBoxes[boxIndex].generator;
+    addGenerator(targetTrack, thisGen, setFileContents);
+    deleteGenerator(track, thisGen.name, setFileContents);
+
+    setStatus(
+      `Generator '${thisGen.name}' moved to track '${targetTrack.name}.'`
+    );
+  }
+
+  function handleMoveCancel() {
+    setMoveDialog(false);
     setStatus(``);
   }
 
@@ -430,6 +465,9 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
               <div className="dItem" onClick={() => handleCopyClick()}>
                 Copy
               </div>
+              <div className="dItem" onClick={() => handleMoveClick()}>
+                Move
+              </div>
               <div className="dItem" onClick={() => handleMuteClick()}>
                 {generatorIndex >= 0 && track.generators[generatorIndex].mute
                   ? "Unmute"
@@ -495,6 +533,44 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
         <div className="modal-footer">
           <button onClick={handleCopyOK}>Copy</button>
           <button onClick={handleCopyCancel}>Cancel</button>
+        </div>
+      </div>
+      <div
+        className="modal-content"
+        style={{ display: moveDialog ? "block" : "none" }}
+      >
+        <div className="modal-header">
+          <span className="close" onClick={handleMoveCancel}>
+            &times;
+          </span>
+          <h2>
+            Select track to which to move generator{" "}
+            {generatorIndex >= 0 ? track.generators[generatorIndex].name : ""}
+          </h2>
+        </div>
+
+        <div className="modal-body">
+          <label>
+            {" "}
+            Track Name:
+            <select
+              value={selectedTrackName}
+              onChange={handleSelectedTrackChange}
+            >
+              {fileContents.tracks.map((t: Track) => {
+                return (
+                  <option key={`select-track-move ${t.name}`} value={t.name}>
+                    {t.name}
+                  </option>
+                );
+              })}
+            </select>
+          </label>
+          <br />
+        </div>
+        <div className="modal-footer">
+          <button onClick={handleMoveOK}>Move</button>
+          <button onClick={handleMoveCancel}>Cancel</button>
         </div>
       </div>
       <div
