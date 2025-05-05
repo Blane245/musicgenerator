@@ -1,6 +1,6 @@
 import { SoundFont2 } from "../soundfont2";
 import { Preset } from "../sfcomponents/types";
-import { precision, presetNameToPreset } from "../sfcomponents/util";
+import { presetNameToPreset } from "../sfcomponents/util";
 import {
   Algorithm,
   ALGORITHMTYPE,
@@ -25,7 +25,7 @@ import RandomNumber from "./randomnumber";
 
 // base class for all generator types
 // contains properties used almost all generators
-export class CMG {
+export class Silent {
   name: string; // the unique name of the generator
   startTime: number; // time (seconds) that the generator starts
   stopTime: number; // time (seconds) that the generator stops
@@ -37,13 +37,13 @@ export class CMG {
     this.name = "G".concat(nextGenerator.toString());
     this.startTime = 0;
     this.stopTime = 0;
-    this.type = GENERATORTYPE.CMG;
+    this.type = GENERATORTYPE.Silent;
     this.mute = false;
     this.position = 0;
   }
 
-  copy(): CMG {
-    const newCMG = new CMG(0);
+  copy(): Silent {
+    const newCMG = new Silent(0);
     newCMG.name = this.name;
     newCMG.startTime = this.startTime;
     newCMG.stopTime = this.stopTime;
@@ -59,7 +59,7 @@ export class CMG {
         this.name = value;
         break;
       case "type":
-        this.type = GENERATORTYPE.CMG;
+        this.type = GENERATORTYPE.Silent;
         break;
       case "startTime":
         const interval: number = this.stopTime - this.startTime;
@@ -94,9 +94,9 @@ export class CMG {
     }
   }
 
-  static async getXML(elem: Element, _version: string): Promise<CMG> {
+  static async getXML(elem: Element, _version: string): Promise<Silent> {
     try {
-      const g: CMG = new CMG(0);
+      const g: Silent = new Silent(0);
       g.name = getAttributeValue(elem, "name", "string") as string;
       g.startTime = getAttributeValue(elem, "startTime", "float") as number;
       g.stopTime = getAttributeValue(elem, "stopTime", "float") as number;
@@ -111,7 +111,7 @@ export class CMG {
 
   // validate the user-supplied values of the generator
   static validate(
-    values: CMG,
+    values: Silent,
     fileContents: CMGFile,
     oldName: string
   ): string[] {
@@ -140,7 +140,7 @@ export class CMG {
 // provide note, speed, volume, and pan values
 // uses the euclidean beats from the parent class
 
-export class Algorithmic extends CMG {
+export class Algorithmic extends Silent {
   soundFontFile: string;
   soundFont: SoundFont2 | undefined;
   presets: Preset[]; // the soundfont preset list (not needed for AudioFile or Noise)
@@ -517,7 +517,7 @@ export class Algorithmic extends CMG {
     version: string
   ): Promise<Algorithmic> {
     try {
-      const CMGgen: CMG = await CMG.getXML(elem, version);
+      const CMGgen: Silent = await Silent.getXML(elem, version);
       const g: Algorithmic = new Algorithmic(0);
       g.name = CMGgen.name;
       g.startTime = CMGgen.startTime;
@@ -668,7 +668,7 @@ export class Algorithmic extends CMG {
     fileContents: CMGFile,
     oldName: string
   ): string[] {
-    const result: string[] = CMG.validate(values, fileContents, oldName);
+    const result: string[] = Silent.validate(values, fileContents, oldName);
     if (!values.presetName) result.push("Preset must be specified");
     if (values.beatCount > values.measureLength)
       result.push(
@@ -752,7 +752,7 @@ export class Algorithmic extends CMG {
 }
 
 // this class represents an audio file that can be used as a generator source
-export class AudioFile extends CMG {
+export class AudioFile extends Silent {
   fileName: string;
   samples: Float32Array[];
   sampleRate: number;
@@ -802,36 +802,6 @@ export class AudioFile extends CMG {
   override async setAttribute(name: string, value: string) {
     super.setAttribute(name, value);
     switch (name) {
-      case "filename":
-        {
-          // load the data from the file
-          // the filename will not update if there is an error
-          const handles: FileSystemFileHandle[] | void =
-            await window.showOpenFilePicker({
-              multiple: false,
-              types: [
-                {
-                  description: "Audio Files",
-                  accept: { "audio/*": [".mp3", ".wav"] },
-                },
-              ],
-            });
-          if (!handles) return;
-          const file: File = await handles[0].getFile();
-          const buffer: ArrayBuffer = await file.arrayBuffer();
-          const context: AudioContext = new AudioContext();
-          const audio: AudioBuffer = await context.decodeAudioData(buffer);
-          this.fileName = file.name;
-          this.sampleRate = audio.sampleRate;
-          this.duration = precision(audio.duration, 1);
-          this.stopTime = this.startTime + this.duration;
-          this.samples = [];
-          for (let i = 0; i < audio.numberOfChannels; i++) {
-            const channelData: Float32Array = audio.getChannelData(i);
-            this.samples.push(channelData);
-          }
-        }
-        break;
       case "volume":
         this.volume = parseFloat(value);
         break;
@@ -880,7 +850,7 @@ export class AudioFile extends CMG {
     version: string
   ): Promise<AudioFile> {
     try {
-      const CMGgen: CMG = await CMG.getXML(elem, version);
+      const CMGgen: Silent = await Silent.getXML(elem, version);
       const g: AudioFile = new AudioFile(0);
 
       g.fileName = getAttributeValue(elem, "fileName", "string") as string;
@@ -906,7 +876,7 @@ export class AudioFile extends CMG {
         samplePromises.push(samplePromise);
       }
 
-      // get the CMG values
+      // get the Silent values
       g.name = CMGgen.name;
       g.startTime = CMGgen.startTime;
       g.stopTime = CMGgen.stopTime;

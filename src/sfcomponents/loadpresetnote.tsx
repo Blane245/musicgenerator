@@ -86,7 +86,7 @@ export const getPresetNote = (
       // @ts-ignore
       decayVolEnv = -12000,
       // @ts-ignore
-      sustainVolEnv = 0,
+      sustainVolEnv = -12000,
       // @ts-ignore
       releaseVolEnv = -12000,
       // @ts-ignore

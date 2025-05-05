@@ -2,8 +2,7 @@
 
 This work is inspired by the book [Formalized Music: Thought and Mathematics in Composition](https://en.wikipedia.org/wiki/Formalized_Music). Though the principles in that book are only partially realized here, more work may be done...
 
-The music generator will play one or more voices using various algorithms or from an existing audio file. The algorithms may be an oscillator, Markovian state transitions, or Wiener random walks. Noise may be applied to each voice Each voice can be assigned to a sound font file bank and preset. Audio files may be of any type that can be loaded by the browser being used.
-Algorithmic voice controls include
+The music generator will play one or more voices using various algorithms or from an existing audio file. Algorithmic voice controls include
 
 - start and stop times
 - soundfont bank and preset
@@ -12,16 +11,19 @@ Algorithmic voice controls include
 - optional reverberation for each generator
 - rhythm selection based on a Euclidean Rhythm algorithm
 - the number of notes used in an octave based on the Euclidean Rhythm algorithm. 
-- gain envelop controls (delay, attack, hold (sustain), decay, release) these may be changed over time that come from the soundfont preset
-- Sound generation can be either previewed thru the computer speakers or recorded to a wave or mp3 file.  
+- gain envelope controls (delay, attack, hold (sustain), decay, release) these may be changed over time that come from the soundfont preset
+- Sound generation can be either previewed thru the computer speakers or recorded to a wave or mp3 file.
 
 Room effects and controls are implemented. They include volume, reverb (both early reflections and diffuse noise), compression, and equalization.
+
+A report of the details of a composition in HTML format can be produced.
 
 # Sound Generators
 All sound generators have a time when its effect starts and stops. A generator maybe be muted. 
 There are two types of sound generators in this version.
-1. An algorithmic generator, which uses selectable algorithms for the assigned voice's parameter. Each of the voice's parameters may be assigned a different algorithm. The algorithm assigned to the note parameter uses midi numbers to select presets from a soundfont file. 
-    * The oscillator algorithm creates a sequence of values using sine, sawtooth, square, or triangular wave forms. Each waveform have a center, frequency, amplitude, and phase. The waveforms are sampled at each beat and a audio source is generated that starts at that time and ends at the next beat. If the amplitude is zero, the value generated is the center value.
+1. An algorithmic generator, which uses selectable algorithms for the assigned voice's parameter. Each of the voice's parameters may be assigned a different algorithm. The algorithm assigned to the note parameter uses midi numbers to select presets from a soundfont file.
+    * Each generator obtains its audio sample from a preset in a soundfont file. Each generator may us a different soundfont and preset. 
+    * The oscillator algorithm creates a sequence of values using sine, sawtooth, square, descending triangular, or ascending triangular wave forms. Each waveform have a center, frequency, amplitude, and phase. The waveforms are sampled at each beat and a audio source is generated that starts at that time and ends at the next beat. If the amplitude is zero, the value generated is the center value.
     * The Markovian algorithm creates a sequence of values for the assigned voice's parameter. This is a statistical Markov process that has three states with probability transitions between each state. The states are  
         * keep the same value 
         * move the value up 
@@ -34,6 +36,7 @@ There are two types of sound generators in this version.
         * The number of beats in the measure is specified along with the number of 'on beats'. An 'on beat' is one that will produce a sound from the current preset, while an 'off beat' is silent no matter what preset is currently active. If the measure length and on beat count are the same, all notes will be played.
         * The number of notes in an octave determines which presets are available for use by the note parameter. When the note algorithm midi value, the value is modified to the closets selectable midi number. If the number of notes in the octave is set to 12, all notes in teh octave will be heard.
     * A Gaussian noise algorithm is used to apply noise the note's sample. The noise level determines the size of the noise signal, where 1 is the size of the original signal. The dispersion of the noise is given in midi numbers. If the dispersion if 0, no noise is applied.
+    * Reverberation may be applied to a generator.
 
 2. An Audio File Generator (**AudioFile**). This generator contains the samples from an existing audio file, as long as the web browser audio conversion exists for the audio file type. The start time is controllable, but the stop time is set based on the duration of the audio file. Only the volume can be adjusted as it is assumed that panning is handled in the file itself. 
 
@@ -41,12 +44,12 @@ There are two types of sound generators in this version.
 
 The data structure is hierarchial:
 
-*  Called *CMGFile*, this includes all attributes that apply to all other attributes. It includes a filename, the room compressor, the room equalizer, the name of the soundfont file and its contexts, and a collection of tracks that contain generators.
+*  Called *CMGFile*, this includes all attributes that apply to all other attributes. It includes a filename, the room compressor, the room equalizer, the room reverberator, the room volume, and a collection of tracks that contain generators.
 * Called *TimeLine*, this includes attributes that define the left most time to be displayed, and the current zoom level. This data element is independent of CMGFile. i.e., time line setting persist between files and are not saved.
 * Called *Track*, this is an instance of the track collection belonging to a CMGFile. Each track has name, solo, and mute attributes and a collection of generators. This provides the means by which generators can be assigned to different tracks for organizational purposes.
 * Called *Generator*, this is an instance of a generator collection and is the source of the sound that is produced by CMG. There are currently three types of generators.
 
-    * **CMG** - this generator is the parent of sound generators and does not generate sound. It contains the attributes that are common to all generators. This includes a name, start and end times, mute flag, and a vertical position with the track's timeline. 
+    * **Silent** - this generator is the parent of sound generators and does not generate sound. It contains the attributes that are common to all generators. This includes a name, start and end times, mute flag, and a vertical position with the track's timeline. 
     * The two types of generators that produce sound are listed above.
 
 # Web Audio Routing Graph
@@ -79,20 +82,21 @@ The figure below illustrates the class structure of the application. It is imple
 The application is designed around the user interface and supported by a context provided. The three parts of the application are the header, body, and footer. 
 
 ## Component Structure
-Classes are used to define sound generator objects (CMG, Algorithmic, AudioFile) that are persisted in files while the user interface and sound generation are implemented through React functions. The general structure of the classes are
+Classes are used to define sound generator objects (Silent, Algorithmic, AudioFile) that are persisted in files while the user interface and sound generation are implemented through React functions. The general structure of the classes are
 1. A set of attributes that define the objects of the class.
 2. A *constructor* that requires a parameter to name the object. Other optional parameters may be present.
 4. A *copy* function that makes a copy of the current object. This is used to cause React to trigger hooks when one or more of the properties of the object changes.
 5. A *setAttribute* function that is called by the object maintenance functions of the user interface.
+6. A *currentValues* function that returns the values for beat, velocity, note, speed, volume, and pan at a specific time.
 6. An *appendXML* function that added the objects definition to an XML document to be written to external storage. 
-7. A *getXML* static function that reads the object from a XML string
-The Algorithmic class links to AlgorithmValue objects for each of the voice parameters. The AlgorithmValue object may be AlgorithmicValues, OscillatorValues, MarkovianValues, or WienerValues. It also implements generator reverb.
+7. A *getXML* static function that reads the object from a XML string.
+7. The Algorithmic class links to AlgorithmValue objects for each of the voice parameters. The AlgorithmValue object may be AlgorithmicValues, OscillatorValues, MarkovianValues, or WienerValues. It also implements generator reverb.
 
-Other function may be available for special needs. 
+Other functions may be available for special needs. 
 
 ## Header
 
-The header conyains the app icon, a set of puddown menus, the app title and version, and the name and state of the current file being edited at the top and the timeline controls and display below.
+The header contains the app icon, a set of pulldown menus, the app title and version, and the name and state of the current file being edited, the left and right volume display at the top and the timeline controls and display below.
 
 There are File, Edit, Generate, and Help pulldown menus.
 The timeline controls manage the time line display pan and zoom, time line interval.
@@ -101,11 +105,11 @@ The timeline controls manage the time line display pan and zoom, time line inter
 
 The body as a scrollable area that holds all of the defined tracks. Each track has a control area and a display area. Track controls include delete, rename, solo, mute, move up and down the track list, and add generator buttons. Track display include 'icons' for each generator defined on the track.
 
-When a generator is created, it has a default type of CMG, which contains the start time and stop time attributes. The type may be changed to Algorithmic or AudioFile as desired. If left as CMG, it is a place holder that will not generate any sound.
+When a generator is created, it has a default type of Silent, which contains the start time and stop time attributes. The type may be changed to Algorithmic or AudioFile as desired. If left as Silent, it is will generate silence.
 
 The generator icons are displayed as rectangles that start and stop at the generator's times and are 1/3 of the height of the track display. This allows for movement on the icon vertically within the track display to reduce overlap. 
 
-These icons have a menu that provides for generator editing, mute, and preview functions. Generators can be deleted through the edit function.
+Each generator icon has a menu that provides for generator preview, editing, copy, move, mute, and delete functions. Generators can also be previewed through the edit function.
 
 ## Footer
 
@@ -117,7 +121,7 @@ This is the business end of this application and most of the user interaction fu
 
 While previewing or recording is being done, filters are applied to determine which sources will be used to build the audio routing graph. These filters take into account the presence of a timeline interval, and track and generator solo and mute settings. An array of sources is constructed that contains all of the information needed to construct the audio routing graph.
 
-Generation involves the build of the audio routing graph for the composition. There could be several thousand sources and related audio nodes in the full composition. Trying to realize the entire graph for preview or record is problematic and the memory required may be excessive. A scheme has been developed to only realize a portion of the graph, discard that portion and realize another portion. The algorithm is different for preview and record.
+Generation involves the building of the audio routing graph for the composition. There could be several thousand sources and related audio nodes in the full composition. Trying to realize the entire graph for preview or record is problematic and the memory required may be excessive. A scheme has been developed to only realize a portion of the graph, discard that portion and realize another portion. This algorithm is different for preview and record.
 
 ### Preview Realization
 
@@ -165,12 +169,12 @@ Version 3 implements
 1. Independent algorithms for each voice parameter
 2. Euclidean selection of rhythm and octave notes
 3. Noise setting for voice samples
-4. User interface improvements.
+4. User interface improvements
+5. Individual generator reverberation
 
 ## Remaining things to do
 
-- room and instrument reverbs are a dream
-- create echo effect
+- general repair 
 
 # Development and Installation
 

@@ -1,10 +1,10 @@
 // this prepares for playing a loaded audiofile without any modulation other than
 // a volume setting
 
-import { CMG } from "../classes/generators";
+import { Silent } from "../classes/generators";
 import { RawSourceData } from "../types";
 
-export function getBufferSourceNodesFromCMG(gen: CMG): RawSourceData[] {
+export function getBufferSourceNodesFromSilent(gen: Silent): RawSourceData[] {
   const { startTime, stopTime } = gen;
   const sourceData: RawSourceData[] = [];
 

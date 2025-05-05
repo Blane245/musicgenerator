@@ -71,22 +71,6 @@ export default function Home() {
     setSFServerURI(location);    
 
   },[])
-  // load the list of soundfont files at startup
-  // useEffect(() => {
-  //   async function getSFFileList() {
-  //     const uri = "/soundfonts/list";
-  //     const response = await fetchData(uri, "GET");
-  //     if (!response.error) {
-  //       const newList = response.list;
-  //       newList.unshift("select a file");
-  //       setSFFileList(newList);
-  //     } else
-  //       setStatus("CMG: error file reading soundfont file list");
-  //   }
-  //   getSFFileList();
-  // }, []);
-
-
   return (
     <>
       <Helmet>

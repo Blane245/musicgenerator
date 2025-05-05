@@ -1,5 +1,4 @@
-import { ChangeEvent, useState } from "react";
-import { ALGORITHMTYPE } from "../types";
+import { ChangeEvent, useEffect, useState } from "react";
 import {
   MarkovianValues,
   OscillatorValues,
@@ -7,13 +6,16 @@ import {
 } from "../classes/algorithmvalues";
 import { Algorithmic } from "../classes/generators";
 import { useCMGContext } from "../cmgcontext";
-import { bankPresettoName, frequencyToMidi, midiToFrequency, toNote } from "../sfcomponents/util";
+import { bankPresettoName, toNote } from "../sfcomponents/util";
+import { ALGORITHMTYPE, SOUNDFONTLOCATIONOPTIONS } from "../types";
+import { getSFFileList } from "../utils/getsffilelist";
 import MarkovianPropertiesBox from "./markovianpropertiesbox";
 import OscillatorPropertiesBox from "./oscillatorpropertiesbox";
+import PresetDialog from "./presetdialog";
 import WienerPropertiesBox from "./wienerpropertiesbox";
+import MidiFrequencyDialog from "./midifrequencydialog";
 
 // provides the form fields and validators for the algorithmic generator
-
 
 export interface AlgorithmicDialogProps {
   formData: Algorithmic;
@@ -25,20 +27,30 @@ export interface AlgorithmicDialogProps {
 export default function AlgorithmicDialog(
   props: AlgorithmicDialogProps
 ): JSX.Element {
-  const { SFFileList } = useCMGContext();
+  const {
+    SFFileList,
+    SFLocalURI,
+    SFFileLocation,
+    SFServerURI,
+    setSFFileList,
+    setStatus,
+  } = useCMGContext();
   const { formData, handleChange } = props;
   const [open, setOpen] = useState<boolean>(false);
-  const [midiFrequency, setMidiFrequency] = useState<number>(0);
-  const [frequencyMidi, setFrequencyMidi] = useState<number>(0);
-  function handleMidiChange(e: ChangeEvent<HTMLInputElement>) {
-    const midi: number = parseFloat(e.currentTarget.value);
-    setMidiFrequency(midiToFrequency(midi));
-  }
-  function handleFrequencyChange(e: ChangeEvent<HTMLInputElement>) {
-    const frequency: number = parseFloat(e.currentTarget.value);
-    setFrequencyMidi(frequencyToMidi(frequency));
-  }
+  const [viewPreset, setViewPreset] = useState<boolean>(false);
 
+  // load the soundfont file list if it haw not been loaded
+  useEffect(() => {
+    if (SFFileList.length == 0) {
+      getSFFileList(
+        SFFileLocation == SOUNDFONTLOCATIONOPTIONS.Server
+          ? SFServerURI
+          : SFLocalURI,
+        setSFFileList,
+        setStatus
+      );
+    }
+  }, []);
 
   return (
     <>
@@ -65,19 +77,18 @@ export default function AlgorithmicDialog(
           onChange={handleChange}
           value={formData.presetName}
         >
-          {formData.presets
-            .map((p) => {
-              const pName = bankPresettoName(p);
-              return (
-                <option key={`preset-${pName}`} value={pName}>
-                  {pName}
-                </option>
-              );
-            })}
+          {formData.presets.map((p) => {
+            const pName = bankPresettoName(p);
+            return (
+              <option key={`preset-${pName}`} value={pName}>
+                {pName}
+              </option>
+            );
+          })}
         </select>
       </label>
       <label>
-      &nbsp;Velocity:&nbsp;
+        &nbsp;Velocity:&nbsp;
         <input
           name="velocity"
           type="number"
@@ -97,8 +108,23 @@ export default function AlgorithmicDialog(
           onChange={handleChange}
         />
       </label>
-      <span>{" "}</span>
-      <button type="button" style={{fontSize:"12px"}} onClick={()=>setOpen(true)}>{"Frequency<->Midi"}</button>
+      <span> </span>
+      <button
+        type="button"
+        disabled={!formData.preset}
+        style={{ fontSize: "12px" }}
+        onClick={() => setViewPreset(true)}
+      >
+        {"View Preset"}
+      </button>
+      <span> </span>
+      <button
+        type="button"
+        style={{ fontSize: "12px" }}
+        onClick={() => setOpen(true)}
+      >
+        {"Frequency<->Midi"}
+      </button>
       <br />
       <label>
         Measure Length:&nbsp;
@@ -202,7 +228,7 @@ export default function AlgorithmicDialog(
         <div className="attribute">Note (midi)</div>
         <div className="gentype">
           <label>
-            Generator:&nbsp;
+            Algorithm:&nbsp;
             <select
               name="noteP.algorithmType"
               onChange={handleChange}
@@ -275,7 +301,7 @@ export default function AlgorithmicDialog(
               }}
               min={0}
               max={127}
-              step={1}
+              step={0.1}
               handleChange={handleChange}
             />
           ) : null}
@@ -287,7 +313,7 @@ export default function AlgorithmicDialog(
               handleChange={handleChange}
               min={0}
               max={127}
-              step={.1}
+              step={0.001}
             />
           ) : null}
         </div>
@@ -297,7 +323,7 @@ export default function AlgorithmicDialog(
         <div className="attribute">Speed (BPM)</div>
         <div className="gentype">
           <label>
-            Generator:&nbsp;
+            Algorithm:&nbsp;
             <select
               name="speedP.algorithmType"
               onChange={handleChange}
@@ -325,7 +351,7 @@ export default function AlgorithmicDialog(
               type={(formData.speedP as OscillatorValues).values.type}
               center={{
                 value: (formData.speedP as OscillatorValues).values.center,
-                lo: 1,
+                lo: 0,
                 hi: 1000,
                 step: 0.01,
                 suffix: "(BPM)",
@@ -374,8 +400,8 @@ export default function AlgorithmicDialog(
             <WienerPropertiesBox
               name="speedP.wiener.values"
               values={(formData.speedP as WienerValues).values}
-              min={0}
-              max={127}
+              min={1}
+              max={1000}
               step={1}
               handleChange={handleChange}
             />
@@ -387,7 +413,7 @@ export default function AlgorithmicDialog(
         <div className="attribute">Volume (dB)</div>
         <div className="gentype">
           <label>
-            Generator:&nbsp;
+            Algorithm:&nbsp;
             <select
               name="volumeP.algorithmType"
               onChange={handleChange}
@@ -477,7 +503,7 @@ export default function AlgorithmicDialog(
         <div className="attribute">Pan</div>
         <div className="gentype">
           <label>
-            Generator:&nbsp;
+            Algorithm:&nbsp;
             <select
               name="panP.algorithmType"
               onChange={handleChange}
@@ -560,37 +586,9 @@ export default function AlgorithmicDialog(
           ) : null}
         </div>
       </div>
-      {open ? (
-        <>
-          <div className="modal-content" style={{ display: "block" }}>
-            <div className="modal-header">
-              <h2>{"Midi<->Frequency Converter"}</h2>
-            </div>
-            <div className="modal-body">
-              <label>
-                Midi{" "}                
-                <input
-                  type="number"
-                  onChange={(e) => handleMidiChange(e)}
-                  defaultValue={0}
-                ></input>
-              </label>
-              <text>{" "}{midiFrequency.toFixed(3)} (Hz)</text>
-              <br />
-              <label>
-                Frequency (Hz)&nbsp;
-                <input
-                  type="number"
-                  onChange={(e) => handleFrequencyChange(e)}
-                  defaultValue={0}
-                ></input>
-                <text>{" "}{frequencyMidi.toFixed(3)}</text>
-              </label>
-              <br/>
-              <button onClick={()=>setOpen(false)}>Close</button>
-            </div>
-          </div>
-        </>
+      {open ? <MidiFrequencyDialog setOpen={setOpen} /> : null}
+      {viewPreset ? (
+        <PresetDialog generator={formData} setViewPreset={setViewPreset} />
       ) : null}
     </>
   );

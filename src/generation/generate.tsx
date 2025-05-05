@@ -47,7 +47,7 @@ export default function Generate(props: GeneratorProps) {
     const {
       AlgorithmicGenerators,
       AudioFileGenerators,
-      CMGenerators,
+      SilentGenerators,
       playbackLength,
       offsetTime,
       error,
@@ -68,7 +68,7 @@ export default function Generate(props: GeneratorProps) {
     const {sources: builtSourceData, error: buildError} = buildSources({
       AlgorithmicGenerators,
       AudioFileGenerators,
-      CMGenerators,
+      SilentGenerators,
     });
 
     // catch any errors during build

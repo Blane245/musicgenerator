@@ -1,7 +1,7 @@
 // provides CRUD for all types of generators
 import { ChangeEvent, FormEvent, MouseEvent, useEffect, useState } from "react";
 import { SoundFont2 } from "../soundfont2";
-import { Algorithmic, AudioFile, CMG } from "../classes/generators";
+import { Algorithmic, AudioFile, Silent } from "../classes/generators";
 import Track from "../classes/track";
 import { useCMGContext } from "../cmgcontext";
 import { SoundFontPool } from "../sfcomponents/soundfontpool";
@@ -56,14 +56,14 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
   const [oldName, setOldName] = useState<string>("");
   // const [generatorName, setGeneratorName] = useState<string>("");
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [formData, setFormData] = useState<GeneratorType>(new CMG(0));
+  const [formData, setFormData] = useState<GeneratorType>(new Silent(0));
   const [soundFontData, setSoundFontData] = useState<SFDataType>({
     soundFont: undefined,
     presets: [],
     preset: undefined,
     presetName: "",
   });
-  const [audioFileData] = useState<AudioFile>(new AudioFile(0));
+  const [audioFileData, setAudioFileData] = useState<AudioFile>(new AudioFile(0));
   const [locked, setLocked] = useState<boolean>(false);
   const [isPreview, setIsPreview] = useState<boolean>(false);
 
@@ -73,7 +73,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
       if (generatorIndex < 0) {
         // create a generator with a unique name
         let next = getGeneratorUID(fileContents.tracks);
-        const g = new CMG(next);
+        const g = new Silent(next);
         setFormData(g);
         setOldName(g.name);
       } else {
@@ -126,8 +126,8 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
 
       // select the proper generator type
       switch (formData.type) {
-        case GENERATORTYPE.CMG: {
-          const newFormData: CMG = (prev as CMG).copy();
+        case GENERATORTYPE.Silent: {
+          const newFormData: Silent = (prev as Silent).copy();
           newFormData.setAttribute(eventName, eventValue);
           return newFormData;
         }
@@ -144,16 +144,17 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
         case GENERATORTYPE.AudioFile: {
           const newFormData: AudioFile = (prev as AudioFile).copy();
           newFormData.setAttribute(eventName, eventValue);
-          // if (eventName == "filename") {
-          //   loadAudioFileandUpdate();
-          // }
+          // when the filename is given, the stop time will been to update
+          if (newFormData.fileName != "") {
+            setAudioFileData(newFormData);
+          }
           return newFormData;
         }
         default:
           console.log(
             `generator dialog: improper generator type ${formData.type}`
           );
-          return prev as CMG;
+          return prev as Silent;
       }
     });
   }
@@ -162,11 +163,11 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
   function handleTypeChange(event: ChangeEvent<HTMLSelectElement>): void {
     const newType: GENERATORTYPE = event.target["value"] as GENERATORTYPE;
 
-    // switching generator type - copy the CMG values
+    // switching generator type - copy the Silent values
     setFormData((prev: GeneratorType) => {
       switch (newType) {
-        case GENERATORTYPE.CMG: {
-          const newF = new CMG(0);
+        case GENERATORTYPE.Silent: {
+          const newF = new Silent(0);
           newF.name = prev.name;
           newF.startTime = prev.startTime;
           newF.stopTime = prev.startTime;
@@ -201,10 +202,10 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
   function validate(formData: GeneratorType): string[] {
     const msgs: string[] = [];
     switch (formData.type) {
-      case GENERATORTYPE.CMG:
+      case GENERATORTYPE.Silent:
         {
-          const newMessages = CMG.validate(
-            formData as CMG,
+          const newMessages = Silent.validate(
+            formData as Silent,
             fileContents,
             oldName
           );
@@ -272,7 +273,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     const {
       AlgorithmicGenerators,
       AudioFileGenerators,
-      CMGenerators,
+      SilentGenerators,
       playbackLength,
       offsetTime,
       error,
@@ -289,7 +290,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     const { sources: builtSourceData, error: buildError } = buildSources({
       AlgorithmicGenerators,
       AudioFileGenerators,
-      CMGenerators,
+      SilentGenerators,
     });
     if (buildError != "") {
       setStatus(

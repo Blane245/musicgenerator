@@ -49,17 +49,32 @@ export default function AudioFileDialog(
   // read the file
   // decode the audio
   // update the audiofile object
-  function handleFileClick() {
-    // tell the audiofile object to ask to load a file
-    // and then decode it
-    // formData.setAttribute("filename", "");
-    handleChange({
-      target: {
-        name: "filename",
-        value: "TBD",
-      },
-    } as ChangeEvent<HTMLInputElement>);
-    if (formData.fileName != "") {
+  async function handleFileClick() {
+    try {
+      const handles: FileSystemFileHandle[] | void =
+        await window.showOpenFilePicker({
+          multiple: false,
+          types: [
+            {
+              description: "Audio Files",
+              accept: { "audio/*": [".mp3", ".wav"] },
+            },
+          ],
+        });
+      if (!handles) return;
+      const file: File = await handles[0].getFile();
+      const buffer: ArrayBuffer = await file.arrayBuffer();
+      const context: AudioContext = new AudioContext();
+      const audio: AudioBuffer = await context.decodeAudioData(buffer);
+      formData.fileName = file.name;
+      formData.sampleRate = audio.sampleRate;
+      formData.duration = precision(audio.duration, 1);
+      formData.stopTime = formData.startTime + formData.duration;
+      formData.samples = [];
+      for (let i = 0; i < audio.numberOfChannels; i++) {
+        const channelData: Float32Array = audio.getChannelData(i);
+        formData.samples.push(channelData);
+      }
       setFileData({
         name: formData.fileName,
         duration: formData.duration,
@@ -67,13 +82,19 @@ export default function AudioFileDialog(
         length: formData.samples.length,
       });
       console.log("file name", formData.fileName);
-    } else
+      handleChange({
+        target: { name: "filename", value: formData.fileName },
+      } as ChangeEvent<HTMLInputElement>);
+    } catch {
+      // user aborted opening the file
+      formData.fileName = "";
       setFileData({
         name: null,
         duration: null,
         sampleRate: null,
         length: null,
       });
+    }
   }
 
   return (

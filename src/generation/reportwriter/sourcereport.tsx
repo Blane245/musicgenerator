@@ -4,7 +4,7 @@ import {
   GeneratorType,
   RawSourceData,
 } from "../../types";
-import { Algorithmic, AudioFile, CMG } from "../../classes/generators";
+import { Algorithmic, AudioFile, Silent } from "../../classes/generators";
 import { buildSources } from "../../generation/buildsources";
 import ReadyGenerate from "../../generation/readygenerate";
 import CMGFile from "../../classes/cmgfile";
@@ -21,9 +21,9 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
   if (generator != undefined) {
     const AlgorithmicGenerators: Algorithmic[] = [];
     const AudioFileGenerators: AudioFile[] = [];
-    const CMGenerators: CMG[] = [];
-    if (generator.type == GENERATORTYPE.CMG)
-      CMGenerators.push(generator as CMG);
+    const SilentGenerators: Silent[] = [];
+    if (generator.type == GENERATORTYPE.Silent)
+      SilentGenerators.push(generator as Silent);
     else if (generator.type == GENERATORTYPE.Algorithmic)
       AlgorithmicGenerators.push(generator as Algorithmic);
     else if (generator.type == GENERATORTYPE.AudioFile)
@@ -31,12 +31,12 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
     const result = buildSources({
       AlgorithmicGenerators,
       AudioFileGenerators,
-      CMGenerators,
+      SilentGenerators,
     });
     sources = result.sources;
     error = result.error;
   } else {
-    const { AlgorithmicGenerators, AudioFileGenerators, CMGenerators } =
+    const { AlgorithmicGenerators, AudioFileGenerators, SilentGenerators } =
       ReadyGenerate({
         mode: GENERATIONMODE.preview,
         generator: null,
@@ -46,7 +46,7 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
     const result = buildSources({
       AlgorithmicGenerators,
       AudioFileGenerators,
-      CMGenerators,
+      SilentGenerators,
     });
     sources = result.sources;
     error = result.error;
@@ -62,38 +62,40 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
       <table>
         <thead>
           <tr>
-            {!generator? 
-            (<th>Generator</th>)
-            :null}
+            {!generator ? <th>Generator</th> : null}
             <th>Start Time</th>
             <th>Stop Time</th>
             <th>Duration</th>
             <th>Note</th>
             <th>Sample Count</th>
-            <th>Playback<br/>Rate</th>
+            <th>
+              Playback
+              <br />
+              Rate
+            </th>
             <th>
               Delay
-              <br/>
+              <br />
               (sec)
             </th>
             <th>
               Attack
-              <br/>
+              <br />
               (sec)
             </th>
             <th>
               Hold
-              <br/>
+              <br />
               (sec)
             </th>
             <th>
               Decay
-              <br/>
+              <br />
               (sec)
             </th>
             <th>
               Sustain
-              <br/>
+              <br />
               (sec)
             </th>
             <th>
@@ -103,8 +105,13 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
             </th>
             <th>
               Release
-              <br/>
+              <br />
               (sec)
+            </th>
+            <th>
+              Attenuation
+              <br />
+              (dB)
             </th>
             <th>
               Vol
@@ -121,9 +128,7 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
         <tbody>
           {sources.map((s: RawSourceData) => (
             <tr>
-            {!generator? 
-            (<th>{s.gen.name}</th>)
-            :null}
+              {!generator ? <th>{s.gen.name}</th> : null}
               <td>{s.source.startTime.toFixed(3)}</td>
               <td>{s.source.stopTime.toFixed(3)}</td>
               <td>{s.source.duration.toFixed(3)}</td>
@@ -131,12 +136,40 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
               <td>{s.source.sample[0].length}</td>
               <td>{s.source.playbackRate.toFixed(3)}</td>
               <td>{(s.source.startTime + s.vol.delayInterval).toFixed(3)}</td>
-              <td>{(s.source.startTime + s.vol.attackInterval).toFixed(3)}</td>
-              <td>{(s.source.startTime + s.vol.holdInterval).toFixed(3)}</td>
-              <td>{(s.source.startTime + s.vol.decayInterval).toFixed(3)}</td>
-              <td>{(s.source.startTime + s.vol.sustainInterval).toFixed(3)}</td>
+              <td>
+                {(
+                  s.source.startTime +
+                  s.vol.delayInterval +
+                  s.vol.attackInterval
+                ).toFixed(3)}
+              </td>
+              <td>
+                {(
+                  s.source.startTime +
+                  s.vol.delayInterval +
+                  s.vol.attackInterval
+                ).toFixed(3)}
+              </td>
+              <td>
+                {(
+                  s.source.startTime +
+                  s.vol.delayInterval +
+                  s.vol.attackInterval +
+                  s.vol.decayInterval
+                ).toFixed(3)}
+              </td>
+              <td>
+                {(
+                  s.source.startTime +
+                  s.vol.delayInterval +
+                  s.vol.attackInterval +
+                  s.vol.decayInterval +
+                  s.vol.sustainInterval
+                ).toFixed(3)}
+              </td>
               <td>{s.vol.sustainLevel}</td>
-              <td>{(s.source.stopTime).toFixed(3)}</td>
+              <td>{s.source.stopTime.toFixed(3)}</td>
+              <td>{s.vol.initialAttenuation.toFixed(0)}</td>
               <td>{s.vol.value.toFixed(3)}</td>
               <td>{s.panner.value.toFixed(3)}</td>
             </tr>

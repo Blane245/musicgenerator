@@ -1,4 +1,4 @@
-import { Algorithmic, AudioFile, CMG } from "../classes/generators";
+import { Algorithmic, AudioFile, Silent } from "../classes/generators";
 import {
   AlgorithmValues,
   MarkovianValues,
@@ -7,7 +7,8 @@ import {
 } from "../classes/algorithmvalues";
 import RandomNumber from "../classes/randomnumber";
 import {
-  sawtoothModulator,
+  ascendingSawtoothModulator,
+  descendingSawtoothModulator,
   sineModulator,
   squareModulator,
   triangleModulator,
@@ -32,12 +33,12 @@ export const DEFAULTLOCALSFURI: string = "/local_soundfonts";
 export const DEFAULTSERVERSFURI: string = "/soundfonts";
 
 export type GeneratorType =
-  | CMG
+  | Silent
   | Algorithmic
   | AudioFile;
 
 export enum GENERATORTYPE {
-  "CMG" = "CMG",
+  "Silent" = "Silent",
   "Algorithmic" = "Algorithmic",
   "AudioFile" = "AudioFile",
 }
@@ -120,7 +121,8 @@ export enum MODULATOR {
   "SINE" = "SINE",
   "SQUARE" = "SQUARE",
   "TRIANGLE" = "TRIANGLE",
-  "SAWTOOTH" = "SAWTOOTH",
+  "ASCENDINGSAWTOOTH" = "ASCENDINGSAWTOOTH",
+  "DESCENDINGSAWTOOTH" = "DESCENDINGSAWTOOTH",
 }
 
 export type ModulatorAttributeData = {
@@ -144,7 +146,8 @@ export const ModulatorMap: Map<
 ModulatorMap.set(MODULATOR.SINE, sineModulator);
 ModulatorMap.set(MODULATOR.SQUARE, squareModulator);
 ModulatorMap.set(MODULATOR.TRIANGLE, triangleModulator);
-ModulatorMap.set(MODULATOR.SAWTOOTH, sawtoothModulator);
+ModulatorMap.set(MODULATOR.ASCENDINGSAWTOOTH, ascendingSawtoothModulator);
+ModulatorMap.set(MODULATOR.DESCENDINGSAWTOOTH, descendingSawtoothModulator);
 
 export enum TIMEFORMATTYPE {
   NUMBER,

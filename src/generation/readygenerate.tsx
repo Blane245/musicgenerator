@@ -2,7 +2,7 @@
 // proper definition and selection filters
 // https://github.com/Blane245/musicgenerator/issues/28
 import CMGFile from "../classes/cmgfile";
-import { Algorithmic, CMG, AudioFile } from "../classes/generators";
+import { Algorithmic, Silent, AudioFile } from "../classes/generators";
 import {
   GeneratorType,
   GENERATIONMODE,
@@ -48,7 +48,7 @@ export interface ReadyGenerateProps {
 export default function ReadyGenerate(props: ReadyGenerateProps): {
   AlgorithmicGenerators: Algorithmic[];
   AudioFileGenerators: AudioFile[];
-  CMGenerators: CMG[];
+  SilentGenerators: Silent[];
   playbackLength: number;
   offsetTime: number;
   error: string;
@@ -56,7 +56,7 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
   const { mode, generator, fileContents, timeInterval } = props;
   let AlgorithmicGenerators: Algorithmic[] = [];
   let AudioFileGenerators: AudioFile[] = [];
-  let CMGenerators: CMG[] = [];
+  let SilentGenerators: Silent[] = [];
   let playbackLength: number = 0;
   let error: string = "";
   let offsetTime: number = 0;
@@ -90,7 +90,7 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
               AlgorithmicGenerators.push(thisG as Algorithmic);
             if (g.type == GENERATORTYPE.AudioFile)
               AudioFileGenerators.push(thisG as AudioFile);
-            if (g.type == GENERATORTYPE.CMG) CMGenerators.push(thisG as CMG);
+            if (g.type == GENERATORTYPE.Silent) SilentGenerators.push(thisG as Silent);
             playbackLength = Math.max(thisG.stopTime + 1, playbackLength);
           }
         });
@@ -115,8 +115,8 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
                 if (g.type == GENERATORTYPE.AudioFile) {
                   AudioFileGenerators.push(g as AudioFile);
                 }
-                if (g.type == GENERATORTYPE.CMG) {
-                  CMGenerators.push(g as CMG);
+                if (g.type == GENERATORTYPE.Silent) {
+                  SilentGenerators.push(g as Silent);
                 }
                 offsetTime = Math.min(offsetTime, g.startTime);
                 playbackLength = Math.max(playbackLength, g.stopTime + 1);
@@ -140,7 +140,7 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
           n.stopTime -= offsetTime;
           return n;
         });
-        CMGenerators = CMGenerators.map((g) => {
+        SilentGenerators = SilentGenerators.map((g) => {
           const n = g.copy();
           n.startTime -= offsetTime;
           n.stopTime -= offsetTime;
@@ -165,11 +165,11 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
         tempGen.startTime = 0;
         AudioFileGenerators.push(tempGen);
         playbackLength = tempGen.stopTime + 1;
-      } else if (generator.type == GENERATORTYPE.CMG) {
-        const tempGen: CMG = (generator as CMG).copy();
+      } else if (generator.type == GENERATORTYPE.Silent) {
+        const tempGen: Silent = (generator as Silent).copy();
         tempGen.stopTime = tempGen.stopTime - tempGen.startTime;
         tempGen.startTime = 0;
-        CMGenerators.push(tempGen);
+        SilentGenerators.push(tempGen);
         playbackLength = tempGen.stopTime + 1;
       }
     }
@@ -177,7 +177,7 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
   if (
     AlgorithmicGenerators.length == 0 &&
     AudioFileGenerators.length == 0 &&
-    CMGenerators.length == 0 &&
+    SilentGenerators.length == 0 &&
     error == ""
   ) {
     error = "No generators are available to produce any sound";
@@ -185,7 +185,7 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
   return {
     AlgorithmicGenerators,
     AudioFileGenerators,
-    CMGenerators,
+    SilentGenerators,
     playbackLength,
     offsetTime,
     error: "",

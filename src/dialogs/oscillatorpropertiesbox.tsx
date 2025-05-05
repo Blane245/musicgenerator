@@ -22,7 +22,7 @@ export default function OscillatorPropertiesBox(
     props;
   return (
     <div className="oscillator">
-      <div className="typetitle">Type</div>
+      <div className="typetitle">Modulator</div>
       <div className="centertitle">Center</div>
       <div className="frequencytitle">Frequency (mHz)</div>
       <div className="amplitudetitle">Amplitude</div>

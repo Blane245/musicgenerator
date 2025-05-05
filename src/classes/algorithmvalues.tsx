@@ -83,6 +83,7 @@ export class OscillatorValues extends AlgorithmValues {
   override copy(): OscillatorValues {
     const n = new OscillatorValues();
     n.values = { ...this.values };
+    n.values.rn = new RandomNumber(this.values.seed);
     return n;
   }
 
@@ -203,6 +204,11 @@ export class MarkovianValues extends AlgorithmValues {
   override copy(): MarkovianValues {
     const n: MarkovianValues = new MarkovianValues();
     n.values = { ...this.values };
+    n.values.rn = new RandomNumber(this.values.seed);
+    n.values.same = { ... this.values.same};
+    n.values.up = { ... this.values.up};
+    n.values.down = { ... this.values.down};
+    n.values.range = { ... this.values.range};
     return n;
   }
 
@@ -456,6 +462,7 @@ export class WienerValues extends AlgorithmValues {
   override copy(): WienerValues {
     const n: WienerValues = new WienerValues();
     n.values = { ...this.values };
+    n.values.rn = new RandomNumber(this.values.seed);
     return n;
   }
 

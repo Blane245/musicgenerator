@@ -1,5 +1,5 @@
 // waveform generators for midi, volume, and pan attributes
-export function sawtoothModulator(
+export function descendingSawtoothModulator(
   time: number,
   baseValue: number,
   frequency: number,
@@ -13,6 +13,26 @@ export function sawtoothModulator(
     const tOffset: number = t0 < period / 2 ? t0 : t0 - period / 2;
     const result: number =
       baseValue + amplitude / 2 - (2 * amplitude * tOffset) / period;
+    return result;
+  } else {
+    return baseValue;
+  }
+}
+
+export function ascendingSawtoothModulator(
+  time: number,
+  baseValue: number,
+  frequency: number,
+  amplitude: number,
+  phase: number
+): number {
+  if (frequency != 0 && amplitude != 0) {
+    const period: number = 1000 / frequency;
+    const tPhase: number = (period * phase) / 360;
+    const t0: number = (time + tPhase) % period;
+    const tOffset: number = t0 < period / 2 ? t0 : t0 - period / 2;
+    const result: number =
+      baseValue - amplitude / 2 + (2 * amplitude * tOffset) / period;
     return result;
   } else {
     return baseValue;

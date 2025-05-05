@@ -48,6 +48,7 @@ export default function FileMenu() {
     if (fileContents.dirty) setOpen("new");
     else {
       const contents: CMGFile = new CMGFile();
+
       newFile(contents, setFileContents);
       setFileName("");
       setStatus("New file started");

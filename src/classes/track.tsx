@@ -1,6 +1,6 @@
 import { GENERATORTYPE, GeneratorType } from "../types";
 import { getAttributeValue, getElementElement } from "../utils/xmlfunctions";
-import { Algorithmic, AudioFile, CMG } from "./generators";
+import { Algorithmic, AudioFile, Silent } from "./generators";
 export default class Track {
   name: string;
   mute: boolean;
@@ -80,9 +80,9 @@ export default class Track {
         // read ahead the type to identify the XML loader
         const type = child.getAttribute("type") as GENERATORTYPE;
         switch (type) {
-          case GENERATORTYPE.CMG:
+          case GENERATORTYPE.Silent:
             {
-              const generatorPromise: Promise<CMG> = CMG.getXML(
+              const generatorPromise: Promise<Silent> = Silent.getXML(
                 child,
                 version,
               );

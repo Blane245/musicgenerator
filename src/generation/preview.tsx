@@ -117,7 +117,7 @@ export default function Preview(params: PreviewProps): void {
               i,
               concentrator
             );
-            if (activeSource.gen.type != GENERATORTYPE.CMG) {
+            if (activeSource.gen.type != GENERATORTYPE.Silent) {
               activeSource.source.start(
                 s.source.startTime,
                 0,
@@ -149,7 +149,7 @@ export default function Preview(params: PreviewProps): void {
               : reflectionDelay / 1000 + sourceData[s.sourceIndex].source.duration);
           // console.log("source stop time", s.sourceIndex, stopTime);
           if (context.currentTime > stopTime) {
-            if (s.gen.type != GENERATORTYPE.CMG) {
+            if (s.gen.type != GENERATORTYPE.Silent) {
               s.source.disconnect();
               s.vol.disconnect();
               s.panner.disconnect();
@@ -164,16 +164,16 @@ export default function Preview(params: PreviewProps): void {
         nextTime += SCHEDULEAHEADTIME;
       }
       // if (someStarted || someStopped)
-        // console.log(
-        //   "at",
-        //   context.currentTime,
-        //   nStarted,
-        //   "started",
-        //   nStopped,
-        //   "stopped",
-        //   activeSources.length,
-        //   " running"
-        // );
+      //   console.log(
+      //     "at",
+      //     context.currentTime,
+      //     nStarted,
+      //     "started",
+      //     nStopped,
+      //     "stopped",
+      //     activeSources.length,
+      //     " running"
+      //   );
     }
 
     // check if done or stopped

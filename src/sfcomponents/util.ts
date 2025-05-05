@@ -32,7 +32,7 @@ export const toMidi = (note: any) => {
 
 // timecents to seconds
 export const tc2s = (timecents: number) => {
-  const result = timecents == -12000? 0.01: Math.pow(2, timecents / 1200);
+  const result = timecents <= -12000? 0.01: Math.pow(2, timecents / 1200);
   return result
 }
 
@@ -107,5 +107,5 @@ export function midiToFrequency (midi: number) : number {
 }
 
 export function frequencyToMidi(frequency: number) : number {
-  return 69 + Math.log2(frequency / 440.0);
+  return 69 + 12 * Math.log2(frequency / 440.0);
 }
