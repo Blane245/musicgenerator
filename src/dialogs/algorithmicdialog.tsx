@@ -295,7 +295,7 @@ export default function AlgorithmicDialog(
             <MarkovianPropertiesBox
               name="noteP.markovian.values"
               values={(formData.noteP as MarkovianValues).values}
-              startValueSuffix={(value: number) => {
+              valueSuffix={(value: number) => {
                 if (value < 0) return "";
                 else return " ".concat(toNote(value));
               }}
@@ -314,6 +314,11 @@ export default function AlgorithmicDialog(
               min={0}
               max={127}
               step={0.001}
+              valueSuffix={(value: number) => {
+                if (value < 0) return "";
+                else return " ".concat(toNote(value));
+              }}
+
             />
           ) : null}
         </div>
@@ -385,7 +390,7 @@ export default function AlgorithmicDialog(
           formData.speedP.algorithmType == ALGORITHMTYPE.Markovian ? (
             <MarkovianPropertiesBox
               name="speedP.markovian.values"
-              startValueSuffix={() => {
+              valueSuffix={() => {
                 return "";
               }}
               values={(formData.speedP as MarkovianValues).values}
@@ -403,6 +408,7 @@ export default function AlgorithmicDialog(
               min={1}
               max={1000}
               step={1}
+              valueSuffix={() => ""}
               handleChange={handleChange}
             />
           ) : null}
@@ -475,7 +481,7 @@ export default function AlgorithmicDialog(
           formData.volumeP.algorithmType == ALGORITHMTYPE.Markovian ? (
             <MarkovianPropertiesBox
               name="volumeP.markovian.values"
-              startValueSuffix={() => {
+              valueSuffix={() => {
                 return "";
               }}
               values={(formData.volumeP as MarkovianValues).values}
@@ -493,6 +499,7 @@ export default function AlgorithmicDialog(
               min={-50}
               max={50}
               step={1}
+              valueSuffix={() => ""}
               handleChange={handleChange}
             />
           ) : null}
@@ -563,7 +570,7 @@ export default function AlgorithmicDialog(
           formData.panP.algorithmType == ALGORITHMTYPE.Markovian ? (
             <MarkovianPropertiesBox
               name="panP.markovian.values"
-              startValueSuffix={() => {
+              valueSuffix={() => {
                 return "";
               }}
               values={(formData.panP as MarkovianValues).values}
@@ -582,6 +589,7 @@ export default function AlgorithmicDialog(
               min={-1}
               max={1}
               step={0.1}
+              valueSuffix={() => ""}
             />
           ) : null}
         </div>

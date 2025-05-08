@@ -2,13 +2,4 @@
 - timeprogress has a creep as time advances
 - when opening a file and the timeline is not the default, generator icons has a problem keeping track of the icons to display. 
 - implemented this release 
-    - add volume envelop display values to generator dialog as popover. Output in gain and seconds.
-    - implement reverse sawtooth oscillator
-    - repairs to soundfont file list loading 
-    - audiofile generator add/modify not updating meta data until another change
-    - refactor midifrequency modal into a dialog 
-    - corrected copy deconstruction problem
-    - repaired frequency to midi conversion
-    - renamed CMG generator type to 'Silent'
-    - changed algorithmic generator 'generator' field to 'algorithm'
-    - change oscillator 'type' attribute to 'modulator
+    - change midi to note notation to cents, e.g., C4+30

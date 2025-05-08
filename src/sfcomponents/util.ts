@@ -64,11 +64,14 @@ const noteNames: string[] = [
   "A#",
   "B",
 ];
+
 export const toNote = (midi: number): string => {
-  const baseMidi = Math.trunc(midi);
+  const baseMidi:number = Math.round(midi);
+  const cents: number = Math.round((midi - baseMidi) * 100);
   const octave = Math.trunc(baseMidi / 12) - 1;
   const noteNumber = baseMidi - 12 * (octave + 1);
-  const extra: string = baseMidi != midi ? "+" : "";
+  const extra: string = cents == 0 ? "" : Intl.NumberFormat("en-US", {
+    signDisplay: "exceptZero"}).format(cents);
   const noteName: string =
     noteNumber >= 0 && noteNumber < 12 ? noteNames[noteNumber] : "?";
   return noteName.concat(octave.toString().concat(extra));

@@ -7,12 +7,13 @@ export interface WienerPropertiesBoxProps {
   min: number;
   max: number;
   step: number;
+  valueSuffix: Function;
   handleChange: (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
 }
 export default function WienerPropertiesBox(props: WienerPropertiesBoxProps) {
-  const { name, values, min, max, step, handleChange } = props;
+  const { name, values, min, max, step, valueSuffix, handleChange } = props;
   return (
     <div className="wiener">
       <div className="seedtitle">Seed</div>
@@ -40,7 +41,8 @@ export default function WienerPropertiesBox(props: WienerPropertiesBoxProps) {
           onChange={handleChange}
           value={values.initialValue}
         />
-      </div>
+          <span>{valueSuffix(values.initialValue)}</span>
+          </div>
       <div className="trend">
         <input
           name={name.concat(".alpha")}

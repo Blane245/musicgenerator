@@ -4,7 +4,7 @@ import { MarkovianType } from "../types";
 export type MarkovianPropertiesBoxProps = {
   name: string;
   values: MarkovianType;
-  startValueSuffix: Function;
+  valueSuffix: Function;
   min: number;
   max: number;
   step: number;
@@ -16,7 +16,7 @@ export type MarkovianPropertiesBoxProps = {
 export default function MarkovianPropertiesBox(
   props: MarkovianPropertiesBoxProps
 ): JSX.Element {
-  const { name, values, min, max, step, startValueSuffix, handleChange } =
+  const { name, values, min, max, step, valueSuffix, handleChange } =
     props;
   return (
     <div className="markovian">
@@ -43,7 +43,7 @@ export default function MarkovianPropertiesBox(
             onChange={handleChange}
             value={values.startValue}
           />
-          <span>{startValueSuffix(values.startValue)}</span>
+          <span>{valueSuffix(values.startValue)}</span>
         </label>
       </div>
       <div className="lo">
@@ -58,7 +58,8 @@ export default function MarkovianPropertiesBox(
             onChange={handleChange}
             value={values.range.lo}
           />
-        </label>
+          <span>{valueSuffix(values.startValue)}</span>
+          </label>
       </div>
       <div className="hi">
         <label>
@@ -72,7 +73,8 @@ export default function MarkovianPropertiesBox(
             onChange={handleChange}
             value={values.range.hi}
           />
-        </label>
+          <span>{valueSuffix(values.startValue)}</span>
+          </label>
       </div>
       <div className="step">
         <label>
