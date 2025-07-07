@@ -365,7 +365,7 @@ code {
           : 'default'
     });
   </script>
-<h1 id="stylenote-background-color-rgb114746color-whitepicture-displayblockmargin-left-automargin-right-autostylecomputer-music-generator-cmg-users-guide-version-35"><style>
+<h1 id="stylenote-background-color-rgb114746color-whitepicture-displayblockmargin-left-automargin-right-autostylecomputer-music-generator-cmg-users-guide-version-36"><style>
 .note {
 background-color: rgb(114,74,6);
 color: white;
@@ -376,7 +376,7 @@ margin-left: auto;
 margin-right: auto;
 }
 </style>
-Computer Music Generator (CMG) User's Guide, Version 3.5</h1>
+Computer Music Generator (CMG) User's Guide, Version 3.6</h1>
 <p><strong>Table of Contents</strong></p>
 <ul>
 <li><a href="#introduction">Introduction</a></li>
@@ -506,7 +506,7 @@ Computer Music Generator (CMG) User's Guide, Version 3.5</h1>
 <p><strong>Move Down</strong> - When this button is clicked, the track is moved below the track immediately below it. The lowest most track cannot be moved down.</p>
 </li>
 <li>
-<p><strong>Add Generator</strong> - When this button is clicked, a dialog pane is opened to add a new generator to the track. The initial name of the generator is unique to all generators in the file. See the section below for more details about adding and editing generators. The details for entering information for a generator can be found in <a href="#editing-generators">Editing Generators</a>.</p>
+<p><strong>Add Generator</strong> - When this button is clicked, a menu is displayed providing a list of generator type that can be added to the track. The initial name of the generator is unique to all generators in the file. See <a href="#editing-generators">Editing Generators</a> for more details about adding and editing generators.</p>
 </li>
 </ul>
 <h1 id="generators">Generators</h1>
@@ -516,24 +516,23 @@ In this figure are shown five tracks, each of which has one generator. All of th
 <h2 id="editing-generators">Editing Generators</h2>
 <p>Generators are the heart of CMG. There can be as many generators in a CMG file
 as is needed to produce the composition desired. There are three types of generators: one silent and two sound producers.</p>
-<p>One of the generators use SoundFont presets. Each preset has a bank, channel number, and name. More information about SoundFont presets can be found <a href="https://www.synthfont.com/Tutorial6.html">here</a>.</p>
+<p>One of the generators use SoundFont presets. Each preset has a bank, channel number, and name. More information about SoundFont presets can be found in the <a href="https://www.synthfont.com/Tutorial6.html">SynthFont[1] tutorial, part 6</a>.</p>
 <h2 id="generator-types">Generator Types</h2>
 <h3 id="silent"><strong>Silent</strong></h3>
 <p>The silent generator contains the name of the generator, its type (<em>Silent</em>), and its start and stop times. When the type is changed, the add/edit panel changes to the selected type.</p>
-<p>The figure shows the panel for adding a new generator. There is an <strong>Add</strong> Button. When a generator is modified, the title is the name of the generator and the button is displayed as <strong>Modify</strong>. Add and Modify functions may be canceled by clicking the <em><strong>x</strong></em> in the upper left-hand corner of the panel or by clicking the <strong>Cancel</strong> button.</p>
-<p><img src="./images/CMGEdit.png" alt="alt text">
+<p>The figure shows the panel for adding a new Silent generator. There is an <strong>Add</strong> Button. When a generator is modified, the button is displayed as <strong>Modify</strong>. Add and Modify functions may be canceled by clicking the <em><strong>x</strong></em> in the upper left-hand corner of the panel or by clicking the <strong>Cancel</strong> button.
+<img src="./images/SilentEdit.png" alt="alt text">
 The fields below are common to all generator types.</p>
 <ul>
 <li><strong>Name:</strong> The name of the generator must be unique within all generators in the file. When a new generator is created the default name is a 'G' followed by a unique number.</li>
-<li><strong>Type:</strong> When a new generator is created, its type is set to <em>Silent</em>. It may be changed to  <em>Algorithmic</em> or <em>Audiofile</em>.</li>
-<li><strong>Start Time:</strong> This is the time that the generator will start, in seconds, It must be greater than or equal to zero.</li>
+<li><strong>Start Time:</strong> This is the time that the generator will start, in seconds, It must be greater than or equal to zero. When the start time is changed, the stop time is automatically changed to maintain the original duration.</li>
 <li><strong>Stop Time:</strong> This is the time that the generator will stop. It must be greater than the <em>Start Time</em>.</li>
 </ul>
 <p>Each generator edit panel has a <em><strong>Preview</strong></em> button that can be used to preview the sound of the generator. In the case of a <em>Silent</em> generator, no sound will be produced.</p>
 <h3 id="algorithmic">Algorithmic</h3>
-<p>When the generator type is selected as <em>Algorithmic</em>, the Add/Edit panel for that type is displayed:
+<p>When the generator type of <em>Algorithmic</em> is added or one is edited, the Add/Edit panel for that type is displayed:
 <img src="./images/AlgorithmicEdit1.png" alt="alt text">
-This figure illustrates the initial display when a new Algorithmic generator is being added or the generator type has been changed. Note that the algorithm assigned to note, speed, volume, and pan is <em><strong>None</strong></em>.
+This figure illustrates the initial display when a new Algorithmic generator is being added. Note that the algorithm assigned to note, speed, volume, and pan is <em><strong>Constant</strong></em> and all values are zero.
 The fields are defined as follows along with their restrictions.</p>
 <p>This generator type uses various algorithms to set the values for which notes are to be played, at which rhythm, speed, volume, and pan. A different algorithm can be assigned to each of the attributes.</p>
 <ul>
@@ -591,7 +590,7 @@ The fields are defined as follows along with their restrictions.</p>
 <li>Volume - The volume of a selected note is expressed in decibels (dB) relative to the original sample level. Every dB reduces or increases the signal level by 2.</li>
 <li>Pan - The sound of the note can be panned left (-1) and right (1). Zero (0) is the pan center.</li>
 </ul>
-<p>Each of the note, speed, volume, and pan attributes of the sound must have an algorithm assigned. The initial value is <em>None</em>; however, this must be changed to one of those listed below before a Algorithmic generator can be added or modified. This figure below shows an example of an Algorithmic generator that has different algorithms assigned to the attributes.
+<p>Each of the note, speed, volume, and pan attributes of the sound must have an algorithm assigned. The initial value is <em>Constant</em>; however, this must be changed to one of those listed below before a Algorithmic generator can be added or modified. This figure below shows an example of an Algorithmic generator that has different algorithms assigned to the attributes.
 <img src="./images/AlgorithmicEdit2.png" alt="alt text"></p>
 <blockquote>
 <blockquote>
@@ -637,8 +636,6 @@ The states are</p>
 </li>
 <li>
 <p><strong>Wiener</strong> This generator uses the <a href="https://en.wikipedia.org/wiki/Wiener_process">Wiener Process</a> to create a random walk or Brownian motion of the attribute. It starts at some value and randomly walks with a trend and dispersion at each beat. A zero trend will keep the random walk centered around the initial value. A negative trend decrease the value over time, and a positive trend increases the value. The dispersion affects how far from the trend line the value will be. Dispersion increases over time. Values are generated using the Wiener Process $$x_t=x_0+\alpha t+N(0,\sigma\sqrt{t})$$</p>
-</li>
-</ul>
 <p>where $x_t$ is the new attribute value at time $t$, $x_0$ is initial attribute value, $\alpha$ is the trend, $\sigma$ is the dispersion variable, and $\N$ is the Gaussian noise function which generates a random variable with mean $0$ and standard deviation $\sigma\sqrt{t}$.</p>
 <ul>
 <li><strong>Seed:</strong> This is a character string that is used to start the random number sequence for this generator. See <a href="#randomseed">this</a> for further discussion about random seeds.</li>
@@ -648,6 +645,28 @@ The states are</p>
 <li><strong>Lo:</strong> This is the lowest value that can be assigned to the attribute. It must be smaller than the hi value.</li>
 <li><strong>Hi:</strong> This is the highest value that can be assigned to the attribute. It must be larger than the lo value.</li>
 </ul>
+</li>
+<li>
+<p><strong>Autoregressive</strong> This algorithm uses a first-order <a href="https://en.wikipedia.org/wiki/Autoregressive_model">Autoregressive Model</a> to create a series of values with some persistence. The next value in the series is determined by the formula $$V_{i}=\alpha V_{i-1}+\sigma_i$$
+where</p>
+<ul>
+<li>$V_{i}$ is the next value in the series,</li>
+<li>$\alpha$ is the persistence parameters, usually between -1 and +1.</li>
+<li>$V_{i}$ is the previous value in the series, and</li>
+<li>$\sigma$ is a uniformly distributed random number between -0.5 and +0.5.</li>
+</ul>
+<p>The autoregressive model has the following inputs:</p>
+<ul>
+<li><strong>Seed:</strong> This is a character string that is used to start the random number sequence for this generator. See <a href="#randomseed">this</a> for further discussion about random seeds.</li>
+<li><strong>Initial Value:</strong> This is the value where the sequence of values for attribute starts. It must be between <em>Lo</em> and <em>Hi</em>.</li>
+<li><strong>Alpha:</strong> The value of $\alpha$ in the formula above</li>
+<li><strong>Dispersion:</strong> This value of $\sigma$ in teh formula above</li>
+<li><strong>Lo:</strong> This is the lowest value that can be assigned to the attribute. It must be smaller than the hi value.</li>
+<li><strong>Hi:</strong> This is the highest value that can be assigned to the attribute. It must be larger than the lo value.</li>
+</ul>
+</li>
+</ul>
+<p>If the values goes of the lo&lt;-&gt;hi interval, the sign on $\sigma$ is reversed.</p>
 <h3 id="audiofile">AudioFile.</h3>
 <p>This is not really a generator as it will play a saved audio file rather than generate a new sound. The user specifies the start time of the playback and its volume. The entire audio file is then played from beginning to end.</p>
 <ul>
@@ -695,7 +714,10 @@ The states are</p>
 <li><strong>Exit</strong> - The generator pulldown menu is hidden.</li>
 </ul>
 <h2 id="moving-a-generator-within-its-track">Moving a Generator Within Its Track</h2>
+<h3 id="vertical-movement">Vertical Movement</h3>
 <p>Each generator is displayed as an icon with its length determined by its start and stop time and the current timeline settings. Its height is 1/3 of the height of the track timeline display. A generator icon may overlap other icons on the timeline display so it may be desirable to move it away from the others. A generator may be moved vertically up or down by clicking anywhere in the icon except the title and dragging the mouse up or down. When the mouse is released, the icon assumes its new position. This position is part of the generator's properties and is saved in the CMG file.</p>
+<h3 id="horizontal-movement">Horizontal Movement</h3>
+<p>By click/drag either end of the generator icon, the timing of the generator can be moved. This will change the start and stop times such that the generator will maintain its duration.</p>
 <h1 id="timeline">Timeline</h1>
 <h2 id="timeline-control">Timeline Control</h2>
 <p>The Timeline is a window into the time frame of the full composition. It can be scrolled and zoomed as desired to best display the generator icons as a composition be being constructed. The figure below is an example of a timeline with the controls display on the left side and the time scale shown to the right.
