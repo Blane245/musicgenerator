@@ -14,24 +14,24 @@ const isActiveZone = (
 ): boolean => {
   const keyRange: any = zone.keyRange;
   const velRange: any = zone.velRange;
-  // console.log('ranges', 'key', keyRange, 'vel', velRange);
-  const keyCheck: boolean = !keyRange || (keyRange.lo <= midi && midi <= keyRange.hi);
-  const velCheck: boolean = !velRange || (velRange.lo <= velocity && velocity <= velRange.hi);
+  const keyCheck: boolean =
+    !keyRange || (keyRange.lo <= midi && midi <= keyRange.hi);
+  const velCheck: boolean =
+    !velRange || (velRange.lo <= velocity && velocity <= velRange.hi);
   return keyCheck && velCheck;
 };
 
 const getActiveZones = (preset: Preset, midi: number, velocity: number) => {
-  // console.log('preset', preset);
   const activeZones = preset.zones
     .filter(
-      (pzone: PresetZone) => isActiveZone(pzone, midi, velocity) && pzone.instrument
+      (pzone: PresetZone) =>
+        isActiveZone(pzone, midi, velocity) && pzone.instrument
     )
     .map((pzone: PresetZone) => {
       return pzone.instrument.zones
         .filter((izone: InstrumentZone) => isActiveZone(izone, midi, velocity))
         .map((izone: InstrumentZone) => {
           const mergedGenerators = getGeneratorValues(izone, pzone, preset);
-          // console.log('generators', mergedGenerators);
           return {
             ...izone,
             mergedGenerators: mergedGenerators,
@@ -39,7 +39,6 @@ const getActiveZones = (preset: Preset, midi: number, velocity: number) => {
         });
     })
     .flat();
-  // console.log("activeZones", activeZones);
   return activeZones;
 };
 
@@ -56,7 +55,6 @@ export const getPresetNote = (
   time: number
 ): RawSourceData[] => {
   const zones = getActiveZones(preset, Math.round(pitchValue), velocity);
-  // console.log("zones", zones);
   const result: RawSourceData[] = zones.map((zone) => {
     // get the sample
     const { sample, header } = samplePool(zone.sample);
@@ -103,16 +101,6 @@ export const getPresetNote = (
     const baseDetune = 100 * rootKey + pitchCorrection - fineTune;
     const cents = pitchValue * 100 - baseDetune;
     const playbackRate = 1.0 * Math.pow(2, cents / 1200);
-    // console.log('getpreset',
-    //   'rootKey',
-    //   rootKey,
-    //   'baseDetune',
-    //   baseDetune,
-    //   'cents',
-    //   cents,
-    //   'playbackRate',
-    //   playbackRate,
-    // )
 
     // get the sample looping parameters and override looping if requested
     let loopStart: number = 0;
@@ -141,7 +129,7 @@ export const getPresetNote = (
     );
     const releaseInterval: number = release;
     const duration: number = interval + release;
-    let sustainLevel = attenuate(1.0, sustainVolEnv/ 10);
+    let sustainLevel = attenuate(1.0, sustainVolEnv / 10);
     let noisySample: Float32Array = new Float32Array(0);
     // add noise to the sample if necessary
     if (noiseAmplitude > 0 && noiseDispersion > 0) {
@@ -187,7 +175,6 @@ export const getPresetNote = (
         value: volumeValue,
       },
     };
-    // console.log("loadpresetnote result vol", aResult.vol, "interval", interval);
     return aResult;
   });
   return result;
@@ -241,15 +228,5 @@ function addNoise(
 
   // normalize to the original signal level
   noisySample = noisySample.map((s) => (s * signalLevel) / newSignalLevel);
-  // console.log(
-  //   `add noise to sample at frequency, amplitude, std, samples, sampleRate, signalLevel, newSignalLevel`,
-  //   frequency,
-  //   amplitude,
-  //   std,
-  //   noisySample.length,
-  //   sampleRate,
-  //   signalLevel,
-  //   newSignalLevel
-  // );
   return noisySample;
 }

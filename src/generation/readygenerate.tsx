@@ -1,6 +1,5 @@
 // determine what is to be scheduled for generator based on
 // proper definition and selection filters
-// https://github.com/Blane245/musicgenerator/issues/28
 import CMGFile from "../classes/cmgfile";
 import { Algorithmic, Silent, AudioFile } from "../classes/generators";
 import {
@@ -66,7 +65,8 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
     // the timeline interval overrides other filters
     if (
       timeInterval.startTime != undefined &&
-      timeInterval.endTime != undefined
+      timeInterval.endTime != undefined &&
+      timeInterval.startTime != timeInterval.endTime
     ) {
       const startTime: number = timeInterval.startTime;
       const endTime: number = timeInterval.endTime;
@@ -77,6 +77,16 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
         startTime,
         endTime
       );
+      if (firstGeneratorTime == Number.MAX_VALUE) {
+        return {
+          AlgorithmicGenerators,
+          AudioFileGenerators,
+          SilentGenerators,
+          playbackLength,
+          offsetTime,
+          error: "First generator not found when time interval active",
+        };
+      }
       offsetTime = firstGeneratorTime;
       fileContents.tracks.forEach((t) => {
         t.generators.forEach((g) => {
@@ -90,7 +100,8 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
               AlgorithmicGenerators.push(thisG as Algorithmic);
             if (g.type == GENERATORTYPE.AudioFile)
               AudioFileGenerators.push(thisG as AudioFile);
-            if (g.type == GENERATORTYPE.Silent) SilentGenerators.push(thisG as Silent);
+            if (g.type == GENERATORTYPE.Silent)
+              SilentGenerators.push(thisG as Silent);
             playbackLength = Math.max(thisG.stopTime + 1, playbackLength);
           }
         });
@@ -125,6 +136,17 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
           }
         }
       });
+      if (offsetTime == Number.MAX_VALUE) {
+        return {
+          AlgorithmicGenerators,
+          AudioFileGenerators,
+          SilentGenerators,
+          playbackLength,
+          offsetTime,
+          error:
+            "First genertor not found while filtering out solo tracks and generators",
+        };
+      }
       // adjust the active generators start and stop time based on the
       // offset
       if (offsetTime > 0) {
@@ -188,6 +210,6 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
     SilentGenerators,
     playbackLength,
     offsetTime,
-    error: "",
+    error,
   };
 }

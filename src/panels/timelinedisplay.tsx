@@ -14,6 +14,8 @@ import { useCMGContext } from "../cmgcontext";
 import { precision } from "../sfcomponents/util";
 import {
   TIMEFORMATS,
+  TIMEINTERVALEDGE,
+  TIMEINTERVALMODE,
   TimelineInterval,
   TimeLineScale,
   TimeLineScales,
@@ -30,13 +32,14 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
     verticalScrollWidth,
     timeLine,
     setTimeLine,
+    timeInterval,
     setTimeInterval,
     timeProgress,
     playing,
     mouseDown,
-    setMouseDown,
+    mouseLocation,
+    setMouseLocation,
   } = useCMGContext();
-  // const timeLineRef = useRef<HTMLDivElement>(null);
   const [ticks, setTicks] = useState<{
     majorTickCount: number;
     scaleExtent: number;
@@ -57,24 +60,10 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
     labelFormat: "",
   });
 
-  // local time interval used during editing
-  const [interval, setInterval] = useState<TimelineInterval>({
-    startOffset: -1,
-    endOffset: -1,
-  });
-
-  // the type of time interval editing being done
-  const [type, setType] = useState<string>("");
-
-  // create the timeline object when the time line starts up
-  // useEffect(() => {
-  //   if (timeLineRef && timeLineRef.current) {
-  //     const width: number = timeLineRef.current.clientWidth;
-  //     const height: number = timeLineRef.current.clientHeight;
-  //     const newT:TimeLine = new TimeLine(width, height);
-  //     setTimeLine(newT);
-  //   }
-  // }, []);
+  // the Mode of the timeinterval editor
+  // the Edge of the timeinterval editor
+  const [mode, setMode] = useState<TIMEINTERVALMODE>(TIMEINTERVALMODE.None);
+  const [edge, setEdge] = useState<TIMEINTERVALEDGE>(TIMEINTERVALEDGE.None);
 
   useEffect(() => {
     const resizeObserver: ResizeObserver = new ResizeObserver(
@@ -92,6 +81,7 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
       resizeObserver.observe(timeLineRef.current[0]);
     }
   }, [timeLineRef]);
+
   // update the playback tick and time line start time when the time progress changes
   useEffect(() => {
     if (timeProgress >= 0 && ticks.scaleExtent > 0) {
@@ -146,7 +136,7 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
       });
 
       // set the left and right offsets of the timeline interval based on the interval's times.
-      setInterval((prev) => {
+      setTimeInterval((prev) => {
         if (prev.startTime != undefined && prev.endTime != undefined) {
           const newInterval: TimelineInterval = { ...prev };
           const tStart: number = timeLine.startTime;
@@ -168,31 +158,82 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
 
           // broadcast change
           setTimeInterval(newInterval);
-          // console.log(
-          //   "new timeline interval after timeline change",
-          //   newInterval
-          // );
           return newInterval;
         } else return prev;
       });
     }
   }, [timeLine]);
 
-  // if the mouse has been released and an interval is properly defined
-  // end its definition and broadcast it
+  // useeffect handler for mouse move in Define and Move modes
   useEffect(() => {
-    if (!mouseDown) {
-      if (interval.startOffset >= 0 && interval.endOffset >= 0) {
-        // signal change to larger community
-        if (interval.startOffset < interval.endOffset) {
-          setTimeInterval(interval);
-        } else {
-          setTimeInterval({ startOffset: -1, endOffset: -1 });
-        }
-        setType("");
+    if (mode == TIMEINTERVALMODE.Define && mouseLocation) {
+      // change the timeinterval definiiton based on the curent mouse X relative location
+      let newInterval: TimelineInterval = { ...timeInterval };
+      const X: number = mouseLocation.X;
+      switch (edge) {
+        case TIMEINTERVALEDGE.Left:
+          {
+            if (X < timeInterval.endOffset) newInterval.startOffset = X;
+            else {
+              newInterval.startOffset = newInterval.endOffset;
+              newInterval.endOffset = X;
+              setEdge(TIMEINTERVALEDGE.Right);
+            }
+            newInterval = getTimes(newInterval);
+            setTimeInterval(newInterval);
+            console.log("interval redefinition ", newInterval);
+          }
+          break;
+        case TIMEINTERVALEDGE.Right:
+          {
+            if (X > timeInterval.startOffset) {
+              newInterval.endOffset = X;
+            } else {
+              newInterval.endOffset = newInterval.startOffset;
+              newInterval.startOffset = X;
+              setEdge(TIMEINTERVALEDGE.Left);
+            }
+            newInterval = getTimes(newInterval);
+            setTimeInterval(newInterval);
+            console.log("interval redefinition ", newInterval);
+          }
+          break;
+        default:
+          console.log("bad interval edge definition ", edge);
+          break;
       }
     }
-  }, [mouseDown]);
+    if (mode == TIMEINTERVALMODE.Move && mouseLocation) {
+      // change the timeinterval position based on the current mouse X relative location
+      const dX: number = mouseLocation.dX;
+      let newInterval: TimelineInterval = { ...timeInterval };
+      const newStart: number = newInterval.startOffset + dX;
+      const newEnd: number = newInterval.endOffset + dX;
+      if (
+        newStart >= 0 &&
+        newStart <= timeLine.width &&
+        newEnd >= 0 &&
+        newEnd <= timeLine.width
+      ) {
+        newInterval.startOffset = newStart;
+        newInterval.endOffset = newEnd;
+        newInterval = getTimes(newInterval);
+        setTimeInterval(newInterval);
+        console.log("interval moved to ", newInterval);
+      } else {
+        console.log("interval not moved to ", newStart, newEnd);
+      }
+    }
+    if (!mouseLocation && mode == TIMEINTERVALMODE.Define) {
+      console.log("terminate interval definition", timeInterval);
+      setMode(TIMEINTERVALMODE.None);
+    }
+    if (!mouseLocation && mode == TIMEINTERVALMODE.Move) {
+      console.log("terminate interval move", timeInterval);
+      setMode(TIMEINTERVALMODE.None);
+    }
+    if (!mouseLocation && mode == TIMEINTERVALMODE.None) setCursor("default");
+  }, [mouseLocation]);
 
   // build the tick marks
   function getTickLines(count: number, height: number, spacing: number) {
@@ -238,48 +279,15 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
     }
     return result;
   }
-  // the timeline, interval body, and edges have mousedown handlers
-  // this will either initiate the definition of a new interval
-  // or allow an existing interval to be changed
-  function handleMouseDown(
-    e: MouseEvent<SVGRectElement | SVGPathElement>
-  ): void {
-    if (!playing.current) {
-      e.preventDefault();
-      e.stopPropagation();
-      const type: string = e.currentTarget.id;
-
-      // set the cursor in preparation of a mouse movement
-      if (type == "intervalbox") {
-        setCursor("grab");
-      } else setCursor("ew-resize");
-
-      // initialize the interval if in define interval and switch mode set to move left
-      if (type == "timeline") {
-        setInterval(
-          getTimes({
-            startOffset: e.nativeEvent.offsetX,
-            endOffset: e.nativeEvent.offsetX,
-          })
-        );
-        setType("intervalleftedge");
-      } else setType(type);
-
-      // tell the page that the mouse is down
-      setMouseDown(true);
-    }
-  }
 
   // calculate the resulting start and end times
-  // and signal the CMG context so the generator can get to it
   function getTimes(interval: TimelineInterval): TimelineInterval {
     const scale: TimeLineScale = TimeLineScales[timeLine.currentZoomLevel];
     if (interval.startOffset >= 0 && interval.endOffset >= 0) {
       const newInterval: TimelineInterval = { ...interval };
       newInterval.startTime = precision(
         timeLine.startTime +
-          (scale.extent * interval.startOffset) /
-            timeLine.width,
+          (scale.extent * interval.startOffset) / timeLine.width,
         1
       );
       newInterval.endTime = precision(
@@ -289,108 +297,143 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
       );
       return newInterval;
     } else {
-      // console.log(
-      //   "getTimes: attempt to complete interval before definition is complete"
-      // );
       return interval;
     }
   }
 
-  // handle mouse move for timeline, interval, or edges
-  function handleMouseMove(
-    e: MouseEvent<SVGRectElement | SVGPathElement>
+  // the mouse event handlers for timeinterval definition and movement
+  // mouse up and mouse move events are handled by the home page and relayed through
+  // the context. They are handled by useEffect
+  // The only mouse event here are for entering and leaving the timeinterval body, left, or right
+  // edges, and mouse down for timeline and timeinterval elements
+  function onMouseEnterTimeIntervalBody(
+    event: MouseEvent<SVGRectElement>
   ): void {
-    if (mouseDown && !playing.current) {
-      e.preventDefault();
-      e.stopPropagation();
-      const x: number = e.nativeEvent.offsetX;
-      const deltaX: number = e.nativeEvent.movementX;
-
-      // skip if no change or out of bounds
-      if (deltaX == 0 || x < 0 || x > timeLine.width) return;
-
-      // depending on the type of movement...
-      const newInterval: TimelineInterval = { ...interval };
-      if (type == "intervalleftedge") {
-        if (x < interval.endOffset) {
-          // left move
-          newInterval.startOffset = x;
-        } else {
-          //right move - switch roles
-          newInterval.startOffset = newInterval.endOffset;
-          newInterval.endOffset = x;
-          setType("intervalrightedge");
-        }
-        setInterval(getTimes(newInterval));
-      } else if (type == "intervalrightedge") {
-        if (x < interval.startOffset) {
-          // left move - switch roles
-          newInterval.endOffset = newInterval.startOffset;
-          newInterval.startOffset = x;
-          setType("intervalleftedge");
-        } else {
-          //right move
-          newInterval.endOffset = x;
-        }
-        setInterval(getTimes(newInterval));
-      } else if (type == "intervalbox") {
-        const newStart = newInterval.startOffset + deltaX;
-        const newEnd = newInterval.endOffset + deltaX;
-
-        // the new start and end points must be between the timeline
-        // boundaries [0, timeline.width] or the move is rejected
-        if (
-          newStart >= 0 &&
-          newStart <= timeLine.width &&
-          newEnd >= 0 &&
-          newEnd <= timeLine.width
-        ) {
-          newInterval.startOffset = newStart;
-          newInterval.endOffset = newEnd;
-          setInterval(getTimes(newInterval));
-        }
-      } else console.log("invalid movement type", type);
+    // when the mouse enters the time interval body with mouse up, change the cursor to hand
+    if (mode != TIMEINTERVALMODE.Define && !mouseDown.current) {
+      setCursor("grab");
+      event.stopPropagation();
+      event.preventDefault();
     }
   }
 
-  // when the mouse is up change cursor to the appropriate type based on which component is entered
-  function handleMouseEnter(
-    e: MouseEvent<SVGRectElement | SVGPathElement>
+  function onMouseLeaveTimeIntervalBody(
+    event: MouseEvent<SVGRectElement>
   ): void {
-    if (mouseDown || playing.current) return;
-    e.preventDefault();
-    e.stopPropagation();
-    const type: string = e.currentTarget.id;
-    switch (type) {
-      case "timeline": {
-        setCursor("crosshair");
-        break;
-      }
-      case "intervalbox": {
-        setCursor("grab");
-        break;
-      }
-      case "intervalleftedge":
-      case "intervalrightedge": {
-        setCursor("ew-resize");
-        break;
-      }
-      default: {
-        // console.log("handleMouseEnter mouse enter not handled");
-        break;
-      }
+    // when the mouse leaves the time interval body with mouse up, change the cursor to default
+    if (!mouseDown.current) {
+      setCursor("default");
+      event.stopPropagation();
+      event.preventDefault();
     }
   }
 
-  // when the mouse is up change cursor back to default
-  function handleMouseLeave(
-    e: MouseEvent<SVGRectElement | SVGPathElement>
+  function onMouseEnterTimeIntervalEdge(
+    event: MouseEvent<SVGPathElement>,
+    edge: TIMEINTERVALEDGE
   ): void {
-    if (mouseDown || playing.current) return;
-    e.preventDefault();
-    e.stopPropagation();
-    setCursor("default");
+    // when the mouse enters the time interval edge with mouse up and not in move mode
+    if (!mouseDown.current && mode != TIMEINTERVALMODE.Move) {
+      setCursor("ew-resize");
+      setEdge(edge);
+      console.log("enter edge set cursor to ew-resize");
+      event.stopPropagation();
+      event.preventDefault();
+    }
   }
+
+  function onMouseLeaveTimeIntervalEdge(
+    event: MouseEvent<SVGPathElement>
+  ): void {
+    // when the mouse leaves the time interval edge with mouse up, change the cursor to default
+    if (!mouseDown.current) {
+      setCursor("default");
+      console.log("leave edge set cursor to default");
+      event.stopPropagation();
+      event.preventDefault();
+    }
+  }
+
+  function onMouseDownTimeLine(event: MouseEvent<SVGRectElement>) {
+    setMode(TIMEINTERVALMODE.Define);
+    setCursor("ew-resize");
+    setEdge(TIMEINTERVALEDGE.Left);
+    const X: number = event.nativeEvent.offsetX;
+    const Y: number = event.nativeEvent.offsetY;
+    let newInterval: TimelineInterval = { startOffset: X, endOffset: X };
+    setMouseLocation({ X: X, Y: Y, dX: 0, dY: 0 });
+    newInterval = getTimes(newInterval);
+    setTimeInterval(newInterval);
+    mouseDown.current = true;
+    console.log("initiate interval definition", newInterval);
+  }
+
+  function onMouseDownTimeInterval(event: MouseEvent<SVGRectElement>) {
+    setMode(TIMEINTERVALMODE.Move);
+    setCursor("grab");
+    setEdge(TIMEINTERVALEDGE.None);
+    setMouseLocation({
+      X: event.nativeEvent.offsetX,
+      Y: event.nativeEvent.offsetY,
+      dX: 0,
+      dY: 0,
+    });
+    mouseDown.current = true;
+    console.log("initiate interval move", timeInterval);
+  }
+
+  function onMouseDownTimeIntervalEdge(
+    event: MouseEvent<SVGPathElement>,
+    edge: TIMEINTERVALEDGE
+  ) {
+    const X: number = event.nativeEvent.offsetX;
+    const Y: number = event.nativeEvent.offsetY;
+    setMouseLocation({ X: X, Y: Y, dX: 0, dY: 0 });
+    mouseDown.current = true;
+    setMode(TIMEINTERVALMODE.Define);
+    setCursor("ew-resize");
+    setEdge(edge);
+    console.log("initiate interval redefinition on ", edge, "edge");
+  }
+
+  return (
+    <fieldset disabled={playing.current} style={{ width: "inherit" }}>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={timeLine.width}
+        height={timeLine.height}
+        viewBox={`0 0 ${timeLine.width} ${timeLine.height}`}
+      >
+        <rect
+          className="timeline"
+          id="timeline"
+          x={0}
+          y={0}
+          width={timeLine.width}
+          height={timeLine.height}
+          onMouseDown={(e) => onMouseDownTimeLine(e)}
+        />
+        <path stroke="black" d={`m 0 ${timeLine.height} H ${timeLine.width}`} />
+        {getTickLines(ticks.tickCount, ticks.tickHeight, ticks.tickSpacing)}
+        {getTickLabels(
+          ticks.majorTickCount,
+          ticks.labelSize,
+          ticks.labelSpacing,
+          ticks.scaleExtent,
+          ticks.labelFormat
+        )}
+        <line
+          stroke="red"
+          x1="0"
+          x2="0"
+          y1="0"
+          y2={timeLine.height}
+          id="playback-tick"
+        />
+        <DisplayInterval interval={timeInterval} timeLine={timeLine} />
+      </svg>
+    </fieldset>
+  );
 
   // build the JSX for the timeline interval
   interface DisplayIntervalProps {
@@ -413,19 +456,21 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
                   y={0}
                   height={timeLine.height}
                   width={interval.endOffset - interval.startOffset}
-                  onMouseDown={(e) => handleMouseDown(e)}
-                  onMouseMove={(e) => handleMouseMove(e)}
-                  onMouseEnter={(e) => handleMouseEnter(e)}
-                  onMouseLeave={(e) => handleMouseLeave(e)}
+                  onMouseDown={(e) => onMouseDownTimeInterval(e)}
+                  onMouseEnter={(e) => onMouseEnterTimeIntervalBody(e)}
+                  onMouseLeave={(e) => onMouseLeaveTimeIntervalBody(e)}
                 />
                 <path
                   className="intervaledge"
                   id="intervalleftedge"
                   d={`m ${interval.startOffset} 0 L ${interval.startOffset} ${timeLine.height}`}
-                  onMouseDown={(e) => handleMouseDown(e)}
-                  onMouseMove={(e) => handleMouseMove(e)}
-                  onMouseEnter={(e) => handleMouseEnter(e)}
-                  onMouseLeave={(e) => handleMouseLeave(e)}
+                  onMouseDown={(e) =>
+                    onMouseDownTimeIntervalEdge(e, TIMEINTERVALEDGE.Left)
+                  }
+                  onMouseEnter={(e) =>
+                    onMouseEnterTimeIntervalEdge(e, TIMEINTERVALEDGE.Left)
+                  }
+                  onMouseLeave={(e) => onMouseLeaveTimeIntervalEdge(e)}
                 />
                 <polygon
                   className="intervalmarker"
@@ -442,10 +487,13 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
                   className="intervaledge"
                   id="intervalrightedge"
                   d={`m ${interval.endOffset} 0 L ${interval.endOffset} ${timeLine.height}`}
-                  onMouseDown={(e) => handleMouseDown(e)}
-                  onMouseMove={(e) => handleMouseMove(e)}
-                  onMouseEnter={(e) => handleMouseEnter(e)}
-                  onMouseLeave={(e) => handleMouseLeave(e)}
+                  onMouseDown={(e) =>
+                    onMouseDownTimeIntervalEdge(e, TIMEINTERVALEDGE.Right)
+                  }
+                  onMouseEnter={(e) =>
+                    onMouseEnterTimeIntervalEdge(e, TIMEINTERVALEDGE.Right)
+                  }
+                  onMouseLeave={(e) => onMouseLeaveTimeIntervalEdge(e)}
                 />
                 <polygon
                   className="intervalmarker"
@@ -460,47 +508,6 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
       </>
     );
   }
-
-  return (
-    <>
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width={timeLine.width}
-        height={timeLine.height}
-        viewBox={`0 0 ${timeLine.width} ${timeLine.height}`}
-      >
-        <rect
-          className="timeline"
-          id="timeline"
-          x={0}
-          y={0}
-          width={timeLine.width}
-          height={timeLine.height}
-          onMouseEnter={(e) => handleMouseEnter(e)}
-          onMouseLeave={(e) => handleMouseLeave(e)}
-          onMouseDown={(e) => handleMouseDown(e)}
-          onMouseMove={(e) => handleMouseMove(e)}
-        />
-        <path stroke="black" d={`m 0 ${timeLine.height} H ${timeLine.width}`} />
-        {getTickLines(ticks.tickCount, ticks.tickHeight, ticks.tickSpacing)}
-        {getTickLabels(
-          ticks.majorTickCount,
-          ticks.labelSize,
-          ticks.labelSpacing,
-          ticks.scaleExtent,
-          ticks.labelFormat
-        )}
-        <line
-          stroke="red"
-          x1="0"
-          x2="0"
-          y1="0"
-          y2={timeLine.height}
-          id="playback-tick"
-        />
-        <DisplayInterval interval={interval} timeLine={timeLine} />
-      </svg>
-    </>
-  );
 });
+
 export default TimeLineDisplay;

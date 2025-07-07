@@ -1,22 +1,6 @@
 // build the sound file as quickly as possible using offline context
 // and write it to the selected mp3 file
 // thanx to https://github.com/devowlio/node-lame
-// import { Lame } from "node-lame";
-// import { bufferToWave } from "./buffertowave";
-// import {Buffer} from 'buffer';
-// export async function bufferToMp3(
-//   waveForm: Float32Array[],
-//   ChannelCount: number,
-//   sampleRate: number
-// ): Blob {
-//   const wavBlob: Blob = bufferToWave(waveForm, ChannelCount, sampleRate);
-//   const blobText: string = await wavBlob.text();
-//   const buffer = Buffer.from(blobText);
-//   const encoder = new Lame({ output: "buffer" }).setBuffer(buffer);
-//   await encoder.encode();
-//   const result: Blob = new Blob([encoder.getBuffer().buffer]);
-//   return result;
-// }
 import lamejs from "@breezystack/lamejs";
 import { float32ToInt16 } from "./float32toint";
 const BLOCKSIZE = 1152; // multiple of 576

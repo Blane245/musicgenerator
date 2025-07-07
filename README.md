@@ -6,8 +6,8 @@ The music generator will play one or more voices using various algorithms or fro
 
 - start and stop times
 - soundfont bank and preset
-- generation algorithms for a voice's note, speed, volume, and pan (oscillator, Markovian, or Wiener)
-- application of gaussian noise to a voice
+- generation algorithms for a voice's note, speed, volume, and pan (Oscillator, Autoregressive, Markovian, or Wiener)
+- application of Gaussian noise to a voice
 - optional reverberation for each generator
 - rhythm selection based on a Euclidean Rhythm algorithm
 - the number of notes used in an octave based on the Euclidean Rhythm algorithm. 
@@ -20,10 +20,14 @@ A report of the details of a composition in HTML format can be produced.
 
 # Sound Generators
 All sound generators have a time when its effect starts and stops. A generator maybe be muted. 
-There are two types of sound generators in this version.
-1. An algorithmic generator, which uses selectable algorithms for the assigned voice's parameter. Each of the voice's parameters may be assigned a different algorithm. The algorithm assigned to the note parameter uses midi numbers to select presets from a soundfont file.
-    * Each generator obtains its audio sample from a preset in a soundfont file. Each generator may us a different soundfont and preset. 
-    * The oscillator algorithm creates a sequence of values using sine, sawtooth, square, descending triangular, or ascending triangular wave forms. Each waveform have a center, frequency, amplitude, and phase. The waveforms are sampled at each beat and a audio source is generated that starts at that time and ends at the next beat. If the amplitude is zero, the value generated is the center value.
+There are three types of sound generators in this version:
+1. A silent generator, which produces silence. It most commonly used at the beginning of a composition to offset its start.
+2. An algorithmic generator, which uses selectable algorithms for the assigned voice's parameter. Each of the voice's parameters may be assigned a different algorithm. The algorithm assigned to the note parameter uses midi numbers to select presets from a soundfont file.
+    * Each generator obtains its audio sample from a preset in a soundfont file. Each generator may use a different soundfont and preset. 
+    * The Oscillator algorithm creates a sequence of values using sine, sawtooth, square, descending triangular, or ascending triangular wave forms. Each waveform have a center, frequency, amplitude, and phase. The waveforms are sampled at each beat and a audio source is generated that starts at that time and ends at the next beat. If the amplitude is zero, the value generated is the center value.
+    * The Autoregressive algorithm creates a sequence of values for the assigned voice's parameter. This is a statistical first-order autoregressive sequence of values. There are two parameters:
+        * Alpha - the amount of persistence in the sequence
+        * Dispersion - the standard deviation of the white noise 
     * The Markovian algorithm creates a sequence of values for the assigned voice's parameter. This is a statistical Markov process that has three states with probability transitions between each state. The states are  
         * keep the same value 
         * move the value up 
@@ -36,9 +40,9 @@ There are two types of sound generators in this version.
         * The number of beats in the measure is specified along with the number of 'on beats'. An 'on beat' is one that will produce a sound from the current preset, while an 'off beat' is silent no matter what preset is currently active. If the measure length and on beat count are the same, all notes will be played.
         * The number of notes in an octave determines which presets are available for use by the note parameter. When the note algorithm midi value, the value is modified to the closets selectable midi number. If the number of notes in the octave is set to 12, all notes in teh octave will be heard.
     * A Gaussian noise algorithm is used to apply noise the note's sample. The noise level determines the size of the noise signal, where 1 is the size of the original signal. The dispersion of the noise is given in midi numbers. If the dispersion if 0, no noise is applied.
-    * Reverberation may be applied to a generator.
-
-2. An Audio File Generator (**AudioFile**). This generator contains the samples from an existing audio file, as long as the web browser audio conversion exists for the audio file type. The start time is controllable, but the stop time is set based on the duration of the audio file. Only the volume can be adjusted as it is assumed that panning is handled in the file itself. 
+    * Diffuse reverberation may be applied to a generator.
+    
+3. An Audio File Generator (**AudioFile**). This generator contains the samples from an existing audio file. The start time is controllable, but the stop time is set based on the duration of the audio file. Only the volume can be adjusted as it is assumed that panning is handled in the file itself. 
 
 # CMG Data Structure
 
@@ -47,10 +51,7 @@ The data structure is hierarchial:
 *  Called *CMGFile*, this includes all attributes that apply to all other attributes. It includes a filename, the room compressor, the room equalizer, the room reverberator, the room volume, and a collection of tracks that contain generators.
 * Called *TimeLine*, this includes attributes that define the left most time to be displayed, and the current zoom level. This data element is independent of CMGFile. i.e., time line setting persist between files and are not saved.
 * Called *Track*, this is an instance of the track collection belonging to a CMGFile. Each track has name, solo, and mute attributes and a collection of generators. This provides the means by which generators can be assigned to different tracks for organizational purposes.
-* Called *Generator*, this is an instance of a generator collection and is the source of the sound that is produced by CMG. There are currently three types of generators.
-
-    * **Silent** - this generator is the parent of sound generators and does not generate sound. It contains the attributes that are common to all generators. This includes a name, start and end times, mute flag, and a vertical position with the track's timeline. 
-    * The two types of generators that produce sound are listed above.
+* Called *Generator*, this is an instance of a generator collection and is the source of the sound that is produced by CMG. There are currently three types of generators as listed above.
 
 # Web Audio Routing Graph
 
@@ -63,7 +64,7 @@ The upper figure focuses on overall structure from the generators to the compres
 
 The upper figure presents those sources, volumes, pans, and reverbs or a generator as a single box. Each generator group is connected to the room concentrator which has a gain of 1. The lower figure illustrates a generator that creates several sources, applies volume and pan to each source.
 
-The room concentrator gain output is routed to an volume, equalizer, and compressor, and to the final destination (either computer speakers or a output stream).
+The room concentrator gain output is routed to an volume, equalizer, and compressor, and to the final destination (either computer speakers for preview or a output stream for recording).
 
 # Application structure
 
@@ -79,7 +80,7 @@ The figure below illustrates the class structure of the application. It is imple
 
 ![CMG Component Diagram](ClassDiagram.png)
 
-The application is designed around the user interface and supported by a context provided. The three parts of the application are the header, body, and footer. 
+The application is designed around the user interface and supported by a context. The three parts of the application are the header, body, and footer. 
 
 ## Component Structure
 Classes are used to define sound generator objects (Silent, Algorithmic, AudioFile) that are persisted in files while the user interface and sound generation are implemented through React functions. The general structure of the classes are
@@ -160,10 +161,19 @@ Special thanks to various people
 - [sfumato](https://github.com/felixroos/sfumato) - who revealed to me the complexities of soundfont signal processing
 - WebAudio documentation, particularly the authors of the page [Advanced techniques: Creating and sequencing audio](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Advanced_techniques).
 - Russell Good for his blog [How to Convert an AudioBuffer to an Audio File with JavaScript](https://russellgood.com/how-to-convert-audiobuffer-to-audio-file/).
-- Mathew Willox for his blog [Making Reverb with the Web Audio API](https://blog.gskinner.com/archives/2019/02/reverb-web-audio-api.html). I have yet to make reverberation work, but haven't given up on it yet.
+- Mathew Willox for his blog [Making Reverb with the Web Audio API](https://blog.gskinner.com/archives/2019/02/reverb-web-audio-api.html). 
 - The Duckduckgo search engine that helped me hack my way through this.
 
 # Versions - Changes
+Version 3.6.0 implements
+- changed Add Generator to a pull down menu in track control
+- Midi notation changed to note name plus cents, e.g., C4+30
+- An autoregressive algorithm for algorithmic generator
+- A constant algorithm for algorithmic generator
+- Updated report writer to include silent generator, and constant and autoregressive algorithms. 
+- Fixed attenuation field in report writer.
+- Improved mouse actions on timeline to define and move timeinterval
+- implemented generator move in time and improved vertical position movement
 
 Version 3 implements 
 1. Independent algorithms for each voice parameter
@@ -174,7 +184,8 @@ Version 3 implements
 
 ## Remaining things to do
 
-- general repair 
+- generator icon menus having problems scrolling
+- time progress has a creep as time advances
 
 # Development and Installation
 
@@ -182,7 +193,7 @@ This application was developed in Visual Code, using a vite/typescript project.
 
 ## Typescript and Vite build tweaks
 
-While TypeScript goes a long way towards making JavaScript strongly data types, there is still some work that is needed. I had to have typescript compiler ignore a few lines that it was having trouble with using // @ts-ignore
+While TypeScript goes a long way towards making JavaScript strongly data typed, there is still some work that is needed. I had to have typescript compiler ignore a few lines that it was having trouble with using // @ts-ignore
 
 The base for the build is set to /cmg3.
 I am running a nginx ubuntu server for access to the CMG client. After building the application (npm run build), move the contents of the build folder (dist) to /var/www/lanedb.hopto.org/cmg via scp. The nginx configuration for the path lanedb.hopto.org/cmg3 is root /var/www/lanedb.hopto.org. The assets directory had to have its mode changed via <code>sudo chmod 755 assets</code>.

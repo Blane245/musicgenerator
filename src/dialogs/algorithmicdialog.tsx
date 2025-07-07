@@ -1,5 +1,7 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import {
+  AutoregressiveValues,
+  ConstantValues,
   MarkovianValues,
   OscillatorValues,
   WienerValues,
@@ -14,6 +16,8 @@ import OscillatorPropertiesBox from "./oscillatorpropertiesbox";
 import PresetDialog from "./presetdialog";
 import WienerPropertiesBox from "./wienerpropertiesbox";
 import MidiFrequencyDialog from "./midifrequencydialog";
+import ConstantPropertiesBox from "./constantpropertiesbox";
+import AutoregressivePropertiesBox from "./autoregresivepropertiesbox";
 
 // provides the form fields and validators for the algorithmic generator
 
@@ -249,7 +253,7 @@ export default function AlgorithmicDialog(
           </label>
         </div>
         <div className="parameters">
-          {/* build oscillator, markovian, wiener, or euclidean box */}
+          {/* build constant, autoregressive, oscillator, markovian, wiener, or euclidean box */}
           {formData.noteP &&
           formData.noteP.algorithmType == ALGORITHMTYPE.Oscillator ? (
             <OscillatorPropertiesBox
@@ -299,6 +303,7 @@ export default function AlgorithmicDialog(
                 if (value < 0) return "";
                 else return " ".concat(toNote(value));
               }}
+              stepSuffix={()=> "Midi"}
               min={0}
               max={127}
               step={0.1}
@@ -314,10 +319,33 @@ export default function AlgorithmicDialog(
               min={0}
               max={127}
               step={0.001}
-              valueSuffix={(value: number) => {
-                if (value < 0) return "";
-                else return " ".concat(toNote(value));
-              }}
+              valueSuffix={(value: number) => toNote(value)}
+
+            />
+          ) : null}
+          {formData.noteP &&
+          formData.noteP.algorithmType == ALGORITHMTYPE.Constant ? (
+            <ConstantPropertiesBox
+              name="noteP.constant.values"
+              values={(formData.noteP as ConstantValues).values}
+              handleChange={handleChange}
+              min={0}
+              max={127}
+              step={0.001}
+              valueSuffix={(value: number) => toNote(value)}
+
+            />
+          ) : null}
+          {formData.noteP &&
+          formData.noteP.algorithmType == ALGORITHMTYPE.Autoregressive ? (
+            <AutoregressivePropertiesBox
+              name="noteP.autogregressive.values"
+              values={(formData.noteP as AutoregressiveValues).values}
+              handleChange={handleChange}
+              min={0}
+              max={127}
+              step={0.001}
+              valueSuffix={(value: number) => toNote(value)}
 
             />
           ) : null}
@@ -393,6 +421,7 @@ export default function AlgorithmicDialog(
               valueSuffix={() => {
                 return "";
               }}
+              stepSuffix={()=>"BPM"}
               values={(formData.speedP as MarkovianValues).values}
               min={1}
               max={1000}
@@ -410,6 +439,32 @@ export default function AlgorithmicDialog(
               step={1}
               valueSuffix={() => ""}
               handleChange={handleChange}
+            />
+          ) : null}
+          {formData.speedP &&
+          formData.speedP.algorithmType == ALGORITHMTYPE.Constant ? (
+            <ConstantPropertiesBox
+              name="speedP.constant.values"
+              values={(formData.speedP as ConstantValues).values}
+              handleChange={handleChange}
+              min={1}
+              max={1000}
+              step={1}
+              valueSuffix={() => "BPM"}
+
+            />
+          ) : null}
+          {formData.speedP &&
+          formData.speedP.algorithmType == ALGORITHMTYPE.Autoregressive ? (
+            <AutoregressivePropertiesBox
+              name="speedP.autogregressive.values"
+              values={(formData.speedP as AutoregressiveValues).values}
+              handleChange={handleChange}
+              min={1}
+              max={1000}
+              step={1}
+              valueSuffix={() => "BPM"}
+
             />
           ) : null}
         </div>
@@ -484,6 +539,7 @@ export default function AlgorithmicDialog(
               valueSuffix={() => {
                 return "";
               }}
+              stepSuffix={()=>"dB"}
               values={(formData.volumeP as MarkovianValues).values}
               min={-50}
               max={50}
@@ -501,6 +557,32 @@ export default function AlgorithmicDialog(
               step={1}
               valueSuffix={() => ""}
               handleChange={handleChange}
+            />
+          ) : null}
+          {formData.volumeP &&
+          formData.volumeP.algorithmType == ALGORITHMTYPE.Constant ? (
+            <ConstantPropertiesBox
+              name="volumeP.constant.values"
+              values={(formData.volumeP as ConstantValues).values}
+              handleChange={handleChange}
+              min={-50}
+              max={50}
+              step={1}
+              valueSuffix={() => "dB"}
+
+            />
+          ) : null}
+          {formData.volumeP &&
+          formData.volumeP.algorithmType == ALGORITHMTYPE.Autoregressive ? (
+            <AutoregressivePropertiesBox
+              name="volumeP.autogregressive.values"
+              values={(formData.volumeP as AutoregressiveValues).values}
+              handleChange={handleChange}
+              min={-50}
+              max={50}
+              step={1}
+              valueSuffix={() => "dB"}
+
             />
           ) : null}
         </div>
@@ -573,6 +655,7 @@ export default function AlgorithmicDialog(
               valueSuffix={() => {
                 return "";
               }}
+              stepSuffix={()=>"[-1,+]"}
               values={(formData.panP as MarkovianValues).values}
               min={-1}
               max={1}
@@ -590,6 +673,30 @@ export default function AlgorithmicDialog(
               max={1}
               step={0.1}
               valueSuffix={() => ""}
+            />
+          ) : null}
+          {formData.panP &&
+          formData.panP.algorithmType == ALGORITHMTYPE.Constant ? (
+            <ConstantPropertiesBox
+              name="panP.constant.values"
+              values={(formData.panP as ConstantValues).values}
+              handleChange={handleChange}
+              min={-1}
+              max={1}
+              step={0.1}
+              valueSuffix={() => "[-1,+1]"}
+            />
+          ) : null}
+          {formData.panP &&
+          formData.panP.algorithmType == ALGORITHMTYPE.Autoregressive ? (
+            <AutoregressivePropertiesBox
+              name="panP.autogregressive.values"
+              values={(formData.panP as AutoregressiveValues).values}
+              handleChange={handleChange}
+              min={-1}
+              max={1}
+              step={0.1}
+              valueSuffix={() => "[-1,+1]"}
             />
           ) : null}
         </div>

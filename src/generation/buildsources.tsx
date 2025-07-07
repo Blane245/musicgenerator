@@ -35,7 +35,6 @@ export function buildSources(params: buildSourcesProps): {sources: RawSourceData
     sourceData.push(...CMGData);
   });
 
-  // console.log("raw source count", sourceData.length);
   return ({sources: sourceData.sort((a:RawSourceData, b: RawSourceData) => a.source.startTime - b.source.startTime), error: error});
 } catch (e: any) {
   error = (e as Error).message;

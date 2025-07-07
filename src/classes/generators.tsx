@@ -15,7 +15,8 @@ import {
 } from "../utils/gzip";
 import { getAttributeValue, getElementElement } from "../utils/xmlfunctions";
 import {
-  AlgorithmValues,
+  AutoregressiveValues,
+  ConstantValues,
   MarkovianValues,
   OscillatorValues,
   WienerValues,
@@ -187,10 +188,10 @@ export class Algorithmic extends Silent {
     this.context = undefined;
     this.reverbDecay = 0;
     this.reverbDuration = 0;
-    this.noteP = undefined;
-    this.speedP = undefined;
-    this.volumeP = undefined;
-    this.panP = undefined;
+    this.noteP = new ConstantValues();
+    this.speedP = new ConstantValues();
+    this.volumeP = new ConstantValues();
+    this.panP = new ConstantValues();
   }
 
   setContext(context: AudioContext | OfflineAudioContext) {
@@ -319,6 +320,12 @@ export class Algorithmic extends Silent {
         return;
       case "noteP.algorithmType":
         switch (value) {
+          case "Constant":
+            this.noteP = new ConstantValues();
+            return;
+          case "Autoregressive":
+            this.noteP = new AutoregressiveValues();
+            return;
           case "Oscillator":
             this.noteP = new OscillatorValues();
             return;
@@ -328,13 +335,16 @@ export class Algorithmic extends Silent {
           case "Wiener":
             this.noteP = new WienerValues();
             return;
-          case "None":
-            this.noteP = new AlgorithmValues();
-            return;
         }
         break;
       case "speedP.algorithmType":
         switch (value) {
+          case "Constant":
+            this.speedP = new ConstantValues();
+            return;
+          case "Autoregressive":
+            this.speedP = new AutoregressiveValues();
+            return;
           case "Oscillator":
             this.speedP = new OscillatorValues();
             return;
@@ -344,13 +354,16 @@ export class Algorithmic extends Silent {
           case "Wiener":
             this.speedP = new WienerValues();
             return;
-          case "None":
-            this.speedP = new AlgorithmValues();
-            return;
         }
         break;
       case "volumeP.algorithmType":
         switch (value) {
+          case "Constant":
+            this.volumeP = new ConstantValues();
+            return;
+          case "Autoregressive":
+            this.volumeP = new AutoregressiveValues();
+            return;
           case "Oscillator":
             this.volumeP = new OscillatorValues();
             return;
@@ -360,13 +373,16 @@ export class Algorithmic extends Silent {
           case "Wiener":
             this.volumeP = new WienerValues();
             return;
-          case "None":
-            this.volumeP = new AlgorithmValues();
-            return;
         }
         break;
       case "panP.algorithmType":
         switch (value) {
+          case "Constant":
+            this.panP = new ConstantValues();
+            return;
+          case "Autoregressive":
+            this.panP = new AutoregressiveValues();
+            return;
           case "Oscillator":
             this.panP = new OscillatorValues();
             return;
@@ -375,9 +391,6 @@ export class Algorithmic extends Silent {
             return;
           case "Wiener":
             this.panP = new WienerValues();
-            return;
-          case "None":
-            this.panP = new AlgorithmValues();
             return;
         }
         break;
@@ -485,6 +498,7 @@ export class Algorithmic extends Silent {
       returnElem.setAttribute("isLooping", this.isLooping ? "true" : "false");
       returnElem.setAttribute("measureLength", this.measureLength.toString());
       returnElem.setAttribute("beatCount", this.beatCount.toString());
+      returnElem.setAttribute("noteCount", this.noteCount.toString());
       returnElem.setAttribute("noiseSeed", this.noiseSeed);
       returnElem.setAttribute("noteCount", this.noteCount.toString());
       returnElem.setAttribute("noiseAmplitude", this.noiseAmplitude.toString());
@@ -559,6 +573,7 @@ export class Algorithmic extends Silent {
         "int"
       ) as number;
       g.beatCount = getAttributeValue(elem, "beatCount", "int") as number;
+      g.noteCount = getAttributeValue(elem, "noteCount", "int") as number;
       g.initialSequence();
       g.noteCount = getAttributeValue(elem, "noteCount", "int") as number;
       g.#activeNotes = euclideanRhythm(g.noteCount, 12);
@@ -614,6 +629,12 @@ export class Algorithmic extends Silent {
         "string"
       ) as ALGORITHMTYPE;
       switch (notePType) {
+        case ALGORITHMTYPE.Constant:
+          g.noteP = await ConstantValues.getXML(notePElem, version);
+          break;
+        case ALGORITHMTYPE.Autoregressive:
+          g.noteP = await AutoregressiveValues.getXML(notePElem, version);
+          break;
         case ALGORITHMTYPE.Oscillator:
           g.noteP = await OscillatorValues.getXML(notePElem, version);
           break;
@@ -625,6 +646,12 @@ export class Algorithmic extends Silent {
           break;
       }
       switch (speedPType) {
+        case ALGORITHMTYPE.Constant:
+          g.speedP = await ConstantValues.getXML(speedPElem, version);
+          break;
+        case ALGORITHMTYPE.Autoregressive:
+          g.speedP = await AutoregressiveValues.getXML(speedPElem, version);
+          break;
         case ALGORITHMTYPE.Oscillator:
           g.speedP = await OscillatorValues.getXML(speedPElem, version);
           break;
@@ -636,6 +663,12 @@ export class Algorithmic extends Silent {
           break;
       }
       switch (volumePType) {
+        case ALGORITHMTYPE.Constant:
+          g.volumeP = await ConstantValues.getXML(volumePElem, version);
+          break;
+        case ALGORITHMTYPE.Autoregressive:
+          g.volumeP = await AutoregressiveValues.getXML(volumePElem, version);
+          break;
         case ALGORITHMTYPE.Oscillator:
           g.volumeP = await OscillatorValues.getXML(volumePElem, version);
           break;
@@ -647,6 +680,12 @@ export class Algorithmic extends Silent {
           break;
       }
       switch (panPType) {
+        case ALGORITHMTYPE.Constant:
+          g.panP = await ConstantValues.getXML(panPElem, version);
+          break;
+        case ALGORITHMTYPE.Autoregressive:
+          g.panP = await AutoregressiveValues.getXML(panPElem, version);
+          break;
         case ALGORITHMTYPE.Oscillator:
           g.panP = await OscillatorValues.getXML(panPElem, version);
           break;
@@ -678,6 +717,16 @@ export class Algorithmic extends Silent {
     if (values.noteP) {
       const notePType: ALGORITHMTYPE = values.noteP.algorithmType;
       switch (notePType) {
+        case ALGORITHMTYPE.Constant:
+          result.push(
+            ...ConstantValues.validate(values.noteP as ConstantValues)
+          );
+          break;
+        case ALGORITHMTYPE.Autoregressive:
+          result.push(
+            ...AutoregressiveValues.validate(values.noteP as AutoregressiveValues)
+          );
+          break;
         case ALGORITHMTYPE.Oscillator:
           result.push(
             ...OscillatorValues.validate(values.noteP as OscillatorValues)
@@ -696,6 +745,16 @@ export class Algorithmic extends Silent {
     if (values.speedP) {
       const speedPType: ALGORITHMTYPE = values.speedP.algorithmType;
       switch (speedPType) {
+        case ALGORITHMTYPE.Constant:
+          result.push(
+            ...ConstantValues.validate(values.speedP as ConstantValues)
+          );
+          break;
+        case ALGORITHMTYPE.Autoregressive:
+          result.push(
+            ...AutoregressiveValues.validate(values.speedP as AutoregressiveValues)
+          );
+          break;
         case ALGORITHMTYPE.Oscillator:
           result.push(
             ...OscillatorValues.validate(values.speedP as OscillatorValues)
@@ -714,6 +773,16 @@ export class Algorithmic extends Silent {
     if (values.volumeP) {
       const volumePType: ALGORITHMTYPE = values.volumeP.algorithmType;
       switch (volumePType) {
+        case ALGORITHMTYPE.Constant:
+          result.push(
+            ...ConstantValues.validate(values.volumeP as ConstantValues)
+          );
+          break;
+        case ALGORITHMTYPE.Autoregressive:
+          result.push(
+            ...AutoregressiveValues.validate(values.volumeP as AutoregressiveValues)
+          );
+          break;
         case ALGORITHMTYPE.Oscillator:
           result.push(
             ...OscillatorValues.validate(values.volumeP as OscillatorValues)
@@ -732,6 +801,16 @@ export class Algorithmic extends Silent {
     if (values.panP) {
       const panPType: ALGORITHMTYPE = values.panP.algorithmType;
       switch (panPType) {
+        case ALGORITHMTYPE.Constant:
+          result.push(
+            ...ConstantValues.validate(values.panP as ConstantValues)
+          );
+          break;
+        case ALGORITHMTYPE.Autoregressive:
+          result.push(
+            ...AutoregressiveValues.validate(values.panP as AutoregressiveValues)
+          );
+          break;
         case ALGORITHMTYPE.Oscillator:
           result.push(
             ...OscillatorValues.validate(values.panP as OscillatorValues)

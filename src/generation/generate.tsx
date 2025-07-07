@@ -1,5 +1,3 @@
-// https://github.com/Blane245/musicgenerator/issues/5#issue-2550789485
-
 // turn the sound generators into a preview or recording based on
 // which generators are selected and which mode is selected
 import { useEffect, useRef, useState } from "react";
@@ -61,7 +59,6 @@ export default function Generate(props: GeneratorProps) {
     // catch any errors will selecting generators
     setError(error);
     if (error != "") return;
-    // console.log("playback length ", playbackLength);
 
     // build the generator sources
     recordLength.current = playbackLength;
@@ -94,7 +91,6 @@ export default function Generate(props: GeneratorProps) {
         setStatus,
         setSignalLevels,
       });
-    // console.log("mode is", mode, "record handle is ", recordHandle);
   }, [mode]);
 
   function handleErrorClose() {

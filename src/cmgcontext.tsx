@@ -14,7 +14,7 @@ import {
 } from "react";
 import CMGFile from "./classes/cmgfile";
 import TimeLine from "./classes/timeline";
-import { GeneratorType, SOUNDFONTLOCATIONOPTIONS, TimelineInterval } from "./types";
+import { GENERATORTYPE, GeneratorType, MouseLocation, SOUNDFONTLOCATIONOPTIONS, TimelineInterval } from "./types";
 
 // the elements of this application that are used at many levels
 interface CMGContextType {
@@ -47,14 +47,17 @@ interface CMGContextType {
   setTimeProgress: Dispatch<SetStateAction<number>>;
   timeInterval: TimelineInterval;
   setTimeInterval: Dispatch<SetStateAction<TimelineInterval>>;
-  mouseDown: boolean;
-  setMouseDown: Dispatch<SetStateAction<boolean>>;
+  mouseDown: MutableRefObject<boolean>;
+  mouseLocation: MouseLocation | null;
+  setMouseLocation: Dispatch<SetStateAction<MouseLocation | null>>;
   generatorsPlaying: GeneratorType[];
   setGeneratorsPlaying: Dispatch<SetStateAction<GeneratorType[]>>;
   recordFormat: string;
   setRecordFormat: Dispatch<SetStateAction<string>>;
   signalLevels: {left: number, right: number};
   setSignalLevels: Dispatch<SetStateAction<{left: number, right: number}>>;
+  generatorType: GENERATORTYPE;
+  setGeneratorType: Dispatch<SetStateAction<GENERATORTYPE>>;
 }
 
 const CMGContext = createContext<CMGContextType | undefined>(undefined);
@@ -80,12 +83,14 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     startOffset: -1,
     endOffset: -1,
   });
-  const [mouseDown, setMouseDown] = useState(false);
+  const mouseDown = useRef<boolean>(false);
+  const [mouseLocation, setMouseLocation] = useState<MouseLocation | null>(null);
   const [generatorsPlaying, setGeneratorsPlaying] = useState<GeneratorType[]>(
     []
   );
   const [recordFormat, setRecordFormat] = useState<string>("mp3");
   const [signalLevels, setSignalLevels] = useState<{left: number, right: number}>({left:-90,right:-90});
+  const [generatorType, setGeneratorType] = useState<GENERATORTYPE>(GENERATORTYPE.Silent);
   const contextValue = {
     screenHeight,
     setScreenHeight,
@@ -117,13 +122,16 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     timeInterval,
     setTimeInterval,
     mouseDown,
-    setMouseDown,
+    mouseLocation,
+    setMouseLocation,
     generatorsPlaying,
     setGeneratorsPlaying,
     recordFormat,
     setRecordFormat,
     signalLevels,
     setSignalLevels,
+    generatorType,
+    setGeneratorType
   };
 
   return (

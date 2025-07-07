@@ -5,12 +5,18 @@ import Track from "../classes/track";
 import { useCMGContext } from "../cmgcontext";
 import GeneratorDialog from "../dialogs/generatordialog";
 import Generate from "../generation/generate";
-import { GENERATIONMODE, GeneratorType, TimeLineScales } from "../types";
+import {
+  GENERATIONMODE,
+  GENERATORTYPE,
+  GeneratorType,
+  TimeLineScales,
+} from "../types";
 import {
   addGenerator,
   deleteGenerator,
   flipGeneratorMute,
   moveGeneratorBodyPosition,
+  moveGeneratorTime,
 } from "../utils/cmfiletransactions";
 import { getGeneratorUID } from "../utils/getgeneratoruid";
 import setCursor from "../utils/setcursor";
@@ -39,7 +45,8 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     timeInterval,
     generatorsPlaying,
     mouseDown,
-    setMouseDown,
+    mouseLocation,
+    setMouseLocation,
   } = useCMGContext();
   const [boxIndex, setBoxIndex] = useState<number>(-1);
   const [generatorIndex, setGeneratorIndex] = useState<number>(-1);
@@ -52,7 +59,10 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
   const [moveDialog, setMoveDialog] = useState<boolean>(false);
   const [selectedTrackName, setSelectedTrackName] = useState<string>("");
   const [preview, setPreview] = useState<GeneratorType | null>(null);
-  const [mode, setMode] = useState<GENERATIONMODE>(GENERATIONMODE.idle);
+  const [generatorMode, setGeneratorMode] = useState<GENERATIONMODE>(
+    GENERATIONMODE.idle
+  );
+  const [editMode, setEditMode] = useState<string>("None");
   const [trackWidth, setTrackWidth] = useState<number>(100);
   const [trackHeight, setTrackHeight] = useState<number>(100);
   const [deleteModal, setDeleteModal] = useState<boolean>(false);
@@ -61,6 +71,13 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
   // set the visible generator icon boxes based on the generator times and timeLine
   // handle highlighting from timeline interval selection and preview playing
   useEffect(() => {
+    console.log(
+      "generator boxes being updated",
+      "timeLine",
+      timeLine,
+      "timeInterval",
+      timeInterval
+    );
     setTrackWidth(timeLine.width);
     setTrackHeight(100);
     // get all of the generator boxes
@@ -96,6 +113,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
           selected: isSelected(g),
           playing: isPlaying(g),
         });
+        console.log("new generator box", boxes[boxes.length - 1]);
       }
     });
     setGeneratorBoxes(boxes);
@@ -108,27 +126,51 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
   ]);
 
   useEffect(() => {
-    if (mode == GENERATIONMODE.idle) setPreview(null);
-  }, [mode]);
+    if (generatorMode == GENERATIONMODE.idle) setPreview(null);
+  }, [generatorMode]);
 
-  // prepare to move the body horizontally
-  function handleBodyMouseDown(
-    event: MouseEvent<HTMLOrSVGElement>,
-    boxIndex: number
-  ) {
-    if (playing.current) return;
-    event.preventDefault();
-    event.stopPropagation();
+  useEffect(() => {
+    // handle vertical and horizontal movements depending on the mode
+    if (mouseLocation) {
+      const dX: number = mouseLocation.dX;
+      const dY: number = mouseLocation.dY;
+      if (editMode == "MoveVertical") {
+        // execute a vertical movement
+        if (dY == 0) return;
+        const moveTo: number = generatorBoxes[boxIndex].position.y + dY;
+        if (moveTo < 0 || moveTo > (2 * trackHeight) / 3) return;
+        moveGeneratorBodyPosition(
+          track,
+          generatorBoxes[boxIndex].generatorIndex,
+          moveTo,
+          setFileContents
+        );
+        console.log("generator moved to new position", moveTo);
+        setStatus(``);
+      }
 
-    const button = event.button;
-    if (button == 0) {
-      setBoxIndex(boxIndex);
-      setGeneratorIndex(generatorBoxes[boxIndex].generatorIndex);
-
-      setMouseDown(true);
-      setStatus(``);
+      if (editMode == "MoveHorizontal") {
+        if (dX == 0) return;
+        // execute a horizontal movement
+        const moveTo: number = generatorBoxes[boxIndex].position.x + dX;
+        if (moveTo < 0 || moveTo > timeLine.width) return;
+        const newStartTime: number =
+          timeLine.startTime +
+          (moveTo / timeLine.width) *
+            TimeLineScales[timeLine.currentZoomLevel].extent;
+        moveGeneratorTime(
+          track,
+          generatorBoxes[boxIndex].generatorIndex,
+          newStartTime,
+          setFileContents
+        );
+        console.log("generator move to new start time", newStartTime);
+        setStatus("");
+      }
+    } else {
+      setEditMode("None");
     }
-  }
+  }, [mouseLocation]);
 
   // enable the icon menu
   function handleTextMouseDown(
@@ -153,46 +195,57 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     setStatus(``);
   }
 
-  // move the icon vertically
-  // this is a bit sloppy, but so be it
-  function handleMouseMove(
-    event: MouseEvent<SVGRectElement>,
-    boxIndex: number
-  ) {
-    if (!mouseDown) return;
-    event.preventDefault();
-    event.stopPropagation();
-
-    // skip if no change or output is bounds
-    const deltaY: number = event.nativeEvent.movementY;
-    if (deltaY != 0) {
-      const moveTo: number = generatorBoxes[boxIndex].position.y + deltaY;
-      if (moveTo < 0 || moveTo > (2 * trackHeight) / 3) return;
-      moveGeneratorBodyPosition(
-        track,
-        generatorBoxes[boxIndex].generatorIndex,
-        moveTo,
-        setFileContents
-      );
-
-      setStatus(``);
-    }
-  }
-
-  function handleMouseEnter(e: MouseEvent<SVGRectElement>): void {
-    if (mouseDown || playing.current) return;
+  // handlers for mouse events on icon body and edges
+  // useEffect captures mouse up and mouse movements
+  function onBodyEnter(e: MouseEvent<SVGRectElement>): void {
+    if (mouseDown.current) return;
     e.preventDefault();
     e.stopPropagation();
     setCursor("ns-resize");
   }
-  // when the mouse is up change cursor back to default
-  function handleMouseLeave(e: MouseEvent<SVGRectElement>): void {
-    if (mouseDown || playing.current) return;
+  function onEdgeEnter(e: MouseEvent<SVGLineElement>): void {
+    if (mouseDown.current) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setCursor("grab");
+  }
+  function onLeave(e: MouseEvent<SVGRectElement | SVGPathElement>): void {
+    if (mouseDown.current) return;
     e.preventDefault();
     e.stopPropagation();
     setCursor("default");
   }
 
+  // let mousedown events propagate to the main page
+  function onMouseDownBody(
+    e: MouseEvent<SVGRectElement>,
+    boxIndex: number
+  ): void {
+    setBoxIndex(boxIndex);
+    setEditMode("MoveVertical");
+    setMouseLocation({
+      X: e.nativeEvent.offsetX,
+      Y: e.nativeEvent.offsetY,
+      dX: 0,
+      dY: 0,
+    });
+    mouseDown.current = true;
+  }
+
+  function onMouseDownEdge(
+    e: MouseEvent<SVGPathElement>,
+    boxIndex: number
+  ): void {
+    setBoxIndex(boxIndex);
+    setEditMode("MoveHorizontal");
+    setMouseLocation({
+      X: e.nativeEvent.offsetX,
+      Y: e.nativeEvent.offsetY,
+      dX: 0,
+      dY: 0,
+    });
+    mouseDown.current = true;
+  }
   // toggle the mute condition of the selected generator
   function toggleGeneratorMute(boxIndex: number) {
     flipGeneratorMute(
@@ -205,7 +258,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
 
   function handlePreviewClick() {
     setMenuEnabled(false);
-    setMode(GENERATIONMODE.solo);
+    setGeneratorMode(GENERATIONMODE.solo);
     setPreview(generatorBoxes[boxIndex].generator);
     setStatus(``);
     setMenuEnabled(false);
@@ -377,10 +430,9 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
               stroke="black"
               strokeWidth={1}
               key={"genrect-" + track.name + "-" + i}
-              onMouseDown={(event) => handleBodyMouseDown(event, i)}
-              onMouseMove={(event) => handleMouseMove(event, i)}
-              onMouseEnter={(event) => handleMouseEnter(event)}
-              onMouseLeave={(event) => handleMouseLeave(event)}
+              onMouseDown={(event) => onMouseDownBody(event, i)}
+              onMouseEnter={(event) => onBodyEnter(event)}
+              onMouseLeave={(event) => onLeave(event)}
             />
             <text
               pointerEvents={playing.current ? "none" : "all"}
@@ -407,6 +459,9 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
               y1={generatorBox.position.y}
               x2={generatorBox.position.x}
               y2={generatorBox.position.y + generatorBox.height}
+              onMouseEnter={(e) => onEdgeEnter(e)}
+              onMouseLeave={(e) => onLeave(e)}
+              onMouseDown={(e) => onMouseDownEdge(e, i)}
             />
             <line
               pointerEvents={playing.current ? "none" : "all"}
@@ -417,6 +472,9 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
               y1={generatorBox.position.y}
               x2={generatorBox.position.x + generatorBox.width}
               y2={generatorBox.position.y + generatorBox.height}
+              onMouseEnter={(e) => onEdgeEnter(e)}
+              onMouseLeave={(e) => onLeave(e)}
+              onMouseDown={(e) => onMouseDownEdge(e, i)}
             />
           </>
         ))}
@@ -485,6 +543,11 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
       </div>
       <GeneratorDialog
         track={track}
+        generatorType={
+          generatorBoxes[boxIndex]
+            ? generatorBoxes[boxIndex].generator.type
+            : GENERATORTYPE.Silent
+        }
         generatorIndex={generatorIndex}
         setGeneratorIndex={setGeneratorIndex}
         closeTrackGenerator={setOpenDialog}
@@ -492,8 +555,8 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
         setOpen={setOpenDialog}
       />
       <Generate
-        mode={mode}
-        setMode={setMode}
+        mode={generatorMode}
+        setMode={setGeneratorMode}
         generator={preview}
         setRecordHandle={() => {}}
       />
@@ -594,5 +657,3 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     </>
   );
 }
-// );
-// export default GeneratorIcons;

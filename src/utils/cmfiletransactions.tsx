@@ -1,20 +1,23 @@
 // Update various parts of the CMGFile based
 // various transactions within the system
-import Volume from "../classes/volume";
 import CMGFile from "../classes/cmgfile";
 import Compressor from "../classes/compressor";
 import Equalizer from "../classes/equalizer";
 import Reverb from "../classes/reverb";
 import Track from "../classes/track";
+import Volume from "../classes/volume";
 import { GeneratorType } from "../types";
 
 export function newFile(contents: CMGFile, setFileContents: Function): void {
   setFileContents(contents);
 }
 
-export function setFileComment(comment: string, setFileContents: Function): void {
-  setFileContents((prev:CMGFile) => {
-    const n:CMGFile = prev.copy();
+export function setFileComment(
+  comment: string,
+  setFileContents: Function
+): void {
+  setFileContents((prev: CMGFile) => {
+    const n: CMGFile = prev.copy();
     n.comment = comment;
     n.dirty = true;
     return n;
@@ -59,10 +62,7 @@ export function setCompressor(
   });
 }
 
-export function setReverb(
-  newReverb: Reverb,
-  setFileContents: Function
-): void {
+export function setReverb(newReverb: Reverb, setFileContents: Function): void {
   setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
     nc.dirty = true;
@@ -117,7 +117,6 @@ export function flipTrackAttrbute(
   setFileContents: Function
 ) {
   setFileContents((c: CMGFile) => {
-    // console.log('fliping track attribute', attribute);
     const newC: CMGFile = c.copy();
     if (attribute == "mute") {
       newC.tracks[index].mute = !newC.tracks[index].mute;
@@ -291,7 +290,6 @@ export function moveGeneratorBodyPosition(
 export function moveGeneratorTime(
   track: Track,
   index: number,
-  mode: string,
   newValue: number,
   setFileContents: Function
 ) {
@@ -301,15 +299,10 @@ export function moveGeneratorTime(
       (t) => t.name == track.name
     );
     if (!thisTrack) return prev;
-
     const newG: GeneratorType = thisTrack.generators[index];
-    if (mode == "start") {
-      newG.startTime = newValue;
-    } else if (mode == "stop") {
-      newG.stopTime = newValue;
-    } else {
-      return prev;
-    }
+    const dT: number = newG.stopTime - newG.startTime;
+    newG.startTime = newValue;
+    newG.stopTime = newValue + dT;
     newF.dirty = true;
     return newF;
   });

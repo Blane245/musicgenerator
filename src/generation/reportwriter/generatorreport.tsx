@@ -1,6 +1,8 @@
 import { ALGORITHMTYPE, GENERATORTYPE, GeneratorType } from "../../types";
 import { Algorithmic, AudioFile } from "../../classes/generators";
 import {
+  AutoregressiveValues,
+  ConstantValues,
   MarkovianValues,
   OscillatorValues,
   WienerValues,
@@ -87,10 +89,13 @@ function AlgorithmicReport(props: AlgorithmicReportProps): JSX.Element {
         </tbody>
       </table>
       <h4>
-        Note (midi){"\t"}GeneratorType: {g.noteP?.algorithmType}
+        Note (midi){"\t"}Algorithm Type: {g.noteP?.algorithmType}
       </h4>
-      {g.noteP?.algorithmType == ALGORITHMTYPE.Oscillator ? (
-        <OscillatorReport values={g.noteP as OscillatorValues} />
+      {g.noteP?.algorithmType == ALGORITHMTYPE.Constant ? (
+        <ConstantReport values={g.noteP as ConstantValues} />
+      ) : null}
+      {g.noteP?.algorithmType == ALGORITHMTYPE.Autoregressive ? (
+        <AutoregressiveReport values={g.noteP as AutoregressiveValues} />
       ) : null}
       {g.noteP?.algorithmType == ALGORITHMTYPE.Markovian ? (
         <MarkovianReport values={g.noteP as MarkovianValues} />
@@ -99,8 +104,14 @@ function AlgorithmicReport(props: AlgorithmicReportProps): JSX.Element {
         <WeinerReport values={g.noteP as WienerValues} />
       ) : null}
       <h4>
-        Speed (BPM){"\t"}GeneratorType: {g.speedP?.algorithmType}
+        Speed (BPM){"\t"}Algorithm Type: {g.speedP?.algorithmType}
       </h4>
+      {g.speedP?.algorithmType == ALGORITHMTYPE.Constant ? (
+        <ConstantReport values={g.speedP as ConstantValues} />
+      ) : null}
+      {g.speedP?.algorithmType == ALGORITHMTYPE.Autoregressive ? (
+        <AutoregressiveReport values={g.speedP as AutoregressiveValues} />
+      ) : null}
       {g.speedP?.algorithmType == ALGORITHMTYPE.Oscillator ? (
         <OscillatorReport values={g.speedP as OscillatorValues} />
       ) : null}
@@ -111,8 +122,14 @@ function AlgorithmicReport(props: AlgorithmicReportProps): JSX.Element {
         <WeinerReport values={g.speedP as WienerValues} />
       ) : null}
       <h4>
-        Volume (dB){"\t"}GeneratorType: {g.volumeP?.algorithmType}
+        Volume (dB){"\t"}Algorithm Type: {g.volumeP?.algorithmType}
       </h4>
+      {g.volumeP?.algorithmType == ALGORITHMTYPE.Constant ? (
+        <ConstantReport values={g.volumeP as ConstantValues} />
+      ) : null}
+      {g.volumeP?.algorithmType == ALGORITHMTYPE.Autoregressive ? (
+        <AutoregressiveReport values={g.volumeP as AutoregressiveValues} />
+      ) : null}
       {g.volumeP?.algorithmType == ALGORITHMTYPE.Oscillator ? (
         <OscillatorReport values={g.volumeP as OscillatorValues} />
       ) : null}
@@ -123,8 +140,14 @@ function AlgorithmicReport(props: AlgorithmicReportProps): JSX.Element {
         <WeinerReport values={g.volumeP as WienerValues} />
       ) : null}
       <h4>
-        Pan{"\t"}GeneratorType: {g.panP?.algorithmType}
+        Pan{"\t"}Algorithm Type: {g.panP?.algorithmType}
       </h4>
+      {g.panP?.algorithmType == ALGORITHMTYPE.Constant ? (
+        <ConstantReport values={g.panP as ConstantValues} />
+      ) : null}
+      {g.panP?.algorithmType == ALGORITHMTYPE.Autoregressive ? (
+        <AutoregressiveReport values={g.panP as AutoregressiveValues} />
+      ) : null}
       {g.panP?.algorithmType == ALGORITHMTYPE.Oscillator ? (
         <OscillatorReport values={g.panP as OscillatorValues} />
       ) : null}
@@ -137,7 +160,56 @@ function AlgorithmicReport(props: AlgorithmicReportProps): JSX.Element {
     </>
   );
 }
-
+interface ConstantReportProps {
+  values: ConstantValues;
+}
+function ConstantReport(props: ConstantReportProps): JSX.Element {
+  const {values: v} = props;
+  return (
+    <table>
+      <thead>
+        <tr>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{v.values.value}</td>
+        </tr>
+      </tbody>
+    </table>
+  )
+}
+interface AutoregressiveReportProps {
+  values: AutoregressiveValues;
+}
+function AutoregressiveReport(props: AutoregressiveReportProps): JSX.Element {
+  const {values: v} = props;
+  return (
+    <table>
+      <thead>
+        <tr>
+          <th>Initial Value</th>
+          <th>Seed</th>
+          <th>Alpha</th>
+          <th>Dispersion</th>
+          <th>Lo</th>
+          <th>Hi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{v.values.initialValue}</td>
+          <td>{v.values.seed}</td>
+          <td>{v.values.alpha}</td>
+          <td>{v.values.sigma}</td>
+          <td>{v.values.lo}</td>
+          <td>{v.values.hi}</td>
+        </tr>
+      </tbody>
+    </table>
+  )
+}
 interface OscillatorReportProps {
   values: OscillatorValues;
 }

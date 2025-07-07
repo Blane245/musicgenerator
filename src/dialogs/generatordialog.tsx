@@ -22,6 +22,7 @@ import { buildSources } from "../generation/buildsources";
 // The icon starts at the generator's start time and ends at the generators endtime
 export interface GeneratorDialogProps {
   track: Track;
+  generatorType: string;
   generatorIndex: number;
   setGeneratorIndex: Function;
   closeTrackGenerator: Function;
@@ -30,7 +31,14 @@ export interface GeneratorDialogProps {
 }
 
 export default function GeneratorDialog(props: GeneratorDialogProps) {
-  const { track, generatorIndex, closeTrackGenerator, open, setOpen } = props;
+  const {
+    track,
+    generatorType,
+    generatorIndex,
+    closeTrackGenerator,
+    open,
+    setOpen,
+  } = props;
   type SFDataType = {
     soundFont: SoundFont2 | undefined;
     presets: Preset[];
@@ -52,9 +60,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     SFServerURI,
   } = useCMGContext();
   const [showModal, setShowModal] = useState<boolean>(false);
-  // const [deleteModal, setDeleteModal] = useState<boolean>(false);
   const [oldName, setOldName] = useState<string>("");
-  // const [generatorName, setGeneratorName] = useState<string>("");
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [formData, setFormData] = useState<GeneratorType>(new Silent(0));
   const [soundFontData, setSoundFontData] = useState<SFDataType>({
@@ -63,7 +69,9 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     preset: undefined,
     presetName: "",
   });
-  const [audioFileData, setAudioFileData] = useState<AudioFile>(new AudioFile(0));
+  const [audioFileData, setAudioFileData] = useState<AudioFile>(
+    new AudioFile(0)
+  );
   const [locked, setLocked] = useState<boolean>(false);
   const [isPreview, setIsPreview] = useState<boolean>(false);
 
@@ -73,9 +81,29 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
       if (generatorIndex < 0) {
         // create a generator with a unique name
         let next = getGeneratorUID(fileContents.tracks);
-        const g = new Silent(next);
-        setFormData(g);
-        setOldName(g.name);
+        switch (generatorType) {
+          case GENERATORTYPE.Silent:
+            {
+              const g = new Silent(next);
+              setFormData(g);
+              setOldName(g.name);
+            }
+            break;
+          case GENERATORTYPE.Algorithmic:
+            {
+              const g = new Algorithmic(next);
+              setFormData(g);
+              setOldName(g.name);
+            }
+            break;
+          case GENERATORTYPE.AudioFile:
+            {
+              const g = new AudioFile(next);
+              setFormData(g);
+              setOldName(g.name);
+            }
+            break;
+        }
       } else {
         setFormData(track.generators[generatorIndex]);
         setOldName(track.generators[generatorIndex].name);
@@ -155,46 +183,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
             `generator dialog: improper generator type ${formData.type}`
           );
           return prev as Silent;
-      }
-    });
-  }
-
-  // copies the basic data and change the type of the form data
-  function handleTypeChange(event: ChangeEvent<HTMLSelectElement>): void {
-    const newType: GENERATORTYPE = event.target["value"] as GENERATORTYPE;
-
-    // switching generator type - copy the Silent values
-    setFormData((prev: GeneratorType) => {
-      switch (newType) {
-        case GENERATORTYPE.Silent: {
-          const newF = new Silent(0);
-          newF.name = prev.name;
-          newF.startTime = prev.startTime;
-          newF.stopTime = prev.startTime;
-          newF.mute = prev.mute;
-          newF.position = prev.position;
-          return newF;
-        }
-        case GENERATORTYPE.Algorithmic: {
-          const newF = new Algorithmic(0);
-          newF.name = prev.name;
-          newF.startTime = prev.startTime;
-          newF.stopTime = prev.startTime;
-          newF.mute = prev.mute;
-          newF.position = prev.position;
-          return newF;
-        }
-        case GENERATORTYPE.AudioFile: {
-          const newF = new AudioFile(0);
-          newF.name = prev.name;
-          newF.startTime = prev.startTime;
-          newF.stopTime = prev.startTime;
-          newF.mute = prev.mute;
-          newF.position = prev.position;
-          return newF;
-        }
-        default:
-          return prev;
       }
     });
   }
@@ -338,7 +326,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                 </span>
                 <span>
                   {generatorIndex < 0
-                    ? "  New Generator"
+                    ? "  Add " + formData.type + " Generator"
                     : "  Generator: " + formData.name}
                 </span>
               </div>
@@ -356,23 +344,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                       onChange={handleChange}
                       value={formData.name}
                     />
-                  </label>
-                  <label>
-                    &nbsp;Type:&nbsp;
-                    <select
-                      name="type"
-                      onChange={handleTypeChange}
-                      value={formData.type}
-                    >
-                      {Object.keys(GENERATORTYPE).map((t, i) => {
-                        if (!parseInt(t) && t != "0")
-                          return (
-                            <option key={`GT-${i}`} value={t}>
-                              {t}
-                            </option>
-                          );
-                      })}
-                    </select>
                   </label>
                   <label>
                     &nbsp;Start Time:&nbsp;

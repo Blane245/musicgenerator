@@ -1,7 +1,7 @@
 import { ChangeEvent } from "react";
 import { WienerType } from "../types";
 
-export interface WienerPropertiesBoxProps {
+export interface AutoregressivePropertiesBoxProps {
   name: string;
   values: WienerType;
   min: number;
@@ -12,26 +12,18 @@ export interface WienerPropertiesBoxProps {
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
 }
-export default function WienerPropertiesBox(props: WienerPropertiesBoxProps) {
+export default function AutoregressivePropertiesBox(props: AutoregressivePropertiesBoxProps) {
   const { name, values, min, max, step, valueSuffix, handleChange } = props;
   return (
-    <div className="wiener">
+    <div className="autoregressive">
       <div className="seedtitle">Seed</div>
-      <div className="initialtitle">Initial Value</div>
-      <div className="trendtitle">Trend</div>
-      <div className="dispersiontitle">Dispersion</div>
-      <div className="lotitle">Lo</div>
-      <div className="hititle">Hi</div>
+      <div className="initialtitle">{"Initial Value "}</div>
+      <div className="alphatitle">Alpha</div>
+      <div className="sigmatitle">{"Dispersion"}</div>
+      <div className="lotitle">{"Lo"}</div>
+      <div className="hititle">{"Hi"}</div>
       <br />
-      <div className="seed">
-        <input
-          name={name.concat(".seed")}
-          type="string"
-          onChange={handleChange}
-          value={values.seed}
-        />
-      </div>
-      <div className="initial">
+      <div className="initialvalue">
         <input
           name={name.concat(".initialValue")}
           type="number"
@@ -41,31 +33,37 @@ export default function WienerPropertiesBox(props: WienerPropertiesBoxProps) {
           onChange={handleChange}
           value={values.initialValue}
         />
-        <span style={{ fontSize: "small" }}>{valueSuffix(values.initialValue)}</span>
+        <span style={{ fontSize: "small" }}>&nbsp;{valueSuffix(values.initialValue)}</span>
+          </div>
+      <div className="seed">
+        <input
+          name={name.concat(".seed")}
+          type="string"
+          onChange={handleChange}
+          value={values.seed}
+        />
       </div>
-      <div className="trend">
+      <div className="alpha">
         <input
           name={name.concat(".alpha")}
           type="number"
-          min={-1000}
-          max={1000}
+          min={-1}
+          max={1}
           step={step}
           onChange={handleChange}
           value={values.alpha}
         />
-        <span style={{ fontSize: "small" }}>&nbsp;1/sec</span>
       </div>
-      <div className="dispersion">
+      <div className="sigma">
         <input
           name={name.concat(".sigma")}
           type="number"
           min={0}
-          max={10000}
+          max={100}
           step={step}
           onChange={handleChange}
           value={values.sigma}
         />
-        <span style={{ fontSize: "small" }}>&nbsp;1/sqrt(sec)</span>
       </div>
       <div className="lo">
         <input
@@ -77,7 +75,7 @@ export default function WienerPropertiesBox(props: WienerPropertiesBoxProps) {
           onChange={handleChange}
           value={values.lo}
         />
-        <span style={{ fontSize: "small" }}>{valueSuffix(values.lo)}</span>
+        <span style={{ fontSize: "small" }}>&nbsp;{valueSuffix(values.lo)}</span>
       </div>
       <div className="hi">
         <input
@@ -89,7 +87,7 @@ export default function WienerPropertiesBox(props: WienerPropertiesBoxProps) {
           onChange={handleChange}
           value={values.hi}
         />
-        <span style={{ fontSize: "small" }}>{valueSuffix(values.hi)}</span>
+        <span style={{ fontSize: "small" }}>&nbsp;{valueSuffix(values.hi)}</span>
       </div>
     </div>
   );

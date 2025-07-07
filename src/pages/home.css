@@ -619,6 +619,20 @@ div.algorithmic-table {
   }
   div.parameters {
     grid-area: parameters;
+    div.constant {
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-areas: 
+      "valuetitle"
+      "value";
+      gap: 0;
+      div.valuetitle {
+        grid-area: valuetitle;
+      }
+      div.value {
+        grid-area: value
+      }
+    }
     div.oscillator {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
@@ -655,6 +669,50 @@ div.algorithmic-table {
       }
       div.phase {
         grid-area: phase;
+      }
+    }
+    div.autoregressive {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      grid-template-areas:
+        "initialvaluetitle seedtitle alphatitle sigmatitle lotitle hititle"
+        "initialvalue seed alpha sigma lo hi";
+      gap: 0;
+      .seedtitle {
+        grid-area: seedtitle;
+      }
+      .initialvaluetitle {
+        grid-area: initialvaluetitle;
+      }
+      .alphatitle {
+        grid-area: alphatitle;
+      }
+      .sigmatitle {
+        grid-area: sigmatitle;
+      }
+      .lotitle {
+        grid-area: lotitle;
+      }
+      .hititle {
+        grid-area: hititle;
+      }
+      .seed {
+        grid-area: seed;
+      }
+      .initialvalue {
+        grid-area: initialvalue;
+      }
+      .alpha {
+        grid-area: alpha;
+      }
+      .sigma {
+        grid-area: sigma;
+      }
+      .lo {
+        grid-area: lo;
+      }
+      .hi {
+        grid-area: hi;
       }
     }
     div.markovian {
@@ -851,7 +909,7 @@ div.algorithmic-table {
 
 .intervaledge {
   stroke: black;
-  stroke-width: 2;
+  stroke-width: 5;
   cursor: inherit;
 }
 

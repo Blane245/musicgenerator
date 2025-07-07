@@ -8,7 +8,7 @@ import GeneratorIcons from "./generatoricons";
 import TrackControls from "./trackcontrols";
 
 export default function TracksDisplay() {
-  const { fileContents, timeLine } = useCMGContext();
+  const { fileContents, timeLine, generatorType } = useCMGContext();
   const [tracks, setTracks] = useState<Track[]>([]);
   const [enableGeneratorDialog, setEnableGeneratorDialog] =
     useState<number>(-1);
@@ -43,16 +43,17 @@ export default function TracksDisplay() {
                 trackRef.current[i] = el;
                 return el;
               }}
-              style={{width: timeLine.width}}
+              style={{ width: timeLine.width }}
             >
-              <GeneratorIcons track={t} key={`track-generators:${t.name}`}/>
+              <GeneratorIcons track={t} key={`track-generators:${t.name}`} />
             </div>
           </>
         );
       })}
       <GeneratorDialog
-      key={`generator-dialog`}
+        key={`generator-dialog`}
         track={tracks[enableGeneratorDialog]}
+        generatorType={generatorType}
         generatorIndex={-1}
         setGeneratorIndex={() => {}}
         closeTrackGenerator={closeTrackGenerator}

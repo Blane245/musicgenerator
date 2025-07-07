@@ -1,6 +1,8 @@
 import { Algorithmic, AudioFile, Silent } from "../classes/generators";
 import {
   AlgorithmValues,
+  ConstantValues,
+  AutoregressiveValues,
   MarkovianValues,
   OscillatorValues,
   WienerValues,
@@ -32,6 +34,10 @@ export const DEFAULTLOCALSFURI: string = "/local_soundfonts";
 
 export const DEFAULTSERVERSFURI: string = "/soundfonts";
 
+export type MouseLocation = {
+  X: number, Y: number, dX: number, dY: number
+}
+
 export type GeneratorType =
   | Silent
   | Algorithmic
@@ -43,13 +49,16 @@ export enum GENERATORTYPE {
   "AudioFile" = "AudioFile",
 }
 export type AlgorithmType =
-  | undefined
+  | ConstantType
+  | AutoregressiveType
   | OscillatorType
   | MarkovianType
   | WienerType;
 
 export type Algorithm =
   | undefined
+  | ConstantValues
+  | AutoregressiveValues
   | AlgorithmValues
   | OscillatorValues
   | MarkovianValues
@@ -57,15 +66,32 @@ export type Algorithm =
 
 export enum ALGORITHMTYPE {
   "None" = "None",
+  "Constant" = "Constant",
+  "Autoregressive" = "Autoregressive",
   "Oscillator" = "Oscillator",
   "Markovian" = "Markovian",
   "Wiener" = "Wiener",
 }
 
+export type ConstantType = {
+  seed: string;
+  rn: RandomNumber;
+  value: number; // the constant value
+}
+export type AutoregressiveType = {
+  initialValue: number; // units depend on parameter (note, speed, volume, pan)
+  seed: string;
+  rn: RandomNumber;
+  alpha: number;
+  sigma: number; // units depend on parameter (note, speed, volume, pan)
+  lo: number; // units depend on parameter (note, speed, volume, pan)
+  hi: number; // units depend on parameter (note, speed, volume, pan)
+  currentValue: number;
+};
 export type OscillatorType = {
+  seed: string;
+  rn: RandomNumber;
   type: MODULATOR;
-  seed: string; // not used but here to reduce type checking 
-  rn: RandomNumber; // again not used
   center: number;
   frequency: number;
   amplitude: number;
@@ -236,6 +262,18 @@ export type TimelineInterval = {
   startTime?: number;
   endTime?: number;
 };
+
+// mode and states for timeinterval definition and modification
+export enum TIMEINTERVALMODE {
+  None,
+  Define,
+  Move
+}
+export enum TIMEINTERVALEDGE {
+  None,
+  Left,
+  Right
+}
 
 export enum GENERATIONMODE {
   record = "record",

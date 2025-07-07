@@ -1,5 +1,3 @@
-//TODO refresh the dialog when the file is loaded.
-//TODO loading file should set stopTime based on file duration and startTime
 import { ChangeEvent, useEffect, useState } from "react";
 import { AudioFile } from "../classes/generators";
 import { precision } from "../sfcomponents/util";

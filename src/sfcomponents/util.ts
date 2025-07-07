@@ -42,10 +42,10 @@ export const attenuate = (gain: number, dB:number): number => {
   return Math.pow(10, -(dB/20)) * gain;
 }
 // seconds to timecents
-export const s2tc = (seconds: number) => Math.round(Math.log2(seconds) * 1200);
-export const normalizePermille = (permille: number) => permille / 1000;
+export const s2tc = (seconds: number):number => Math.round(Math.log2(seconds) * 1200);
+export const normalizePermille = (permille: number):number => permille / 1000;
 
-export const precision = (n: number, digits: number) => {
+export const precision = (n: number, digits: number):number => {
   const factor = Math.pow(10, digits);
   return Math.ceil(n * factor) / factor;
 };

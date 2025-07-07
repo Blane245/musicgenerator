@@ -20,6 +20,7 @@ import {
   moveTrack,
   renameTrack,
 } from "../utils/cmfiletransactions";
+import { GENERATORTYPE } from "../types";
 
 export interface TrackControlsProps {
   tracks: Track[];
@@ -29,11 +30,14 @@ export interface TrackControlsProps {
 }
 export default function TrackControls(props: TrackControlsProps) {
   const { track, trackIndex, tracks, setEnableGeneratorDialog } = props;
-  const { fileContents, setFileContents, playing, setStatus } = useCMGContext();
+  const { fileContents, setFileContents, playing, setStatus, setGeneratorType } = useCMGContext();
   const [trackName, setTrackName] = useState<string>("");
   const [deleteModal, setDeleteModal] = useState<boolean>(false);
   const [renameModal, setRenameModal] = useState<boolean>(false);
   const [message, setMessage] = useState<string>("");
+  const [menuEnabled, setMenuEnabled] = useState<boolean>(false);
+  const [menuX, setMenuX] = useState<number> (0);
+  const [menuY, setMenuY] = useState<number> (0);
 
   function handleDeleteTrack(): void {
     setDeleteModal(true);
@@ -113,9 +117,13 @@ export default function TrackControls(props: TrackControlsProps) {
     }
   }
 
-  function handleAddGenerator(event: MouseEvent<Element>, index: number): void {
+  function handleAddGenerator(event: MouseEvent<Element>): void {
+    if (playing.current) return;
     event.preventDefault();
-    setEnableGeneratorDialog(index);
+    event.stopPropagation();
+    setMenuX(0);
+    setMenuY(30);
+    setMenuEnabled(true);
   }
 
   // switch places the the track immediately above the one selected
@@ -123,6 +131,13 @@ export default function TrackControls(props: TrackControlsProps) {
     // update the track sequence
     setStatus(`Track '${track.name} moved ${direction}`);
     moveTrack(track.name, direction, setFileContents);
+  }
+
+  function handleSelectGenerator( event: MouseEvent, type:GENERATORTYPE) {
+    event.preventDefault();
+    setGeneratorType(type);
+    setEnableGeneratorDialog(tracks.findIndex((t) => t.name == track.name));
+    setMenuEnabled(false);
   }
 
   return (
@@ -161,7 +176,7 @@ export default function TrackControls(props: TrackControlsProps) {
             className="track-button"
             id={`track-gen:${trackIndex}`}
             key={`track-gen:${trackIndex}`}
-            onClick={(event) => handleAddGenerator(event, trackIndex)}
+            onClick={(event) => handleAddGenerator(event)}
           >
             <RiAiGenerate />
           </button>
@@ -249,6 +264,62 @@ export default function TrackControls(props: TrackControlsProps) {
         </div>
         <div className="modal-footer">
           <p>{message}</p>
+        </div>
+      </div>
+      <div
+        className="modal-menu"
+        id={"addgenmenu"}
+        key={"addgenmenu"}
+        style={{
+          display: menuEnabled ? "block" : "none",
+          position: "absolute",
+          top: menuY.toString() + "px",
+          left: menuX.toString() + "px",
+          width: "150px",
+          height: "20px",
+          zIndex: 99,
+        }}
+      >
+        <div
+          className="navbar"
+          style={{
+            position: "relative",
+            top: "0px",
+            visibility: "hidden",
+          }}
+        >
+          <div
+            className="dropdown"
+            style={{
+              position: "fixed",
+              visibility: "visible",
+            }}
+          >
+            <div className="dropbtn">
+              Select Generator Type
+              <i className="fa fa-caret-down" />
+            </div>
+            <div className="dropdown-one">
+              <div
+                className="dItem"
+                onClick={(e) => handleSelectGenerator(e, GENERATORTYPE.Silent)}
+              >
+                Silent
+              </div>
+              <div
+                className="dItem"
+                onClick={(e) => handleSelectGenerator(e, GENERATORTYPE.Algorithmic)}
+              >
+                Algorithmic
+              </div>
+              <div
+                className="dItem"
+                onClick={(e) => handleSelectGenerator(e, GENERATORTYPE.AudioFile)}
+              >
+                AudioFile
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </>

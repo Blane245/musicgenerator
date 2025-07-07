@@ -8,6 +8,7 @@ import { Algorithmic, AudioFile, Silent } from "../../classes/generators";
 import { buildSources } from "../../generation/buildsources";
 import ReadyGenerate from "../../generation/readygenerate";
 import CMGFile from "../../classes/cmgfile";
+import { attenuate } from "../../sfcomponents/util";
 
 export interface SourceReportProps {
   generator: GeneratorType | undefined; // undefined if for all generators
@@ -167,9 +168,9 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
                   s.vol.sustainInterval
                 ).toFixed(3)}
               </td>
-              <td>{s.vol.sustainLevel}</td>
+              <td>{s.vol.sustainLevel.toFixed(3)}</td>
               <td>{s.source.stopTime.toFixed(3)}</td>
-              <td>{s.vol.initialAttenuation.toFixed(0)}</td>
+              <td>{attenuate(1, s.vol.initialAttenuation / 10).toFixed(0)}</td>
               <td>{s.vol.value.toFixed(3)}</td>
               <td>{s.panner.value.toFixed(3)}</td>
             </tr>

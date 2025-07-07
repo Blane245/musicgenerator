@@ -19,10 +19,5 @@ export function buildRoomNodes(
     equalizer.back().connect(volume.effect as GainNode);
     volume.effect.connect(context.destination);
   } else concentrator.connect(context.destination);
-  // concentrator.connect(volume.effect as GainNode);
-  // // reverb connect source to destination as well as insert convolution if defined
-  //   reverb.connect((volume.effect as GainNode), equalizer.front());
-  //   equalizer.back().connect(compressor.effect as DynamicsCompressorNode);
-  //   (compressor.effect as DynamicsCompressorNode).connect(context.destination);
   return concentrator;
 }

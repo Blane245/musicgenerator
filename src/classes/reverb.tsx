@@ -66,7 +66,6 @@ export default class Reverb {
       source.connect(gain);
       gain.connect(this.effect);
       this.effect.connect(destination);
-      // console.log("reverb effect connected");
     }
 
     // connect the early delays if they exist
@@ -79,7 +78,6 @@ export default class Reverb {
       source.connect(delayNode);
       delayNode.connect(gainNode);
       gainNode.connect(destination);
-      // console.log("left wall delay connected");
     }
     if (this.context && this.rightWall.gain > 0 && this.rightWall.delay > 0) {
       const delayNode: DelayNode = this.context.createDelay(1);
@@ -89,7 +87,6 @@ export default class Reverb {
       source.connect(delayNode);
       delayNode.connect(gainNode);
       gainNode.connect(destination);
-      // console.log("right wall delay connected");
     }
     if (this.context && this.ceiling.gain > 0 && this.ceiling.delay > 0) {
       const delayNode: DelayNode = this.context.createDelay(1);
@@ -99,7 +96,6 @@ export default class Reverb {
       source.connect(delayNode);
       delayNode.connect(gainNode);
       gainNode.connect(destination);
-      // console.log("ceiling delay connected");
     }
 
     // connect the source to the destination at any rate

@@ -21,15 +21,12 @@ export function euclideanRhythm(onNotes: number, totalNotes: number): number[] {
       .map((group: number[], i: number) => group.concat(groups[l - i]))
       .concat(groups.slice(count, -count));
   }
-  // ts had trouble with this statement
-  // return [].concat.apply([], groups);
   return groups.flat(1);
 }
 
-function compareArrays(a: number[], b: number[]) {
+function compareArrays(a: number[], b: number[]): boolean {
   return (
     a.length === b.length &&
     a.every((value: number, index: number) => value === b[index])
   );
-  // return JSON.stringify(a) === JSON.stringify(b);
 }

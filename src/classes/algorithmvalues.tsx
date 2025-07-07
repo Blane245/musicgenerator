@@ -3,9 +3,10 @@
 
 import { gaussianRandom } from "../utils/gaussianrandom";
 import {
-  AlgorithmType,
   ALGORITHMTYPE,
   EPS,
+  ConstantType,
+  AutoregressiveType,
   MarkovianType,
   MARKOVSTATE,
   MODULATOR,
@@ -20,15 +21,21 @@ import RandomNumber from "./randomnumber";
 // for some of the generators.
 // The user interface should take care to check that these have been specified
 export class AlgorithmValues {
-  algorithmType: ALGORITHMTYPE;
-  values: AlgorithmType;
+  algorithmType: ALGORITHMTYPE = ALGORITHMTYPE.None; // the type of algorithm
+  // most algorithms require random numbers.
+  // make it universal
+  values: {seed: string, rn: RandomNumber};
 
-  constructor(algorithmType: ALGORITHMTYPE = ALGORITHMTYPE.None) {
+  constructor(algorithmType: ALGORITHMTYPE) {
     this.algorithmType = algorithmType;
+    this.values = {
+      seed: "seed",
+      rn: new RandomNumber("seed"),
+    };
   }
 
   copy(): AlgorithmValues {
-    return new AlgorithmValues(this.algorithmType);
+    return new AlgorithmValues(ALGORITHMTYPE.None);
   }
 
   setAttribute(name: string, value: string) {
@@ -51,14 +58,71 @@ export class AlgorithmValues {
     _elem: Element,
     _version: string
   ): Promise<AlgorithmValues> {
-    return Promise.resolve(new AlgorithmValues());
+    return Promise.resolve(new AlgorithmValues(ALGORITHMTYPE.None));
   }
 
   static validate(algorithm: AlgorithmValues): string[] {
     const errors: string[] = [];
-    if (!algorithm.algorithmType)
+    if (algorithm.algorithmType === ALGORITHMTYPE.None)
       errors.push("Generator algorithm must be specified");
     return errors;
+  }
+}
+
+export class ConstantValues extends AlgorithmValues {
+  override values: ConstantType;
+  constructor(
+    values: ConstantType = {
+      seed: "",
+      rn: new RandomNumber(""),
+      value: 0,
+    }
+  ) {
+    super(ALGORITHMTYPE.Constant);
+    this.values = { ...values };
+  }
+  override copy(): ConstantValues {
+    const n = new ConstantValues();
+    n.values = { ...this.values };
+    return n;
+  }
+  override setAttribute(name: string, value: string): void {
+    super.setAttribute(name, value);
+    if (name == "value") this.values.value = parseFloat(value);
+  }
+  override getCurrentValue(_time: number): number {
+    return this.values.value;
+  }
+  override async appendXML(_doc: XMLDocument, elem: Element): Promise<Element> {
+    try {
+      elem.setAttribute("algorithmType", ALGORITHMTYPE.Constant);
+      elem.setAttribute("value", this.values.value.toString());
+      return Promise.resolve(elem);
+    } catch (e: any) {
+      return Promise.reject(e);
+    }
+  }
+
+  static override async getXML(
+    elem: Element,
+    _version: string
+  ): Promise<ConstantValues> {
+    try {
+      const g: ConstantValues = new ConstantValues({
+        value: 0,
+        seed: "",
+        rn: new RandomNumber(""),
+      });
+      g.values.value = getAttributeValue(elem, "value", "float") as number;
+
+      return Promise.resolve(g);
+    } catch (e) {
+      return Promise.reject(e);
+    }
+  }
+  static override validate(_algorithm: ConstantValues): string[] {
+    const result: string[] = [];
+    return result;
   }
 }
 
@@ -67,9 +131,9 @@ export class OscillatorValues extends AlgorithmValues {
   override values: OscillatorType;
   constructor(
     values: OscillatorType = {
+      seed: "",
+      rn: new RandomNumber(""),
       type: MODULATOR.SINE,
-      seed: " ",
-      rn: new RandomNumber(" "),
       center: 0,
       frequency: 0,
       amplitude: 0,
@@ -83,7 +147,6 @@ export class OscillatorValues extends AlgorithmValues {
   override copy(): OscillatorValues {
     const n = new OscillatorValues();
     n.values = { ...this.values };
-    n.values.rn = new RandomNumber(this.values.seed);
     return n;
   }
 
@@ -143,9 +206,9 @@ export class OscillatorValues extends AlgorithmValues {
   ): Promise<OscillatorValues> {
     try {
       const g: OscillatorValues = new OscillatorValues({
+        seed: "",
+        rn: new RandomNumber(""),
         type: MODULATOR.SINE,
-        seed: " ",
-        rn: new RandomNumber(" "),
         center: 0,
         frequency: 0,
         amplitude: 0,
@@ -176,6 +239,119 @@ export class OscillatorValues extends AlgorithmValues {
   }
 }
 
+export class AutoregressiveValues extends AlgorithmValues {
+  override values: AutoregressiveType;
+  constructor(
+    values: AutoregressiveType = {
+      initialValue: 0,
+      seed: "seed",
+      alpha: 0,
+      sigma: 0,
+      lo: 0,
+      hi: 0,
+      rn: new RandomNumber("seed"),
+      currentValue: 0,
+    }
+  ) {
+    super(ALGORITHMTYPE.Autoregressive);
+    this.values = { ...values };
+    this.values.rn = new RandomNumber(this.values.seed);
+  }
+  override copy(): AutoregressiveValues {
+    const n: AutoregressiveValues = new AutoregressiveValues({
+      ...this.values,
+    });
+    n.values.rn = new RandomNumber(this.values.seed);
+    return n;
+  }
+  override setAttribute(name: string, value: string): void {
+    super.setAttribute(name, value);
+    switch (name) {
+      case "initialValue":
+        this.values.initialValue = parseFloat(value);
+        this.values.currentValue = 0;
+        return;
+      case "seed":
+        this.values.seed = value;
+        this.values.rn = new RandomNumber(value);
+        return;
+      case "alpha":
+        this.values.alpha = parseFloat(value);
+        return;
+      case "sigma":
+        this.values.sigma = parseFloat(value);
+        return;
+      case "lo":
+        this.values.lo = parseFloat(value);
+        return;
+      case "hi":
+        this.values.hi = parseFloat(value);
+        return;
+    }
+  }
+  override getCurrentValue(_time: number): number {
+    const epsilon: number = (this.values.rn.rand() - 0.5) * this.values.sigma;
+    const result:number = this.values.currentValue + this.values.initialValue;
+    let newValue: number = this.values.currentValue * this.values.alpha + epsilon;
+    if (newValue + this.values.initialValue > this.values.hi ||
+      newValue + this.values.initialValue < this.values.lo)
+      newValue = this.values.currentValue * this.values.alpha - epsilon;
+    this.values.currentValue = newValue;
+    return result
+  }
+  override async appendXML(_doc: XMLDocument, elem: Element): Promise<Element> {
+    try {
+      elem.setAttribute("algorithmType", ALGORITHMTYPE.Autoregressive);
+      elem.setAttribute("seed", this.values.seed);
+      elem.setAttribute("initialValue", this.values.initialValue.toString());
+      elem.setAttribute("alpha", this.values.alpha.toString());
+      elem.setAttribute("sigma", this.values.sigma.toString());
+      elem.setAttribute("lo", this.values.lo.toString());
+      elem.setAttribute("hi", this.values.hi.toString());
+      return Promise.resolve(elem);
+    } catch (e: any) {
+      return Promise.reject(e);
+    }
+  }
+  static override async getXML(
+    elem: Element,
+    _version: string
+  ): Promise<AutoregressiveValues> {
+    try {
+      const g: AutoregressiveValues = new AutoregressiveValues();
+      g.values.seed = getAttributeValue(elem, "seed", "string") as string;
+      g.values.rn = new RandomNumber(g.values.seed);
+      g.values.initialValue = getAttributeValue(
+        elem,
+        "initialValue",
+        "float"
+      ) as number;
+      g.values.currentValue = g.values.initialValue;
+      g.values.alpha = getAttributeValue(elem, "alpha", "float") as number;
+      g.values.sigma = getAttributeValue(elem, "sigma", "float") as number;
+      g.values.lo = getAttributeValue(elem, "lo", "float") as number;
+      g.values.hi = getAttributeValue(elem, "hi", "float") as number;
+      return Promise.resolve(g);
+    } catch (e) {
+      return Promise.reject(e);
+    }
+  }
+
+  static override validate(algorithm: AutoregressiveValues): string[] {
+    const errors: string[] = [];
+    if (algorithm.values.seed == "") errors.push("Seed must not be blank");
+    if (
+      algorithm.values.initialValue < algorithm.values.lo ||
+      algorithm.values.initialValue > algorithm.values.hi
+    )
+      errors.push("Initial Value must be between lo and hi, inclusive.");
+    if (algorithm.values.lo > algorithm.values.hi)
+      errors.push("Hi must be greter than Lo.");
+    if (Math.abs(algorithm.values.alpha) > 1)
+      errors.push("Alpha value must be tween -1 and 1.")
+    return errors;
+  }
+}
 export class MarkovianValues extends AlgorithmValues {
   override values: MarkovianType;
 
@@ -205,10 +381,10 @@ export class MarkovianValues extends AlgorithmValues {
     const n: MarkovianValues = new MarkovianValues();
     n.values = { ...this.values };
     n.values.rn = new RandomNumber(this.values.seed);
-    n.values.same = { ... this.values.same};
-    n.values.up = { ... this.values.up};
-    n.values.down = { ... this.values.down};
-    n.values.range = { ... this.values.range};
+    n.values.same = { ...this.values.same };
+    n.values.up = { ...this.values.up };
+    n.values.down = { ...this.values.down };
+    n.values.range = { ...this.values.range };
     return n;
   }
 
@@ -398,7 +574,7 @@ export class MarkovianValues extends AlgorithmValues {
 
   static override validate(algorithm: MarkovianValues): string[] {
     const errors: string[] = [];
-    if (algorithm.values.seed == '') errors.push("Seed must not be blank");
+    if (algorithm.values.seed == "") errors.push("Seed must not be blank");
     // validate cumulative probabilities
     let cum: number = 0;
     cum =
@@ -504,13 +680,16 @@ export class WienerValues extends AlgorithmValues {
     }
     const random: number = gaussianRandom(
       0,
-      this.values.sigma * Math.sqrt(time - this.#startTime)
-      ,this.values.rn
+      this.values.sigma * Math.sqrt(time - this.#startTime),
+      this.values.rn
     );
-    result = this.values.initialValue + this.values.alpha * (time - this.#startTime) + random;
+    result =
+      this.values.initialValue +
+      this.values.alpha * (time - this.#startTime) +
+      random;
     // console.log('Wiener values',
     //   'time', time,
-    //   'startTime', this.#startTime, 
+    //   'startTime', this.#startTime,
     //   'seed', this.values.seed,
     //   'initial', this.values.initialValue,
     //   'alpha', this.values.alpha,
@@ -568,7 +747,7 @@ export class WienerValues extends AlgorithmValues {
   static override validate(algorithm: WienerValues): string[] {
     const errors: string[] = [];
     const values: WienerType = algorithm.values;
-    if (values.seed == '') errors.push("Seed must not be blank");
+    if (values.seed == "") errors.push("Seed must not be blank");
     if (values.sigma < 0) errors.push("Sigma must be nonnegative");
     if (values.lo < -1 || values.hi <= values.lo)
       errors.push("Lo must be nonnegative and hi must be greater than lo");

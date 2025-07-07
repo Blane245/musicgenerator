@@ -24,9 +24,9 @@ export default function OscillatorPropertiesBox(
     <div className="oscillator">
       <div className="typetitle">Modulator</div>
       <div className="centertitle">Center</div>
-      <div className="frequencytitle">Frequency (mHz)</div>
+      <div className="frequencytitle">Frequency</div>
       <div className="amplitudetitle">Amplitude</div>
-      <div className="phasetitle">Phase (deg)</div>
+      <div className="phasetitle">Phase</div>
       <div className="type">
         <select
           name={name.concat(".type")}
@@ -62,7 +62,7 @@ export default function OscillatorPropertiesBox(
           onChange={handleChange}
           value={frequency.value}
         />
-        {/* <span style={{ fontSize: "small" }}>&nbsp;{frequency.suffix}</span> */}
+        <span style={{ fontSize: "small" }}>&nbsp;{frequency.suffix}</span>
       </div>
       <div className="amplitude">
         <input
@@ -86,7 +86,7 @@ export default function OscillatorPropertiesBox(
           onChange={handleChange}
           value={phase.value}
         />
-        {/* <span style={{ fontSize: "small" }}>&nbsp;{phase.suffix}</span> */}
+        <span style={{ fontSize: "small" }}>&nbsp;{phase.suffix}</span>
       </div>
     </div>
   );

@@ -97,30 +97,6 @@ export default class Volume extends RoomNode {
     }
   }
 
-  //   disconnect() {
-  //     if (this.#effect && this.in && this.out) {
-  //       try {
-  //         this.#effect.disconnect(this.out);
-  //       } catch {}
-  //       this.in.connect(this.out);
-  //     }
-  //   }
-
-  //   reconnect() {
-  //     if (this.in && this.out && this.#effect) {
-  //       try {
-  //         this.in.disconnect(this.out);
-  //       } catch {}
-  //       this.#effect.connect(this.out);
-  //     }
-  //   }
-
-  // volume scale is 0 to 10
-  //   setVolume(value: number): void {
-  //     this.volume = value;
-  //     if (this.#effect) this.#effect.gain.value = v2g(value);
-  //   }
-
   override copy(): Volume {
     const n = new Volume(this.name);
     n.enabled = this.enabled;
@@ -296,11 +272,6 @@ export class Reverb extends RoomNode {
     if (this.out) this.out.connect(destination);
   }
 
-  //   override disconnect(): void {
-  //     if (this.in) {
-  //       this.in.disconnect(this.#effect);
-  //     }
-  //   }
   // this version has two walls and ceiling handling early reflection
   override setAttribute(name: string, value: string): void {
     super.setAttribute(name, value);
