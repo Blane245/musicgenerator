@@ -111,6 +111,7 @@ export default function FileMenu() {
   }
 
   function handleMenuSelect(action: string) {
+    if (playing.current) return;
     switch (action) {
       case "new":
         handleFileNew();

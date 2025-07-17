@@ -1,25 +1,28 @@
 // Display the generator icons for all generators on a track
-// Handle icon positioning and menu selection
-import { ChangeEvent, FormEvent, MouseEvent, useEffect, useState } from "react";
+// Handle icon positioning requests
+// Handle timeline and timeinterval changes
+// Menu functions are handled by the GeneratorMenu component
+import { MouseEvent, useEffect, useState } from "react";
 import Track from "../classes/track";
 import { useCMGContext } from "../cmgcontext";
-import GeneratorDialog from "../dialogs/generatordialog";
-import Generate from "../generation/generate";
+// import GeneratorDialog from "../dialogs/generatordialog";
+// import Generate from "../generation/generate";
 import {
-  GENERATIONMODE,
-  GENERATORTYPE,
+  // GENERATIONMODE,
+  // GENERATORTYPE,
   GeneratorType,
   TimeLineScales,
 } from "../types";
 import {
-  addGenerator,
-  deleteGenerator,
-  flipGeneratorMute,
+  // flipGeneratorMute,
   moveGeneratorBodyPosition,
   moveGeneratorTime,
 } from "../utils/cmfiletransactions";
-import { getGeneratorUID } from "../utils/getgeneratoruid";
+// import { getGeneratorUID } from "../utils/getgeneratoruid";
+// import GeneratorCopyMoveDialog from "../dialogs/generatorcopymovedialog";
+// import GeneratorDeleteDialog from "../dialogs/generatordeletedialog";
 import setCursor from "../utils/setcursor";
+import GeneratorMenuDialog from "dialogs/generatormenu";
 
 export interface GeneratorIconProps {
   track: Track;
@@ -40,7 +43,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     setFileContents,
     timeLine,
     setStatus,
-    fileContents,
+    // fileContents,
     playing,
     timeInterval,
     generatorsPlaying,
@@ -54,34 +57,16 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
   const [menuX, setMenuX] = useState<number>(0);
   const [menuY, setMenuY] = useState<number>(0);
   const [generatorBoxes, setGeneratorBoxes] = useState<GeneratorBox[]>([]);
-  const [openDialog, setOpenDialog] = useState<boolean>(false);
-  const [copyDialog, setCopyDialog] = useState<boolean>(false);
-  const [moveDialog, setMoveDialog] = useState<boolean>(false);
-  const [selectedTrackName, setSelectedTrackName] = useState<string>("");
-  const [preview, setPreview] = useState<GeneratorType | null>(null);
-  const [generatorMode, setGeneratorMode] = useState<GENERATIONMODE>(
-    GENERATIONMODE.idle
-  );
   const [editMode, setEditMode] = useState<string>("None");
   const [trackWidth, setTrackWidth] = useState<number>(100);
   const [trackHeight, setTrackHeight] = useState<number>(100);
-  const [deleteModal, setDeleteModal] = useState<boolean>(false);
-  const [generatorName, setGeneratorName] = useState<string>("");
 
   // set the visible generator icon boxes based on the generator times and timeLine
   // handle highlighting from timeline interval selection and preview playing
   useEffect(() => {
-    console.log(
-      "generator boxes being updated",
-      "timeLine",
-      timeLine,
-      "timeInterval",
-      timeInterval
-    );
     setTrackWidth(timeLine.width);
     setTrackHeight(100);
     // get all of the generator boxes
-    setSelectedTrackName(track.name);
     const boxes: GeneratorBox[] = [];
     track.generators.forEach((g: GeneratorType, i: number) => {
       // is the generator out of the currently displayed current time?
@@ -113,7 +98,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
           selected: isSelected(g),
           playing: isPlaying(g),
         });
-        console.log("new generator box", boxes[boxes.length - 1]);
+        // console.log("new generator box", boxes[boxes.length - 1]);
       }
     });
     setGeneratorBoxes(boxes);
@@ -124,10 +109,6 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     trackHeight,
     generatorsPlaying,
   ]);
-
-  useEffect(() => {
-    if (generatorMode == GENERATIONMODE.idle) setPreview(null);
-  }, [generatorMode]);
 
   useEffect(() => {
     // handle vertical and horizontal movements depending on the mode
@@ -145,7 +126,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
           moveTo,
           setFileContents
         );
-        console.log("generator moved to new position", moveTo);
+        // console.log("generator moved to new position", moveTo);
         setStatus(``);
       }
 
@@ -164,7 +145,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
           newStartTime,
           setFileContents
         );
-        console.log("generator move to new start time", newStartTime);
+        // console.log("generator move to new start time", newStartTime);
         setStatus("");
       }
     } else {
@@ -245,138 +226,6 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
       dY: 0,
     });
     mouseDown.current = true;
-  }
-  // toggle the mute condition of the selected generator
-  function toggleGeneratorMute(boxIndex: number) {
-    flipGeneratorMute(
-      track,
-      generatorBoxes[boxIndex].generatorIndex,
-      setFileContents
-    );
-    setStatus(``);
-  }
-
-  function handlePreviewClick() {
-    setMenuEnabled(false);
-    setGeneratorMode(GENERATIONMODE.solo);
-    setPreview(generatorBoxes[boxIndex].generator);
-    setStatus(``);
-    setMenuEnabled(false);
-  }
-
-  function handleEditClick() {
-    setOpenDialog(true);
-    setMenuEnabled(false);
-    setCursor("default");
-    setStatus(``);
-    setMenuEnabled(false);
-  }
-
-  function handleMuteClick() {
-    toggleGeneratorMute(boxIndex);
-    setMenuEnabled(false);
-    setCursor("default");
-    setStatus(``);
-    setMenuEnabled(false);
-  }
-
-  function handleCopyClick() {
-    setSelectedTrackName(track.name);
-    setCopyDialog(true);
-    setMenuEnabled(false);
-    setStatus(``);
-    setMenuEnabled(false);
-  }
-
-  function handleMoveClick() {
-    setSelectedTrackName(track.name);
-    setMoveDialog(true);
-    setMenuEnabled(false);
-    setStatus(``);
-    setMenuEnabled(false);
-  }
-
-  function handleDeleteClick() {
-    const gName: string = generatorBoxes[boxIndex].generator.name;
-    console.log(gName);
-    setGeneratorName(gName);
-    setDeleteModal(true);
-    setStatus(``);
-  }
-
-  function handleDeleteOK(event: MouseEvent<Element>): void {
-    event.preventDefault();
-    const gName = event.currentTarget.id.split(":")[1];
-    const index = track.generators.findIndex((g) => g.name == gName);
-    if (index < 0) return;
-
-    deleteGenerator(track, gName, setFileContents);
-    setDeleteModal(false);
-    setGeneratorIndex(-1);
-    setMenuEnabled(false);
-    setStatus(`Generator '${gName}' deleted from track '${track.name}'`);
-  }
-
-  function handleDeleteCancel() {
-    setDeleteModal(false);
-    setStatus("");
-    setMenuEnabled(false);
-  }
-
-  function handleSelectedTrackChange(event: ChangeEvent<HTMLSelectElement>) {
-    setSelectedTrackName(event.target.value);
-    setStatus(``);
-  }
-
-  function handleCopyOK(event: FormEvent<Element>): void {
-    event.preventDefault();
-    setCopyDialog(false);
-
-    const targetTrack = fileContents.tracks.find(
-      (t) => t.name == selectedTrackName
-    );
-    if (!targetTrack) return;
-
-    // get a copy of the selected generator
-    // and find a unique name for the generator
-    const newG = generatorBoxes[boxIndex].generator.copy();
-    let next = getGeneratorUID(fileContents.tracks);
-    newG.name = "G".concat(next.toString());
-
-    //add the generator to the track
-    addGenerator(targetTrack, newG, setFileContents);
-    setStatus(
-      `Generator '${generatorBoxes[boxIndex].generator.name}' copied to track '${targetTrack.name}' with name '${newG.name}'`
-    );
-  }
-
-  function handleCopyCancel() {
-    setCopyDialog(false);
-    setStatus(``);
-  }
-
-  function handleMoveOK(event: FormEvent<Element>): void {
-    event.preventDefault();
-    setMoveDialog(false);
-
-    const targetTrack = fileContents.tracks.find(
-      (t) => t.name == selectedTrackName
-    );
-    if (!targetTrack) return;
-
-    //add the generator to the new track and delete from the current track
-    const thisGen = generatorBoxes[boxIndex].generator;
-    addGenerator(targetTrack, thisGen, setFileContents);
-    deleteGenerator(track, thisGen.name, setFileContents);
-
-    setStatus(
-      `Generator '${thisGen.name}' moved to track '${targetTrack.name}.'`
-    );
-  }
-
-  function handleMoveCancel() {
-    setMoveDialog(false);
-    setStatus(``);
   }
 
   function isSelected(g: GeneratorType): boolean {
@@ -479,181 +328,14 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
           </>
         ))}
       </svg>
-
-      <div
-        className="modal-menu"
-        id={"genmenu"}
-        key={"genmenu"}
-        style={{
-          display: menuEnabled ? "block" : "none",
-          position: "relative",
-          top: menuY.toString() + "px",
-          left: menuX.toString() + "px",
-          width: "60px",
-          height: "20px",
-          zIndex: 99,
-        }}
-      >
-        <div
-          className="navbar"
-          style={{
-            position: "relative",
-            top: "0px",
-            visibility: "hidden",
-          }}
-        >
-          <div
-            className="dropdown"
-            style={{
-              position: "fixed",
-              visibility: "visible",
-            }}
-          >
-            <div className="dropbtn">
-              Menu
-              <i className="fa fa-caret-down"></i>
-            </div>
-            <div className="dropdown-one">
-              <div className="dItem" onClick={() => handlePreviewClick()}>
-                Preview
-              </div>
-              <div className="dItem" onClick={() => handleEditClick()}>
-                Edit
-              </div>
-              <div className="dItem" onClick={() => handleCopyClick()}>
-                Copy
-              </div>
-              <div className="dItem" onClick={() => handleMoveClick()}>
-                Move
-              </div>
-              <div className="dItem" onClick={() => handleMuteClick()}>
-                {generatorIndex >= 0 && track.generators[generatorIndex].mute
-                  ? "Unmute"
-                  : "Mute"}
-              </div>
-              <div className="dItem" onClick={() => handleDeleteClick()}>
-                Delete
-              </div>
-              <div className="dItem" onClick={() => setMenuEnabled(false)}>
-                Exit
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <GeneratorDialog
-        track={track}
-        generatorType={
-          generatorBoxes[boxIndex]
-            ? generatorBoxes[boxIndex].generator.type
-            : GENERATORTYPE.Silent
-        }
-        generatorIndex={generatorIndex}
-        setGeneratorIndex={setGeneratorIndex}
-        closeTrackGenerator={setOpenDialog}
-        open={openDialog}
-        setOpen={setOpenDialog}
-      />
-      <Generate
-        mode={generatorMode}
-        setMode={setGeneratorMode}
-        generator={preview}
-        setRecordHandle={() => {}}
-      />
-      <div
-        className="modal-content"
-        style={{ display: copyDialog ? "block" : "none" }}
-      >
-        <div className="modal-header">
-          <span className="close" onClick={handleCopyCancel}>
-            &times;
-          </span>
-          <h2>
-            Select track to receive a copy of '
-            {generatorIndex >= 0 ? track.generators[generatorIndex].name : ""}'
-          </h2>
-        </div>
-
-        <div className="modal-body">
-          <label>
-            {" "}
-            Track Name:
-            <select
-              value={selectedTrackName}
-              onChange={handleSelectedTrackChange}
-            >
-              {fileContents.tracks.map((t: Track) => {
-                return (
-                  <option key={`select-track ${t.name}`} value={t.name}>
-                    {t.name}
-                  </option>
-                );
-              })}
-            </select>
-          </label>
-          <br />
-        </div>
-        <div className="modal-footer">
-          <button onClick={handleCopyOK}>Copy</button>
-          <button onClick={handleCopyCancel}>Cancel</button>
-        </div>
-      </div>
-      <div
-        className="modal-content"
-        style={{ display: moveDialog ? "block" : "none" }}
-      >
-        <div className="modal-header">
-          <span className="close" onClick={handleMoveCancel}>
-            &times;
-          </span>
-          <h2>
-            Select track to which to move generator{" "}
-            {generatorIndex >= 0 ? track.generators[generatorIndex].name : ""}
-          </h2>
-        </div>
-
-        <div className="modal-body">
-          <label>
-            {" "}
-            Track Name:
-            <select
-              value={selectedTrackName}
-              onChange={handleSelectedTrackChange}
-            >
-              {fileContents.tracks.map((t: Track) => {
-                return (
-                  <option key={`select-track-move ${t.name}`} value={t.name}>
-                    {t.name}
-                  </option>
-                );
-              })}
-            </select>
-          </label>
-          <br />
-        </div>
-        <div className="modal-footer">
-          <button onClick={handleMoveOK}>Move</button>
-          <button onClick={handleMoveCancel}>Cancel</button>
-        </div>
-      </div>
-      <div
-        style={{ display: deleteModal ? "block" : "none" }}
-        className="modal-content"
-      >
-        <div className="modal-header">
-          <span className="close">&times;</span>
-          <h2>Confirm deletion of generator '{generatorName}'</h2>
-        </div>
-        <div className="modal-body">
-          <p>Select OK to delete generator or Cancel to abort deletion.</p>
-        </div>
-        <div className="modal-footer">
-          <button id={"track-delete:" + generatorName} onClick={handleDeleteOK}>
-            OK
-          </button>
-          <button onClick={handleDeleteCancel}>Cancel</button>
-        </div>
-      </div>
+      {menuEnabled? 
+      <GeneratorMenuDialog
+      track={track}
+      generator={track.generators[generatorIndex]}
+      setMenuVisible={setMenuEnabled}
+      menuX={menuX}
+      menuY={menuY}/>
+      :null}
     </>
   );
 }

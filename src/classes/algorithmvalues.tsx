@@ -269,7 +269,7 @@ export class AutoregressiveValues extends AlgorithmValues {
     switch (name) {
       case "initialValue":
         this.values.initialValue = parseFloat(value);
-        this.values.currentValue = 0;
+        this.values.currentValue = this.values.initialValue;
         return;
       case "seed":
         this.values.seed = value;
@@ -291,13 +291,15 @@ export class AutoregressiveValues extends AlgorithmValues {
   }
   override getCurrentValue(_time: number): number {
     const epsilon: number = (this.values.rn.rand() - 0.5) * this.values.sigma;
-    const result:number = this.values.currentValue + this.values.initialValue;
+    // const result:number = this.values.currentValue + this.values.initialValue;
     let newValue: number = this.values.currentValue * this.values.alpha + epsilon;
     if (newValue + this.values.initialValue > this.values.hi ||
       newValue + this.values.initialValue < this.values.lo)
       newValue = this.values.currentValue * this.values.alpha - epsilon;
+    newValue = newValue + this.values.initialValue;
+    newValue = Math.max(Math.min(newValue, this.values.hi), this.values.lo);
     this.values.currentValue = newValue;
-    return result
+    return newValue;
   }
   override async appendXML(_doc: XMLDocument, elem: Element): Promise<Element> {
     try {

@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import MidiFrequencyDialog from "../dialogs/midifrequencydialog";
+import { useCMGContext } from "cmgcontext";
 
 // saving current ones, and adding tracks to current ones
 export default function HelpMenu() {
+  const {playing} = useCMGContext();
   const [open, setOpen] = useState<boolean>(false);
   const [about, setAbout] = useState<boolean>(false);
   
@@ -16,6 +18,7 @@ export default function HelpMenu() {
     setOpen(true);
   }
   function handleMenuSelect(action: string) {
+    if (playing.current) return;
     switch (action) {
       case "about":
         setAbout(true);

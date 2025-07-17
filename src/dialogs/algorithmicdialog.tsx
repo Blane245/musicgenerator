@@ -274,7 +274,7 @@ export default function AlgorithmicDialog(
                 value: (formData.noteP as OscillatorValues).values.frequency,
                 lo: 0,
                 hi: 1000000,
-                step: 1,
+                step: .001,
                 suffix: "(mHz)",
               }}
               amplitude={{
@@ -462,7 +462,7 @@ export default function AlgorithmicDialog(
               handleChange={handleChange}
               min={1}
               max={1000}
-              step={1}
+              step={0.001}
               valueSuffix={() => "BPM"}
 
             />
@@ -634,9 +634,9 @@ export default function AlgorithmicDialog(
               amplitude={{
                 value: (formData.panP as OscillatorValues).values.amplitude,
                 lo: 0,
-                hi: 1,
+                hi: 2,
                 step: 0.1,
-                suffix: "[0,1]",
+                suffix: "[0,2]",
               }}
               phase={{
                 value: (formData.panP as OscillatorValues).values.phase,

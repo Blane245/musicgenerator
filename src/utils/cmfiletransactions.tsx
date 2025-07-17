@@ -111,7 +111,7 @@ export function renameTrack(
   });
 }
 
-export function flipTrackAttrbute(
+export function flipTrackAttribute(
   index: number,
   attribute: string,
   setFileContents: Function

@@ -16,7 +16,7 @@ import Track from "../classes/track";
 import { useCMGContext } from "../cmgcontext";
 import {
   deleteTrack,
-  flipTrackAttrbute,
+  flipTrackAttribute,
   moveTrack,
   renameTrack,
 } from "../utils/cmfiletransactions";
@@ -103,7 +103,7 @@ export default function TrackControls(props: TrackControlsProps) {
     );
     if (thisIndex >= 0) {
       setStatus(`Track '${track.name} mute toggled`);
-      flipTrackAttrbute(thisIndex, "mute", setFileContents);
+      flipTrackAttribute(thisIndex, "mute", setFileContents);
     }
   }
 
@@ -113,16 +113,16 @@ export default function TrackControls(props: TrackControlsProps) {
     );
     if (thisIndex >= 0) {
       setStatus(`Track '${track.name} solo toggled`);
-      flipTrackAttrbute(thisIndex, "solo", setFileContents);
+      flipTrackAttribute(thisIndex, "solo", setFileContents);
     }
   }
 
-  function handleAddGenerator(event: MouseEvent<Element>): void {
+  function handleAddGenerator(event: MouseEvent<Element>, trackIndex: number): void {
     if (playing.current) return;
     event.preventDefault();
     event.stopPropagation();
     setMenuX(0);
-    setMenuY(30);
+    setMenuY(30 + trackIndex * 100);
     setMenuEnabled(true);
   }
 
@@ -176,7 +176,7 @@ export default function TrackControls(props: TrackControlsProps) {
             className="track-button"
             id={`track-gen:${trackIndex}`}
             key={`track-gen:${trackIndex}`}
-            onClick={(event) => handleAddGenerator(event)}
+            onClick={(event) => handleAddGenerator(event, trackIndex)}
           >
             <RiAiGenerate />
           </button>
@@ -275,7 +275,7 @@ export default function TrackControls(props: TrackControlsProps) {
           position: "absolute",
           top: menuY.toString() + "px",
           left: menuX.toString() + "px",
-          width: "150px",
+          width: "180px",
           height: "20px",
           zIndex: 99,
         }}
@@ -291,13 +291,15 @@ export default function TrackControls(props: TrackControlsProps) {
           <div
             className="dropdown"
             style={{
-              position: "fixed",
               visibility: "visible",
             }}
           >
-            <div className="dropbtn">
+            <div className="dropbtn"
+            style={{width: 180}}
+            >
               Select Generator Type
               <i className="fa fa-caret-down" />
+
             </div>
             <div className="dropdown-one">
               <div
@@ -318,6 +320,12 @@ export default function TrackControls(props: TrackControlsProps) {
               >
                 AudioFile
               </div>
+              <div
+              className="dItem"
+              onClick={()=>setMenuEnabled(false)}
+              >
+                Exit
+                </div>
             </div>
           </div>
         </div>

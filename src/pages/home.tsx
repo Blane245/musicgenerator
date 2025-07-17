@@ -25,6 +25,7 @@ export default function Home() {
     setMouseLocation,
     setSFLocalURI,
     setSFServerURI,
+    playing,
   } = useCMGContext();
 
   // set up the the layout and handle screen size changes
@@ -86,10 +87,10 @@ export default function Home() {
   }, []);
 
   // some of the components of this app process mouse movements. The
-  // function below capture those movements and pass them along 
-  // at regular time intervals. 
-  // If a components needs these services, it should trigger the mouseDown 
-  // reference property. 
+  // function below capture those movements and pass them along
+  // at regular time intervals.
+  // If a components needs these services, it should trigger the mouseDown
+  // reference property.
   // when the mouse goes down, mouse movements collected and
   // passed to the components needing them at a interval
   // determined by DURATION. This prevents performance
@@ -103,12 +104,12 @@ export default function Home() {
   function collectMouseMovements() {
     if (mouseDown.current) {
       t1 = Date.now();
-      console.log(
-        "mouse location update on timeout:",
-        movement.current,
-        "deltaT",
-        t1 - t0
-      );
+      // console.log(
+      //   "mouse location update on timeout:",
+      //   movement.current,
+      //   "deltaT",
+      //   t1 - t0
+      // );
       t0 = t1;
       const newMovement: MouseLocation = {
         X: movement.current.X,
@@ -129,41 +130,39 @@ export default function Home() {
   // the mouse goes up, which should stop mouse movement accumulations
   // and mouse processing activities by the components.
   function onMouseUp() {
-    if (mouseDown.current) {
-      setCursor("default");
-      mouseDown.current = false;
-      console.log("mouse released");
-      timer && window.clearTimeout(timer);
-      timer = null;
-      setMouseLocation(null);
-    }
+    if (!mouseDown.current || playing.current) return;
+    setCursor("default");
+    mouseDown.current = false;
+    // console.log("mouse released");
+    timer && window.clearTimeout(timer);
+    timer = null;
+    setMouseLocation(null);
   }
 
   function onMouseDown(e: MouseEvent<HTMLDivElement>) {
-    if (mouseDown.current) {
-      movement.current = {
-        X: e.nativeEvent.offsetX,
-        Y: e.nativeEvent.offsetY,
-        dX: 0,
-        dY: 0,
-      };
-      console.log("mouse down at", movement.current);
-      collectMouseMovements();
-      e.stopPropagation();
-      e.preventDefault();
-    }
+    if (!mouseDown.current || playing.current) return;
+    movement.current = {
+      X: e.nativeEvent.offsetX,
+      Y: e.nativeEvent.offsetY,
+      dX: 0,
+      dY: 0,
+    };
+    // console.log("mouse down at", movement.current);
+    collectMouseMovements();
+    e.stopPropagation();
+    e.preventDefault();
   }
 
   // function to accumulate mouse movements on mouse move event
   // this is triggered by the onMouseMove event for the page
   // only consume the event is the mouse is down.
   function saveMouseMovement(e: MouseEvent<HTMLDivElement>) {
-    if (!mouseDown.current) return;
+    if (!mouseDown.current || playing.current) return;
     movement.current.X = e.nativeEvent.offsetX;
     movement.current.Y = e.nativeEvent.offsetY;
     movement.current.dX = e.nativeEvent.movementX + movement.current.dX;
     movement.current.dY = e.nativeEvent.movementY + movement.current.dY;
-    console.log("mouse new position after movement", movement.current);
+    // console.log("mouse new position after movement", movement.current);
     e.stopPropagation();
     e.preventDefault();
   }

@@ -1,0 +1,187 @@
+import { useEffect, useState } from "react";
+import Track from "../classes/track";
+import { useCMGContext } from "../cmgcontext";
+import Generate from "../generation/generate";
+import { GENERATIONMODE, GeneratorType } from "../types";
+import { flipGeneratorMute } from "../utils/cmfiletransactions";
+import setCursor from "../utils/setcursor";
+import GeneratorCopyMoveDialog from "./generatorcopymovedialog";
+import GeneratorDeleteDialog from "./generatordeletedialog";
+import GeneratorDialog from "./generatordialog";
+
+export interface GeneratorMenuProps {
+  track: Track;
+  generator: GeneratorType;
+  setMenuVisible: Function;
+  menuX: number;
+  menuY: number;
+}
+
+// handles copy and move generator between tracks.
+export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
+  const { track, generator, setMenuVisible, menuX, menuY } = props;
+  const { setFileContents, setStatus, playing } = useCMGContext();
+  const [generatorMode, setGeneratorMode] = useState<GENERATIONMODE>(
+    GENERATIONMODE.idle
+  );
+  const [editVisible, setEditVisible] = useState<boolean>(false);
+  const [previewVisible, setPreviewVisible] = useState<boolean>(false);
+  const [copyMoveMode, setCopyMoveMode] = useState<string>("");
+  const [copyMoveDialogVisible, setCopyMoveDialogVisible] =
+    useState<boolean>(false);
+  const [generatorName, setGeneratorName] = useState<string>("");
+  const [deleteModal, setDeleteModal] = useState<boolean>(false);
+  const [generatorIndex, setGeneratorIndex] = useState<number>(-1);
+
+  useEffect(() => {
+    const index: number = track.generators.findIndex(
+      (g) => g.name == generator.name
+    );
+    setGeneratorIndex(index);
+  }, [track]);
+  function onPreviewClick() {
+    setPreviewVisible(true);
+    setGeneratorMode(GENERATIONMODE.solo);
+    setStatus(``);
+  }
+  function onEditClick() {
+    setEditVisible(true);
+    // setMenuVisible(false);
+    setCursor("default");
+    setStatus(``);
+  }
+  function onCopyClick() {
+    const gName: string = generator.name;
+    setCopyMoveMode("copy");
+    setGeneratorName(gName);
+    setCopyMoveDialogVisible(true);
+    setStatus(``);
+  }
+  function onMoveClick() {
+    const gName: string = generator.name;
+    setCopyMoveMode("move");
+    setGeneratorName(gName);
+    setCopyMoveDialogVisible(true);
+    setStatus(``);
+  }
+  function onMuteClick() {
+    const index: number = track.generators.findIndex(
+      (g) => g.name == generator.name
+    );
+    if (index < 0) return;
+    flipGeneratorMute(track, index, setFileContents);
+    setMenuVisible(false);
+    setCursor("default");
+    setStatus(``);
+  }
+
+  function onDeleteClick() {
+    const gName: string = generator.name;
+    setGeneratorName(gName);
+    setDeleteModal(true);
+    setStatus(``);
+  }
+
+  return (
+    <>
+      <div
+        className="modal-menu"
+        id={"genmenu"}
+        key={"genmenu"}
+        style={{
+          display: !playing.current?"block":"none",
+          position: "relative",
+          top: menuY.toString() + "px",
+          left: menuX.toString() + "px",
+          width: "60px",
+          height: "20px",
+        }}
+      >
+        <div
+          className="navbar"
+          style={{
+            position: "relative",
+            top: "0px",
+            visibility: "hidden",
+          }}
+        >
+          <div
+            className="dropdown"
+            style={{
+              position: "relative",
+              top: "0px",
+              visibility: "visible",
+            }}
+          >
+            <div className="dropbtn">
+              Menu
+              <i className="fa fa-caret-down"></i>
+            </div>
+            <div className="dropdown-one">
+              <div className="dItem" onClick={() => onPreviewClick()}>
+                Preview
+              </div>
+              <div className="dItem" onClick={() => onEditClick()}>
+                Edit
+              </div>
+              <div className="dItem" onClick={() => onCopyClick()}>
+                Copy
+              </div>
+              <div className="dItem" onClick={() => onMoveClick()}>
+                Move
+              </div>
+              <div className="dItem" onClick={() => onMuteClick()}>
+                {generator.mute ? "Unmute" : "Mute"}
+              </div>
+              <div className="dItem" onClick={() => onDeleteClick()}>
+                Delete
+              </div>
+              <div className="dItem" onClick={() => setMenuVisible(false)}>
+                Exit
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {editVisible ? (
+        <GeneratorDialog
+          track={track}
+          generatorType={generator.type}
+          generatorIndex={generatorIndex}
+          setVisible={(v: boolean) => {
+            setEditVisible(v);
+            setMenuVisible(v);
+          }}
+        />
+      ) : null}
+      {previewVisible ? (
+        <Generate
+          mode={generatorMode}
+          setMode={(v: GENERATIONMODE) => {
+            setGeneratorMode(v);
+            setMenuVisible(false);
+          }}
+          generator={generator}
+          setRecordHandle={() => {}}
+        />
+      ) : null}
+      {copyMoveDialogVisible ? (
+        <GeneratorCopyMoveDialog
+          mode={copyMoveMode}
+          trackName={track.name}
+          generatorName={generatorName}
+          setDialogVisible={setCopyMoveDialogVisible}
+          setMenuVisible={setMenuVisible}
+        />
+      ) : null}
+      {deleteModal ? (
+        <GeneratorDeleteDialog
+          trackName={track.name}
+          generatorName={generatorName}
+          setDialogVisible={setDeleteModal}
+          setMenuVisible={setMenuVisible}
+        />
+      ) : null}
+    </>
+  );
+}

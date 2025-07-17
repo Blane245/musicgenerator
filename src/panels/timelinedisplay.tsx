@@ -141,20 +141,24 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
           const newInterval: TimelineInterval = { ...prev };
           const tStart: number = timeLine.startTime;
           const tStop: number = tStart + scale.extent;
-          newInterval.startOffset = Math.min(
-            Math.max(
-              (timeLine.width * (prev.startTime - tStart)) / (tStop - tStart),
-              0
-            ),
-            timeLine.width
-          );
-          newInterval.endOffset = Math.max(
-            Math.min(
-              (timeLine.width * (prev.endTime - tStart)) / (tStop - tStart),
-              timeLine.width
-            ),
-            0
-          );
+          newInterval.startOffset =
+            (timeLine.width * (prev.startTime - tStart)) / (tStop - tStart);
+          newInterval.endOffset =
+            (timeLine.width * (prev.endTime - tStart)) / (tStop - tStart);
+          // newInterval.startOffset = Math.min(
+          //   Math.max(
+          //     (timeLine.width * (prev.startTime - tStart)) / (tStop - tStart),
+          //     0
+          //   ),
+          //   timeLine.width
+          // );
+          // newInterval.endOffset = Math.max(
+          //   Math.min(
+          //     (timeLine.width * (prev.endTime - tStart)) / (tStop - tStart),
+          //     timeLine.width
+          //   ),
+          //   0
+          // );
 
           // broadcast change
           setTimeInterval(newInterval);
@@ -181,7 +185,7 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
             }
             newInterval = getTimes(newInterval);
             setTimeInterval(newInterval);
-            console.log("interval redefinition ", newInterval);
+            // console.log("interval redefinition ", newInterval);
           }
           break;
         case TIMEINTERVALEDGE.Right:
@@ -195,11 +199,11 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
             }
             newInterval = getTimes(newInterval);
             setTimeInterval(newInterval);
-            console.log("interval redefinition ", newInterval);
+            // console.log("interval redefinition ", newInterval);
           }
           break;
         default:
-          console.log("bad interval edge definition ", edge);
+          // console.log("bad interval edge definition ", edge);
           break;
       }
     }
@@ -219,17 +223,17 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
         newInterval.endOffset = newEnd;
         newInterval = getTimes(newInterval);
         setTimeInterval(newInterval);
-        console.log("interval moved to ", newInterval);
+        // console.log("interval moved to ", newInterval);
       } else {
-        console.log("interval not moved to ", newStart, newEnd);
+        // console.log("interval not moved to ", newStart, newEnd);
       }
     }
     if (!mouseLocation && mode == TIMEINTERVALMODE.Define) {
-      console.log("terminate interval definition", timeInterval);
+      // console.log("terminate interval definition", timeInterval);
       setMode(TIMEINTERVALMODE.None);
     }
     if (!mouseLocation && mode == TIMEINTERVALMODE.Move) {
-      console.log("terminate interval move", timeInterval);
+      // console.log("terminate interval move", timeInterval);
       setMode(TIMEINTERVALMODE.None);
     }
     if (!mouseLocation && mode == TIMEINTERVALMODE.None) setCursor("default");
@@ -283,22 +287,22 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
   // calculate the resulting start and end times
   function getTimes(interval: TimelineInterval): TimelineInterval {
     const scale: TimeLineScale = TimeLineScales[timeLine.currentZoomLevel];
-    if (interval.startOffset >= 0 && interval.endOffset >= 0) {
-      const newInterval: TimelineInterval = { ...interval };
+    const newInterval: TimelineInterval = { ...interval };
+    if (interval.startOffset >= 0) {
       newInterval.startTime = precision(
         timeLine.startTime +
           (scale.extent * interval.startOffset) / timeLine.width,
         1
       );
+    }
+    if (interval.endOffset <= timeLine.width) {
       newInterval.endTime = precision(
         timeLine.startTime +
           (scale.extent * interval.endOffset) / timeLine.width,
         1
       );
-      return newInterval;
-    } else {
-      return interval;
     }
+    return newInterval;
   }
 
   // the mouse event handlers for timeinterval definition and movement
@@ -309,6 +313,7 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
   function onMouseEnterTimeIntervalBody(
     event: MouseEvent<SVGRectElement>
   ): void {
+    if (playing.current) return;
     // when the mouse enters the time interval body with mouse up, change the cursor to hand
     if (mode != TIMEINTERVALMODE.Define && !mouseDown.current) {
       setCursor("grab");
@@ -320,6 +325,7 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
   function onMouseLeaveTimeIntervalBody(
     event: MouseEvent<SVGRectElement>
   ): void {
+    if (playing.current) return;
     // when the mouse leaves the time interval body with mouse up, change the cursor to default
     if (!mouseDown.current) {
       setCursor("default");
@@ -332,11 +338,12 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
     event: MouseEvent<SVGPathElement>,
     edge: TIMEINTERVALEDGE
   ): void {
+    if (playing.current) return;
     // when the mouse enters the time interval edge with mouse up and not in move mode
     if (!mouseDown.current && mode != TIMEINTERVALMODE.Move) {
       setCursor("ew-resize");
       setEdge(edge);
-      console.log("enter edge set cursor to ew-resize");
+      // console.log("enter edge set cursor to ew-resize");
       event.stopPropagation();
       event.preventDefault();
     }
@@ -345,16 +352,18 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
   function onMouseLeaveTimeIntervalEdge(
     event: MouseEvent<SVGPathElement>
   ): void {
+    if (playing.current) return;
     // when the mouse leaves the time interval edge with mouse up, change the cursor to default
     if (!mouseDown.current) {
       setCursor("default");
-      console.log("leave edge set cursor to default");
+      // console.log("leave edge set cursor to default");
       event.stopPropagation();
       event.preventDefault();
     }
   }
 
   function onMouseDownTimeLine(event: MouseEvent<SVGRectElement>) {
+    if (playing.current) return;
     setMode(TIMEINTERVALMODE.Define);
     setCursor("ew-resize");
     setEdge(TIMEINTERVALEDGE.Left);
@@ -365,10 +374,11 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
     newInterval = getTimes(newInterval);
     setTimeInterval(newInterval);
     mouseDown.current = true;
-    console.log("initiate interval definition", newInterval);
+    // console.log("initiate interval definition", newInterval);
   }
 
   function onMouseDownTimeInterval(event: MouseEvent<SVGRectElement>) {
+    if (playing.current) return;
     setMode(TIMEINTERVALMODE.Move);
     setCursor("grab");
     setEdge(TIMEINTERVALEDGE.None);
@@ -379,13 +389,14 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
       dY: 0,
     });
     mouseDown.current = true;
-    console.log("initiate interval move", timeInterval);
+    // console.log("initiate interval move", timeInterval);
   }
 
   function onMouseDownTimeIntervalEdge(
     event: MouseEvent<SVGPathElement>,
     edge: TIMEINTERVALEDGE
   ) {
+    if (playing.current) return;
     const X: number = event.nativeEvent.offsetX;
     const Y: number = event.nativeEvent.offsetY;
     setMouseLocation({ X: X, Y: Y, dX: 0, dY: 0 });
@@ -393,7 +404,7 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
     setMode(TIMEINTERVALMODE.Define);
     setCursor("ew-resize");
     setEdge(edge);
-    console.log("initiate interval redefinition on ", edge, "edge");
+    // console.log("initiate interval redefinition on ", edge, "edge");
   }
 
   return (
@@ -445,21 +456,29 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
 
     return (
       <>
-        {interval.startOffset >= 0 && interval.endOffset >= 0 ? (
+        {/* is any part of the time interval within the currently displayed timeline? */}
+        {((interval.startOffset < 0 && interval.endOffset > 0) ||
+          (interval.startOffset >= 0 &&
+            interval.startOffset < timeLine.width)) &&
+        interval.startOffset != interval.endOffset ? (
           <>
-            {interval.startOffset != interval.endOffset ? (
+            <rect
+              className="intervalbox"
+              id="intervalbox"
+              x={Math.max(interval.startOffset, 0)}
+              y={0}
+              height={timeLine.height}
+              width={Math.min(
+                interval.endOffset - Math.max(interval.startOffset, 0),
+                timeLine.width
+              )}
+              onMouseDown={(e) => onMouseDownTimeInterval(e)}
+              onMouseEnter={(e) => onMouseEnterTimeIntervalBody(e)}
+              onMouseLeave={(e) => onMouseLeaveTimeIntervalBody(e)}
+            />
+            {/* is the start edge visible */}
+            {interval.startOffset >= 0 ? (
               <>
-                <rect
-                  className="intervalbox"
-                  id="intervalbox"
-                  x={interval.startOffset}
-                  y={0}
-                  height={timeLine.height}
-                  width={interval.endOffset - interval.startOffset}
-                  onMouseDown={(e) => onMouseDownTimeInterval(e)}
-                  onMouseEnter={(e) => onMouseEnterTimeIntervalBody(e)}
-                  onMouseLeave={(e) => onMouseLeaveTimeIntervalBody(e)}
-                />
                 <path
                   className="intervaledge"
                   id="intervalleftedge"
@@ -475,13 +494,13 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
                 <polygon
                   className="intervalmarker"
                   points={`${interval.startOffset}, ${timeLine.height}
-            ${interval.startOffset - 10}, ${timeLine.height}
-            ${interval.startOffset}, ${timeLine.height - 10}`}
+                    ${interval.startOffset - 10}, ${timeLine.height}
+                    ${interval.startOffset}, ${timeLine.height - 10}`}
                 />
               </>
             ) : null}
-            {interval.endOffset <= timeLine.width &&
-            interval.startOffset != interval.endOffset ? (
+            {/* is the end edge visible */}
+            {interval.endOffset <= timeLine.width ? (
               <>
                 <path
                   className="intervaledge"
@@ -498,8 +517,8 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
                 <polygon
                   className="intervalmarker"
                   points={`${interval.endOffset}, ${timeLine.height}
-          ${interval.endOffset + 10}, ${timeLine.height}
-          ${interval.endOffset}, ${timeLine.height - 10}`}
+                    ${interval.endOffset + 10}, ${timeLine.height}
+                    ${interval.endOffset}, ${timeLine.height - 10}`}
                 />
               </>
             ) : null}

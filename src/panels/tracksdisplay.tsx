@@ -19,10 +19,6 @@ export default function TracksDisplay() {
     setEnableGeneratorDialog(-1);
   }, [fileContents.tracks]);
 
-  function closeTrackGenerator() {
-    setEnableGeneratorDialog(-1);
-  }
-
   return (
     <>
       {tracks.map((t, i) => {
@@ -50,18 +46,16 @@ export default function TracksDisplay() {
           </>
         );
       })}
+      {enableGeneratorDialog >= 0?
       <GeneratorDialog
         key={`generator-dialog`}
         track={tracks[enableGeneratorDialog]}
         generatorType={generatorType}
         generatorIndex={-1}
-        setGeneratorIndex={() => {}}
-        closeTrackGenerator={closeTrackGenerator}
-        open={enableGeneratorDialog >= 0}
-        setOpen={() => {
+        setVisible={() => {
           setEnableGeneratorDialog(-1);
         }}
-      />
+      />: null}
     </>
   );
 }

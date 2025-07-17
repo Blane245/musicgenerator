@@ -24,21 +24,11 @@ export interface GeneratorDialogProps {
   track: Track;
   generatorType: string;
   generatorIndex: number;
-  setGeneratorIndex: Function;
-  closeTrackGenerator: Function;
-  open: boolean;
-  setOpen: Function;
+  setVisible: Function;
 }
 
 export default function GeneratorDialog(props: GeneratorDialogProps) {
-  const {
-    track,
-    generatorType,
-    generatorIndex,
-    closeTrackGenerator,
-    open,
-    setOpen,
-  } = props;
+  const { track, generatorType, generatorIndex, setVisible } = props;
   type SFDataType = {
     soundFont: SoundFont2 | undefined;
     presets: Preset[];
@@ -59,7 +49,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     SFLocalURI,
     SFServerURI,
   } = useCMGContext();
-  const [showModal, setShowModal] = useState<boolean>(false);
   const [oldName, setOldName] = useState<string>("");
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [formData, setFormData] = useState<GeneratorType>(new Silent(0));
@@ -76,42 +65,48 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
   const [isPreview, setIsPreview] = useState<boolean>(false);
 
   useEffect(() => {
-    if (open) {
-      // either get the generator from the track or build a new one if being added
-      if (generatorIndex < 0) {
-        // create a generator with a unique name
-        let next = getGeneratorUID(fileContents.tracks);
-        switch (generatorType) {
-          case GENERATORTYPE.Silent:
-            {
-              const g = new Silent(next);
-              setFormData(g);
-              setOldName(g.name);
-            }
-            break;
-          case GENERATORTYPE.Algorithmic:
-            {
-              const g = new Algorithmic(next);
-              setFormData(g);
-              setOldName(g.name);
-            }
-            break;
-          case GENERATORTYPE.AudioFile:
-            {
-              const g = new AudioFile(next);
-              setFormData(g);
-              setOldName(g.name);
-            }
-            break;
-        }
-      } else {
-        setFormData(track.generators[generatorIndex]);
-        setOldName(track.generators[generatorIndex].name);
+    // either get the generator from the track or build a new one if being added
+    if (generatorIndex < 0) {
+      // create a generator with a unique name
+      let next = getGeneratorUID(fileContents.tracks);
+      switch (generatorType) {
+        case GENERATORTYPE.Silent:
+          {
+            const g = new Silent(next);
+            setFormData(g);
+            setOldName(g.name);
+          }
+          break;
+        case GENERATORTYPE.Algorithmic:
+          {
+            const g = new Algorithmic(next);
+            setFormData(g);
+            setOldName(g.name);
+          }
+          break;
+        case GENERATORTYPE.AudioFile:
+          {
+            const g = new AudioFile(next);
+            setFormData(g);
+            setOldName(g.name);
+          }
+          break;
       }
-      setShowModal(true);
+    } else {
+      setFormData(track.generators[generatorIndex]);
+      if (track.generators[generatorIndex].type == GENERATORTYPE.Algorithmic) {
+        const g = track.generators[generatorIndex] as Algorithmic;
+        setSoundFontData({
+          soundFont: g.soundFont,
+          presets: g.presets,
+          preset: g.preset,
+          presetName: g.presetName,
+        });
+      }
+      setOldName(track.generators[generatorIndex].name);
     }
     setErrorMessages([]);
-  }, [open]);
+  }, [generatorIndex]);
 
   // when the soundfont data has been loaded, update the algorithmic generator form
   useEffect(() => {
@@ -126,6 +121,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     });
   }, [soundFontData]);
 
+  // when the audio file is loaded, update the form to reveal its properties
   useEffect(() => {
     setFormData((prev: GeneratorType) => {
       const n: AudioFile = (prev as AudioFile).copy();
@@ -134,7 +130,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     setLocked(false);
   }, [audioFileData]);
 
-  // when playing stops take donw the stop preview popup
+  // when playing stops take down the stop preview popup
   useEffect(() => {
     if (!playing.current) setIsPreview(false);
   }, [playing.current]);
@@ -248,10 +244,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           `Generator '${formData.name}' modified on track '${track.name}'`
         );
       }
-
-      setShowModal(false);
-      setOpen(false);
-      closeTrackGenerator();
+      setVisible(false);
     }
   }
 
@@ -304,111 +297,104 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
 
   function handleCancelClick(event: MouseEvent<Element>) {
     event.preventDefault();
-    setShowModal(false);
-    setOpen(false);
-    closeTrackGenerator();
+    setVisible(false);
     setStatus("");
   }
 
   return (
     <>
-      <fieldset disabled={locked}>
-        {open ? (
-          <>
-            <div
-              aria-modal="true"
-              style={{ display: showModal ? "block" : "none" }}
-              className="generator-content"
+      <fieldset disabled={playing.current || locked}>
+        <div
+          className="generator-content"
+          aria-modal="true"
+          style={{ display: "block" }}
+        >
+          <div className="generator-header">
+            <span className="close" onClick={handleCancelClick}>
+              &times;
+            </span>
+            <span>
+              {generatorIndex < 0
+                ? "  Add " + formData.type + " Generator"
+                : "  Generator: " + formData.name}
+            </span>
+          </div>
+          <div className="generator-body">
+            <form
+              name="generator_CRUD"
+              id="generator_CRUD"
+              onSubmit={handleSubmit}
             >
-              <div className="generator-header">
-                <span className="close" onClick={handleCancelClick}>
-                  &times;
-                </span>
-                <span>
-                  {generatorIndex < 0
-                    ? "  Add " + formData.type + " Generator"
-                    : "  Generator: " + formData.name}
-                </span>
-              </div>
-              <div className="generator-body">
-                <form
-                  name="generator_CRUD"
-                  id="generator_CRUD"
-                  onSubmit={handleSubmit}
-                >
-                  <label>
-                    Name:&nbsp;
-                    <input
-                      name="name"
-                      type="text"
-                      onChange={handleChange}
-                      value={formData.name}
-                    />
-                  </label>
-                  <label>
-                    &nbsp;Start Time:&nbsp;
-                    <input
-                      name="startTime"
-                      type="number"
-                      min={0}
-                      step={0.1}
-                      onChange={handleChange}
-                      value={precision(formData.startTime, 1)}
-                    />
-                    <span> (sec) </span>
-                  </label>
-                  <label>
-                    &nbsp;Stop Time:&nbsp;
-                    <input
-                      name="stopTime"
-                      type="number"
-                      min={0}
-                      step={0.1}
-                      onChange={handleChange}
-                      value={precision(formData.stopTime, 1)}
-                    />
-                    <span> (sec) </span>
-                  </label>
-                  <br />
-
-                  <GeneratorTypeForm
-                    formData={formData}
-                    handleChange={handleChange}
-                  />
-                  <hr />
-                  <input
-                    type="submit"
-                    value={generatorIndex < 0 ? "Add" : "Modify"}
-                  />
-                </form>
-              </div>
-              <div className="generator-footer">
-                <button
-                  type="button"
-                  id={"generator-preview:" + formData.name}
-                  onClick={handlePreview}
-                >
-                  Preview
-                </button>
-                <button
-                  id={"generator-update:" + formData.name}
-                  onClick={handleCancelClick}
-                >
-                  Cancel
-                </button>
-                {errorMessages.map((m, i) => (
-                  <h3 color="red" key={`error-${i}`}>
-                    {m}
-                  </h3>
-                ))}
-              </div>
-            </div>
-          </>
-        ) : null}
+              <label>
+                Name:&nbsp;
+                <input
+                  name="name"
+                  type="text"
+                  onChange={handleChange}
+                  value={formData.name}
+                />
+              </label>
+              <label>
+                &nbsp;Start Time:&nbsp;
+                <input
+                  name="startTime"
+                  type="number"
+                  min={0}
+                  step={0.1}
+                  onChange={handleChange}
+                  value={precision(formData.startTime, 1)}
+                />
+                <span> (sec) </span>
+              </label>
+              <label>
+                &nbsp;Stop Time:&nbsp;
+                <input
+                  name="stopTime"
+                  type="number"
+                  min={0}
+                  step={0.1}
+                  onChange={handleChange}
+                  value={precision(formData.stopTime, 1)}
+                />
+                <span> (sec) </span>
+              </label>
+              <br />
+              <GeneratorTypeForm
+                formData={formData}
+                handleChange={handleChange}
+              />
+              <hr />
+              <input
+                type="submit"
+                value={generatorIndex < 0 ? "Add" : "Modify"}
+              />
+            </form>
+          </div>
+          <div className="generator-footer">
+            <button
+              type="button"
+              id={"generator-preview:" + formData.name}
+              onClick={handlePreview}
+            >
+              Preview
+            </button>
+            <button
+              id={"generator-update:" + formData.name}
+              onClick={handleCancelClick}
+            >
+              Cancel
+            </button>
+            {errorMessages.map((m, i) => (
+              <h3 color="red" key={`error-${i}`}>
+                {m}
+              </h3>
+            ))}
+          </div>
+        </div>
       </fieldset>
       <div
-        style={{ display: isPreview ? "block" : "none" }}
         className="modal-content"
+        style={{ display: isPreview ? "block" : "none" }}
       >
         <div className="modal-header">
           <span className="close">&times;</span>

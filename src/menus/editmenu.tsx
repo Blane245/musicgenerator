@@ -135,6 +135,7 @@ export default function EditMenu() {
     else setErrorMsgs(msgs);
   }
   function handleMenuSelect(action: string) {
+    if (playing.current) return;
     switch (action) {
       case "comment":
         handleEditComment();

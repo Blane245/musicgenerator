@@ -54,45 +54,76 @@ export function realizeSource(
 
         // case 1 - t4 <= t5 (full delay, attack, hold, decay)
         if (t4 <= t5) {
-          vol.gain.setValueAtTime(minGain, t0);
-          vol.gain.setValueAtTime(minGain, t1); // delay
-          vol.gain.exponentialRampToValueAtTime(gain, t2); // attack
+          if (t1 != t0) { 
+            vol.gain.setValueAtTime(minGain, t0);
+            vol.gain.setValueAtTime(minGain, t1); // delay
+          }
+          if (t2 != t1) 
+            vol.gain.exponentialRampToValueAtTime(gain, t2); // attack
           vol.gain.setValueAtTime(gain, t2);
-          vol.gain.setValueAtTime(gain, t3); // hold
-          vol.gain.exponentialRampToValueAtTime(sustainGain, t4); // decay
-          vol.gain.setValueAtTime(sustainGain, t4);
-          vol.gain.setValueAtTime(sustainGain, t5); // sustain
+          if (t3 != t2)
+            vol.gain.setValueAtTime(gain, t3); // hold
+          if (t4 != t3)
+            vol.gain.exponentialRampToValueAtTime(sustainGain, t4); // decay  
+          vol.gain.setValueAtTime(sustainGain, t4); // hold
+          if (t5 != t4)
+            vol.gain.setValueAtTime(sustainGain, t5); // sustain
           vol.gain.cancelAndHoldAtTime(t5);
-          vol.gain.exponentialRampToValueAtTime(minGain, t6); // release
+          if (t6 != t5)
+            vol.gain.exponentialRampToValueAtTime(minGain, t6); // release
+          else
+            vol.gain.setValueAtTime(minGain, t5 + 0.01)
         } 
         // case 2 - (full delay, attack, hold, interpolated decay)
-        else if (t3 <= t5) { 
-          vol.gain.setValueAtTime(minGain, t0);
-          vol.gain.setValueAtTime(minGain, t1); // delay
-          vol.gain.exponentialRampToValueAtTime(gain, t2); // attack
+        else if (t3 <= t5) {
+          if (t1 != t0) { 
+            vol.gain.setValueAtTime(minGain, t0);
+            vol.gain.setValueAtTime(minGain, t1); // delay
+          }
+          if (t2 != t1)
+            vol.gain.exponentialRampToValueAtTime(gain, t2); // attack
           vol.gain.setValueAtTime(gain, t2); 
-          vol.gain.setValueAtTime(gain, t3); // hold
-            vol.gain.exponentialRampToValueAtTime(minGain, t4); // decay
-            vol.gain.cancelAndHoldAtTime(t5);
+          if (t3 != t2) 
+            vol.gain.setValueAtTime(gain, t3); // hold
+          if (t4 != t3)
+              vol.gain.exponentialRampToValueAtTime(sustainGain, t4); // decay
+          vol.gain.cancelAndHoldAtTime(t5);
+          if (t6 != t5)
             vol.gain.exponentialRampToValueAtTime(minGain, t6); // release
+          else 
+            vol.gain.setValueAtTime(minGain, t5 + 0.01);
         }
         // case 3 - (full delay and attack, shortened hold, no decay)
         else if (t2 <= t5) {
-          vol.gain.setValueAtTime(minGain, t0);
-          vol.gain.setValueAtTime(minGain, t1); // delay
-          vol.gain.exponentialRampToValueAtTime(gain, t2); // attack
-          vol.gain.setValueAtTime(gain, t2);
+          if (t1 != t0) { 
+            vol.gain.setValueAtTime(minGain, t0);
+            vol.gain.setValueAtTime(minGain, t1); // delay
+          }
+          if (t2 != t1)
+            vol.gain.exponentialRampToValueAtTime(gain, t2); // attack
+          vol.gain.setValueAtTime(gain, t2); 
           vol.gain.setValueAtTime(gain, t5); // hold
           vol.gain.cancelAndHoldAtTime(t5);
-          vol.gain.exponentialRampToValueAtTime(minGain, t6); // release
+          if (t6 != t5)
+            vol.gain.exponentialRampToValueAtTime(minGain, t6); // release
+          else
+            vol.gain.setValueAtTime(minGain, t5 + 0.01);
         }
         // case 4 - (full delay, shortened attack, no hold or decay)
         else if (t1 <= t5) {
-          vol.gain.setValueAtTime(minGain, t0);
-          vol.gain.setValueAtTime(minGain, t1); // delay
-          vol.gain.exponentialRampToValueAtTime(gain, t2); // attack
+          if (t1 != t0) { 
+            vol.gain.setValueAtTime(minGain, t0);
+            vol.gain.setValueAtTime(minGain, t1); // delay
+          }
+          if (t5 != t1)
+            vol.gain.exponentialRampToValueAtTime(gain, t2); // attack
+          else
+            vol.gain.setValueAtTime(gain, t5);
           vol.gain.cancelAndHoldAtTime(t5);
-          vol.gain.exponentialRampToValueAtTime(minGain, t6); // release
+          if (t6!= t5)
+            vol.gain.exponentialRampToValueAtTime(minGain, t6); // release
+          else
+            vol.gain.setValueAtTime(minGain, t5 + 0.01);
         }
         // case 5 - (shortened delay - note will not sound)
         else {

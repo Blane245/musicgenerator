@@ -32,8 +32,8 @@ export const toMidi = (note: any) => {
 
 // timecents to seconds
 export const tc2s = (timecents: number) => {
-  const result = timecents <= -12000? 0.01: Math.pow(2, timecents / 1200);
-  return result
+  const result = (timecents <= -12000 ? 0: Math.max(0.01, Math.pow(2, timecents / 1200)));
+  return result;
 }
 
 // attenuate gain by dB
