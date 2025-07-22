@@ -34,7 +34,7 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
     setTimeLine,
     timeInterval,
     setTimeInterval,
-    timeProgress,
+    // timeProgress,
     playing,
     mouseDown,
     mouseLocation,
@@ -83,37 +83,37 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
   }, [timeLineRef]);
 
   // update the playback tick and time line start time when the time progress changes
-  useEffect(() => {
-    if (timeProgress >= 0 && ticks.scaleExtent > 0) {
-      // shift left or right if the time progress is to the left or right of the start time
-      const extent = TimeLineScales[timeLine.currentZoomLevel].extent;
-      let startTime = timeLine.startTime;
-      if (timeProgress < startTime || timeProgress > startTime + extent) {
-        while (timeProgress < startTime && startTime != 0) {
-          startTime = Math.max(startTime - extent / 2.0, 0);
-        }
-        while (timeProgress > startTime + extent) {
-          startTime += extent / 2.0;
-        }
-        if (startTime != timeLine.startTime) {
-          setTimeLine((c: TimeLine) => {
-            const n = c.copy();
-            n.startTime = startTime;
-            return n;
-          });
-        }
-      }
+  // useEffect(() => {
+  //   if (timeProgress >= 0 && ticks.scaleExtent > 0) {
+  //     // shift left or right if the time progress is to the left or right of the start time
+  //     const extent = TimeLineScales[timeLine.currentZoomLevel].extent;
+  //     let startTime = timeLine.startTime;
+  //     if (timeProgress < startTime || timeProgress > startTime + extent) {
+  //       while (timeProgress < startTime && startTime != 0) {
+  //         startTime = Math.max(startTime - extent / 2.0, 0);
+  //       }
+  //       while (timeProgress > startTime + extent) {
+  //         startTime += extent / 2.0;
+  //       }
+  //       if (startTime != timeLine.startTime) {
+  //         setTimeLine((c: TimeLine) => {
+  //           const n = c.copy();
+  //           n.startTime = startTime;
+  //           return n;
+  //         });
+  //       }
+  //     }
 
-      // move the playback tick
-      const playbackElem = document.getElementById("playback-tick");
-      if (playbackElem) {
-        const newLoc =
-          (timeLine.width * (timeProgress - startTime)) / ticks.scaleExtent;
-        playbackElem.setAttribute("x1", newLoc.toString());
-        playbackElem.setAttribute("x2", newLoc.toString());
-      }
-    }
-  }, [timeProgress]);
+  //     // move the playback tick
+  //     const playbackElem = document.getElementById("playback-tick");
+  //     if (playbackElem) {
+  //       const newLoc =
+  //         (timeLine.width * (timeProgress - startTime)) / ticks.scaleExtent;
+  //       playbackElem.setAttribute("x1", newLoc.toString());
+  //       playbackElem.setAttribute("x2", newLoc.toString());
+  //     }
+  //   }
+  // }, [timeProgress]);
 
   // capture the tick parameters and update the time interval when the zoom level changes
   // update the time interval offsets based on the time line start time
@@ -433,14 +433,14 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
           ticks.scaleExtent,
           ticks.labelFormat
         )}
-        <line
+        {/* <line
           stroke="red"
           x1="0"
           x2="0"
           y1="0"
           y2={timeLine.height}
           id="playback-tick"
-        />
+        /> */}
         <DisplayInterval interval={timeInterval} timeLine={timeLine} />
       </svg>
     </fieldset>

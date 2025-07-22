@@ -267,7 +267,6 @@ fieldset {
   bottom: 0;
   width: 100%;
   cursor: inherit;
-  z-index: 1;
 }
 
 .page-footer-status {
@@ -915,6 +914,51 @@ div.algorithmic-table {
   fill: white;
   cursor: inherit;
 }
+
+.preview {
+      display: grid;
+      grid-template-rows: 1fr 1fr 1fr 1fr;
+      grid-template-areas:
+        "header" 
+        "timeline"
+        "drawing" 
+        "footer";
+      gap: 2px;
+      position:relative;
+      left: -50px;
+      top: -80px;
+      z-index: 99;
+      background-color: white;
+      .header {
+        grid-area: header;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas: "buttons levels";
+        .buttons {
+          grid-area:buttons;
+        }
+        .levels {
+          grid-area: levels;
+        }
+      }
+      .timeline {
+        grid-area: timeline;
+      }
+      .drawing {
+        grid-area: drawing;
+        /* background-color: linear-gradient(hsl(225,20%, 50%), hsl(180,20%,50%)); */
+        background-color: white;
+      }
+      .footer {
+        grid-area: footer;
+        display:grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas: "status controls";
+        .status {grid-area: "status";}
+        .controls {grid-area: "controls";}
+      }
+    }
+
 
 @keyframes animatetop {
   from {

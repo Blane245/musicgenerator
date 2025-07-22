@@ -12,6 +12,7 @@ import { buildSources } from "./buildsources";
 import Preview from "./preview";
 import ReadyGenerate from "./readygenerate";
 import Record from "./record";
+import Preview2 from "./preview2";
 
 export interface GeneratorProps {
   mode: GENERATIONMODE;
@@ -33,11 +34,14 @@ export default function Generate(props: GeneratorProps) {
     setSignalLevels,
   } = useCMGContext();
   const [error, setError] = useState<string>("");
+  const [playbackLength, setPlaybackLength] = useState<number>(0);
+  const [offsetTime, setOffsetTime] = useState<number>(0);
 
   // all of the work of the generator is done by this hook when the
   // mode changes to anything but idle
-  const sourceData = useRef<RawSourceData[]>([]);
+  // const [sourceData, setSourceData] = useState<RawSourceData[]>([]);
   const recordLength = useRef<number>(0);
+  const [sourceData, setSourceData] = useState<RawSourceData[]>([]);
   useEffect(() => {
     if (mode == GENERATIONMODE.idle) return;
 
@@ -55,6 +59,8 @@ export default function Generate(props: GeneratorProps) {
       fileContents,
       timeInterval,
     });
+    setPlaybackLength(playbackLength);
+    setOffsetTime(offsetTime);
 
     // catch any errors will selecting generators
     setError(error);
@@ -71,26 +77,26 @@ export default function Generate(props: GeneratorProps) {
     // catch any errors during build
     setError(buildError);
     if (buildError != "") return;
-    sourceData.current = builtSourceData;
+    setSourceData(builtSourceData);
     // let the system know that playing if entered
     playing.current = true;
 
     // select either preview or recording
     // preview is here as a non-reactive function
     // recording is reactive as there is a progress bar
-    if (mode == GENERATIONMODE.preview || mode == GENERATIONMODE.solo)
-      Preview({
-        fileContents,
-        playbackLength,
-        offsetTime,
-        sourceData: sourceData.current,
-        setMode,
-        playing,
-        setTimeProgress,
-        setGeneratorsPlaying,
-        setStatus,
-        setSignalLevels,
-      });
+    // if (mode == GENERATIONMODE.preview || mode == GENERATIONMODE.solo)
+    //   Preview({
+    //     fileContents,
+    //     playbackLength,
+    //     offsetTime,
+    //     sourceData: sourceData.current,
+    //     setMode,
+    //     playing,
+    //     setTimeProgress,
+    //     setGeneratorsPlaying,
+    //     setStatus,
+    //     setSignalLevels,
+    //   });
   }, [mode]);
 
   function handleErrorClose() {
@@ -103,17 +109,26 @@ export default function Generate(props: GeneratorProps) {
   // recording has its own progress bar
   return (
     <>
-      {mode == GENERATIONMODE.record && recordHandle ? (
+      {(mode == GENERATIONMODE.record && recordHandle) && sourceData.length > 0 ? (
         <Record
           recordHandle={recordHandle}
           setRecordHandle={setRecordHandle}
-          sourceData={sourceData.current}
+          sourceData={sourceData}
           sampleRate={SAMPLERATE}
-          playbackLength={recordLength.current}
+          playbackLength={playbackLength}
           recordFormat={recordFormat as string}
           setMode={setMode}
         />
       ) : null}
+      {(mode == GENERATIONMODE.preview || mode == GENERATIONMODE.solo) && sourceData.length > 0? (
+        <Preview2
+        playbackLength={playbackLength}
+        offsetTime={offsetTime}
+        sourceData={sourceData}
+        setMode={setMode}
+        />
+
+      ): null}
 
       <div
         style={{ display: error == "" ? "none" : "block" }}

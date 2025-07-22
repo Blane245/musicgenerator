@@ -84,7 +84,7 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
           SilentGenerators,
           playbackLength,
           offsetTime,
-          error: "First generator not found when time interval active",
+          error: "No generator found to play",
         };
       }
       offsetTime = firstGeneratorTime;
@@ -144,7 +144,7 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
           playbackLength,
           offsetTime,
           error:
-            "First genertor not found while filtering out solo tracks and generators",
+            "No generators found to play",
         };
       }
       // adjust the active generators start and stop time based on the
