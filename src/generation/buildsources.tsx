@@ -17,22 +17,26 @@ export function buildSources(params: buildSourcesProps): {sources: RawSourceData
     AudioFileGenerators,
     SilentGenerators,
   } = params;
+  let sourceCount: number = 0;
   let error:string = "";
   const sourceData: RawSourceData[] = [];
   try {
   AlgorithmicGenerators.forEach((g) => {
-    const AlgorithmicData: RawSourceData[] = getBufferSourceNodesFromAlgorithmic(g);
+    const AlgorithmicData: RawSourceData[] = getBufferSourceNodesFromAlgorithmic(g, sourceCount);
     sourceData.push(...AlgorithmicData);
+    sourceCount= sourceData.length;
   });
 
   AudioFileGenerators.forEach((g) => {
-    const AudioFileData: RawSourceData[] = getBufferSourceNodesFromAudioFile(g);
+    const AudioFileData: RawSourceData[] = getBufferSourceNodesFromAudioFile(g, sourceCount);
     sourceData.push(...AudioFileData);
+    sourceCount = sourceData.length;
   });
 
   SilentGenerators.forEach((g) => {
-    const CMGData: RawSourceData[] = getBufferSourceNodesFromSilent(g);
+    const CMGData: RawSourceData[] = getBufferSourceNodesFromSilent(g, sourceCount);
     sourceData.push(...CMGData);
+    sourceCount = sourceData.length;
   });
 
   return ({sources: sourceData.sort((a:RawSourceData, b: RawSourceData) => a.source.startTime - b.source.startTime), error: error});

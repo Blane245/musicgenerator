@@ -15,9 +15,9 @@ import {
 } from "../utils/cmfiletransactions";
 import { getGeneratorUID } from "../utils/getgeneratoruid";
 import GeneratorTypeForm from "./generatortypeform";
-import Preview from "../generation/preview";
 import ReadyGenerate from "../generation/readygenerate";
 import { buildSources } from "../generation/buildsources";
+import Generate from "generation/generate";
 
 // The icon starts at the generator's start time and ends at the generators endtime
 export interface GeneratorDialogProps {
@@ -42,13 +42,15 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     setStatus,
     timeInterval,
     playing,
-    setTimeProgress,
-    setGeneratorsPlaying,
-    setSignalLevels,
+    setMode,
+    setSourceData,
+    setPlaybackLength,
+    setOffsetTime,
     SFFileLocation,
     SFLocalURI,
     SFServerURI,
   } = useCMGContext();
+  const [previewVisible, setPreviewVisible] = useState<boolean>(false);
   const [oldName, setOldName] = useState<string>("");
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [formData, setFormData] = useState<GeneratorType>(new Silent(0));
@@ -264,10 +266,10 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
       fileContents,
       timeInterval,
     });
-    if (error != "") {
-      setStatus(`Error occurred while getting ready to preview: ${error}`);
-      return;
-    }
+    setPlaybackLength(playbackLength);
+    setOffsetTime(offsetTime);
+    setStatus(error);
+    if (error != "") return;
     const { sources: builtSourceData, error: buildError } = buildSources({
       AlgorithmicGenerators,
       AudioFileGenerators,
@@ -279,20 +281,14 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
       );
       return;
     }
+    // catch any errors during build
+    setStatus(buildError);
+    if (buildError != "") return;
+    setSourceData(builtSourceData);
     playing.current = true;
-    setIsPreview(true);
-    Preview({
-      fileContents,
-      playbackLength,
-      offsetTime,
-      sourceData: builtSourceData,
-      setMode: () => {},
-      playing,
-      setTimeProgress,
-      setGeneratorsPlaying,
-      setStatus,
-      setSignalLevels,
-    });
+    setPreviewVisible(true);
+    setMode(GENERATIONMODE.solo);
+    setStatus(``);
   }
 
   function handleCancelClick(event: MouseEvent<Element>) {
@@ -302,8 +298,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
   }
 
   return (
-    <>
-      <fieldset disabled={playing.current || locked}>
+    <fieldset disabled={locked}>
         <div
           className="generator-content"
           aria-modal="true"
@@ -391,30 +386,10 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
             ))}
           </div>
         </div>
-      </fieldset>
-      <div
-        className="modal-content"
-        style={{ display: isPreview ? "block" : "none" }}
-      >
-        <div className="modal-header">
-          <span className="close">&times;</span>
-          Preview In Progress
-        </div>
-        <div className="modal-body">
-          <p>Click Stop to Exit Preview</p>
-        </div>
-        <div className="modal-footer">
-          <button
-            onClick={() => {
-              setIsPreview(false);
-              playing.current = false;
-            }}
-          >
-            Stop
-          </button>
-        </div>
-      </div>
-    </>
+      {previewVisible ? (
+        <Generate generator={formData}/>
+      ) : null}
+    </fieldset>
   );
 
   function loadSoundFontandUpdate(fileName: string) {

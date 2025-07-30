@@ -128,7 +128,7 @@ export default function FileMenu() {
   }
 
   return (
-    <fieldset disabled={playing.current}>
+    <>
       <div className="navbar">
         <div className="dropdown">
           <div className="dropbtn">
@@ -148,6 +148,7 @@ export default function FileMenu() {
           </div>
         </div>
       </div>
+      {open != ""?
       <div
         style={{ display: open == "" ? "none" : "block" }}
         className="modal-content"
@@ -172,7 +173,8 @@ export default function FileMenu() {
           <button onClick={handleCancel}>Cancel</button>
         </div>
       </div>
-    </fieldset>
+      : null}
+    </>
   );
 
   function saveFileContents() {

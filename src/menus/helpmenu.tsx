@@ -36,7 +36,6 @@ export default function HelpMenu() {
 
   return (
     <>
-      <fieldset>
         <div className="navbar">
           <div className="dropdown">
             <div className="dropbtn">
@@ -59,7 +58,6 @@ export default function HelpMenu() {
             </div>
           </div>
         </div>
-      </fieldset>
       {open ? (
         <MidiFrequencyDialog setOpen={setOpen}/>
       ) : null}

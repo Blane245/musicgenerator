@@ -8,6 +8,8 @@ import setCursor from "../utils/setcursor";
 import GeneratorCopyMoveDialog from "./generatorcopymovedialog";
 import GeneratorDeleteDialog from "./generatordeletedialog";
 import GeneratorDialog from "./generatordialog";
+import ReadyGenerate from "generation/readygenerate";
+import { buildSources } from "generation/buildsources";
 
 export interface GeneratorMenuProps {
   track: Track;
@@ -20,10 +22,17 @@ export interface GeneratorMenuProps {
 // handles copy and move generator between tracks.
 export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
   const { track, generator, setMenuVisible, menuX, menuY } = props;
-  const { setFileContents, setStatus, playing } = useCMGContext();
-  const [generatorMode, setGeneratorMode] = useState<GENERATIONMODE>(
-    GENERATIONMODE.idle
-  );
+  const {
+    fileContents,
+    setFileContents,
+    timeInterval,
+    setMode,
+    setSourceData,
+    setPlaybackLength,
+    setOffsetTime,
+    setStatus,
+    playing,
+  } = useCMGContext();
   const [editVisible, setEditVisible] = useState<boolean>(false);
   const [previewVisible, setPreviewVisible] = useState<boolean>(false);
   const [copyMoveMode, setCopyMoveMode] = useState<string>("");
@@ -40,8 +49,9 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
     setGeneratorIndex(index);
   }, [track]);
   function onPreviewClick() {
+    handleReadySolo();
     setPreviewVisible(true);
-    setGeneratorMode(GENERATIONMODE.solo);
+    setMode(GENERATIONMODE.solo);
     setStatus(``);
   }
   function onEditClick() {
@@ -81,6 +91,36 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
     setDeleteModal(true);
     setStatus(``);
   }
+  function handleReadySolo() {
+    const {
+      AlgorithmicGenerators,
+      AudioFileGenerators,
+      SilentGenerators,
+      playbackLength,
+      offsetTime,
+      error,
+    } = ReadyGenerate({
+      mode: GENERATIONMODE.solo,
+      generator: generator,
+      fileContents,
+      timeInterval,
+    });
+    setPlaybackLength(playbackLength);
+    setOffsetTime(offsetTime);
+    setStatus(error);
+    if (error != "") return;
+    const { sources: builtSourceData, error: buildError } = buildSources({
+      AlgorithmicGenerators,
+      AudioFileGenerators,
+      SilentGenerators,
+    });
+
+    // catch any errors during build
+    setStatus(buildError);
+    if (buildError != "") return;
+    setSourceData(builtSourceData);
+    playing.current = true;
+  }
 
   return (
     <>
@@ -89,7 +129,7 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
         id={"genmenu"}
         key={"genmenu"}
         style={{
-          display: !playing.current?"block":"none",
+          display: !playing.current ? "block" : "none",
           position: "relative",
           top: menuY.toString() + "px",
           left: menuX.toString() + "px",
@@ -155,15 +195,7 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
         />
       ) : null}
       {previewVisible ? (
-        <Generate
-          mode={generatorMode}
-          setMode={(v: GENERATIONMODE) => {
-            setGeneratorMode(v);
-            setMenuVisible(false);
-          }}
-          generator={generator}
-          setRecordHandle={() => {}}
-        />
+        <Generate generator={generator}/>
       ) : null}
       {copyMoveDialogVisible ? (
         <GeneratorCopyMoveDialog

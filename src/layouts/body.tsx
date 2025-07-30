@@ -4,28 +4,15 @@ import { useEffect, useState } from "react";
 import { useCMGContext } from "../cmgcontext";
 import TracksDisplay from "../panels/tracksdisplay";
 export default function Body() {
-  const { bodyHeight, screenWidth, setStatus, playing } = useCMGContext();
-
-  const [height, setHeight] = useState<number>(bodyHeight);
-  const [width, setWidth] = useState<number>(screenWidth);
-
-  useEffect(() => {
-    setHeight(bodyHeight);
-    setWidth(screenWidth);
-  }, [bodyHeight, screenWidth]);
+  const { bodyHeight, displayWidth, setStatus } = useCMGContext();
 
   useEffect(() => {
     setStatus("");
   }, []);
 
-  // load the presets (bank and presets) for the soundfont file
-  // the top of the page body is the height of the page header
   return (
-    <>
-      <div className="body" 
-        style={{ height: height, width: width }}>
+      <div className="body" style={{width: displayWidth, height: bodyHeight}}>
         <TracksDisplay />
       </div>
-    </>
   );
 }

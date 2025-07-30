@@ -23,10 +23,10 @@ export const EPS: number = 1e-4;
 
 export enum SOUNDFONTLOCATIONOPTIONS {
   "Local" = "Local",
-  "Server" = "Server"
+  "Server" = "Server",
 }
 
-export const SFFILELOCATIONITEM:string = "SFFileLocation";
+export const SFFILELOCATIONITEM: string = "SFFileLocation";
 export const SFLOCALURIITEM: string = "SFLocalURI";
 export const SFSERVERURIITEM: string = "SFServerURI";
 
@@ -35,13 +35,13 @@ export const DEFAULTLOCALSFURI: string = "/local_soundfonts";
 export const DEFAULTSERVERSFURI: string = "/soundfonts";
 
 export type MouseLocation = {
-  X: number, Y: number, dX: number, dY: number
-}
+  X: number;
+  Y: number;
+  dX: number;
+  dY: number;
+};
 
-export type GeneratorType =
-  | Silent
-  | Algorithmic
-  | AudioFile;
+export type GeneratorType = Silent | Algorithmic | AudioFile;
 
 export enum GENERATORTYPE {
   "Silent" = "Silent",
@@ -77,7 +77,7 @@ export type ConstantType = {
   seed: string;
   rn: RandomNumber;
   value: number; // the constant value
-}
+};
 export type AutoregressiveType = {
   initialValue: number; // units depend on parameter (note, speed, volume, pan)
   seed: string;
@@ -182,9 +182,9 @@ export enum TIMEFORMATTYPE {
 
 // place to hold the soundfont file and the presets in it
 export type SoundFontGeneratorsType = {
-  name: string; // the name of the soundfont file 
+  name: string; // the name of the soundfont file
   generators: Algorithmic[]; // the generators that are using this soundfont
-}
+};
 
 // the soundfont file collection for algorithmic generators
 // used during loading a CMG file
@@ -255,6 +255,16 @@ export const TimeLineScales: TimeLineScale[] = [
   { extent: 604000, majorDivisions: 7, minorDivisions: 4, format: 10 },
   { extent: 1209600, majorDivisions: 2, minorDivisions: 7, format: 10 },
 ];
+export type TimeTicks = {
+  majorTickCount: number;
+  scaleExtent: number;
+  tickCount: number;
+  tickHeight: number;
+  tickSpacing: number;
+  labelSize: number;
+  labelSpacing: number;
+  labelFormat: string;
+};
 
 export type TimelineInterval = {
   startOffset: number;
@@ -267,12 +277,12 @@ export type TimelineInterval = {
 export enum TIMEINTERVALMODE {
   None,
   Define,
-  Move
+  Move,
 }
 export enum TIMEINTERVALEDGE {
   None,
   Left,
-  Right
+  Right,
 }
 
 export enum GENERATIONMODE {
@@ -285,6 +295,7 @@ export enum GENERATIONMODE {
 // the data that is needed to realize a source and manage it during preview and record
 export type RawSourceData = {
   gen: GeneratorType;
+  index: number;
   source: {
     note: number; // midi number of the source
     sample: Float32Array[]; // the sf instrument sample converted to float32 or noise as float32

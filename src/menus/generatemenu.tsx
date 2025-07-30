@@ -1,44 +1,50 @@
 // The file menu handles creating new files, opening existing ones,
 // saving current ones, and adding tracks to current ones
+import { buildSources } from "generation/buildsources";
+import ReadyGenerate from "generation/readygenerate";
+import Record from "generation/record";
 import { useState } from "react";
 import { renderToString } from "react-dom/server";
 import { useHotkeys } from "react-hotkeys-hook";
-import { useCMGContext } from "../cmgcontext";
-import Generate from "../generation/generate";
-import Report from "../generation/reportwriter/report";
-import { GENERATIONMODE } from "../types";
+import { useCMGContext } from "cmgcontext";
+import Report from "generation/reportwriter/report";
+import { GENERATIONMODE, SAMPLERATE } from "types";
 
 export default function GenerateMenu() {
-  const { fileContents, setStatus, recordFormat, playing } = useCMGContext();
+  const {
+    fileContents,
+    setStatus,
+    recordFormat,
+    playing,
+    mode,
+    setMode,
+    playbackLength,
+    setPlaybackLength,
+    setOffsetTime,
+    sourceData,
+    setSourceData,
+    timeInterval,
+  } = useCMGContext();
 
-  const [mode, setMode] = useState<GENERATIONMODE>(GENERATIONMODE.idle);
   const [recordHandle, setRecordHandle] = useState<FileSystemFileHandle | null>(
     null
   );
-    // a couple of hot keys are supported for preview and record
-    useHotkeys(
-      "ctrl+p",
-      (event) => {
-        event.preventDefault();
-        if (!playing.current) handlePreview;
-      },
-    );
-  
-    useHotkeys(
-      "ctrl+r",
-      (event) => {
-        event.preventDefault();
-        if (!playing.current) handleRecord;
-      },
-    );
-  
+  // a couple of hot keys are supported for preview and record
+  useHotkeys("ctrl+p", (event) => {
+    event.preventDefault();
+    if (!playing.current) handlePreview;
+  });
+
+  useHotkeys("ctrl+r", (event) => {
+    event.preventDefault();
+    if (!playing.current) handleRecord;
+  });
 
   // handle request to create a new file
   // If the curretn one is 'dirty' the user is
   // prompted to confirm overwrite
   function handlePreview() {
     setMode(GENERATIONMODE.preview);
-    setStatus("Previewing file");
   }
 
   // handle request to open a file.
@@ -63,13 +69,53 @@ export default function GenerateMenu() {
     setStatus("Stopped recording");
   }
 
+  // parse the generators and prepare for recording or previewing
+  function handleReadyPlay(playMode: GENERATIONMODE) {
+    // determine the selected generators and make sure they are ready to generate sound
+    const {
+      AlgorithmicGenerators,
+      AudioFileGenerators,
+      SilentGenerators,
+      playbackLength,
+      offsetTime,
+      error,
+    } = ReadyGenerate({
+      mode: playMode,
+      generator: null,
+      fileContents,
+      timeInterval,
+    });
+    setPlaybackLength(playbackLength);
+    setOffsetTime(offsetTime);
+
+    // catch any errors will selecting generators
+    setStatus(error);
+    if (error != "") return;
+
+    // build the generator sources
+    const { sources: builtSourceData, error: buildError } = buildSources({
+      AlgorithmicGenerators,
+      AudioFileGenerators,
+      SilentGenerators,
+    });
+
+    // catch any errors during build
+    setStatus(buildError);
+    if (buildError != "") return;
+    setSourceData(builtSourceData);
+    // let the system know that playing is entered
+    playing.current = true;
+    if (playMode == GENERATIONMODE.preview) handlePreview();
+    else handleRecord();
+  }
+
   function handleMenuSelect(action: string) {
     switch (action) {
       case "preview":
-        handlePreview();
+        handleReadyPlay(GENERATIONMODE.preview);
         break;
       case "record":
-        handleRecord();
+        handleReadyPlay(GENERATIONMODE.record);
         break;
       case "stop":
         handleStop();
@@ -84,55 +130,55 @@ export default function GenerateMenu() {
 
   return (
     <>
-      <fieldset>
-        <div className="navbar">
-          <div className="dropdown">
-            <div className="dropbtn">
-              Generate
-              <i className="fa fa-caret-down"></i>
-            </div>
-            <div className="dropdown-one">
-              {!playing.current ? (
-                <a
-                  className="dItem"
-                  onClick={() => handleMenuSelect("preview")}
-                >
-                  Preview
-                </a>
-              ) : null}
-              {!playing.current ? (
-                <a className="dItem" onClick={() => handleMenuSelect("record")}>
-                  Record
-                </a>
-              ) : null}
-              {!playing.current ? (
-                <a className="dItem" onClick={() => handleMenuSelect("report")}>
-                  Report...
-                </a>
-              ) : null}
-              {playing.current ? (
-                <a className="dItem" onClick={() => handleMenuSelect("stop")}>
-                  Stop
-                </a>
-              ) : null}
-            </div>
+      <div className="navbar">
+        <div className="dropdown">
+          <div className="dropbtn">
+            Play
+            <i className="fa fa-caret-down"></i>
+          </div>
+          <div className="dropdown-one">
+            {!playing.current ? (
+              <a className="dItem" onClick={() => handleMenuSelect("preview")}>
+                Preview
+              </a>
+            ) : null}
+            {!playing.current ? (
+              <a className="dItem" onClick={() => handleMenuSelect("record")}>
+                Record
+              </a>
+            ) : null}
+            {!playing.current ? (
+              <a className="dItem" onClick={() => handleMenuSelect("report")}>
+                Report...
+              </a>
+            ) : null}
+            {playing.current ? (
+              <a className="dItem" onClick={() => handleMenuSelect("stop")}>
+                Stop
+              </a>
+            ) : null}
           </div>
         </div>
-        <Generate
-          mode={mode}
-          setMode={setMode}
-          setRecordHandle={setRecordHandle}
-          recordFormat={recordFormat}
+      </div>
+      {mode == GENERATIONMODE.record &&
+      recordHandle &&
+      sourceData.length > 0 ? (
+        <Record
           recordHandle={recordHandle}
-          generator={null}
+          setRecordHandle={setRecordHandle}
+          sourceData={sourceData}
+          sampleRate={SAMPLERATE}
+          playbackLength={playbackLength}
+          recordFormat={recordFormat as string}
+          setMode={setMode}
         />
-      </fieldset>
+      ) : null}
     </>
   );
   function writeReport() {
     try {
       const page: HTMLElement | null = document.getElementById("page");
-      // ask for a file 
+      // ask for a file
       window
         .showSaveFilePicker({
           types: [
@@ -145,11 +191,13 @@ export default function GenerateMenu() {
         .then(async (handle) => {
           if (page) page.inert = true;
           // build the html for the file contents
-          const theReport: React.ReactNode = Report({fileContents:fileContents} );
+          const theReport: React.ReactNode = Report({
+            fileContents: fileContents,
+          });
           const out: string = renderToString(theReport);
           try {
-            const writeable: FileSystemWritableFileStream = 
-            await handle.createWritable(); 
+            const writeable: FileSystemWritableFileStream =
+              await handle.createWritable();
             await writeable.write(out);
             await writeable.close();
             if (page) page.inert = false;

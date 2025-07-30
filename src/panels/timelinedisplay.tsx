@@ -1,55 +1,37 @@
 // display the time line based on the current start time and
 // zoom level
 // handle time line interval editing
-import numeral from "numeral";
+import TimeLine from "classes/timeline";
+import { useCMGContext } from "cmgcontext";
+import { MouseEvent, useEffect, useState } from "react";
+import { precision } from "sfcomponents/util";
 import {
-  forwardRef,
-  MouseEvent,
-  MutableRefObject,
-  useEffect,
-  useState,
-} from "react";
-import TimeLine from "../classes/timeline";
-import { useCMGContext } from "../cmgcontext";
-import { precision } from "../sfcomponents/util";
-import {
-  TIMEFORMATS,
+  GENERATIONMODE,
   TIMEINTERVALEDGE,
   TIMEINTERVALMODE,
   TimelineInterval,
   TimeLineScale,
   TimeLineScales,
-} from "../types";
-import setCursor from "../utils/setcursor";
-type TimeLineDisplayProps = {
-  timeLineRef: MutableRefObject<Element[]>;
-};
-// render the timeline and control the timeline interval
-// thanx for AWolf's option 2 answer to https://stackoverflow.com/questions/58222004/how-to-get-parent-width-height-in-react-using-hooks
-const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
-  const { timeLineRef } = props;
+  TimeTicks,
+} from "types";
+import getTickLinesandLabels from "utils/getticklinesandlabels";
+import setCursor from "utils/setcursor";
+import updateTimeTicks from "utils/updatetimeticks";
+export default function TimeLineDisplay() {
   const {
-    verticalScrollWidth,
+    mode,
+    timelineHeight,
+    timelineWidth,
     timeLine,
     setTimeLine,
     timeInterval,
     setTimeInterval,
-    // timeProgress,
     playing,
     mouseDown,
     mouseLocation,
     setMouseLocation,
   } = useCMGContext();
-  const [ticks, setTicks] = useState<{
-    majorTickCount: number;
-    scaleExtent: number;
-    tickCount: number;
-    tickHeight: number;
-    tickSpacing: number;
-    labelSize: number;
-    labelSpacing: number;
-    labelFormat: string;
-  }>({
+  const [ticks, setTicks] = useState<TimeTicks>({
     majorTickCount: 0,
     tickCount: 0,
     tickHeight: 0,
@@ -62,115 +44,47 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
 
   // the Mode of the timeinterval editor
   // the Edge of the timeinterval editor
-  const [mode, setMode] = useState<TIMEINTERVALMODE>(TIMEINTERVALMODE.None);
+  const [edgeMode, setEdgeMode] = useState<TIMEINTERVALMODE>(
+    TIMEINTERVALMODE.None
+  );
   const [edge, setEdge] = useState<TIMEINTERVALEDGE>(TIMEINTERVALEDGE.None);
 
+  // initialize the timeline and ticks when the size changes
   useEffect(() => {
-    const resizeObserver: ResizeObserver = new ResizeObserver(
-      (event: ResizeObserverEntry[]) => {
-        const width = Math.max(
-          event[0].contentBoxSize[0].inlineSize - verticalScrollWidth,
-          0
-        );
-        const height = event[0].contentBoxSize[0].blockSize;
-        const n: TimeLine = new TimeLine(width, height);
-        setTimeLine(n);
+    let newTimeLine: TimeLine | null = null;
+    if (timelineHeight != 0 && timelineWidth != 0) {
+      if (!timeLine) {
+        newTimeLine = new TimeLine(timelineWidth, timelineHeight); // changed scrren size
+      } else {
+        newTimeLine = timeLine.copy(); // returning from preview
       }
-    );
-    if (timeLineRef && timeLineRef.current && timeLineRef.current.length > 0) {
-      resizeObserver.observe(timeLineRef.current[0]);
+      setTimeLine(newTimeLine);
+      const newTimeTicks: TimeTicks | null = updateTimeTicks(newTimeLine);
+      if (newTimeTicks) setTicks(newTimeTicks);
+    // console.log(
+    //   "update timeline and ticks on display change, timelineWidth, timelineHeight, newtimeline newticks",
+    //   timelineWidth,
+    //   timelineHeight,
+    //   newTimeLine,
+    //   newTimeTicks
+    // );
     }
-  }, [timeLineRef]);
+  }, [timelineWidth, timelineHeight]);
 
-  // update the playback tick and time line start time when the time progress changes
-  // useEffect(() => {
-  //   if (timeProgress >= 0 && ticks.scaleExtent > 0) {
-  //     // shift left or right if the time progress is to the left or right of the start time
-  //     const extent = TimeLineScales[timeLine.currentZoomLevel].extent;
-  //     let startTime = timeLine.startTime;
-  //     if (timeProgress < startTime || timeProgress > startTime + extent) {
-  //       while (timeProgress < startTime && startTime != 0) {
-  //         startTime = Math.max(startTime - extent / 2.0, 0);
-  //       }
-  //       while (timeProgress > startTime + extent) {
-  //         startTime += extent / 2.0;
-  //       }
-  //       if (startTime != timeLine.startTime) {
-  //         setTimeLine((c: TimeLine) => {
-  //           const n = c.copy();
-  //           n.startTime = startTime;
-  //           return n;
-  //         });
-  //       }
-  //     }
-
-  //     // move the playback tick
-  //     const playbackElem = document.getElementById("playback-tick");
-  //     if (playbackElem) {
-  //       const newLoc =
-  //         (timeLine.width * (timeProgress - startTime)) / ticks.scaleExtent;
-  //       playbackElem.setAttribute("x1", newLoc.toString());
-  //       playbackElem.setAttribute("x2", newLoc.toString());
-  //     }
-  //   }
-  // }, [timeProgress]);
-
-  // capture the tick parameters and update the time interval when the zoom level changes
-  // update the time interval offsets based on the time line start time
+  // when the timeline or the generation mode changes to idle, update the ticks
   useEffect(() => {
-    if (
-      timeLine.currentZoomLevel >= 0 &&
-      timeLine.currentZoomLevel < TimeLineScales.length
-    ) {
-      const scale: TimeLineScale = TimeLineScales[timeLine.currentZoomLevel];
-      setTicks({
-        majorTickCount: scale.majorDivisions,
-        scaleExtent: scale.extent,
-        tickCount: scale.majorDivisions * scale.minorDivisions,
-        tickHeight: timeLine.height / 3.0,
-        tickSpacing:
-          timeLine.width / (scale.majorDivisions * scale.minorDivisions),
-        labelSize: timeLine.height / 3.0,
-        labelSpacing: timeLine.width / scale.majorDivisions,
-        labelFormat: TIMEFORMATS[scale.format].value,
-      });
-
-      // set the left and right offsets of the timeline interval based on the interval's times.
-      setTimeInterval((prev) => {
-        if (prev.startTime != undefined && prev.endTime != undefined) {
-          const newInterval: TimelineInterval = { ...prev };
-          const tStart: number = timeLine.startTime;
-          const tStop: number = tStart + scale.extent;
-          newInterval.startOffset =
-            (timeLine.width * (prev.startTime - tStart)) / (tStop - tStart);
-          newInterval.endOffset =
-            (timeLine.width * (prev.endTime - tStart)) / (tStop - tStart);
-          // newInterval.startOffset = Math.min(
-          //   Math.max(
-          //     (timeLine.width * (prev.startTime - tStart)) / (tStop - tStart),
-          //     0
-          //   ),
-          //   timeLine.width
-          // );
-          // newInterval.endOffset = Math.max(
-          //   Math.min(
-          //     (timeLine.width * (prev.endTime - tStart)) / (tStop - tStart),
-          //     timeLine.width
-          //   ),
-          //   0
-          // );
-
-          // broadcast change
-          setTimeInterval(newInterval);
-          return newInterval;
-        } else return prev;
-      });
+    if (mode == GENERATIONMODE.idle && timeLine) {
+      const newTimeTicks: TimeTicks | null = updateTimeTicks(timeLine);
+      if (newTimeTicks) setTicks(newTimeTicks);
+      // const newTimeInterval: TimelineInterval | null = updateTimeInterval(timeInterval, timeLine);
+      // if (newTimeInterval) setTimeInterval(newTimeInterval);
+      // console.log("update ticks on entering idle", newTimeTicks);
     }
-  }, [timeLine]);
+  }, [timeLine, mode]);
 
   // useeffect handler for mouse move in Define and Move modes
   useEffect(() => {
-    if (mode == TIMEINTERVALMODE.Define && mouseLocation) {
+    if (edgeMode == TIMEINTERVALMODE.Define && mouseLocation) {
       // change the timeinterval definiiton based on the curent mouse X relative location
       let newInterval: TimelineInterval = { ...timeInterval };
       const X: number = mouseLocation.X;
@@ -207,7 +121,7 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
           break;
       }
     }
-    if (mode == TIMEINTERVALMODE.Move && mouseLocation) {
+    if (edgeMode == TIMEINTERVALMODE.Move && mouseLocation && timeLine) {
       // change the timeinterval position based on the current mouse X relative location
       const dX: number = mouseLocation.dX;
       let newInterval: TimelineInterval = { ...timeInterval };
@@ -228,79 +142,37 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
         // console.log("interval not moved to ", newStart, newEnd);
       }
     }
-    if (!mouseLocation && mode == TIMEINTERVALMODE.Define) {
+    if (!mouseLocation && edgeMode == TIMEINTERVALMODE.Define) {
       // console.log("terminate interval definition", timeInterval);
-      setMode(TIMEINTERVALMODE.None);
+      setEdgeMode(TIMEINTERVALMODE.None);
     }
-    if (!mouseLocation && mode == TIMEINTERVALMODE.Move) {
+    if (!mouseLocation && edgeMode == TIMEINTERVALMODE.Move) {
       // console.log("terminate interval move", timeInterval);
-      setMode(TIMEINTERVALMODE.None);
+      setEdgeMode(TIMEINTERVALMODE.None);
     }
-    if (!mouseLocation && mode == TIMEINTERVALMODE.None) setCursor("default");
+    if (!mouseLocation && edgeMode == TIMEINTERVALMODE.None)
+      setCursor("default");
   }, [mouseLocation]);
-
-  // build the tick marks
-  function getTickLines(count: number, height: number, spacing: number) {
-    const result: JSX.Element[] = [];
-    if (timeLine) {
-      for (let i = 0; i <= count; i++) {
-        const d: string = `m ${i * spacing} ${timeLine.height}  L ${
-          i * spacing
-        }  ${timeLine.height - height}`;
-        result.push(<path key={"tick-" + i} d={d} stroke="black" />);
-      }
-    }
-    return result;
-  }
-
-  // add the major tick mark labels
-  function getTickLabels(
-    count: number,
-    size: number,
-    spacing: number,
-    extent: number,
-    format: string
-  ) {
-    const result: JSX.Element[] = [];
-    const sizepx: string = size.toString().concat("px");
-    for (let i = 0; i <= count; i++) {
-      const tValue: number = timeLine.startTime + i * (extent / count);
-      const tText = numeral(tValue).format(format);
-      let tAnchor: string = "middle";
-      if (i == 0) tAnchor = "start";
-      if (i == count) tAnchor = "end";
-      result.push(
-        <text
-          key={"ticktext-" + i}
-          x={i * spacing}
-          y={size}
-          fontSize={sizepx}
-          textAnchor={tAnchor}
-        >
-          {tText}
-        </text>
-      );
-    }
-    return result;
-  }
 
   // calculate the resulting start and end times
   function getTimes(interval: TimelineInterval): TimelineInterval {
-    const scale: TimeLineScale = TimeLineScales[timeLine.currentZoomLevel];
     const newInterval: TimelineInterval = { ...interval };
-    if (interval.startOffset >= 0) {
-      newInterval.startTime = precision(
-        timeLine.startTime +
-          (scale.extent * interval.startOffset) / timeLine.width,
-        1
-      );
-    }
-    if (interval.endOffset <= timeLine.width) {
-      newInterval.endTime = precision(
-        timeLine.startTime +
-          (scale.extent * interval.endOffset) / timeLine.width,
-        1
-      );
+    if (timeLine) {
+      const scale: TimeLineScale = TimeLineScales[timeLine.currentZoomLevel];
+      if (interval.startOffset >= 0) {
+        newInterval.startTime = precision(
+          timeLine.startTime +
+            (scale.extent * interval.startOffset) / timeLine.width,
+          1
+        );
+      }
+      if (interval.endOffset <= timeLine.width) {
+        newInterval.endTime = precision(
+          timeLine.startTime +
+            (scale.extent * interval.endOffset) / timeLine.width,
+          1
+        );
+      }
     }
     return newInterval;
   }
@@ -315,7 +187,7 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
   ): void {
     if (playing.current) return;
     // when the mouse enters the time interval body with mouse up, change the cursor to hand
-    if (mode != TIMEINTERVALMODE.Define && !mouseDown.current) {
+    if (edgeMode != TIMEINTERVALMODE.Define && !mouseDown.current) {
       setCursor("grab");
       event.stopPropagation();
       event.preventDefault();
@@ -340,7 +212,7 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
   ): void {
     if (playing.current) return;
     // when the mouse enters the time interval edge with mouse up and not in move mode
-    if (!mouseDown.current && mode != TIMEINTERVALMODE.Move) {
+    if (!mouseDown.current && edgeMode != TIMEINTERVALMODE.Move) {
       setCursor("ew-resize");
       setEdge(edge);
       // console.log("enter edge set cursor to ew-resize");
@@ -364,7 +236,7 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
 
   function onMouseDownTimeLine(event: MouseEvent<SVGRectElement>) {
     if (playing.current) return;
-    setMode(TIMEINTERVALMODE.Define);
+    setEdgeMode(TIMEINTERVALMODE.Define);
     setCursor("ew-resize");
     setEdge(TIMEINTERVALEDGE.Left);
     const X: number = event.nativeEvent.offsetX;
@@ -379,7 +251,7 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
 
   function onMouseDownTimeInterval(event: MouseEvent<SVGRectElement>) {
     if (playing.current) return;
-    setMode(TIMEINTERVALMODE.Move);
+    setEdgeMode(TIMEINTERVALMODE.Move);
     setCursor("grab");
     setEdge(TIMEINTERVALEDGE.None);
     setMouseLocation({
@@ -401,49 +273,39 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
     const Y: number = event.nativeEvent.offsetY;
     setMouseLocation({ X: X, Y: Y, dX: 0, dY: 0 });
     mouseDown.current = true;
-    setMode(TIMEINTERVALMODE.Define);
+    setEdgeMode(TIMEINTERVALMODE.Define);
     setCursor("ew-resize");
     setEdge(edge);
     // console.log("initiate interval redefinition on ", edge, "edge");
   }
 
   return (
-    <fieldset disabled={playing.current} style={{ width: "inherit" }}>
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width={timeLine.width}
-        height={timeLine.height}
-        viewBox={`0 0 ${timeLine.width} ${timeLine.height}`}
-      >
-        <rect
-          className="timeline"
-          id="timeline"
-          x={0}
-          y={0}
+    <>
+      {timeLine ? (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
           width={timeLine.width}
           height={timeLine.height}
-          onMouseDown={(e) => onMouseDownTimeLine(e)}
-        />
-        <path stroke="black" d={`m 0 ${timeLine.height} H ${timeLine.width}`} />
-        {getTickLines(ticks.tickCount, ticks.tickHeight, ticks.tickSpacing)}
-        {getTickLabels(
-          ticks.majorTickCount,
-          ticks.labelSize,
-          ticks.labelSpacing,
-          ticks.scaleExtent,
-          ticks.labelFormat
-        )}
-        {/* <line
-          stroke="red"
-          x1="0"
-          x2="0"
-          y1="0"
-          y2={timeLine.height}
-          id="playback-tick"
-        /> */}
-        <DisplayInterval interval={timeInterval} timeLine={timeLine} />
-      </svg>
-    </fieldset>
+          viewBox={`0 0 ${timeLine.width} ${timeLine.height}`}
+        >
+          <rect
+            id="timeline"
+            x={0}
+            y={0}
+            width={timeLine.width}
+            height={timeLine.height}
+            style={{ backgroundColor: "white" }}
+            onMouseDown={(e) => onMouseDownTimeLine(e)}
+          />
+          <path
+            stroke="black"
+            d={`m 0 ${timeLine.height} H ${timeLine.width}`}
+          />
+          {getTickLinesandLabels(timeLine, ticks)}
+          <DisplayInterval interval={timeInterval} timeLine={timeLine} />
+        </svg>
+      ) : null}
+    </>
   );
 
   // build the JSX for the timeline interval
@@ -527,6 +389,4 @@ const TimeLineDisplay = forwardRef((props: TimeLineDisplayProps) => {
       </>
     );
   }
-});
-
-export default TimeLineDisplay;
+}

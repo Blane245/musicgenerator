@@ -4,13 +4,14 @@
 import { AudioFile } from "../classes/generators";
 import { RawSourceData } from "../types";
 
-export function getBufferSourceNodesFromAudioFile(gen: AudioFile): RawSourceData[] {
+export function getBufferSourceNodesFromAudioFile(gen: AudioFile, sourceCount: number): RawSourceData[] {
   const { startTime, stopTime, volume, samples, duration, sampleRate } = gen;
   const sourceData: RawSourceData[] = [];
 
   const holdInterval = duration;
   sourceData.push({
     gen,
+    index:sourceCount,
     source: {
       sample: samples,
       sampleRate: sampleRate,

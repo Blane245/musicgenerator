@@ -30,14 +30,20 @@ export interface TrackControlsProps {
 }
 export default function TrackControls(props: TrackControlsProps) {
   const { track, trackIndex, tracks, setEnableGeneratorDialog } = props;
-  const { fileContents, setFileContents, playing, setStatus, setGeneratorType } = useCMGContext();
+  const {
+    fileContents,
+    setFileContents,
+    playing,
+    setStatus,
+    setGeneratorType,
+  } = useCMGContext();
   const [trackName, setTrackName] = useState<string>("");
   const [deleteModal, setDeleteModal] = useState<boolean>(false);
   const [renameModal, setRenameModal] = useState<boolean>(false);
   const [message, setMessage] = useState<string>("");
   const [menuEnabled, setMenuEnabled] = useState<boolean>(false);
-  const [menuX, setMenuX] = useState<number> (0);
-  const [menuY, setMenuY] = useState<number> (0);
+  const [menuX, setMenuX] = useState<number>(0);
+  const [menuY, setMenuY] = useState<number>(0);
 
   function handleDeleteTrack(): void {
     setDeleteModal(true);
@@ -117,7 +123,10 @@ export default function TrackControls(props: TrackControlsProps) {
     }
   }
 
-  function handleAddGenerator(event: MouseEvent<Element>, trackIndex: number): void {
+  function handleAddGenerator(
+    event: MouseEvent<Element>,
+    trackIndex: number
+  ): void {
     if (playing.current) return;
     event.preventDefault();
     event.stopPropagation();
@@ -133,7 +142,7 @@ export default function TrackControls(props: TrackControlsProps) {
     moveTrack(track.name, direction, setFileContents);
   }
 
-  function handleSelectGenerator( event: MouseEvent, type:GENERATORTYPE) {
+  function handleSelectGenerator(event: MouseEvent, type: GENERATORTYPE) {
     event.preventDefault();
     setGeneratorType(type);
     setEnableGeneratorDialog(tracks.findIndex((t) => t.name == track.name));
@@ -142,78 +151,76 @@ export default function TrackControls(props: TrackControlsProps) {
 
   return (
     <>
-      <div className="page-track-control" key={"track-control:" + track.name}>
-        <fieldset disabled={playing.current} style={{ width: "inherit" }}>
-          <button
-            className="track-button"
-            id={"track-delete:" + track.name}
-            key={"track-delete:" + track.name}
-            onClick={handleDeleteTrack}
-          >
-            <AiOutlineClose size={10} />
-          </button>
-          {track.name}
-          <button
-            style={{ float: "right" }}
-            className="track-button"
-            id={"track-rename:" + track.name}
-            key={"track-rename:" + track.name}
-            onClick={handleRenameTrack}
-          >
-            <CgRename />
-          </button>
-          <br />
-          <button
-            className="track-button"
-            id={"track-mute:" + track.name}
-            key={"track-mute:" + track.name}
-            onClick={handleMuteTrack}
-          >
-            {track.mute ? <AiFillMuted /> : <AiOutlineMuted />}
-          </button>
+      <button
+        className="track-button"
+        id={"track-delete:" + track.name}
+        key={"track-delete:" + track.name}
+        onClick={handleDeleteTrack}
+      >
+        <AiOutlineClose size={10} />
+      </button>
+      {track.name}
+      <button
+        style={{ float: "right" }}
+        className="track-button"
+        id={"track-rename:" + track.name}
+        key={"track-rename:" + track.name}
+        onClick={handleRenameTrack}
+      >
+        <CgRename />
+      </button>
+      <br />
+      <button
+        className="track-button"
+        style={{ float: "left" }}
+        id={"track-mute:" + track.name}
+        key={"track-mute:" + track.name}
+        onClick={handleMuteTrack}
+      >
+        {track.mute ? <AiFillMuted /> : <AiOutlineMuted />}
+      </button>
 
-          <button
-            className="track-button"
-            id={`track-gen:${trackIndex}`}
-            key={`track-gen:${trackIndex}`}
-            onClick={(event) => handleAddGenerator(event, trackIndex)}
-          >
-            <RiAiGenerate />
-          </button>
-          <button
-            style={{ float: "right" }}
-            className="track-button"
-            id={"track-solo:" + track.name}
-            key={"track-solo:" + track.name}
-            onClick={handleSoloTrack}
-          >
-            {track.solo ? <IoPerson /> : <IoPersonOutline />}
-          </button>
-          <br />
-          <button
-            style={{ float: "left" }}
-            disabled={trackIndex == 0}
-            className="track-button"
-            id={"track-up:" + track.name}
-            key={"track-up:" + track.name}
-            onClick={() => handleTrackUpDown("up")}
-          >
-            <AiFillCaretUp />
-          </button>
-          <button
-            style={{ float: "right" }}
-            disabled={trackIndex == tracks.length - 1}
-            className="track-button"
-            id={"track-down:" + track.name}
-            key={"track-down:" + track.name}
-            onClick={() => handleTrackUpDown("down")}
-          >
-            <AiFillCaretDown />
-          </button>
-        </fieldset>
-      </div>
+      <button
+        className="track-button"
+        style={{ float: "none", marginLeft: '7px' }}
+        id={`track-gen:${track.name}`}
+        key={`track-gen:${track.name}`}
+        onClick={(event) => handleAddGenerator(event, trackIndex)}
+      >
+        <RiAiGenerate />
+      </button>
+      <button
+        style={{ float: "right" }}
+        className="track-button"
+        id={"track-solo:" + track.name}
+        key={"track-solo:" + track.name}
+        onClick={handleSoloTrack}
+      >
+        {track.solo ? <IoPerson /> : <IoPersonOutline />}
+      </button>
+      <br />
+      <button
+        style={{ float: "left" }}
+        disabled={trackIndex == 0}
+        className="track-button"
+        id={"track-up:" + track.name}
+        key={"track-up:" + track.name}
+        onClick={() => handleTrackUpDown("up")}
+      >
+        <AiFillCaretUp />
+      </button>
+      <button
+        style={{ float: "right" }}
+        disabled={trackIndex == tracks.length - 1}
+        className="track-button"
+        id={"track-down:" + track.name}
+        key={"track-down:" + track.name}
+        onClick={() => handleTrackUpDown("down")}
+      >
+        <AiFillCaretDown />
+      </button>
+      {deleteModal? 
       <div
-        style={{ display: deleteModal ? "block" : "none" }}
         className="modal-content"
       >
         <div className="modal-header">
@@ -232,8 +239,9 @@ export default function TrackControls(props: TrackControlsProps) {
           <button onClick={handleDeleteCancel}>Cancel</button>
         </div>
       </div>
+      : null}
+      {renameModal? 
       <div
-        style={{ display: renameModal ? "block" : "none" }}
         className="modal-content"
       >
         <div className="modal-header">
@@ -266,12 +274,13 @@ export default function TrackControls(props: TrackControlsProps) {
           <p>{message}</p>
         </div>
       </div>
+      : null}
+      {menuEnabled? 
       <div
         className="modal-menu"
         id={"addgenmenu"}
         key={"addgenmenu"}
         style={{
-          display: menuEnabled ? "block" : "none",
           position: "absolute",
           top: menuY.toString() + "px",
           left: menuX.toString() + "px",
@@ -294,12 +303,9 @@ export default function TrackControls(props: TrackControlsProps) {
               visibility: "visible",
             }}
           >
-            <div className="dropbtn"
-            style={{width: 180}}
-            >
+            <div className="dropbtn" style={{ width: 180 }}>
               Select Generator Type
               <i className="fa fa-caret-down" />
-
             </div>
             <div className="dropdown-one">
               <div
@@ -310,26 +316,28 @@ export default function TrackControls(props: TrackControlsProps) {
               </div>
               <div
                 className="dItem"
-                onClick={(e) => handleSelectGenerator(e, GENERATORTYPE.Algorithmic)}
+                onClick={(e) =>
+                  handleSelectGenerator(e, GENERATORTYPE.Algorithmic)
+                }
               >
                 Algorithmic
               </div>
               <div
                 className="dItem"
-                onClick={(e) => handleSelectGenerator(e, GENERATORTYPE.AudioFile)}
+                onClick={(e) =>
+                  handleSelectGenerator(e, GENERATORTYPE.AudioFile)
+                }
               >
                 AudioFile
               </div>
-              <div
-              className="dItem"
-              onClick={()=>setMenuEnabled(false)}
-              >
+              <div className="dItem" onClick={() => setMenuEnabled(false)}>
                 Exit
-                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </>
+      : null}
+      </>
   );
 }

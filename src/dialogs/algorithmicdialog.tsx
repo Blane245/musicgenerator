@@ -502,8 +502,8 @@ export default function AlgorithmicDialog(
               type={(formData.volumeP as OscillatorValues).values.type}
               center={{
                 value: (formData.volumeP as OscillatorValues).values.center,
-                lo: -50,
-                hi: 50,
+                lo: -10,
+                hi: 10,
                 step: 1,
                 suffix: "(dB)",
               }}
@@ -512,13 +512,13 @@ export default function AlgorithmicDialog(
                 value: (formData.volumeP as OscillatorValues).values.frequency,
                 lo: 0,
                 hi: 1000000,
-                step: 1,
+                step: 0.001,
                 suffix: "(mHz)",
               }}
               amplitude={{
                 value: (formData.volumeP as OscillatorValues).values.amplitude,
                 lo: 0,
-                hi: 50,
+                hi: 10,
                 step: 1,
                 suffix: "(dB)",
               }}
@@ -628,7 +628,7 @@ export default function AlgorithmicDialog(
                 value: (formData.panP as OscillatorValues).values.frequency,
                 lo: 0,
                 hi: 1000000,
-                step: 1,
+                step: 0.01,
                 suffix: "(mHz)",
               }}
               amplitude={{

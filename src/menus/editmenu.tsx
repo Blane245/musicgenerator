@@ -158,7 +158,7 @@ export default function EditMenu() {
   }
 
   return (
-    <fieldset disabled={playing.current}>
+    <>
       <div className="navbar">
         <div className="dropdown">
           <div className="dropbtn">
@@ -194,119 +194,117 @@ export default function EditMenu() {
         </div>
       </div>
 
-      <div
-        style={{ display: !commentModal ? "none" : "block" }}
-        className="modal-content"
-      >
-        <div className="modal-header">
-          <h2> Enter comment for '{fileContents.name}'</h2>
-        </div>
-        <div className="modal-body">
-          <textarea
-            name="file-comment"
-            id="file-comment"
-            rows={10}
-            cols={30}
-            value={comment}
-            onChange={(e) => handleCommentChange(e)}
-          />
-          <br />
-        </div>
-        <div className="modal-footer">
-          <button onClick={() => handleNewComment()}>Submit</button>
-          <button onClick={() => setCommentModal(false)}>Cancel</button>
-        </div>
-      </div>
-      <div
-        style={{ display: preferencesModal ? "block" : "none" }}
-        className="modal-content"
-      >
-        <div className="modal-header">
-          <h2> Edit Preferences'</h2>
-        </div>
-        <div className="modal-body">
-          <form onSubmit={handlePreferencesSubmit}>
-            <p>SoundFont file location</p>
-            <label>
-              Local
-              {SFFileLocation == SOUNDFONTLOCATIONOPTIONS.Local ? (
-                <input
-                  type="radio"
-                  id="SFlocal"
-                  name="SFlocation"
-                  value="Local"
-                  checked
-                  onChange={() =>
-                    setNewLocation(SOUNDFONTLOCATIONOPTIONS.Server)
-                  }
-                />
-              ) : (
-                <input
-                  type="radio"
-                  name="SFlocation"
-                  value="Local"
-                  onChange={() =>
-                    setNewLocation(SOUNDFONTLOCATIONOPTIONS.Local)
-                  }
-                />
-              )}
-            </label>
-            <label>
-              Local URI{" "}
-              <input
-                type="text"
-                size={50}
-                name="SFLocalURI"
-                value={SFLocalURI}
-                onChange={(e) => setSFLocalURI(e.currentTarget.value)}
-              />
-            </label>
+      {commentModal ? (
+        <div className="modal-content">
+          <div className="modal-header">
+            <h2> Enter comment for '{fileContents.name}'</h2>
+          </div>
+          <div className="modal-body">
+            <textarea
+              name="file-comment"
+              id="file-comment"
+              rows={10}
+              cols={30}
+              value={comment}
+              onChange={(e) => handleCommentChange(e)}
+            />
             <br />
-            <label>
-              Server
-              {SFFileLocation == SOUNDFONTLOCATIONOPTIONS.Server ? (
-                <input
-                  type="radio"
-                  id="SFserver"
-                  name="SFlocation"
-                  value="server"
-                  checked
-                  onChange={() =>
-                    setNewLocation(SOUNDFONTLOCATIONOPTIONS.Local)
-                  }
-                />
-              ) : (
-                <input
-                  type="radio"
-                  name="SFlocation"
-                  value="Local"
-                  onChange={() =>
-                    setNewLocation(SOUNDFONTLOCATIONOPTIONS.Server)
-                  }
-                />
-              )}
-            </label>
-            <label>
-              Server URI{" "}
-              <input
-                type="text"
-                size={50}
-                name="SFServerURI"
-                value={SFServerURI}
-                onChange={(e) => setSFServerURI(e.currentTarget.value)}
-              />
-            </label>
-            <br />
-            <input type="submit" value="Save" />
-          </form>
+          </div>
+          <div className="modal-footer">
+            <button onClick={() => handleNewComment()}>Submit</button>
+            <button onClick={() => setCommentModal(false)}>Cancel</button>
+          </div>
         </div>
-        <div className="modal-footer">
-          <button onClick={() => setPreferencesModal(false)}>Cancel</button>
-          {errorMsgs.map((m) => (
-            <p>{m}</p>
-          ))}
+      ) : null}
+      {preferencesModal ? (
+        <div className="modal-content">
+          <div className="modal-header">
+            <h2> Edit Preferences'</h2>
+          </div>
+          <div className="modal-body">
+            <form onSubmit={handlePreferencesSubmit}>
+              <p>SoundFont file location</p>
+              <label>
+                Local
+                {SFFileLocation == SOUNDFONTLOCATIONOPTIONS.Local ? (
+                  <input
+                    type="radio"
+                    id="SFlocal"
+                    name="SFlocation"
+                    value="Local"
+                    checked
+                    onChange={() =>
+                      setNewLocation(SOUNDFONTLOCATIONOPTIONS.Server)
+                    }
+                  />
+                ) : (
+                  <input
+                    type="radio"
+                    name="SFlocation"
+                    value="Local"
+                    onChange={() =>
+                      setNewLocation(SOUNDFONTLOCATIONOPTIONS.Local)
+                    }
+                  />
+                )}
+              </label>
+              <label>
+                Local URI{" "}
+                <input
+                  type="text"
+                  size={50}
+                  name="SFLocalURI"
+                  value={SFLocalURI}
+                  onChange={(e) => setSFLocalURI(e.currentTarget.value)}
+                />
+              </label>
+              <br />
+              <label>
+                Server
+                {SFFileLocation == SOUNDFONTLOCATIONOPTIONS.Server ? (
+                  <input
+                    type="radio"
+                    id="SFserver"
+                    name="SFlocation"
+                    value="server"
+                    checked
+                    onChange={() =>
+                      setNewLocation(SOUNDFONTLOCATIONOPTIONS.Local)
+                    }
+                  />
+                ) : (
+                  <input
+                    type="radio"
+                    name="SFlocation"
+                    value="Local"
+                    onChange={() =>
+                      setNewLocation(SOUNDFONTLOCATIONOPTIONS.Server)
+                    }
+                  />
+                )}
+              </label>
+              <label>
+                Server URI{" "}
+                <input
+                  type="text"
+                  size={50}
+                  name="SFServerURI"
+                  value={SFServerURI}
+                  onChange={(e) => setSFServerURI(e.currentTarget.value)}
+                />
+              </label>
+              <br />
+              <input type="submit" value="Save" />
+            </form>
+          </div>
+          <div className="modal-footer">
+            <button onClick={() => setPreferencesModal(false)}>Cancel</button>
+            {errorMsgs.map((m) => (
+              <p>{m}</p>
+            ))}
+          </div>
         </div>
-      </div>
-    </fieldset>
+      ) : null}
+    </>
   );
 }

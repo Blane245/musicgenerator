@@ -257,7 +257,7 @@ export default function Record(params: RecordProps) {
           for (let i = sourceStart; i <= sourceEnd; i++) {
             const s = sortedSources.current[i];
             if (s.gen.type != GENERATORTYPE.Silent)
-              realizeSource(context, s, i, concentrator).source.start(
+              realizeSource(context, s, s.index, concentrator).source.start(
                 s.source.startTime,
                 0,
                 s.source.duration

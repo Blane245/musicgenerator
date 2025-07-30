@@ -43,7 +43,6 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     setFileContents,
     timeLine,
     setStatus,
-    // fileContents,
     playing,
     timeInterval,
     generatorsPlaying,
@@ -64,6 +63,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
   // set the visible generator icon boxes based on the generator times and timeLine
   // handle highlighting from timeline interval selection and preview playing
   useEffect(() => {
+    if (!timeLine) return;
     setTrackWidth(timeLine.width);
     setTrackHeight(100);
     // get all of the generator boxes
@@ -131,7 +131,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
       }
 
       if (editMode == "MoveHorizontal") {
-        if (dX == 0) return;
+        if (dX == 0 || !timeLine) return;
         // execute a horizontal movement
         const moveTo: number = generatorBoxes[boxIndex].position.x + dX;
         if (moveTo < 0 || moveTo > timeLine.width) return;
@@ -278,7 +278,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
               fill="white"
               stroke="black"
               strokeWidth={1}
-              key={"genrect-" + track.name + "-" + i}
+              key={"genrect-" + generatorBox.generator.name}
               onMouseDown={(event) => onMouseDownBody(event, i)}
               onMouseEnter={(event) => onBodyEnter(event)}
               onMouseLeave={(event) => onLeave(event)}
@@ -291,7 +291,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
               fontWeight={"200"}
               textAnchor="middle"
               dominantBaseline="hanging"
-              key={"gentext-" + track.name + "-" + i}
+              key={"gentext-" + generatorBox.generator.name}
               onMouseDown={(event) => handleTextMouseDown(event, i)}
               stroke={generatorBox.generator.mute ? "red" : "black"}
             >
@@ -301,7 +301,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
             </text>
             <line
               pointerEvents={playing.current ? "none" : "all"}
-              key={"genstart-" + track.name + "-" + i}
+              key={"genstart-" + generatorBox.generator.name}
               stroke="blue"
               strokeWidth={5}
               x1={generatorBox.position.x}
@@ -314,7 +314,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
             />
             <line
               pointerEvents={playing.current ? "none" : "all"}
-              key={"genstop-" + track.name + "-" + i}
+              key={"genstop-" + generatorBox.generator.name}
               stroke="blue"
               strokeWidth={5}
               x1={generatorBox.position.x + generatorBox.width}

@@ -11,18 +11,20 @@ import TimeLine from "../classes/timeline";
 import { useCMGContext } from "../cmgcontext";
 import { TimeLineScales } from "../types";
 // render the timeline and control the timeline interval
-export default function TimeLineControlsDisplay() {
+export default function TimeLineControls() {
   const { timeLine, setTimeLine, playing } = useCMGContext();
 
   const handleZoomIn = (): void => {
-    setTimeLine((c: TimeLine) => {
+    setTimeLine((c: TimeLine | null) => {
+      if (!c) return null;
       const n: TimeLine = c.copy();
       n.zoomIn();
       return n;
     });
   };
   const handleZoomOut = (): void => {
-    setTimeLine((c: TimeLine) => {
+    setTimeLine((c: TimeLine | null) => {
+      if (!c) return null;
       const n: TimeLine = c.copy();
       n.zoomOut();
       return n;
@@ -31,7 +33,8 @@ export default function TimeLineControlsDisplay() {
 
   // shift time line start left 1/2 of the extent of the current zoom level
   const handleShiftLeft = (): void => {
-    setTimeLine((c: TimeLine) => {
+    setTimeLine((c: TimeLine | null) => {
+      if (!c) return null;
       if (c.startTime <= 0) return c;
       const n = c.copy();
       n.shiftLeft();
@@ -41,7 +44,8 @@ export default function TimeLineControlsDisplay() {
 
   // shift time line start right 1/2 of the extent of the current zoom level
   const handleShiftRight = (): void => {
-    setTimeLine((c: TimeLine) => {
+    setTimeLine((c: TimeLine | null) => {
+      if (!c) return null;
       const n = c.copy();
       n.shiftRight();
       return n;
@@ -49,24 +53,24 @@ export default function TimeLineControlsDisplay() {
   };
 
   return (
-    <fieldset disabled={playing.current} style={{ width: "inherit" }}>
+    <>
       <button
         style={{ fontSize: "15px" }}
-        disabled={timeLine.currentZoomLevel == 0}
+        disabled={!timeLine || timeLine.currentZoomLevel == 0}
         onClick={handleZoomIn}
       >
         <CiZoomIn />
       </button>
       <button
         style={{ fontSize: "15px" }}
-        disabled={timeLine.currentZoomLevel == TimeLineScales.length - 1}
+        disabled={!timeLine || timeLine.currentZoomLevel == TimeLineScales.length - 1}
         onClick={handleZoomOut}
       >
         <CiZoomOut />
       </button>
       <button
         style={{ fontSize: "15px" }}
-        disabled={timeLine.startTime == 0}
+        disabled={!timeLine || timeLine.startTime == 0}
         onClick={handleShiftLeft}
       >
         <CiCircleChevLeft />
@@ -74,6 +78,6 @@ export default function TimeLineControlsDisplay() {
       <button style={{ fontSize: "15px" }} onClick={handleShiftRight}>
         <CiCircleChevRight />
       </button>
-    </fieldset>
+    </>
   );
 }

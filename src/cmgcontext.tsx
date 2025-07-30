@@ -14,7 +14,7 @@ import {
 } from "react";
 import CMGFile from "./classes/cmgfile";
 import TimeLine from "./classes/timeline";
-import { GENERATORTYPE, GeneratorType, MouseLocation, SOUNDFONTLOCATIONOPTIONS, TimelineInterval } from "./types";
+import { GENERATIONMODE, GENERATORTYPE, GeneratorType, MouseLocation, RawSourceData, SOUNDFONTLOCATIONOPTIONS, TimelineInterval } from "./types";
 
 // the elements of this application that are used at many levels
 interface CMGContextType {
@@ -22,8 +22,26 @@ interface CMGContextType {
   setScreenHeight: Dispatch<SetStateAction<number>>;
   screenWidth: number;
   setScreenWidth: Dispatch<SetStateAction<number>>;
+  displayWidth: number;
+  setDisplayWidth: Dispatch<SetStateAction<number>>;
+  displayHeight: number;
+  setDisplayHeight: Dispatch<SetStateAction<number>>;
+  headerHeight: number;
+  setHeaderHeight: Dispatch<SetStateAction<number>>;
+  timelineWidth: number;
+  setTimelineWidth: Dispatch<SetStateAction<number>>;
+  controlWidth: number;
+  setControlWidth: Dispatch<SetStateAction<number>>;
+  timelineHeight: number;
+  setTimelineHeight: Dispatch<SetStateAction<number>>;
+  previewHeight: number;
+  setPreviewHeight: Dispatch<SetStateAction<number>>;
+  previewWidth: number;
+  setPreviewWidth: Dispatch<SetStateAction<number>>;
   bodyHeight: number;
   setBodyHeight: Dispatch<SetStateAction<number>>;
+  footerHeight: number;
+  setFooterHeight: Dispatch<SetStateAction<number>>;
   verticalScrollWidth: number;
   setVerticalScrollWidth: Dispatch<SetStateAction<number>>;
   SFFileLocation: SOUNDFONTLOCATIONOPTIONS;
@@ -40,9 +58,17 @@ interface CMGContextType {
   setFileContents: Dispatch<SetStateAction<CMGFile>>;
   status: string;
   setStatus: Dispatch<SetStateAction<string>>;
-  timeLine: TimeLine;
-  setTimeLine: Dispatch<SetStateAction<TimeLine>>;
+  timeLine: TimeLine | null;
+  setTimeLine: Dispatch<SetStateAction<TimeLine | null>>;
   playing: MutableRefObject<boolean>;
+  mode: GENERATIONMODE;
+  setMode: Dispatch<SetStateAction<GENERATIONMODE>>;
+  playbackLength: number;
+  setPlaybackLength: Dispatch<SetStateAction<number>>;
+  offsetTime: number;
+  setOffsetTime: Dispatch<SetStateAction<number>>;
+  sourceData: RawSourceData[];
+  setSourceData: Dispatch<SetStateAction<RawSourceData[]>>;
   timeProgress: number;
   setTimeProgress: Dispatch<SetStateAction<number>>;
   timeInterval: TimelineInterval;
@@ -65,7 +91,16 @@ const CMGContext = createContext<CMGContextType | undefined>(undefined);
 export const CMGProvider = ({ children }: { children: ReactNode }) => {
   const [screenHeight, setScreenHeight] = useState<number>(0);
   const [screenWidth, setScreenWidth] = useState<number>(0);
+  const [displayWidth, setDisplayWidth] = useState<number>(0);
+  const [displayHeight, setDisplayHeight] = useState<number>(0);
+  const [headerHeight, setHeaderHeight] = useState<number>(0);
+  const [timelineHeight, setTimelineHeight] = useState<number>(0);
+  const [timelineWidth, setTimelineWidth] = useState<number>(0);
+  const [controlWidth, setControlWidth] = useState<number>(0);
   const [bodyHeight, setBodyHeight] = useState<number>(0);
+  const [previewHeight, setPreviewHeight] = useState<number>(0);
+  const [previewWidth, setPreviewWidth] = useState<number>(0);
+  const [footerHeight, setFooterHeight] = useState<number>(0);
   const [verticalScrollWidth, setVerticalScrollWidth] = useState<number>(0);
   const [SFFileLocation, setSFFileLocation] = useState<SOUNDFONTLOCATIONOPTIONS>(SOUNDFONTLOCATIONOPTIONS.Server);
   const [SFFileList, setSFFileList] = useState<string[]>([]);
@@ -74,10 +109,14 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
 
   const [fileContents, setFileContents] = useState<CMGFile>(new CMGFile());
   const [status, setStatus] = useState<string>("");
-  const [timeLine, setTimeLine] = useState<TimeLine>(new TimeLine(0, 0));
+  const [timeLine, setTimeLine] = useState<TimeLine | null>(null);
   const [fileName, setFileName] = useState<string>("");
 
   const playing = useRef<boolean>(false);
+  const [mode, setMode] = useState<GENERATIONMODE>(GENERATIONMODE.idle);
+  const [playbackLength, setPlaybackLength] = useState<number>(0);
+  const [offsetTime, setOffsetTime] = useState<number>(0);
+  const [sourceData, setSourceData] = useState<RawSourceData[]>([]);
   const [timeProgress, setTimeProgress] = useState<number>(0);
   const [timeInterval, setTimeInterval] = useState<TimelineInterval>({
     startOffset: -1,
@@ -96,8 +135,26 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     setScreenHeight,
     screenWidth,
     setScreenWidth,
+    displayWidth,
+    setDisplayWidth,
+    displayHeight,
+    setDisplayHeight,
+    timelineWidth,
+    setTimelineWidth,
+    controlWidth,
+    setControlWidth,
+    headerHeight,
+    setHeaderHeight,
+    timelineHeight,
+    setTimelineHeight,
+    previewHeight,
+    setPreviewHeight,
+    previewWidth,
+    setPreviewWidth,
     bodyHeight,
     setBodyHeight,
+    footerHeight,
+    setFooterHeight,
     verticalScrollWidth,
     setVerticalScrollWidth,
     SFFileLocation,
@@ -117,6 +174,14 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     timeLine,
     setTimeLine,
     playing,
+    mode,
+    setMode,
+    playbackLength,
+    setPlaybackLength,
+    offsetTime,
+    setOffsetTime,
+    sourceData,
+    setSourceData,
     timeProgress,
     setTimeProgress,
     timeInterval,

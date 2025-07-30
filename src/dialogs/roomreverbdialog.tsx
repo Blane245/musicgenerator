@@ -3,7 +3,7 @@ import Reverb from "../classes/reverb";
 import { useCMGContext } from "../cmgcontext";
 import { setReverb } from "../utils/cmfiletransactions";
 
-export default function RoomCompressorDialog() {
+export default function RoomReverbDialog() {
   const { setFileContents, fileContents } = useCMGContext();
   const [reverbData, setReverbData] = useState<Reverb>(
     new Reverb("reverb")
@@ -27,7 +27,7 @@ export default function RoomCompressorDialog() {
     setReverb(n, setFileContents);
   }
   return (
-    <div className="page-footer-reverb">
+    <div className="reverb">
       <p className="title">
         Reverb Reset:&nbsp;
         <button className="button" onClick={reset}>

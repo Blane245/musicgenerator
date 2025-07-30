@@ -32,7 +32,7 @@ export default function RoomEqualizerDialog() {
   }
 
   return (
-    <div className="page-footer-equalizer">
+    <div className="equalizer">
       <p className="title">
         Equalizer (+- 15dB) Freqs (Hz) Reset: &nbsp;
         <button className="button" onClick={reset}>
@@ -42,7 +42,7 @@ export default function RoomEqualizerDialog() {
       <div className="sliders">
         {equalizerData.gains.map((g, i) => {
           return (
-            <div className="equalizer-slider" key={`equalizer${i}`}>
+            <div className="slider" key={`equalizer${i}`}>
               <span className="param">
                 {fileContents.equalizer.frequencies[i] < 1000
                   ? fileContents.equalizer.frequencies[i].toString()

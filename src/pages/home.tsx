@@ -1,24 +1,36 @@
+import Body from "layouts/body";
+import Footer from "layouts/footer";
+import Header from "layouts/header";
+import Preview2 from "layouts/preview2";
 import { MouseEvent, useEffect, useRef } from "react";
 import { Helmet } from "react-helmet-async";
-import { useCMGContext } from "../cmgcontext";
-import Body from "../layouts/body";
-import Footer from "../layouts/footer";
-import Header from "../layouts/header";
 import {
   DEFAULTLOCALSFURI,
   DEFAULTSERVERSFURI,
+  GENERATIONMODE,
   MouseLocation,
   SFFILELOCATIONITEM,
   SFLOCALURIITEM,
   SFSERVERURIITEM,
   SOUNDFONTLOCATIONOPTIONS,
-} from "../types";
-import setCursor from "../utils/setcursor";
+} from "types";
+import setCursor from "utils/setcursor";
+import { useCMGContext } from "../cmgcontext";
 import "./home.css";
 export default function Home() {
   const {
     setScreenHeight,
     setScreenWidth,
+    setDisplayHeight,
+    setDisplayWidth,
+    setHeaderHeight,
+    setTimelineHeight,
+    setTimelineWidth,
+    setTimeLine,
+    setControlWidth,
+    setPreviewHeight,
+    setPreviewWidth,
+    setFooterHeight,
     setBodyHeight,
     setVerticalScrollWidth,
     mouseDown,
@@ -26,6 +38,11 @@ export default function Home() {
     setSFLocalURI,
     setSFServerURI,
     playing,
+    mode,
+    setMode,
+    playbackLength,
+    offsetTime,
+    sourceData,
   } = useCMGContext();
 
   // set up the the layout and handle screen size changes
@@ -41,17 +58,54 @@ export default function Home() {
   // context attributes are set, affording components to make necessary
   // adjusts to sizes
 
-  const footerHeight: number = 180;
   const movement = useRef<MouseLocation>({ X: 0, Y: 0, dX: 0, dY: 0 });
 
   useEffect(() => {
     const handleResize = () => {
-      setScreenHeight(window.innerHeight);
-      setScreenWidth(window.innerWidth);
-      setBodyHeight(window.innerHeight - 80 - footerHeight);
-      setVerticalScrollWidth(
-        window.innerWidth - document.documentElement.clientWidth
+    const root: HTMLElement | null = document.getElementById("root");
+    if (!root) return;
+    const screenHeight: number = window.innerHeight;
+    const screenWidth: number = window.innerWidth;
+    // const screenHeight: number = root.clientHeight;
+    // const screenWidth: number = root.clientWidth;
+    const displayHeight: number = screenHeight;
+    const displayWidth: number = screenWidth;
+    const headerHeight: number = 40;
+    const timelineHeight: number = 40;
+    const controlWidth: number = 200;
+    const timelineWidth: number = displayWidth - controlWidth;
+    const previewWidth: number = displayWidth;
+    const footerHeight: number = 180;
+    const previewHeight: number =
+      displayHeight - headerHeight - timelineHeight - footerHeight;
+      const bodyHeight: number = previewHeight;
+      console.log('sizes', 
+        'screenHeight', screenHeight,
+        'screenWidth', screenWidth,
+        'displayHeight', displayHeight,
+        'headerHeight', headerHeight,
+        'timelineHeight', timelineHeight,
+        'timelineWidth', timelineWidth,
+        'previewHeight', previewHeight,
+        'previewWidth', previewWidth,
+        'bodyHeight', bodyHeight,
       );
+      setScreenHeight(screenHeight);
+      setScreenWidth(screenWidth);
+      setDisplayHeight(displayHeight);
+      setDisplayWidth(displayWidth)
+      setHeaderHeight(headerHeight);
+      setTimelineHeight(timelineHeight);
+      setTimelineWidth(timelineWidth);
+      setControlWidth(controlWidth);
+      setPreviewWidth(previewWidth)
+      setBodyHeight(bodyHeight);
+      setPreviewHeight(previewHeight);
+      setFooterHeight(footerHeight);
+      setVerticalScrollWidth(
+        screenWidth - document.documentElement.clientWidth
+      );
+      setTimeLine(null);
     };
     handleResize();
     window.addEventListener("resize", handleResize);
@@ -172,20 +226,31 @@ export default function Home() {
       <Helmet>
         <title> Computer Music Generator </title>
       </Helmet>
-      <div
-        className="page"
-        id="page"
-        onMouseUp={() => onMouseUp()}
-        onMouseDown={(e) => onMouseDown(e)}
-        onMouseMove={(e) => saveMouseMovement(e)}
-      >
-        <Header
-          appName="Computer Music Generator"
-          appVersion={import.meta.env.VERSION}
+      {mode != GENERATIONMODE.preview && mode != GENERATIONMODE.solo ? (
+        <div
+          className="page"
+          id="page"
+          onMouseUp={() => onMouseUp()}
+          onMouseDown={(e) => onMouseDown(e)}
+          onMouseMove={(e) => saveMouseMovement(e)}
+        >
+          <Header 
+            appName="Computer Music Generator"
+            appVersion={import.meta.env.VERSION}
+          />
+          <Body />
+          <Footer />
+        </div>
+      ) : (
+        <Preview2
+            appName="Computer Music Generator"
+            appVersion={import.meta.env.VERSION}
+          playbackLength={playbackLength}
+          offsetTime={offsetTime}
+          sourceData={sourceData}
+          setMode={setMode}
         />
-        <Body />
-        <Footer />
-      </div>
+      )}
     </>
   );
 }

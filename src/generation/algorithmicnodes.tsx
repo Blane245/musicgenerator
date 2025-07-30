@@ -5,7 +5,8 @@ import { AlgorithmValues } from "../classes/algorithmvalues";
 import RandomNumber from "../classes/randomnumber";
 
 export function getBufferSourceNodesFromAlgorithmic(
-  gen: Algorithmic
+  gen: Algorithmic,
+  sourceCount: number
 ): RawSourceData[] {
   const { startTime, stopTime, preset } = gen;
   if (!preset)
@@ -36,6 +37,8 @@ export function getBufferSourceNodesFromAlgorithmic(
   const noiseAmplitude: number = gen.noiseAmplitude;
   const noiseDispersion: number = gen.noiseDispersion;
 
+  let nextSource: number = sourceCount;
+
   // loop through time from start to stop
   while (time < stopTime) {
     const duration = Math.min(60.0 / speed, stopTime - time);
@@ -50,9 +53,11 @@ export function getBufferSourceNodesFromAlgorithmic(
         velocity,
         volume,
         pan,
-        time
+        time,
+        nextSource
       );
       sourceData.push(...connections);
+      nextSource+=connections.length;
     }
     time += duration;
     ({ beat, note, speed, velocity, volume, pan } = gen.getCurrentValues(time));

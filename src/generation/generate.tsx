@@ -3,36 +3,26 @@
 import { useEffect, useRef, useState } from "react";
 import { useCMGContext } from "../cmgcontext";
 import {
-  GeneratorType,
   GENERATIONMODE,
+  GeneratorType,
   RawSourceData,
   SAMPLERATE,
-} from "../types";
+} from "types";
 import { buildSources } from "./buildsources";
-import Preview from "./preview";
+import Preview2 from "../layouts/preview2";
 import ReadyGenerate from "./readygenerate";
 import Record from "./record";
-import Preview2 from "./preview2";
 
 export interface GeneratorProps {
-  mode: GENERATIONMODE;
-  setMode: Function;
-  setRecordHandle: Function;
+  setRecordHandle?: Function;
   recordFormat?: string;
   recordHandle?: FileSystemFileHandle | null;
   generator: GeneratorType | null;
 }
 export default function Generate(props: GeneratorProps) {
-  const { mode, setMode, setRecordHandle, recordFormat, recordHandle, generator } = props;
-  const {
-    setStatus,
-    playing,
-    setTimeProgress,
-    fileContents,
-    timeInterval,
-    setGeneratorsPlaying,
-    setSignalLevels,
-  } = useCMGContext();
+  const { setRecordHandle, recordFormat, recordHandle, generator } = props;
+  const { setStatus, playing, mode, setMode, fileContents, timeInterval } =
+    useCMGContext();
   const [error, setError] = useState<string>("");
   const [playbackLength, setPlaybackLength] = useState<number>(0);
   const [offsetTime, setOffsetTime] = useState<number>(0);
@@ -40,7 +30,6 @@ export default function Generate(props: GeneratorProps) {
   // all of the work of the generator is done by this hook when the
   // mode changes to anything but idle
   // const [sourceData, setSourceData] = useState<RawSourceData[]>([]);
-  const recordLength = useRef<number>(0);
   const [sourceData, setSourceData] = useState<RawSourceData[]>([]);
   useEffect(() => {
     if (mode == GENERATIONMODE.idle) return;
@@ -67,8 +56,7 @@ export default function Generate(props: GeneratorProps) {
     if (error != "") return;
 
     // build the generator sources
-    recordLength.current = playbackLength;
-    const {sources: builtSourceData, error: buildError} = buildSources({
+    const { sources: builtSourceData, error: buildError } = buildSources({
       AlgorithmicGenerators,
       AudioFileGenerators,
       SilentGenerators,
@@ -109,7 +97,9 @@ export default function Generate(props: GeneratorProps) {
   // recording has its own progress bar
   return (
     <>
-      {(mode == GENERATIONMODE.record && recordHandle) && sourceData.length > 0 ? (
+      {mode == GENERATIONMODE.record &&
+      recordHandle && setRecordHandle &&
+      sourceData.length > 0 ? (
         <Record
           recordHandle={recordHandle}
           setRecordHandle={setRecordHandle}
@@ -120,15 +110,17 @@ export default function Generate(props: GeneratorProps) {
           setMode={setMode}
         />
       ) : null}
-      {(mode == GENERATIONMODE.preview || mode == GENERATIONMODE.solo) && sourceData.length > 0? (
+      {(mode == GENERATIONMODE.preview || mode == GENERATIONMODE.solo) &&
+      sourceData.length > 0 ? (
         <Preview2
-        playbackLength={playbackLength}
-        offsetTime={offsetTime}
-        sourceData={sourceData}
-        setMode={setMode}
+            appName="Computer Music Generator"
+            appVersion={import.meta.env.VERSION}
+          playbackLength={playbackLength}
+          offsetTime={offsetTime}
+          sourceData={sourceData}
+          setMode={setMode}
         />
-
-      ): null}
+      ) : null}
 
       <div
         style={{ display: error == "" ? "none" : "block" }}

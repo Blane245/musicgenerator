@@ -19,10 +19,10 @@ export default function RoomVolumeDialog() {
   }
 
   return (
-    <div className="page-footer-volume">
+    <div className="volume">
       <p className="title">{`Volume`}</p>
       <div className="sliders">
-        <div className="volume-slider" key={`roomvolume`}>
+        <div className="slider" key={`roomvolume`}>
           <span className="param">
             {"dB"}
           </span>

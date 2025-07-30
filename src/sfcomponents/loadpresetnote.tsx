@@ -52,8 +52,10 @@ export const getPresetNote = (
   velocity: number,
   volumeValue: number,
   panValue: number,
-  time: number
+  time: number,
+  nextSource: number,
 ): RawSourceData[] => {
+  let sourceCount: number = nextSource;
   const zones = getActiveZones(preset, Math.round(pitchValue), velocity);
   const result: RawSourceData[] = zones.map((zone) => {
     // get the sample
@@ -147,6 +149,7 @@ export const getPresetNote = (
     }
     const aResult: RawSourceData = {
       gen,
+      index: sourceCount,
       source: {
         note: pitchValue,
         sample: noisySample.length > 0 ? [noisySample] : [sample],
@@ -175,6 +178,7 @@ export const getPresetNote = (
         value: volumeValue,
       },
     };
+    sourceCount++;
     return aResult;
   });
   return result;

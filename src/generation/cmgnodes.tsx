@@ -4,12 +4,13 @@
 import { Silent } from "../classes/generators";
 import { RawSourceData } from "../types";
 
-export function getBufferSourceNodesFromSilent(gen: Silent): RawSourceData[] {
+export function getBufferSourceNodesFromSilent(gen: Silent, sourceCount: number): RawSourceData[] {
   const { startTime, stopTime } = gen;
   const sourceData: RawSourceData[] = [];
 
   sourceData.push({
     gen,
+    index: sourceCount,
     source: {
       sample: [new Float32Array(0)],
       sampleRate: 0,

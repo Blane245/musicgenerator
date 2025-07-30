@@ -6,19 +6,12 @@ html {
 *:after {
   box-sizing: inherit;
 }
-
+body {margin:0}
 #root {
   max-width: 2800px;
   margin: 0;
   padding: 0;
   text-align: left;
-}
-
-fieldset {
-  display: inline;
-  border-style: none;
-  padding: 0%;
-  margin: 0%;
 }
 
 .logo {
@@ -67,39 +60,40 @@ fieldset {
 .navbar {
   height: 40px;
   background-color: white;
-  overflow:visible;
+  overflow: visible;
 }
 
 .navbar a {
-    float: left;
-    font-size: 14px;
-    color: black;
-    text-align: center;
-    padding: 10px 5px;
-    text-decoration: none;
-    overflow:visible;
-  }
+  float: left;
+  font-size: 14px;
+  color: black;
+  text-align: center;
+  padding: 10px 5px;
+  text-decoration: none;
+  overflow: visible;
+}
 
 .dropdown {
-    float: left;
-    position: relative;
-    overflow:visible;
-  }
+  float: left;
+  position: relative;
+  overflow: visible;
+}
 
 .dropdown .dropbtn {
-    font-size: 16px;    
-    border: none;
-    outline: none;
-    color: black;
-    padding: 2px 5px;
-    background-color: inherit;
-    font-family: inherit;
-    margin: 0;
-    overflow:visible;
-  }
+  font-size: 16px;
+  border: none;
+  outline: none;
+  color: black;
+  padding: 2px 5px;
+  background-color: inherit;
+  font-family: inherit;
+  margin: 0;
+  overflow: visible;
+}
 
-.navbar a:hover, .dropdown:hover .dropbtn {
-    background-color: red;
+.navbar a:hover,
+.dropdown:hover .dropbtn {
+  background-color: red;
 }
 
 .dropdown-one {
@@ -107,40 +101,42 @@ fieldset {
   display: none;
   position: absolute;
   background-color: white;
-  color:black;
+  color: black;
   min-width: 100px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-  overflow:visible;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  overflow: visible;
 }
 
 .dropdown-two {
   cursor: pointer;
   display: none;
-  position:relative;
+  position: relative;
   left: 0px;
   top: 0px;
   min-width: 160px;
   background-color: #ddd;
-  color:black;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-  overflow:visible;
+  color: black;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  overflow: visible;
 }
 
-.dropdown:hover .dropdown-one, #link1:hover > .dropdown-two {
+.dropdown:hover .dropdown-one,
+#link1:hover > .dropdown-two {
   display: block;
 }
 
 .dropdown-one .dItem {
-    color: black;
-    background-color: white;
-    padding: 10px 10px;
-    display: block;
-    text-align: left;
-    overflow:visible;
-  }
+  color: black;
+  background-color: white;
+  padding: 10px 10px;
+  display: block;
+  text-align: left;
+  overflow: visible;
+}
 
-.dropdown-one .dItem:hover, .dropdown-two a:hover {
-    background-color: #ddd;
+.dropdown-one .dItem:hover,
+.dropdown-two a:hover {
+  background-color: #ddd;
 }
 
 .page {
@@ -150,356 +146,338 @@ fieldset {
   width: 100%;
   height: 100%;
   text-align: left;
-  cursor: default;
-}
-
-[inert] > * {
-  opacity: 0.5;
-  cursor: wait;
-}
-
-.page .header {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 80px;
-  z-index: 1;
-  cursor: inherit;
   display: grid;
-  grid-template-columns: repeat(5, 50px)  repeat(7, 1fr);
-  grid-template-areas: "icon menu menu menu menu menu title title title title left right"
-  "timecontrol timecontrol timecontrol timecontrol timedisplay timedisplay timedisplay timedisplay timedisplay timedisplay timedisplay timedisplay";
-  grid-template-rows: repeat(2, 40px);
-  gap: 0;
-  cursor: inherit;
-}
-
-.page .icon {
-  display: block;
-  grid-template-columns: subgrid;
-  grid-area: icon;
-  cursor: inherit;
-}
-.page .menu {
-  display: block;
-  grid-template-columns: subgrid;
-  grid-area: menu;
-  cursor: inherit;
-}
-
-.page .title {
-  display: block;
-  grid-template-columns: subgrid;
-  grid-area: title;
-  cursor: inherit;
-  align-content: top;
-  padding:0%;
-  text-align: center;
-}
-.page .left {
-  display:block;
-  grid-template-columns: subgrid;
-  grid-area: left;
-  align-content: top;
-  padding:0%;
-}
-
-.page .right {
-  display:block;
-  grid-template-columns: subgrid;
-  grid-area: right;
-  align-content: top;
-  padding:0%;
-}
-
-.page .time-control {
-  grid-template-columns: subgrid;
-  display: block;
-  grid-area: timecontrol;
-  cursor: inherit;
-}
-
-.page .time-timeline {
-  grid-template-columns: subgrid;
-  display: block;
-  grid-area: timedisplay;
-  cursor: inherit;
-}
-
-.page .body {
-  display: grid;
-  grid-template-columns: 200px repeat(11, 1fr);
-  grid-template-rows: repeat(8, 100px);
-  gap: 0;
-  position: absolute;
-  top: 80px;
-  left: 0;
-  width: 100%;
-  cursor: inherit;
-  overflow: auto;
-  overflow-x:hidden;
-}
-
-.page-track-control {
-  display: block;
-  grid-column: span 1;
-  border: 1px black solid;
-  height: 100px;
-  cursor: inherit;
-}
-
-.page-track-display {
-  display: block;
-  grid-column: span 11;
-  border: 1px black solid;
-  height: 100px;
-  width: 100%;
-  cursor: inherit;
-}
-
-.page-footer {
-  display: grid;
-  grid-template-columns: 1fr 300px 200px 300px 40px;
-  grid-template-areas: "status reverb compressor equalizer volume";
-  position: fixed;
-  top: auto;
-  bottom: 0;
-  width: 100%;
-  cursor: inherit;
-}
-
-.page-footer-status {
-  display: block;
-  grid-area: status;
-  align-self: flex-end;
-  margin-bottom: 5px;
-  cursor: inherit;
-}
-
-.compressor {
-  display: block;
-  grid-area: compressor;
-  justify-self: right;
-  max-width: 300px;
-  width: 100%;
-  height: 170px;
-  justify-content: center;
-  align-items: center;
-  margin-right: 10px;
-  margin-bottom: 10px;
-  outline: solid #5c75b8;
-  cursor: inherit;
-
-  .title {
-    line-height: normal;
-    font-size: 10px;
-    text-align: center;
-    color: black;
-    cursor: inherit;
-    .button {
-      font-size: 5px;
+  grid-template-rows: 40px 40px 1fr 180px;
+  grid-template-areas:
+    "header"
+    "timeline"
+    "body"
+    "footer";
+  .header {
+    position: absolute;
+    grid-area: header;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 50px 300px 1fr 350px;
+    grid-template-areas: "icon menu title .";
+    gap: 0;
+    .icon {
+      grid-area: icon;
     }
-  }
-
-  .sliders {
-    display: flex;
-    cursor: inherit;
-
-    .slider {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      width: 40px;
-      height: 150px;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 0;
-      margin: 0;
-      cursor: inherit;
-
-      .param {
-        color: black;
-        font-size: 10px;
-        line-height: 10px;
-        text-align: center;
-        cursor: inherit;
+    .menu {
+      grid-area: menu;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      z-index: 2;
+      grid-template-areas: "file edit play help";
+      .file {
+        grid-area: file;
       }
-      input[type="range"] {
-        writing-mode: vertical-lr;
-        direction: rtl;
-        height: 90px;
-        width: 30px;
-        cursor: inherit;
+      .edit {
+        grid-area: edit;
+      }
+      .play {
+        grid-area: play;
+      }
+      .help {
+        grid-area: help;
       }
     }
-  }
-}
-.page-footer-reverb {
-  display: block;
-  grid-area: reverb;
-  justify-self: right;
-  max-width: 300px;
-  width: 100%;
-  height: 170px;
-  justify-content: center;
-  align-items: center;
-  margin-right: 10px;
-  margin-bottom: 10px;
-  outline: solid #5c75b8;
-  cursor: inherit;
 
-  .title {
-    line-height: normal;
-    font-size: 10px;
-    text-align: center;
-    color: black;
-    cursor: inherit;
-    .button {
-      font-size: 5px;
-    }
-  }
-
-  .sliders {
-    display: flex;
-    cursor: inherit;
-  }
-  .slider {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    width: 40px;
-    height: 150px;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 0;
-    margin: 0;
-    cursor: inherit;
-
-    .param {
-      color: black;
-      font-size: 10px;
-      line-height: 10px;
+    .title {
+      grid-area: title;
       text-align: center;
+    }
+  }
+  .timeline {
+    display: grid;
+    position: absolute;
+    top: 40px;
+    left: 0;
+    width: 100%;
+    grid-area: timeline;
+    grid-template-columns: 200px 1fr;
+    grid-template-areas: "control display";
+    height: 40px;
+
+    .control {
+      grid-area: control;
+    }
+    .display {
+      grid-area: display;
+      fill: white;
+    }
+  }
+
+  .body {
+    display: grid;
+    grid-area: body;
+    grid-template-columns: 200px 1fr;
+    grid-template-rows: repeat(6, 100px);
+    gap: 0;
+    position: absolute;
+    top: 80px;
+    left: 0;
+    overflow: auto;
+    overflow-x: hidden;
+  }
+  .footer {
+    display: grid;
+    grid-area: footer;
+    grid-template-columns: 1fr 300px 200px 300px 40px;
+    grid-template-areas: "status reverb compressor equalizer volume";
+    position: fixed;
+    width: 100%;
+    top: auto;
+    bottom: 0;
+    .status {
+      display: block;
+      grid-area: status;
+      align-self: flex-end;
+      margin-bottom: 5px;
+    }
+    .compressor {
+      display: block;
+      grid-area: compressor;
+      justify-self: right;
+      max-width: 300px;
+      width: 100%;
+      height: 170px;
+      justify-content: center;
+      align-items: center;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      outline: solid #5c75b8;
+
+      .title {
+        line-height: normal;
+        font-size: 10px;
+        text-align: center;
+        color: black;
+        .button {
+          font-size: 5px;
+        }
+      }
+
+      .sliders {
+        display: flex;
+
+        .slider {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          width: 40px;
+          height: 150px;
+          flex-direction: column;
+          justify-content: space-between;
+          padding: 0;
+          margin: 0;
+          cursor: inherit;
+
+          .param {
+            color: black;
+            font-size: 10px;
+            line-height: 10px;
+            text-align: center;
+            cursor: inherit;
+          }
+          input[type="range"] {
+            writing-mode: vertical-lr;
+            direction: rtl;
+            height: 90px;
+            width: 30px;
+            cursor: inherit;
+          }
+        }
+      }
+    }
+    .reverb {
+      display: block;
+      grid-area: reverb;
+      justify-self: right;
+      max-width: 300px;
+      width: 100%;
+      height: 170px;
+      justify-content: center;
+      align-items: center;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      outline: solid #5c75b8;
       cursor: inherit;
+
+      .title {
+        line-height: normal;
+        font-size: 10px;
+        text-align: center;
+        color: black;
+        cursor: inherit;
+        .button {
+          font-size: 5px;
+        }
+      }
+
+      .sliders {
+        display: flex;
+        cursor: inherit;
+      }
+      .slider {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        width: 40px;
+        height: 150px;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 0;
+        margin: 0;
+        cursor: inherit;
+
+        .param {
+          color: black;
+          font-size: 10px;
+          line-height: 10px;
+          text-align: center;
+          cursor: inherit;
+        }
+        input[type="range"] {
+          writing-mode: vertical-lr;
+          direction: rtl;
+          height: 90px;
+          width: 30px;
+          cursor: inherit;
+        }
+      }
     }
-    input[type="range"] {
-      writing-mode: vertical-lr;
-      direction: rtl;
-      height: 90px;
-      width: 30px;
+
+    .equalizer {
+      display: block;
+      grid-column: equalizer;
+      justify-self: right;
+      max-width: 300px;
+      width: 100%;
+      height: 170px;
+      justify-content: center;
+      align-items: center;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      outline: solid #5c75b8;
       cursor: inherit;
+
+      .title {
+        line-height: normal;
+        font-size: 10px;
+        text-align: center;
+        color: black;
+        .button {
+          font-size: 5px;
+        }
+        cursor: inherit;
+      }
+
+      .sliders {
+        display: flex;
+        cursor: inherit;
+      }
+      .slider {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        width: 30px;
+        height: 150px;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 0;
+        margin: 0;
+        cursor: inherit;
+
+        .param {
+          color: black;
+          font-size: 10px;
+          line-height: 10px;
+          cursor: inherit;
+        }
+
+        input[type="range"] {
+          writing-mode: vertical-lr;
+          direction: rtl;
+          height: 100px;
+          width: 30px;
+          cursor: inherit;
+        }
+      }
+    }
+
+    .volume {
+      display: block;
+      grid-area: volume;
+      justify-self: right;
+      max-width: 300px;
+      width: 100%;
+      height: 170px;
+      justify-content: center;
+      align-items: center;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      outline: solid #5c75b8;
+      cursor: inherit;
+
+      .title {
+        line-height: normal;
+        font-size: 10px;
+        text-align: center;
+        color: black;
+        cursor: inherit;
+      }
+      .sliders {
+        display: flex;
+        cursor: inherit;
+      }
+      .slider {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        width: 30px;
+        height: 150px;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 0;
+        margin: 0;
+        cursor: inherit;
+
+        .param {
+          color: black;
+          font-size: 10px;
+          line-height: 10px;
+          cursor: inherit;
+        }
+
+        input[type="range"] {
+          writing-mode: vertical-lr;
+          direction: rtl;
+          height: 100px;
+          width: 30px;
+          cursor: inherit;
+        }
+      }
+    }
+
+    [inert] > * {
+      opacity: 0.5;
+      cursor: wait;
     }
   }
 }
-
-.page-footer-equalizer {
-  display: block;
-  grid-column: equalizer;
-  justify-self: right;
-  max-width: 300px;
-  width: 100%;
-  height: 170px;
-  justify-content: center;
-  align-items: center;
-  margin-right: 10px;
-  margin-bottom: 10px;
-  outline: solid #5c75b8;
-  cursor: inherit;
-
-  .title {
-    line-height: normal;
-    font-size: 10px;
-    text-align: center;
-    color: black;
-    .button {
-      font-size: 5px;
-    }
-    cursor: inherit;
-  }
-
-  .sliders {
-    display: flex;
-    cursor: inherit;
-  }
+.body-control {
+  grid-area: body-control;
+  border: 1px black solid;
+  margin: 0px;
 }
-.equalizer-slider {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  width: 30px;
-  height: 150px;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 0;
+.body-display {
+  grid-area: body-display;
+  border: 1px black solid;
   margin: 0;
-  cursor: inherit;
-
-  .param {
-    color: black;
-    font-size: 10px;
-    line-height: 10px;
-    cursor: inherit;
-  }
-
-  input[type="range"] {
-    writing-mode: vertical-lr;
-    direction: rtl;
-    height: 100px;
-    width: 30px;
-    cursor: inherit;
-  }
-}
-
-.page-footer-volume {
-  display: block;
-  grid-area: volume;
-  justify-self: right;
-  max-width: 300px;
-  width: 100%;
-  height: 170px;
-  justify-content: center;
-  align-items: center;
-  margin-right: 10px;
-  margin-bottom: 10px;
-  outline: solid #5c75b8;
-  cursor: inherit;
-
-  .title {
-    line-height: normal;
-    font-size: 10px;
-    text-align: center;
-    color: black;
-    cursor: inherit;
-  }
-}
-
-.volume-slider {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  width: 30px;
-  height: 150px;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 0;
-  margin: 0;
-  cursor: inherit;
-
-  .param {
-    color: black;
-    font-size: 10px;
-    line-height: 10px;
-    cursor: inherit;
-  }
-
-  input[type="range"] {
-    writing-mode: vertical-lr;
-    direction: rtl;
-    height: 100px;
-    width: 30px;
-    cursor: inherit;
-  }
 }
 
 .track-button {
@@ -619,15 +597,15 @@ div.algorithmic-table {
     div.constant {
       display: grid;
       grid-template-columns: 1fr;
-      grid-template-areas: 
-      "valuetitle"
-      "value";
+      grid-template-areas:
+        "valuetitle"
+        "value";
       gap: 0;
       div.valuetitle {
         grid-area: valuetitle;
       }
       div.value {
-        grid-area: value
+        grid-area: value;
       }
     }
     div.oscillator {
@@ -834,11 +812,21 @@ div.algorithmic-table {
     }
   }
 }
+.track-control {
+  display: block;
+  grid-column: span 1;
+  border: 1px black solid;
+}
+.track-display {
+  display: block;
+  grid-column: span 1;
+  border: 1px black solid;
+}
 
 .modal-menu {
   background: rgba(219, 215, 208, 1);
   cursor: inherit;
-  overflow:visible;
+  overflow: visible;
 }
 
 .cursor-default {
@@ -910,55 +898,282 @@ div.algorithmic-table {
   cursor: inherit;
 }
 
-.timeline {
-  fill: white;
-  cursor: inherit;
-}
-
 .preview {
-      display: grid;
-      grid-template-rows: 1fr 1fr 1fr 1fr;
-      grid-template-areas:
-        "header" 
-        "timeline"
-        "drawing" 
-        "footer";
-      gap: 2px;
-      position:relative;
-      left: -50px;
-      top: -80px;
-      z-index: 99;
-      background-color: white;
-      .header {
-        grid-area: header;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        grid-template-areas: "buttons levels";
-        .buttons {
-          grid-area:buttons;
+  display: grid;
+  grid-template-rows: 40px 40px 1fr 180px;
+  grid-template-areas:
+    "header"
+    "timeline"
+    "drawing"
+    "footer";
+  gap: 0px;
+  position: relative;
+  background-color: white;
+  .header {
+    grid-area: header;
+    display: grid;
+    grid-template-columns: 50px 250px 1fr 150px 150px;
+    grid-template-rows: 40px;
+    grid-template-areas: "icon buttons title left right";
+    .icon {
+      grid-area: icon;
+    }
+    .buttons {
+      grid-area: buttons;
+    }
+    .title {
+      grid-area: title;
+      text-align: center;
+    }
+    .left {
+      grid-area: left;
+    }
+    .right {
+      grid-area: right;
+    }
+  }
+  .timeline {
+    grid-area: timeline;
+    background-color: lightgray;
+  }
+  .drawing {
+    grid-area: drawing;
+    background-color: rgb(230, 230, 230);
+  }
+  .footer {
+    grid-area: footer;
+    display: grid;
+    grid-template-columns: 1fr 300px 200px 300px 40px;
+    grid-template-areas: "status reverb compressor equalizer volume";
+    .status {
+      grid-area: "status";
+    }
+    .compressor {
+      display: block;
+      grid-area: compressor;
+      justify-self: right;
+      max-width: 300px;
+      width: 100%;
+      height: 170px;
+      justify-content: center;
+      align-items: center;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      outline: solid #5c75b8;
+
+      .title {
+        line-height: normal;
+        font-size: 10px;
+        text-align: center;
+        color: black;
+        .button {
+          font-size: 5px;
         }
-        .levels {
-          grid-area: levels;
+      }
+
+      .sliders {
+        display: flex;
+
+        .slider {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          width: 40px;
+          height: 150px;
+          flex-direction: column;
+          justify-content: space-between;
+          padding: 0;
+          margin: 0;
+          cursor: inherit;
+
+          .param {
+            color: black;
+            font-size: 10px;
+            line-height: 10px;
+            text-align: center;
+            cursor: inherit;
+          }
+          input[type="range"] {
+            writing-mode: vertical-lr;
+            direction: rtl;
+            height: 90px;
+            width: 30px;
+            cursor: inherit;
+          }
         }
       }
-      .timeline {
-        grid-area: timeline;
+    }
+    .reverb {
+      display: block;
+      grid-area: reverb;
+      justify-self: right;
+      max-width: 300px;
+      width: 100%;
+      height: 170px;
+      justify-content: center;
+      align-items: center;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      outline: solid #5c75b8;
+      cursor: inherit;
+
+      .title {
+        line-height: normal;
+        font-size: 10px;
+        text-align: center;
+        color: black;
+        cursor: inherit;
+        .button {
+          font-size: 5px;
+        }
       }
-      .drawing {
-        grid-area: drawing;
-        /* background-color: linear-gradient(hsl(225,20%, 50%), hsl(180,20%,50%)); */
-        background-color: white;
+
+      .sliders {
+        display: flex;
+        cursor: inherit;
       }
-      .footer {
-        grid-area: footer;
-        display:grid;
-        grid-template-columns: 1fr 1fr;
-        grid-template-areas: "status controls";
-        .status {grid-area: "status";}
-        .controls {grid-area: "controls";}
+      .slider {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        width: 40px;
+        height: 150px;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 0;
+        margin: 0;
+        cursor: inherit;
+
+        .param {
+          color: black;
+          font-size: 10px;
+          line-height: 10px;
+          text-align: center;
+          cursor: inherit;
+        }
+        input[type="range"] {
+          writing-mode: vertical-lr;
+          direction: rtl;
+          height: 90px;
+          width: 30px;
+          cursor: inherit;
+        }
       }
     }
 
+    .equalizer {
+      display: block;
+      grid-column: equalizer;
+      justify-self: right;
+      max-width: 300px;
+      width: 100%;
+      height: 170px;
+      justify-content: center;
+      align-items: center;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      outline: solid #5c75b8;
+      cursor: inherit;
+
+      .title {
+        line-height: normal;
+        font-size: 10px;
+        text-align: center;
+        color: black;
+        .button {
+          font-size: 5px;
+        }
+        cursor: inherit;
+      }
+
+      .sliders {
+        display: flex;
+        cursor: inherit;
+      }
+      .slider {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        width: 30px;
+        height: 150px;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 0;
+        margin: 0;
+        cursor: inherit;
+
+        .param {
+          color: black;
+          font-size: 10px;
+          line-height: 10px;
+          cursor: inherit;
+        }
+
+        input[type="range"] {
+          writing-mode: vertical-lr;
+          direction: rtl;
+          height: 100px;
+          width: 30px;
+          cursor: inherit;
+        }
+      }
+    }
+
+    .volume {
+      display: block;
+      grid-area: volume;
+      justify-self: right;
+      max-width: 300px;
+      width: 100%;
+      height: 170px;
+      justify-content: center;
+      align-items: center;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      outline: solid #5c75b8;
+      cursor: inherit;
+
+      .title {
+        line-height: normal;
+        font-size: 10px;
+        text-align: center;
+        color: black;
+        cursor: inherit;
+      }
+      .sliders {
+        display: flex;
+        cursor: inherit;
+      }
+      .slider {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        width: 30px;
+        height: 150px;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 0;
+        margin: 0;
+        cursor: inherit;
+
+        .param {
+          color: black;
+          font-size: 10px;
+          line-height: 10px;
+          cursor: inherit;
+        }
+
+        input[type="range"] {
+          writing-mode: vertical-lr;
+          direction: rtl;
+          height: 100px;
+          width: 30px;
+          cursor: inherit;
+        }
+      }
+    }
+  }
+}
 
 @keyframes animatetop {
   from {
