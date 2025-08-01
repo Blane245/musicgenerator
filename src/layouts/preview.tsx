@@ -50,7 +50,7 @@ import updateTimeTicks from "utils/updatetimeticks";
 
 // as this function is non-reactive except for exit, stop, pause, resume, many of its props
 // are CMG context variables
-export interface Preview2Props {
+export interface PreviewProps {
   playbackLength: number;
   offsetTime: number;
   sourceData: RawSourceData[];
@@ -82,7 +82,7 @@ type SignalLevels = {
 
 // this component uses very few state variables as all subcomponents are
 // highly integrated
-export default function Preview2(params: Preview2Props): JSX.Element {
+export default function Preview(params: PreviewProps): JSX.Element {
   const {
     sourceData,
     offsetTime,
@@ -131,7 +131,6 @@ export default function Preview2(params: Preview2Props): JSX.Element {
 
   const [drawing, setDrawing] = useState<HTMLElement | null>(null);
   const [running, setRunning] = useState<boolean>(false);
-  const paused = useRef<Boolean>(false);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [timeProgress, setTimeProgress] = useState<number>(-1);
   const [ticks, setTicks] = useState<TimeTicks>({
@@ -238,7 +237,7 @@ export default function Preview2(params: Preview2Props): JSX.Element {
     setMode(GENERATIONMODE.idle);
     setRunning(false);
     playing.current = false;
-    paused.current = true;
+    // paused.current = true;
     timerID && clearTimeout(timerID);
     tickId && clearTimeout(tickId);
     playingId && clearTimeout(playingId);
@@ -282,14 +281,15 @@ export default function Preview2(params: Preview2Props): JSX.Element {
       console.log("no audio context on pause request");
       return;
     }
-    if (paused.current) {
+    // if (paused.current) {
+    if (isPaused) {
       console.log(
         "exit from pause at",
         audioContext.currentTime,
         "activeSource count",
         activeSources.current.length
       );
-      paused.current = false;
+      // paused.current = false;
       setIsPaused(false);
       audioContext.resume();
       scheduler(audioContext);
@@ -298,7 +298,7 @@ export default function Preview2(params: Preview2Props): JSX.Element {
       volumeMonitor(audioContext);
     } else {
       console.log("enter pause at", audioContext.currentTime);
-      paused.current = true;
+      // paused.current = true;
       setIsPaused(true);
       audioContext.suspend();
       timerID && clearTimeout(timerID);
@@ -476,15 +476,15 @@ export default function Preview2(params: Preview2Props): JSX.Element {
               sourceIndex: s.index,
             });
             nAudioFiles++;
-            console.log(
-              "source",
-              s.index,
-              "mapped to section",
-              sectionType,
-              "for generator ",
-              s.gen.name,
-              iSection
-            );
+            // console.log(
+            //   "source",
+            //   s.index,
+            //   "mapped to section",
+            //   sectionType,
+            //   "for generator ",
+            //   s.gen.name,
+            //   iSection
+            // );
           }
           break;
         case SectionType.Percussion:
@@ -505,15 +505,15 @@ export default function Preview2(params: Preview2Props): JSX.Element {
               sectionIndex: iSection,
               sourceIndex: s.index,
             });
-            console.log(
-              "source",
-              s.index,
-              "mapped to section",
-              sectionType,
-              "for generator ",
-              s.gen.name,
-              iSection
-            );
+            // console.log(
+            //   "source",
+            //   s.index,
+            //   "mapped to section",
+            //   sectionType,
+            //   "for generator ",
+            //   s.gen.name,
+            //   iSection
+            // );
           }
           break;
         case SectionType.Instrument:
@@ -534,15 +534,15 @@ export default function Preview2(params: Preview2Props): JSX.Element {
               sectionIndex: iSection,
               sourceIndex: s.index,
             });
-            console.log(
-              "source",
-              s.index,
-              "mapped to section",
-              sectionType,
-              "for generator",
-              s.gen.name,
-              iSection
-            );
+            // console.log(
+            //   "source",
+            //   s.index,
+            //   "mapped to section",
+            //   sectionType,
+            //   "for generator",
+            //   s.gen.name,
+            //   iSection
+            // );
           }
           break;
         default: {
@@ -564,6 +564,8 @@ export default function Preview2(params: Preview2Props): JSX.Element {
   //    is allocated to the section
   // 2. N audio files - each AF section is allocated 1/N of the drawing
   // 3. Instrument + percussion, 0 AF - 75% to instrument, 25% to percussion
+  // Instrument, no percussion, n AF - 70% to instrument, 30% to audiofile
+  // No instrument, percussion, n AF - 70% to percussion, 30% to audiofile
   // 4. Instrument + percussion + n AF - 70% to instrument, 25% to percussion, 10% to all AFs split 10%/N each
   function setupSections(
     drawingSections: DrawingSection[],
@@ -737,12 +739,13 @@ export default function Preview2(params: Preview2Props): JSX.Element {
       newLine.setAttribute("stroke-width", "2");
       newLine.setAttribute("stroke-dasharray", "5,5");
       drawing.appendChild(newLine);
+
+      // label the section with names and lo and hi values
       const sectionNameElement: SVGTextElement = document.createElementNS(
         "http://www.w3.org/2000/svg",
         "text"
       );
-      sectionNameElement.textContent = section.type + "s";
-      // sectionNameElement.setAttribute("transform", "rotate(-90)");
+      sectionNameElement.textContent = section.type + "s (" + (section.loValue - 5).toFixed(0).toString() + ")";
       sectionNameElement.setAttribute("x", "2");
       sectionNameElement.setAttribute(
         "y",
@@ -750,6 +753,18 @@ export default function Preview2(params: Preview2Props): JSX.Element {
       );
       sectionNameElement.style = "font-size: 12pt; fill: black;";
       drawing.appendChild(sectionNameElement);
+      const sectionHiElement: SVGTextElement = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "text"
+      );
+      sectionHiElement.textContent = "(" + (section.hiValue + 5).toFixed(0).toString() + ")";
+      sectionHiElement.setAttribute("x", "2");
+      sectionHiElement.setAttribute(
+        "y",(section.verticalOffset + 15).toString()
+      );
+      sectionHiElement.style = "font-size: 12pt; fill: black;";
+      drawing.appendChild(sectionHiElement);
+
     });
 
     // get the time line start and end points. time progress should be between
@@ -787,15 +802,18 @@ export default function Preview2(params: Preview2Props): JSX.Element {
 
     // loop through the source data and find each that appears on the current
     // time line
-    pendingSourceData.forEach((s: RawSourceData) => {
+    sources.forEach((s: RawSourceData) => {
       const { startTime, stopTime, note } = s.source;
 
       // determine if any part of the source appears in the time line
       const lineStart = Math.min(
-        Math.max(timelineStart, startTime),
+        Math.max(timelineStart, startTime + offsetTime),
         timelineEnd
       );
-      const lineEnd = Math.min(Math.max(timelineStart, stopTime), timelineEnd);
+      const lineEnd = Math.min(
+        Math.max(timelineStart, stopTime + offsetTime),
+        timelineEnd
+      );
       if (lineStart >= lineEnd) {
         // console.log('line', i,'not visible', startTime, stopTime, lineStart, lineEnd);
         return;
@@ -814,13 +832,13 @@ export default function Preview2(params: Preview2Props): JSX.Element {
 
       // convert the source's start and stop time to drawing coorindates
       const xStart: number = getOffsetFromTime(
-        startTime,
+        startTime + offsetTime,
         displayWidth,
         timelineStart,
         timelineEnd
       );
       const xEnd: number = getOffsetFromTime(
-        stopTime,
+        stopTime + offsetTime,
         displayWidth,
         timelineStart,
         timelineEnd
@@ -887,7 +905,8 @@ export default function Preview2(params: Preview2Props): JSX.Element {
   }
 
   function scheduler(ctx: AudioContext): void {
-    if (paused.current) {
+    // if (paused.current) {
+    if (isPaused) {
       console.log("scheduler paused");
       timerID && clearTimeout(timerID);
       return;
@@ -944,7 +963,7 @@ export default function Preview2(params: Preview2Props): JSX.Element {
           );
           if (thisSource == undefined) {
             console.log(
-              "could not find pending source with index",
+              "could not find active source with index",
               activeSource.sourceIndex
             );
             return;
@@ -994,7 +1013,8 @@ export default function Preview2(params: Preview2Props): JSX.Element {
   }
   // time progress clicker for updating the time progress widget
   function tick(ctx: AudioContext): void {
-    if (paused.current) {
+    // if (paused.current) {
+    if (isPaused) {
       console.log("tick paused");
       tickId && clearTimeout(tickId);
       return;
@@ -1045,7 +1065,8 @@ export default function Preview2(params: Preview2Props): JSX.Element {
 
   // determine which generators are currently playing
   function playingGenerators(ctx: AudioContext) {
-    if (paused.current) {
+    // if (paused.current) {
+    if (isPaused) {
       console.log("playingGenerators paused");
       playingId && clearTimeout(playingId);
       return;
@@ -1088,7 +1109,8 @@ export default function Preview2(params: Preview2Props): JSX.Element {
   }
 
   function volumeMonitor(ctx: AudioContext) {
-    if (paused.current) {
+    // if (paused.current) {
+    if (isPaused) {
       console.log("volumeMonitor paused");
       signalId && clearTimeout(signalId);
       return;

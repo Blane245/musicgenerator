@@ -14,7 +14,15 @@ import {
 } from "react";
 import CMGFile from "./classes/cmgfile";
 import TimeLine from "./classes/timeline";
-import { GENERATIONMODE, GENERATORTYPE, GeneratorType, MouseLocation, RawSourceData, SOUNDFONTLOCATIONOPTIONS, TimelineInterval } from "./types";
+import {
+  GENERATIONMODE,
+  GeneratorType,
+  MouseLocation,
+  RawSourceData,
+  SOUNDFONTLOCATIONOPTIONS,
+  TimelineInterval,
+  EditGenerator
+} from "./types";
 
 // the elements of this application that are used at many levels
 interface CMGContextType {
@@ -73,6 +81,14 @@ interface CMGContextType {
   setTimeProgress: Dispatch<SetStateAction<number>>;
   timeInterval: TimelineInterval;
   setTimeInterval: Dispatch<SetStateAction<TimelineInterval>>;
+  generatorDialogVisible: boolean;
+  setGeneratorDialogVisible: Dispatch<SetStateAction<boolean>>;
+  editGeneratorMenuVisible: boolean;
+  setEditGeneratorMenuVisible: Dispatch<SetStateAction<boolean>>;
+  trackIndex: number;
+  setTrackIndex: Dispatch<SetStateAction<number>>;
+  editGeneratorData: EditGenerator;
+  setEditGeneratorData: Dispatch<SetStateAction<EditGenerator>>;
   mouseDown: MutableRefObject<boolean>;
   mouseLocation: MouseLocation | null;
   setMouseLocation: Dispatch<SetStateAction<MouseLocation | null>>;
@@ -80,10 +96,10 @@ interface CMGContextType {
   setGeneratorsPlaying: Dispatch<SetStateAction<GeneratorType[]>>;
   recordFormat: string;
   setRecordFormat: Dispatch<SetStateAction<string>>;
-  signalLevels: {left: number, right: number};
-  setSignalLevels: Dispatch<SetStateAction<{left: number, right: number}>>;
-  generatorType: GENERATORTYPE;
-  setGeneratorType: Dispatch<SetStateAction<GENERATORTYPE>>;
+  signalLevels: { left: number; right: number };
+  setSignalLevels: Dispatch<SetStateAction<{ left: number; right: number }>>;
+  // generatorType: GENERATORTYPE;
+  // setGeneratorType: Dispatch<SetStateAction<GENERATORTYPE>>;
 }
 
 const CMGContext = createContext<CMGContextType | undefined>(undefined);
@@ -102,7 +118,8 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
   const [previewWidth, setPreviewWidth] = useState<number>(0);
   const [footerHeight, setFooterHeight] = useState<number>(0);
   const [verticalScrollWidth, setVerticalScrollWidth] = useState<number>(0);
-  const [SFFileLocation, setSFFileLocation] = useState<SOUNDFONTLOCATIONOPTIONS>(SOUNDFONTLOCATIONOPTIONS.Server);
+  const [SFFileLocation, setSFFileLocation] =
+    useState<SOUNDFONTLOCATIONOPTIONS>(SOUNDFONTLOCATIONOPTIONS.Server);
   const [SFFileList, setSFFileList] = useState<string[]>([]);
   const [SFLocalURI, setSFLocalURI] = useState<string>("");
   const [SFServerURI, setSFServerURI] = useState<string>("");
@@ -122,14 +139,25 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     startOffset: -1,
     endOffset: -1,
   });
+  const [generatorDialogVisible, setGeneratorDialogVisible] = useState<boolean>(false);
+  const [editGeneratorMenuVisible, setEditGeneratorMenuVisible] = useState<boolean>(false);
+  const [editGeneratorData, setEditGeneratorData] = useState<EditGenerator>({track: null, generator: null, type: null, newGenerator: false})
+  const [trackIndex, setTrackIndex] = useState<number>(-1);
   const mouseDown = useRef<boolean>(false);
-  const [mouseLocation, setMouseLocation] = useState<MouseLocation | null>(null);
+  const [mouseLocation, setMouseLocation] = useState<MouseLocation | null>(
+    null
+  );
   const [generatorsPlaying, setGeneratorsPlaying] = useState<GeneratorType[]>(
     []
   );
   const [recordFormat, setRecordFormat] = useState<string>("mp3");
-  const [signalLevels, setSignalLevels] = useState<{left: number, right: number}>({left:-90,right:-90});
-  const [generatorType, setGeneratorType] = useState<GENERATORTYPE>(GENERATORTYPE.Silent);
+  const [signalLevels, setSignalLevels] = useState<{
+    left: number;
+    right: number;
+  }>({ left: -90, right: -90 });
+  // const [generatorType, setGeneratorType] = useState<GENERATORTYPE>(
+  //   GENERATORTYPE.Silent
+  // );
   const contextValue = {
     screenHeight,
     setScreenHeight,
@@ -161,9 +189,9 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     setSFFileLocation,
     SFFileList,
     setSFFileList,
-    SFLocalURI, 
+    SFLocalURI,
     setSFLocalURI,
-    SFServerURI, 
+    SFServerURI,
     setSFServerURI,
     fileName,
     setFileName,
@@ -186,6 +214,14 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     setTimeProgress,
     timeInterval,
     setTimeInterval,
+    generatorDialogVisible,
+    setGeneratorDialogVisible,
+    editGeneratorMenuVisible,
+    setEditGeneratorMenuVisible,
+    editGeneratorData,
+    setEditGeneratorData,
+    trackIndex,
+    setTrackIndex,
     mouseDown,
     mouseLocation,
     setMouseLocation,
@@ -195,8 +231,8 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     setRecordFormat,
     signalLevels,
     setSignalLevels,
-    generatorType,
-    setGeneratorType
+    // generatorType,
+    // setGeneratorType,
   };
 
   return (

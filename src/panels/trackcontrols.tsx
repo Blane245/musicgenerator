@@ -14,28 +14,29 @@ import { IoPerson, IoPersonOutline } from "react-icons/io5";
 import { RiAiGenerate } from "react-icons/ri";
 import Track from "../classes/track";
 import { useCMGContext } from "../cmgcontext";
+import { GENERATORTYPE } from "../types";
 import {
   deleteTrack,
   flipTrackAttribute,
   moveTrack,
   renameTrack,
 } from "../utils/cmfiletransactions";
-import { GENERATORTYPE } from "../types";
 
 export interface TrackControlsProps {
   tracks: Track[];
   track: Track;
   trackIndex: number;
-  setEnableGeneratorDialog: Function;
 }
 export default function TrackControls(props: TrackControlsProps) {
-  const { track, trackIndex, tracks, setEnableGeneratorDialog } = props;
+  const { track, trackIndex, tracks } = props;
   const {
     fileContents,
     setFileContents,
     playing,
     setStatus,
-    setGeneratorType,
+    setTrackIndex,
+    setEditGeneratorData,
+    setGeneratorDialogVisible,
   } = useCMGContext();
   const [trackName, setTrackName] = useState<string>("");
   const [deleteModal, setDeleteModal] = useState<boolean>(false);
@@ -144,9 +145,16 @@ export default function TrackControls(props: TrackControlsProps) {
 
   function handleSelectGenerator(event: MouseEvent, type: GENERATORTYPE) {
     event.preventDefault();
-    setGeneratorType(type);
-    setEnableGeneratorDialog(tracks.findIndex((t) => t.name == track.name));
+    setEditGeneratorData({
+      track: track,
+      generator: null,
+      type: type,
+      newGenerator: true,
+    });
+    // setGeneratorType(type);
+    setTrackIndex(tracks.findIndex((t) => t.name == track.name));
     setMenuEnabled(false);
+    setGeneratorDialogVisible(true);
   }
 
   return (
@@ -182,7 +190,7 @@ export default function TrackControls(props: TrackControlsProps) {
 
       <button
         className="track-button"
-        style={{ float: "none", marginLeft: '7px' }}
+        style={{ float: "none", marginLeft: "7px" }}
         id={`track-gen:${track.name}`}
         key={`track-gen:${track.name}`}
         onClick={(event) => handleAddGenerator(event, trackIndex)}
@@ -219,125 +227,123 @@ export default function TrackControls(props: TrackControlsProps) {
       >
         <AiFillCaretDown />
       </button>
-      {deleteModal? 
-      <div
-        className="modal-content"
-      >
-        <div className="modal-header">
-          <span className="close" onClick={handleDeleteCancel}>
-            &times;
-          </span>
-          <h2>Confirm delete of track '{track.name}'</h2>
-        </div>
-        <div className="modal-body">
-          <p>Select OK to delete track or Cancel to abort deletion.</p>
-        </div>
-        <div className="modal-footer">
-          <button id={"track-delete:" + track.name} onClick={handleDeleteOK}>
-            OK
-          </button>
-          <button onClick={handleDeleteCancel}>Cancel</button>
-        </div>
-      </div>
-      : null}
-      {renameModal? 
-      <div
-        className="modal-content"
-      >
-        <div className="modal-header">
-          <span className="close" onClick={handleRenameCancel}>
-            &times;
-          </span>
-          <h2>Enter new name for Track '{track.name}'</h2>
-        </div>
-        <div className="modal-body">
-          <form
-            name="track-rename-form"
-            id="track-rename-form"
-            onSubmit={handleRenameOK}
-          >
-            <label htmlFor="track-rename-field">New Name: </label>
-            <input
-              name="track-rename-field"
-              id="track-rename-field"
-              type="text"
-              value={trackName}
-              onChange={handleNewTrackName}
-            />
-            <br />
-            <button type="submit" id={"track-rename-submit"}>
+      {deleteModal ? (
+        <div className="modal-content">
+          <div className="modal-header">
+            <span className="close" onClick={handleDeleteCancel}>
+              &times;
+            </span>
+            <h2>Confirm delete of track '{track.name}'</h2>
+          </div>
+          <div className="modal-body">
+            <p>Select OK to delete track or Cancel to abort deletion.</p>
+          </div>
+          <div className="modal-footer">
+            <button id={"track-delete:" + track.name} onClick={handleDeleteOK}>
               OK
             </button>
-          </form>
+            <button onClick={handleDeleteCancel}>Cancel</button>
+          </div>
         </div>
-        <div className="modal-footer">
-          <p>{message}</p>
+      ) : null}
+      {renameModal ? (
+        <div className="modal-content">
+          <div className="modal-header">
+            <span className="close" onClick={handleRenameCancel}>
+              &times;
+            </span>
+            <h2>Enter new name for Track '{track.name}'</h2>
+          </div>
+          <div className="modal-body">
+            <form
+              name="track-rename-form"
+              id="track-rename-form"
+              onSubmit={handleRenameOK}
+            >
+              <label htmlFor="track-rename-field">New Name: </label>
+              <input
+                name="track-rename-field"
+                id="track-rename-field"
+                type="text"
+                value={trackName}
+                onChange={handleNewTrackName}
+              />
+              <br />
+              <button type="submit" id={"track-rename-submit"}>
+                OK
+              </button>
+            </form>
+          </div>
+          <div className="modal-footer">
+            <p>{message}</p>
+          </div>
         </div>
-      </div>
-      : null}
-      {menuEnabled? 
-      <div
-        className="modal-menu"
-        id={"addgenmenu"}
-        key={"addgenmenu"}
-        style={{
-          position: "absolute",
-          top: menuY.toString() + "px",
-          left: menuX.toString() + "px",
-          width: "180px",
-          height: "20px",
-          zIndex: 99,
-        }}
-      >
+      ) : null}
+      {menuEnabled ? (
         <div
-          className="navbar"
+          className="modal-menu"
+          id={"addgenmenu"}
+          key={"addgenmenu"}
           style={{
-            position: "relative",
-            top: "0px",
-            visibility: "hidden",
+            position: "absolute",
+            top: menuY.toString() + "px",
+            left: menuX.toString() + "px",
+            width: "180px",
+            height: "20px",
+            zIndex: 99,
           }}
         >
           <div
-            className="dropdown"
+            className="navbar"
             style={{
-              visibility: "visible",
+              position: "relative",
+              top: "0px",
+              visibility: "hidden",
             }}
           >
-            <div className="dropbtn" style={{ width: 180 }}>
-              Select Generator Type
-              <i className="fa fa-caret-down" />
-            </div>
-            <div className="dropdown-one">
-              <div
-                className="dItem"
-                onClick={(e) => handleSelectGenerator(e, GENERATORTYPE.Silent)}
-              >
-                Silent
+            <div
+              className="dropdown"
+              style={{
+                visibility: "visible",
+              }}
+            >
+              <div className="dropbtn" style={{ width: 180 }}>
+                Select Generator Type
+                <i className="fa fa-caret-down" />
               </div>
-              <div
-                className="dItem"
-                onClick={(e) =>
-                  handleSelectGenerator(e, GENERATORTYPE.Algorithmic)
-                }
-              >
-                Algorithmic
-              </div>
-              <div
-                className="dItem"
-                onClick={(e) =>
-                  handleSelectGenerator(e, GENERATORTYPE.AudioFile)
-                }
-              >
-                AudioFile
-              </div>
-              <div className="dItem" onClick={() => setMenuEnabled(false)}>
-                Exit
+              <div className="dropdown-one">
+                <div
+                  className="dItem"
+                  onClick={(e) =>
+                    handleSelectGenerator(e, GENERATORTYPE.Silent)
+                  }
+                >
+                  Silent
+                </div>
+                <div
+                  className="dItem"
+                  onClick={(e) =>
+                    handleSelectGenerator(e, GENERATORTYPE.Algorithmic)
+                  }
+                >
+                  Algorithmic
+                </div>
+                <div
+                  className="dItem"
+                  onClick={(e) =>
+                    handleSelectGenerator(e, GENERATORTYPE.AudioFile)
+                  }
+                >
+                  AudioFile
+                </div>
+                <div className="dItem" onClick={() => setMenuEnabled(false)}>
+                  Exit
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      : null}
-      </>
+      ) : null}
+    </>
   );
 }

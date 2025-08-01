@@ -94,10 +94,10 @@ export default function GeneratorCopyMoveDialog(props: GeneratorCopyMoveProps) {
           </select>
         </label>
         <br />
-        <div className="modal-footer">
-          <button onClick={onOK}>{mode == "copy" ? "Copy" : "Move"}</button>
-          <button onClick={onCancel}>Cancel</button>
-        </div>
+      </div>
+      <div className="modal-footer">
+        <button onClick={onOK}>{mode == "copy" ? "Copy" : "Move"}</button>
+        <button onClick={onCancel}>Cancel</button>
       </div>
     </div>
   );

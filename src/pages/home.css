@@ -6,7 +6,9 @@ html {
 *:after {
   box-sizing: inherit;
 }
-body {margin:0}
+body {
+  margin: 0;
+}
 #root {
   max-width: 2800px;
   margin: 0;
@@ -160,7 +162,7 @@ body {margin:0}
     left: 0;
     width: 100%;
     display: grid;
-    grid-template-columns: 50px 300px 1fr 350px;
+    grid-template-columns: 50px 200px 1fr 250px;
     grid-template-areas: "icon menu title .";
     gap: 0;
     .icon {

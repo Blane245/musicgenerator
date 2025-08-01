@@ -1,7 +1,7 @@
 {
   "name": "musicgenerator",
   "private": true,
-  "version": "3.6.1",
+  "version": "3.7.0",
   "type": "module",
   "homepage": "https://lanedb.hopto.org/cmg3/",
   "author": {

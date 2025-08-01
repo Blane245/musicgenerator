@@ -110,7 +110,7 @@ preview tests
 
     SFRG
         create a SFPG generator on one track with a constant repeated single note
-        save it to preview2
+        save it to Preview
         preview the file - expect sound should be heard
     Noise
         create two Noise generators - one white and one gaussian
@@ -129,7 +129,7 @@ record tests
         record to file record2.wav
         listen to record2.wav - should be the same as its preview
         new file
-        open preview2
+        open Preview
         record to file record3.wav
         listen to record3.wav - should be the same as its preview
         open preview3

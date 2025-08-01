@@ -1,7 +1,8 @@
+import GeneratorDialog from "dialogs/generatordialog";
 import Body from "layouts/body";
 import Footer from "layouts/footer";
 import Header from "layouts/header";
-import Preview2 from "layouts/preview2";
+import Preview from "layouts/preview";
 import { MouseEvent, useEffect, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import {
@@ -33,6 +34,8 @@ export default function Home() {
     setFooterHeight,
     setBodyHeight,
     setVerticalScrollWidth,
+    editGeneratorData,
+    generatorDialogVisible,
     mouseDown,
     setMouseLocation,
     setSFLocalURI,
@@ -62,43 +65,51 @@ export default function Home() {
 
   useEffect(() => {
     const handleResize = () => {
-    const root: HTMLElement | null = document.getElementById("root");
-    if (!root) return;
-    const screenHeight: number = window.innerHeight;
-    const screenWidth: number = window.innerWidth;
-    // const screenHeight: number = root.clientHeight;
-    // const screenWidth: number = root.clientWidth;
-    const displayHeight: number = screenHeight;
-    const displayWidth: number = screenWidth;
-    const headerHeight: number = 40;
-    const timelineHeight: number = 40;
-    const controlWidth: number = 200;
-    const timelineWidth: number = displayWidth - controlWidth;
-    const previewWidth: number = displayWidth;
-    const footerHeight: number = 180;
-    const previewHeight: number =
-      displayHeight - headerHeight - timelineHeight - footerHeight;
+      const root: HTMLElement | null = document.getElementById("root");
+      if (!root) return;
+      const screenHeight: number = window.innerHeight;
+      const screenWidth: number = window.innerWidth;
+      const displayHeight: number = screenHeight;
+      const displayWidth: number = screenWidth;
+      const headerHeight: number = 40;
+      const timelineHeight: number = 40;
+      const controlWidth: number = 200;
+      const timelineWidth: number = displayWidth - controlWidth;
+      const previewWidth: number = displayWidth;
+      const footerHeight: number = 180;
+      const previewHeight: number =
+        displayHeight - headerHeight - timelineHeight - footerHeight;
       const bodyHeight: number = previewHeight;
-      console.log('sizes', 
-        'screenHeight', screenHeight,
-        'screenWidth', screenWidth,
-        'displayHeight', displayHeight,
-        'headerHeight', headerHeight,
-        'timelineHeight', timelineHeight,
-        'timelineWidth', timelineWidth,
-        'previewHeight', previewHeight,
-        'previewWidth', previewWidth,
-        'bodyHeight', bodyHeight,
+      console.log(
+        "sizes",
+        "screenHeight",
+        screenHeight,
+        "screenWidth",
+        screenWidth,
+        "displayHeight",
+        displayHeight,
+        "headerHeight",
+        headerHeight,
+        "timelineHeight",
+        timelineHeight,
+        "timelineWidth",
+        timelineWidth,
+        "previewHeight",
+        previewHeight,
+        "previewWidth",
+        previewWidth,
+        "bodyHeight",
+        bodyHeight
       );
       setScreenHeight(screenHeight);
       setScreenWidth(screenWidth);
       setDisplayHeight(displayHeight);
-      setDisplayWidth(displayWidth)
+      setDisplayWidth(displayWidth);
       setHeaderHeight(headerHeight);
       setTimelineHeight(timelineHeight);
       setTimelineWidth(timelineWidth);
       setControlWidth(controlWidth);
-      setPreviewWidth(previewWidth)
+      setPreviewWidth(previewWidth);
       setBodyHeight(bodyHeight);
       setPreviewHeight(previewHeight);
       setFooterHeight(footerHeight);
@@ -234,7 +245,7 @@ export default function Home() {
           onMouseDown={(e) => onMouseDown(e)}
           onMouseMove={(e) => saveMouseMovement(e)}
         >
-          <Header 
+          <Header
             appName="Computer Music Generator"
             appVersion={import.meta.env.VERSION}
           />
@@ -242,15 +253,26 @@ export default function Home() {
           <Footer />
         </div>
       ) : (
-        <Preview2
-            appName="Computer Music Generator"
-            appVersion={import.meta.env.VERSION}
+        <Preview
+          appName="Computer Music Generator"
+          appVersion={import.meta.env.VERSION}
           playbackLength={playbackLength}
           offsetTime={offsetTime}
           sourceData={sourceData}
           setMode={setMode}
         />
       )}
+      {mode == GENERATIONMODE.idle &&
+      generatorDialogVisible &&
+      editGeneratorData.track &&
+      editGeneratorData.type ? (
+        <GeneratorDialog
+          track={editGeneratorData.track}
+          generatorType={editGeneratorData.type}
+          generator={editGeneratorData.generator}
+          newGenerator={editGeneratorData.newGenerator}
+        />
+      ) : null}
     </>
   );
 }

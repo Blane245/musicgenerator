@@ -3,8 +3,8 @@ import CMG2 from "assets/CGM2.svg";
 import { useCMGContext } from "cmgcontext";
 import EditMenu from "menus/editmenu";
 import FileMenu from "menus/filemenu";
-import GenerateMenu from "menus/generatemenu";
 import HelpMenu from "menus/helpmenu";
+import PlayMenu from "menus/playmenu";
 import TimeLineControls from "panels/timelinecontrols";
 import TimeLineDisplay from "panels/timelinedisplay";
 import { useEffect, useState } from "react";
@@ -16,7 +16,8 @@ export interface HeaderProps {
 
 export default function Header(props: HeaderProps) {
   const { appName, appVersion } = props;
-  const { fileName, fileContents, displayWidth, timelineWidth, controlWidth } = useCMGContext();
+  const { fileName, fileContents, displayWidth, timelineWidth, controlWidth } =
+    useCMGContext();
   const [isDirty, setIsDirty] = useState("");
 
   useEffect(() => {
@@ -41,7 +42,7 @@ export default function Header(props: HeaderProps) {
             <EditMenu />
           </div>
           <div className="play">
-            <GenerateMenu />
+            <PlayMenu />
           </div>
           <div className="help">
             <HelpMenu />
@@ -52,10 +53,10 @@ export default function Header(props: HeaderProps) {
         </div>
       </div>
       <div className="timeline" style={{ width: displayWidth }}>
-        <div className="control" style={{width: controlWidth}}>
+        <div className="control" style={{ width: controlWidth }}>
           <TimeLineControls />
         </div>
-        <div className="display" style={{width: timelineWidth}}>
+        <div className="display" style={{ width: timelineWidth }}>
           <TimeLineDisplay />
         </div>
       </div>

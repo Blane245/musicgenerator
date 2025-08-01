@@ -1,4 +1,4 @@
-import { FormEvent} from "react";
+import { FormEvent } from "react";
 import Track from "../classes/track";
 import { useCMGContext } from "../cmgcontext";
 import { deleteGenerator } from "../utils/cmfiletransactions";
@@ -12,8 +12,7 @@ export interface GeneratorDeleteProps {
 
 // handles copy and move generator between tracks.
 export default function GeneratorDeleteDialog(props: GeneratorDeleteProps) {
-  const { trackName, generatorName, setDialogVisible, setMenuVisible } =
-    props;
+  const { trackName, generatorName, setDialogVisible, setMenuVisible } = props;
   const { fileContents, setFileContents, setStatus } = useCMGContext();
 
   function onCancel() {
@@ -32,9 +31,7 @@ export default function GeneratorDeleteDialog(props: GeneratorDeleteProps) {
     );
     if (!currentTrack) return;
     deleteGenerator(currentTrack, generatorName, setFileContents);
-    setStatus(
-      `Generator '${generatorName}' deleted from ${trackName}`
-    );
+    setStatus(`Generator '${generatorName}' deleted from ${trackName}`);
   }
   return (
     <div className="modal-content">
@@ -42,19 +39,17 @@ export default function GeneratorDeleteDialog(props: GeneratorDeleteProps) {
         <span className="close" onClick={onCancel}>
           &times;
         </span>
-        <h2>
-          Confirm Generator Deletion
-        </h2>
+        <h2>Confirm Generator Deletion</h2>
       </div>
       <div className="modal-body">
         <h2>
           {`Confirm Deletion of generator '${generatorName}' from track '${trackName}'`}
         </h2>
         <br />
-        <div className="modal-footer">
-          <button onClick={onOK}>Ok</button>
-          <button onClick={onCancel}>Cancel</button>
-        </div>
+      </div>
+      <div className="modal-footer">
+        <button onClick={onOK}>Ok</button>
+        <button onClick={onCancel}>Cancel</button>
       </div>
     </div>
   );

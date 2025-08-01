@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { buildSources } from "generation/buildsources";
+import ReadyGenerate from "generation/readygenerate";
+import { useState } from "react";
 import Track from "../classes/track";
 import { useCMGContext } from "../cmgcontext";
 import Generate from "../generation/generate";
@@ -7,9 +9,6 @@ import { flipGeneratorMute } from "../utils/cmfiletransactions";
 import setCursor from "../utils/setcursor";
 import GeneratorCopyMoveDialog from "./generatorcopymovedialog";
 import GeneratorDeleteDialog from "./generatordeletedialog";
-import GeneratorDialog from "./generatordialog";
-import ReadyGenerate from "generation/readygenerate";
-import { buildSources } from "generation/buildsources";
 
 export interface GeneratorMenuProps {
   track: Track;
@@ -26,6 +25,9 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
     fileContents,
     setFileContents,
     timeInterval,
+    setTrackIndex,
+    setEditGeneratorData,
+    setGeneratorDialogVisible,
     setMode,
     setSourceData,
     setPlaybackLength,
@@ -33,30 +35,30 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
     setStatus,
     playing,
   } = useCMGContext();
-  const [editVisible, setEditVisible] = useState<boolean>(false);
   const [previewVisible, setPreviewVisible] = useState<boolean>(false);
   const [copyMoveMode, setCopyMoveMode] = useState<string>("");
   const [copyMoveDialogVisible, setCopyMoveDialogVisible] =
     useState<boolean>(false);
   const [generatorName, setGeneratorName] = useState<string>("");
   const [deleteModal, setDeleteModal] = useState<boolean>(false);
-  const [generatorIndex, setGeneratorIndex] = useState<number>(-1);
 
-  useEffect(() => {
-    const index: number = track.generators.findIndex(
-      (g) => g.name == generator.name
-    );
-    setGeneratorIndex(index);
-  }, [track]);
   function onPreviewClick() {
     handleReadySolo();
     setPreviewVisible(true);
+    setMenuVisible(false);
     setMode(GENERATIONMODE.solo);
     setStatus(``);
   }
   function onEditClick() {
-    setEditVisible(true);
-    // setMenuVisible(false);
+    setTrackIndex(-1);
+    setEditGeneratorData({
+      track: track,
+      generator: generator,
+      newGenerator: false,
+      type: generator.type,
+    });
+    setGeneratorDialogVisible(true);
+    setMenuVisible(false);
     setCursor("default");
     setStatus(``);
   }
@@ -183,20 +185,7 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
           </div>
         </div>
       </div>
-      {editVisible ? (
-        <GeneratorDialog
-          track={track}
-          generatorType={generator.type}
-          generatorIndex={generatorIndex}
-          setVisible={(v: boolean) => {
-            setEditVisible(v);
-            setMenuVisible(v);
-          }}
-        />
-      ) : null}
-      {previewVisible ? (
-        <Generate generator={generator}/>
-      ) : null}
+      {previewVisible ? <Generate generator={generator} /> : null}
       {copyMoveDialogVisible ? (
         <GeneratorCopyMoveDialog
           mode={copyMoveMode}

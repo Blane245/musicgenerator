@@ -5,24 +5,13 @@
 import { MouseEvent, useEffect, useState } from "react";
 import Track from "../classes/track";
 import { useCMGContext } from "../cmgcontext";
-// import GeneratorDialog from "../dialogs/generatordialog";
-// import Generate from "../generation/generate";
+import { GeneratorType, TimeLineScales } from "../types";
 import {
-  // GENERATIONMODE,
-  // GENERATORTYPE,
-  GeneratorType,
-  TimeLineScales,
-} from "../types";
-import {
-  // flipGeneratorMute,
   moveGeneratorBodyPosition,
   moveGeneratorTime,
 } from "../utils/cmfiletransactions";
-// import { getGeneratorUID } from "../utils/getgeneratoruid";
-// import GeneratorCopyMoveDialog from "../dialogs/generatorcopymovedialog";
-// import GeneratorDeleteDialog from "../dialogs/generatordeletedialog";
+import GeneratorMenuDialog from "dialogs/generatormenudialog";
 import setCursor from "../utils/setcursor";
-import GeneratorMenuDialog from "dialogs/generatormenu";
 
 export interface GeneratorIconProps {
   track: Track;
@@ -49,10 +38,11 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     mouseDown,
     mouseLocation,
     setMouseLocation,
+    editGeneratorMenuVisible,
+    setEditGeneratorMenuVisible,
   } = useCMGContext();
   const [boxIndex, setBoxIndex] = useState<number>(-1);
   const [generatorIndex, setGeneratorIndex] = useState<number>(-1);
-  const [menuEnabled, setMenuEnabled] = useState<boolean>(false);
   const [menuX, setMenuX] = useState<number>(0);
   const [menuY, setMenuY] = useState<number>(0);
   const [generatorBoxes, setGeneratorBoxes] = useState<GeneratorBox[]>([]);
@@ -172,7 +162,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     // where the generator's text is located.
     setMenuX(box.position.x + box.width / 2.0);
     setMenuY(box.position.y + box.height / 3.0 - 100);
-    setMenuEnabled(true);
+    setEditGeneratorMenuVisible(true);
     setStatus(``);
   }
 
@@ -328,14 +318,15 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
           </>
         ))}
       </svg>
-      {menuEnabled? 
-      <GeneratorMenuDialog
-      track={track}
-      generator={track.generators[generatorIndex]}
-      setMenuVisible={setMenuEnabled}
-      menuX={menuX}
-      menuY={menuY}/>
-      :null}
+      {editGeneratorMenuVisible && generatorIndex >= 0 ? (
+        <GeneratorMenuDialog
+          track={track}
+          generator={track.generators[generatorIndex]}
+          setMenuVisible={setEditGeneratorMenuVisible}
+          menuX={menuX}
+          menuY={menuY}
+        />
+      ) : null}
     </>
   );
 }

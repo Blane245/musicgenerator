@@ -1,16 +1,16 @@
 // The file menu handles creating new files, opening existing ones,
 // saving current ones, and adding tracks to current ones
+import { useCMGContext } from "cmgcontext";
 import { buildSources } from "generation/buildsources";
 import ReadyGenerate from "generation/readygenerate";
 import Record from "generation/record";
+import Report from "generation/reportwriter/report";
 import { useState } from "react";
 import { renderToString } from "react-dom/server";
 import { useHotkeys } from "react-hotkeys-hook";
-import { useCMGContext } from "cmgcontext";
-import Report from "generation/reportwriter/report";
 import { GENERATIONMODE, SAMPLERATE } from "types";
 
-export default function GenerateMenu() {
+export default function PlayMenu() {
   const {
     fileContents,
     setStatus,
@@ -24,6 +24,7 @@ export default function GenerateMenu() {
     sourceData,
     setSourceData,
     timeInterval,
+    setGeneratorDialogVisible,
   } = useCMGContext();
 
   const [recordHandle, setRecordHandle] = useState<FileSystemFileHandle | null>(
@@ -44,6 +45,7 @@ export default function GenerateMenu() {
   // If the curretn one is 'dirty' the user is
   // prompted to confirm overwrite
   function handlePreview() {
+    playing.current = true;
     setMode(GENERATIONMODE.preview);
   }
 
@@ -57,6 +59,7 @@ export default function GenerateMenu() {
         : [{ description: "WAV file", accept: { "audio/wav": [".wav"] } }];
     window.showSaveFilePicker({ types: types }).then((rh) => {
       setRecordHandle(rh);
+      if (rh) playing.current = true;
     });
   }
 
@@ -104,9 +107,10 @@ export default function GenerateMenu() {
     if (buildError != "") return;
     setSourceData(builtSourceData);
     // let the system know that playing is entered
-    playing.current = true;
     if (playMode == GENERATIONMODE.preview) handlePreview();
     else handleRecord();
+    // make sure that the generator dialog does not appear after preview or record
+    setGeneratorDialogVisible(false);
   }
 
   function handleMenuSelect(action: string) {

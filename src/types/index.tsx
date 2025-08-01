@@ -1,12 +1,13 @@
-import { Algorithmic, AudioFile, Silent } from "../classes/generators";
+import Track from "classes/track";
 import {
   AlgorithmValues,
-  ConstantValues,
   AutoregressiveValues,
+  ConstantValues,
   MarkovianValues,
   OscillatorValues,
   WienerValues,
 } from "../classes/algorithmvalues";
+import { Algorithmic, AudioFile, Silent } from "../classes/generators";
 import RandomNumber from "../classes/randomnumber";
 import {
   ascendingSawtoothModulator,
@@ -42,6 +43,13 @@ export type MouseLocation = {
 };
 
 export type GeneratorType = Silent | Algorithmic | AudioFile;
+
+export type EditGenerator = {
+  track: Track | null;
+  generator: GeneratorType | null;
+  type: GENERATORTYPE | null;
+  newGenerator: boolean;
+};
 
 export enum GENERATORTYPE {
   "Silent" = "Silent",

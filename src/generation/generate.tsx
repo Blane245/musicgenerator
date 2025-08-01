@@ -1,15 +1,15 @@
 // turn the sound generators into a preview or recording based on
 // which generators are selected and which mode is selected
-import { useEffect, useRef, useState } from "react";
-import { useCMGContext } from "../cmgcontext";
+import { useEffect, useState } from "react";
 import {
   GENERATIONMODE,
   GeneratorType,
   RawSourceData,
   SAMPLERATE,
 } from "types";
+import { useCMGContext } from "../cmgcontext";
+import Preview from "../layouts/preview";
 import { buildSources } from "./buildsources";
-import Preview2 from "../layouts/preview2";
 import ReadyGenerate from "./readygenerate";
 import Record from "./record";
 
@@ -68,23 +68,6 @@ export default function Generate(props: GeneratorProps) {
     setSourceData(builtSourceData);
     // let the system know that playing if entered
     playing.current = true;
-
-    // select either preview or recording
-    // preview is here as a non-reactive function
-    // recording is reactive as there is a progress bar
-    // if (mode == GENERATIONMODE.preview || mode == GENERATIONMODE.solo)
-    //   Preview({
-    //     fileContents,
-    //     playbackLength,
-    //     offsetTime,
-    //     sourceData: sourceData.current,
-    //     setMode,
-    //     playing,
-    //     setTimeProgress,
-    //     setGeneratorsPlaying,
-    //     setStatus,
-    //     setSignalLevels,
-    //   });
   }, [mode]);
 
   function handleErrorClose() {
@@ -98,7 +81,8 @@ export default function Generate(props: GeneratorProps) {
   return (
     <>
       {mode == GENERATIONMODE.record &&
-      recordHandle && setRecordHandle &&
+      recordHandle &&
+      setRecordHandle &&
       sourceData.length > 0 ? (
         <Record
           recordHandle={recordHandle}
@@ -112,9 +96,9 @@ export default function Generate(props: GeneratorProps) {
       ) : null}
       {(mode == GENERATIONMODE.preview || mode == GENERATIONMODE.solo) &&
       sourceData.length > 0 ? (
-        <Preview2
-            appName="Computer Music Generator"
-            appVersion={import.meta.env.VERSION}
+        <Preview
+          appName="Computer Music Generator"
+          appVersion={import.meta.env.VERSION}
           playbackLength={playbackLength}
           offsetTime={offsetTime}
           sourceData={sourceData}
