@@ -365,7 +365,7 @@ code {
           : 'default'
     });
   </script>
-<h1 id="stylenote-background-color-rgb114746color-whitepicture-displayblockmargin-left-automargin-right-autostylecomputer-music-generator-cmg-users-guide-version-36"><style>
+<h1 id="stylenote-background-color-rgb114746color-whitepicture-displayblockmargin-left-automargin-right-autostylecomputer-music-generator-cmg-users-guide-version-400"><style>
 .note {
 background-color: rgb(114,74,6);
 color: white;
@@ -376,7 +376,7 @@ margin-left: auto;
 margin-right: auto;
 }
 </style>
-Computer Music Generator (CMG) User's Guide, Version 3.6</h1>
+Computer Music Generator (CMG) User's Guide, Version 4.0.0</h1>
 <p><strong>Table of Contents</strong></p>
 <ul>
 <li><a href="#introduction">Introduction</a></li>
@@ -432,7 +432,7 @@ Computer Music Generator (CMG) User's Guide, Version 3.6</h1>
 <li>The use of SoundFont files to produce Midi sounds,</li>
 <li>The separation of sound generators into tracks that mimics the parts in a music score,</li>
 <li>Three types of sound generators, one of which is silent,</li>
-<li>Room level sound volume, reverb, compression, and equalization controls, and</li>
+<li>Room level sound reverb, compression, equalization, and volume controls, and</li>
 <li>Previewing and recording of assembled compositions.</li>
 </ul>
 <p>An example of a composition in progress is shown here:</p>
@@ -444,8 +444,7 @@ Computer Music Generator (CMG) User's Guide, Version 3.6</h1>
 <ul>
 <li>File, Edit, Generate, and Help pulldown menus,</li>
 <li>the name of the application and its version,</li>
-<li>the name of the file currently being displayed,</li>
-<li>left and right volume level indicators, and</li>
+<li>the name of the file currently being displayed, and</li>
 <li>timeline controls and display.</li>
 </ul>
 </li>
@@ -476,7 +475,7 @@ Computer Music Generator (CMG) User's Guide, Version 3.6</h1>
 <li><em><strong>Save File ...</strong></em> - CMG files are created by accessing the menu item <em><strong>Save File...</strong></em> or by pressing <strong>ctrl-s</strong> on the keyboard. Files may be placed anywhere that they can be accessed within the file system. Files are saved with a <em><strong>.cmg</strong></em> extent. If the file already exists, you will be prompted to agree with overwriting the existing file. This saves the room compressor settings, room equalizer settings, room volume settings, and room reverb settings, and all of the tracks and generators defined.</li>
 </ul>
 <blockquote>
-<div class="note">*Note: Long projects contain a lot of data and take some time to create. <span style='font-weight:bold;font-style:italic'>Ensure the file is fully saved before existing CMG or shutting done the computer. </span> The <span style='color:lightblue'>Status Bar</span> at the bottom shows a message when the file has been saved.</div>
+<div class="note">*Note: Long projects contain a lot of data and take some time to create. <span style='font-weight:bold;font-style:italic'>Ensure the file is fully saved before existing CMG or shutting done the computer. </span> The <span style='color:lightblue'>Status Bar</span> at the bottom shows a message when the file has been saved and the <span style='color:lightblue'>(*)</span> will disappear from the title line.</div>
 </blockquote>
 <h1 id="tracks">Tracks</h1>
 <p>A computer generated piece of music is constructed by defining tracks and placing generators along them at various start time and end times. By clicking the menu item <em><strong>New Track</strong></em> button a new track is added to the end of the list of existing tracks.</p>
@@ -512,14 +511,14 @@ Computer Music Generator (CMG) User's Guide, Version 3.6</h1>
 <h1 id="generators">Generators</h1>
 <p>Each generator is placed on a track at its start time and extends to its stop time. The name of a generator must be unique within the CMG file to which is belongs. A visual example of tracks and generators in shown below.</p>
 <p><img src="./images/TracksandGenerators.png" alt="alt text">
-In this figure are shown five tracks, each of which has one generator. All of the tracks have been renamed and their names are unique. None of the generators have been renamed and they are all of the <em>Algorithmic</em> type.</p>
+In this figure are shown seven tracks, each of which has zero or more generators. All of the tracks have been renamed and their names are unique. None of the generators have been renamed except the 1 second of silence at the beginning of the composition. All of the other generators are of the <em><strong>Algorithmic</strong></em> type.</p>
 <h2 id="editing-generators">Editing Generators</h2>
 <p>Generators are the heart of CMG. There can be as many generators in a CMG file
 as is needed to produce the composition desired. There are three types of generators: one silent and two sound producers.</p>
-<p>One of the generators use SoundFont presets. Each preset has a bank, channel number, and name. More information about SoundFont presets can be found in the <a href="https://www.synthfont.com/Tutorial6.html">SynthFont[1] tutorial, part 6</a>.</p>
+<p>The <em><strong>Algorithmic</strong></em> generator type uses SoundFont presets. Each preset has a bank, channel number, and name. More information about SoundFont presets can be found in the <a href="https://www.synthfont.com/Tutorial6.html">SynthFont[1] tutorial, part 6</a>.</p>
 <h2 id="generator-types">Generator Types</h2>
 <h3 id="silent"><strong>Silent</strong></h3>
-<p>The silent generator contains the name of the generator, its type (<em>Silent</em>), and its start and stop times. When the type is changed, the add/edit panel changes to the selected type.</p>
+<p>The silent generator contains the name of the generator, its type (<em>Silent</em>), and its start and stop times. No sound is created by a silent generator. It can be used to offset the start of a composition or extend the ending.</p>
 <p>The figure shows the panel for adding a new Silent generator. There is an <strong>Add</strong> Button. When a generator is modified, the button is displayed as <strong>Modify</strong>. Add and Modify functions may be canceled by clicking the <em><strong>x</strong></em> in the upper left-hand corner of the panel or by clicking the <strong>Cancel</strong> button.
 <img src="./images/SilentEdit.png" alt="alt text">
 The fields below are common to all generator types.</p>
@@ -533,8 +532,7 @@ The fields below are common to all generator types.</p>
 <p>When the generator type of <em>Algorithmic</em> is added or one is edited, the Add/Edit panel for that type is displayed:
 <img src="./images/AlgorithmicEdit1.png" alt="alt text">
 This figure illustrates the initial display when a new Algorithmic generator is being added. Note that the algorithm assigned to note, speed, volume, and pan is <em><strong>Constant</strong></em> and all values are zero.
-The fields are defined as follows along with their restrictions.</p>
-<p>This generator type uses various algorithms to set the values for which notes are to be played, at which rhythm, speed, volume, and pan. A different algorithm can be assigned to each of the attributes.</p>
+The fields and their restrictions are defined as follows:</p>
 <ul>
 <li>
 <p><strong>SoundFont File:</strong> Each Algorithmic generator may have a different SoundFont file. SoundFont files contain sample-based synthesized sounds that are most frequently used by MIDI (Musical Instrument Digital Interface) devices. There are hundreds of SoundFont files existing today. This application has a small collection of them available. More can be added as desired. It is selected from the list of those available using the selection pulldown:</p>
@@ -551,7 +549,7 @@ The fields are defined as follows along with their restrictions.</p>
 <p><strong>Looping:</strong> Instrument samples contain sounds that are produced for a certain amount of time. If the sound needs to be played for longer than the sample, then a sample loop is defined. This is part of the SoundFont protocol. This option allows the default behavior to be overridden such that no looping will be done.</p>
 </li>
 <li>
-<p><strong>View Preset</strong> - This button is used to view the details of a preset and a specific midi number and velocity. The number of samples, playback rate, dela, attack, hold, decay, sustain release times, and the sustain level and attenuation can be viewed for each instrument in the preset.</p>
+<p><strong>View Preset</strong> - This button is used to view the details of a preset and a specific midi number and velocity. The number of samples, playback rate, delay, attack, hold, decay, sustain release times, and the sustain level and attenuation can be viewed for each instrument in the preset.</p>
 </li>
 <li>
 <p><strong>Frequency&lt;-&gt;Midi</strong> - This button provides a tool to convert between tone frequency and midi number.</p>
@@ -583,7 +581,7 @@ The fields are defined as follows along with their restrictions.</p>
 <p><strong>Reverb Decay:</strong> This is the decay component of preset reverberation, in seconds. Both duration and decay must be nonzero to have reverberation applied.</p>
 </li>
 </ul>
-<p>The values of the following attributes can be determined by one of three algorithms. These algorithms are discussed below.</p>
+<p>The values of the sound attributes can be determined by one of three algorithms. These algorithms are discussed below.</p>
 <ul>
 <li>Note - This determines which note is to be used from the selected SoundFont preset. Sometimes call the midi number, a note may be fractional so that it lies between two integer midi numbers.</li>
 <li>Speed - This determines the rate at which notes will be played. It is expressed in beats per minute (BPM).</li>
@@ -595,7 +593,7 @@ The fields are defined as follows along with their restrictions.</p>
 <blockquote>
 <blockquote>
 <blockquote>
-<div class="note">*Note: Midi numbers range from 0 to 127 and correspond to tones of C0 to G9 from the Acoustical Society at https://acousticalsociety.org/. When a midi number is entered, its note name is displayed next to the entry box. Fractional numbers may be entered. For example is 60.5 is entered the note name is displayed as *C4+*</div>
+<div class="note">*Note: Midi numbers range from 0 to 127 and correspond to tones of C0 to G9 from the Acoustical Society at https://acousticalsociety.org/. When a midi number is entered, its note name is displayed next to the entry box. Fractional numbers may be entered. For example is 60.5 is entered the note name is displayed as *C4+50*</div>
 </blockquote>
 </blockquote>
 </blockquote>
@@ -668,7 +666,7 @@ where</p>
 </ul>
 <p>If the values goes of the lo&lt;-&gt;hi interval, the sign on $\sigma$ is reversed.</p>
 <h3 id="audiofile">AudioFile.</h3>
-<p>This is not really a generator as it will play a saved audio file rather than generate a new sound. The user specifies the start time of the playback and its volume. The entire audio file is then played from beginning to end.</p>
+<p>This is not really a generator as it will play a saved audio file rather than generate a new sound. The user specifies the start time of the playback and its volume. The entire audio file is then played from beginning to end. A good use of an audio file generator is to build up a new composition from the recording of other compositions.</p>
 <ul>
 <li><strong>Volume:</strong> This is the volume at which the audio file will be played back. It must be between 0 and 10 with a step size of 1. The default value is 5.</li>
 <li><strong>Audio File:</strong> All files are displayed and the one selected will be read. If it is not an valid audio file, at error message will be display and the file will not be loaded. The stop time an the information about the audio file (sample rate, duration, and number of channels) is not updated until the volume is changed or the next time the generator is viewed.
@@ -685,7 +683,6 @@ where</p>
 <blockquote>
 <blockquote>
 <p><img src="./images/confirmgeneratordelete.png" alt="alt text"></p>
-<div class="note">*Note: Changing the generator type will cause all of the values currently assigned to be forgotten.</div><br/>
 </blockquote>
 </blockquote>
 </blockquote>
@@ -731,10 +728,10 @@ The following buttons are available to control the time line display:</p>
 <h2 id="timeline-interval">Timeline Interval</h2>
 <p>One of the filters for previewing and recording is the timeline interval. This filter defines which generators are selected and overrides the other filters of muting or soloing of tracks and generators. A timeline interval has a start and end time. Generator whose start and stop time fall with the timeline interval are selected.</p>
 <p>A timeline interval is defined by mouse actions within the timeline. When the mouse moves into the timeline, the cursor changes to an <em>crosshair</em> cursor indicating that an interval can be defined. If there is a interval defined, the cursor will change either to a <em>grab</em> cursor or a <em>ew-resize</em> cursor depending on whether the mouse of within an displayed interval or on one of its edges.</p>
-<p>This figure illustrates a typical timeline interval with a selected generator.</p>
+<p>This figure illustrates a typical timeline interval with three selected generators.</p>
 <p><img src="./images/timelineinterval.png" alt="alt text"></p>
 <ul>
-<li><strong>Defining a timeline interval</strong> This is initiated when a <em>crosshair</em> cursor is displayed. Clicking the mouse button and dragging either left or right will define a new interval. When the mouse button is released the interval becomes fully defined and the generators contained within it are highlighted. A defined timeline may be removed by clikcing anywhere on the timelie except within the existing timeline.</li>
+<li><strong>Defining a timeline interval</strong> This is initiated when a <em>crosshair</em> cursor is displayed. Clicking the mouse button and dragging either left or right will define a new interval. When the mouse button is released the interval becomes fully defined and the generators contained within it are highlighted. A defined timeline may be removed by clicking anywhere on the timeline except within the existing timeline.</li>
 <li><strong>Moving the timeline interval</strong> When the mouse is within the interval and the 'grab' icon is display. A left mouse click with a drag left or right will move the interval. Once the mouse is released the new position is finalized and the generators contained within it are highlighted.</li>
 <li><strong>Moving the start or end of the timeline interval</strong> When the mouse is moved over either the start or end of the timeline interval, an <em>ew-resize</em> cursor is displayed. A left mouse click with a drag left or right will move the selected end of the interval. Once the mouse is released the new end point is finalized and the generators contained within the interval are highlighted.</li>
 </ul>
@@ -765,8 +762,8 @@ There are five controls to the compressor:</p>
 <p>The frequencies of the equalizer are not adjustable, but the gains are. They may be varied from -15 to +15 by moving the gain slider. The default values for all filter gains is 0, which can be restored by clicking the equalizer reset button.</p>
 <p>The equalizer values may be reset to defaults by clicking the equalizer reset button.</p>
 <h1 id="previewing-recording-and-reporting">Previewing, Recording, and Reporting</h1>
-<p>The whole purpose of this application is to produce sound from the defined generators. This is accomplished using the Preview and Record buttons. The buttons are only active when there is at least one generator defined that can produce sound. When either <em>Preview</em> or <em>Record</em> is selected, a <em>Stop</em> button will appear allowing the review or record to be prematurely stopped.</p>
-<div class="note">*Note: When in preview mode all input functions are disabled, except the room volume, compressor, and equalizer until the preview is stopped or completed. When in record mode, a popup appears to show the progress of the recording. It may be stopped prematurely if desired. </div><br/>
+<p>The whole purpose of this application is to produce sound from the defined generators. This is accomplished using the Preview and Record menu options on the <em>Play</em> menu. The options are only active when there is at least one generator defined that can produce sound.</p>
+<div class="note">*Note: When in preview mode a Preview window is displayed, which disables all composition function except the room reverb, compressor, equalizer, and volume until the preview is stopped or completed. When in record mode, a popup appears to show the progress of the recording. It may be stopped prematurely if desired. </div><br/>
 <p>Generator selection occurs by evaluating some filters:</p>
 <ul>
 <li><strong>Timeline Interval</strong> If a timeline interval is defined, only the generators that are selected by the timeline will be previewed or recorded. The time of the preview or record is started at the start time of the earliest selected generator.</li>
@@ -784,10 +781,25 @@ There are five controls to the compressor:</p>
 <p>When the <em>Record</em> button is clicked, you will be prompted to provide a file name and location where the result audio file will be placed. The audio file may be either a WAV or a MP3 file. Once that has been identified, the selected generators are rendered and the wave file is written.</p>
 <p>A progress bar is displayed while the recording is being constructed.</p>
 <h2 id="previewing">Previewing</h2>
-<p>When the <em>Preview</em> button is clicked, the selected generators will begin to produce sound through the system sound drivers in realtime. As each generator becomes active, it will be highlighted indicating that is contributing to the overall sound at that time.</p>
+<p>When the <em>Preview</em> button is clicked, the selected generators will begin to produce sound through the system sound drivers in realtime. A Preview window is displayed so that the sound sources produced by the selected generators can be seen. Below is an example of a preview window when <em>Preview</em> is first selected.
+<img src="./images/PreviewWindow.png" alt="Preview Window">
+This window has three sections:</p>
+<ul>
+<li>
+<p>Header: The application logo, a set of buttons, the application name, version, and file, the left and right volume monitors, and the time line are displayed here. The initial set of buttons are <em><strong>Exit</strong></em> and <em><strong>Start</strong></em>. Exit will terminate the preview and return to either the main composition panel or the generator dialog, depending on how Preview was invoked. When Start is pressed, it is replaced by a <em><strong>Pause</strong></em> button. Pressing the Pause button will cause it to be replaced by a <em><strong>Resume</strong></em> button. Pressing the Resume button will resume the preview and display the Pause button again.</p>
+</li>
+<li>
+<p>Body: Up to three sections may appears in the body - Instruments, Percussions, and AudioFile. each section's scale is derived from the range of values that the notes of the sources can take. The lower left hand corner display the section name and the minimum value on the scale, while the upper left hand corner displays the maximum value of the scale. In teh case of the percussion section, the notes each correspond to a different percussion instrument as per Soundfont2 rules.</p>
+<p>Within each section the sources are displayed. The vertical location corresponds to its note value, while its horizontal extent is determined by its start time and duration. The color is such that the hue is based on the pan location, the saturation is based on its volume, and its lightness is based on whether or not it is current producing sound. See the figure below for a close up of a preview that has been paused with some sources currently producing sound.</p>
+<p><img src="./images/PreviewWindowZoom.png" alt="Zoom Preview"></p>
 <p>If a generator is previewed by selection of generator preview option, or generators are selected via the timeline interval, the generators' start times are moved such that the earliest start time is at zero. This avoids waiting until the generator would normal start before it is heard.</p>
-<p>When previewing, the current time of the soundtrack is shown by a moving <span style='color:red'>red</span> vertical line on the timeline. This line advances are time progresses.</p>
-<h1 id="reporting">Reporting</h1>
+<p>When previewing, the current time of the soundtrack is shown by a moving <span style='color:red'>red</span> vertical line on the timeline. This line advances are time progresses. The time line pans right to maintain the current time in the window.</p>
+</li>
+<li>
+<p>Footer: The number of total and active sources and generators are displayed in the footer along with the left and right channel spectra, and the room sound controls.  Any of the room sound controls may be modified during preview in order to hear their effect.</p>
+</li>
+</ul>
+<h2 id="reporting">Reporting</h2>
 <p>A report of the composition can be produced using the <strong>Report...</strong> button of the <strong>Generate</strong> menu. This report, in HTML format, provides the specific details of the file, all of its tracks, and all of its generators. The sources produced by each generator is expanded. This detail is provided for each generator, and then for all generators in start time sequence.</p>
 <h1 id="glossary">Glossary</h1>
 <p>The definition of many of the terms used in this manual can be found online, particularly at <a href="https://en.wikipedia.org/wiki/SoundFont">Wikipedia</a>.</p>
