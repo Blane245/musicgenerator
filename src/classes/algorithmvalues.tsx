@@ -1,20 +1,20 @@
 // the classes in this file provide the ability to use different generator
 // types for each of the sound parameters - note, speed, volume, and pan
 
-import { gaussianRandom } from "../utils/gaussianrandom";
 import {
   ALGORITHMTYPE,
-  EPS,
-  ConstantType,
   AutoregressiveType,
+  ConstantType,
+  EPS,
   MarkovianType,
   MARKOVSTATE,
   MODULATOR,
   ModulatorMap,
   OscillatorType,
   WienerType,
-} from "../types";
-import { getAttributeValue } from "../utils/xmlfunctions";
+} from "types";
+import { gaussianRandom } from "utils/gaussianrandom";
+import { getAttributeValue } from "utils/xmlfunctions";
 import RandomNumber from "./randomnumber";
 
 // the parent class for this collection holds the properties that are required

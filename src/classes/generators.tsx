@@ -1,19 +1,19 @@
-import { SoundFont2 } from "../soundfont2";
-import { Preset } from "../sfcomponents/types";
-import { presetNameToPreset } from "../sfcomponents/util";
+import { SoundFont2 } from "soundfont2";
+import { Preset } from "sfcomponents/types";
+import { presetNameToPreset } from "sfcomponents/util";
 import {
   Algorithm,
   ALGORITHMTYPE,
   GENERATORTYPE,
   SoundFontGenerators,
   SoundFontGeneratorsType,
-} from "../types";
-import { euclideanRhythm } from "../utils/euclidean-rhythm";
+} from "types";
+import { euclideanRhythm } from "utils/euclidean-rhythm";
 import {
   compressAndConvertToString,
   convertFromJsonAndDecompress,
-} from "../utils/gzip";
-import { getAttributeValue, getElementElement } from "../utils/xmlfunctions";
+} from "utils/gzip";
+import { getAttributeValue, getElementElement } from "utils/xmlfunctions";
 import {
   AutoregressiveValues,
   ConstantValues,

@@ -1,5 +1,5 @@
 import { ChangeEvent } from "react";
-import { MarkovianType } from "../types";
+import { MarkovianType } from "types";
 
 export type MarkovianPropertiesBoxProps = {
   name: string;

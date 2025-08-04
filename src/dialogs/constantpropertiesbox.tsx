@@ -1,5 +1,5 @@
 import { ChangeEvent } from "react";
-import { ConstantType } from "../types";
+import { ConstantType } from "types";
 
 export interface ConstantBoxProps {
   name: string;
@@ -28,8 +28,10 @@ export default function ConstantPropertiesBox(props: ConstantBoxProps) {
           onChange={handleChange}
           value={values.value}
         />
-        <span style={{ fontSize: "small" }}>&nbsp;{valueSuffix(values.value)}</span>
-          </div>
+        <span style={{ fontSize: "small" }}>
+          &nbsp;{valueSuffix(values.value)}
+        </span>
+      </div>
     </div>
   );
 }

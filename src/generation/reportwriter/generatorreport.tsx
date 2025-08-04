@@ -1,14 +1,14 @@
-import { ALGORITHMTYPE, GENERATORTYPE, GeneratorType } from "../../types";
-import { Algorithmic, AudioFile } from "../../classes/generators";
 import {
   AutoregressiveValues,
   ConstantValues,
   MarkovianValues,
   OscillatorValues,
   WienerValues,
-} from "../../classes/algorithmvalues";
+} from "classes/algorithmvalues";
+import CMGFile from "classes/cmgfile";
+import { Algorithmic, AudioFile } from "classes/generators";
+import { ALGORITHMTYPE, GENERATORTYPE, GeneratorType } from "types";
 import SourceReport from "./sourcereport";
-import CMGFile from "../../classes/cmgfile";
 
 export interface GeneratorReportProps {
   generator: GeneratorType;
@@ -22,27 +22,35 @@ export default function GeneratorReport(
 
   return (
     <>
-    <table>
-      <thead>
-        <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Start Time<br/>(sec)</th>
-        <th>Stop Time<br/>(sec)</th>
-        </tr>
-      </thead>
-      <tbody>
-      <td>{generator.name}</td>
-      <td>{generator.type}</td>
-      <td>{generator.startTime}</td>
-      <td>{generator.stopTime}</td>
-      </tbody>
-    </table>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>
+              Start Time
+              <br />
+              (sec)
+            </th>
+            <th>
+              Stop Time
+              <br />
+              (sec)
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <td>{generator.name}</td>
+          <td>{generator.type}</td>
+          <td>{generator.startTime}</td>
+          <td>{generator.stopTime}</td>
+        </tbody>
+      </table>
       {generator.type == GENERATORTYPE.Algorithmic ? (
-        <AlgorithmicReport generator={generator as Algorithmic}/>
+        <AlgorithmicReport generator={generator as Algorithmic} />
       ) : null}
       {generator.type == GENERATORTYPE.AudioFile ? (
-        <AudioFileReport generator={generator as AudioFile}/>
+        <AudioFileReport generator={generator as AudioFile} />
       ) : null}
       <SourceReport generator={generator} fileContents={fileContents} />
     </>
@@ -53,24 +61,38 @@ interface AlgorithmicReportProps {
 }
 
 function AlgorithmicReport(props: AlgorithmicReportProps): JSX.Element {
-  const { generator: g} = props;
+  const { generator: g } = props;
   return (
     <>
       <table>
         <thead>
           <tr>
-        <th> Soundfont File </th>
+            <th> Soundfont File </th>
             <th> Preset </th>
             <th> Looping </th>
             <th> Measure Length </th>
             <th> On Beats </th>
             <th> Notes in Octave </th>
-            <th> Noise Level<br/>(dB) </th>
+            <th>
+              {" "}
+              Noise Level
+              <br />
+              (dB){" "}
+            </th>
             <th> Notes in Octave </th>
             <th> Noise seed </th>
-            <th> Reverb Duration<br/>(sec) </th>
-            <th> Reverb Decay<br/> (sec)</th>
-            </tr>
+            <th>
+              {" "}
+              Reverb Duration
+              <br />
+              (sec){" "}
+            </th>
+            <th>
+              {" "}
+              Reverb Decay
+              <br /> (sec)
+            </th>
+          </tr>
         </thead>
         <tbody>
           <tr>
@@ -164,7 +186,7 @@ interface ConstantReportProps {
   values: ConstantValues;
 }
 function ConstantReport(props: ConstantReportProps): JSX.Element {
-  const {values: v} = props;
+  const { values: v } = props;
   return (
     <table>
       <thead>
@@ -178,13 +200,13 @@ function ConstantReport(props: ConstantReportProps): JSX.Element {
         </tr>
       </tbody>
     </table>
-  )
+  );
 }
 interface AutoregressiveReportProps {
   values: AutoregressiveValues;
 }
 function AutoregressiveReport(props: AutoregressiveReportProps): JSX.Element {
-  const {values: v} = props;
+  const { values: v } = props;
   return (
     <table>
       <thead>
@@ -208,7 +230,7 @@ function AutoregressiveReport(props: AutoregressiveReportProps): JSX.Element {
         </tr>
       </tbody>
     </table>
-  )
+  );
 }
 interface OscillatorReportProps {
   values: OscillatorValues;
@@ -254,59 +276,59 @@ function MarkovianReport(props: MarkovianReportProps): JSX.Element {
   const { values: v } = props;
   return (
     <>
-    <div className="container">
-      <div>
-      <table>
-        <thead>
-          <tr>
-            <th>Seed</th>
-            <th>Start</th>
-            <th>Lo</th>
-            <th>Hi</th>
-            <th>Step</th>
-          </tr>
-        </thead>
-        <tbody>
-          <td>{v.values.seed}</td>
-          <td>{v.values.startValue}</td>
-          <td>{v.values.range.lo}</td>
-          <td>{v.values.range.hi}</td>
-          <td>{v.values.range.step}</td>
-        </tbody>
-      </table>
-      </div>
-      <div>
-      <table>
-        <thead>
-          <tr>
-            <th>From/To</th>
-            <th>Same</th>
-            <th>Up</th>
-            <th>Down</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Same</td>
-            <td>{v.values.same.same}</td>
-            <td>{v.values.same.up}</td>
-            <td>{v.values.same.down}</td>
-          </tr>
-          <tr>
-            <td>Up</td>
-            <td>{v.values.up.same}</td>
-            <td>{v.values.up.up}</td>
-            <td>{v.values.up.down}</td>
-          </tr>
-          <tr>
-            <td>Down</td>
-            <td>{v.values.down.same}</td>
-            <td>{v.values.down.up}</td>
-            <td>{v.values.down.down}</td>
-          </tr>
-        </tbody>
-      </table>
-      </div>
+      <div className="container">
+        <div>
+          <table>
+            <thead>
+              <tr>
+                <th>Seed</th>
+                <th>Start</th>
+                <th>Lo</th>
+                <th>Hi</th>
+                <th>Step</th>
+              </tr>
+            </thead>
+            <tbody>
+              <td>{v.values.seed}</td>
+              <td>{v.values.startValue}</td>
+              <td>{v.values.range.lo}</td>
+              <td>{v.values.range.hi}</td>
+              <td>{v.values.range.step}</td>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <table>
+            <thead>
+              <tr>
+                <th>From/To</th>
+                <th>Same</th>
+                <th>Up</th>
+                <th>Down</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Same</td>
+                <td>{v.values.same.same}</td>
+                <td>{v.values.same.up}</td>
+                <td>{v.values.same.down}</td>
+              </tr>
+              <tr>
+                <td>Up</td>
+                <td>{v.values.up.same}</td>
+                <td>{v.values.up.up}</td>
+                <td>{v.values.up.down}</td>
+              </tr>
+              <tr>
+                <td>Down</td>
+                <td>{v.values.down.same}</td>
+                <td>{v.values.down.up}</td>
+                <td>{v.values.down.down}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </>
   );

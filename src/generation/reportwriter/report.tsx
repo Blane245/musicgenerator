@@ -1,14 +1,13 @@
-import CMGFile from "../../classes/cmgfile";
-import TrackReport from "./trackreport";
-import Track from "../../classes/track";
+import CMGFile from "classes/cmgfile";
+import Track from "classes/track";
 import SourceReport from "./sourcereport";
+import TrackReport from "./trackreport";
 
 export interface ReportProps {
   fileContents: CMGFile;
 }
 
 export default function Report({ fileContents }) {
-
   return (
     <html>
       <head>
@@ -193,40 +192,41 @@ td {
         <table>
           <thead>
             <tr>
-            <th>32 Hz</th>
-            <th>64 Hz</th>
-            <th>125 Hz</th>
-            <th>250 Hz</th>
-            <th>500 Hz</th>
-            <th>1K Hz</th>
-            <th>2K Hz</th>
-            <th>4K Hz</th>
-            <th>8K Hz</th>
-            <th>15K Hz</th>
+              <th>32 Hz</th>
+              <th>64 Hz</th>
+              <th>125 Hz</th>
+              <th>250 Hz</th>
+              <th>500 Hz</th>
+              <th>1K Hz</th>
+              <th>2K Hz</th>
+              <th>4K Hz</th>
+              <th>8K Hz</th>
+              <th>15K Hz</th>
             </tr>
           </thead>
           <tbody>
-          <td>{fileContents.equalizer.gains[0]}</td>
-          <td>{fileContents.equalizer.gains[1]}</td>
-          <td>{fileContents.equalizer.gains[2]}</td>
-          <td>{fileContents.equalizer.gains[3]}</td>
-          <td>{fileContents.equalizer.gains[4]}</td>
-          <td>{fileContents.equalizer.gains[5]}</td>
-          <td>{fileContents.equalizer.gains[6]}</td>
-          <td>{fileContents.equalizer.gains[7]}</td>
-          <td>{fileContents.equalizer.gains[8]}</td>
-          <td>{fileContents.equalizer.gains[9]}</td>
+            <td>{fileContents.equalizer.gains[0]}</td>
+            <td>{fileContents.equalizer.gains[1]}</td>
+            <td>{fileContents.equalizer.gains[2]}</td>
+            <td>{fileContents.equalizer.gains[3]}</td>
+            <td>{fileContents.equalizer.gains[4]}</td>
+            <td>{fileContents.equalizer.gains[5]}</td>
+            <td>{fileContents.equalizer.gains[6]}</td>
+            <td>{fileContents.equalizer.gains[7]}</td>
+            <td>{fileContents.equalizer.gains[8]}</td>
+            <td>{fileContents.equalizer.gains[9]}</td>
           </tbody>
         </table>
         <h3>Volume: {fileContents.volume.volume}</h3>
-        <hr/>
+        <hr />
         <h2>Tracks</h2>
-        {fileContents.tracks.map((t:Track)=> (<TrackReport track={t} fileContents={fileContents}/>))}
-        <hr/>
-        <SourceReport generator={undefined} fileContents={fileContents}/>
-        <hr/>
+        {fileContents.tracks.map((t: Track) => (
+          <TrackReport track={t} fileContents={fileContents} />
+        ))}
+        <hr />
+        <SourceReport generator={undefined} fileContents={fileContents} />
+        <hr />
       </div>
     </html>
   );
-};
-
+}

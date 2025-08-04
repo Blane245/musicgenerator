@@ -1,13 +1,13 @@
 // The file menu handles creating new files, opening existing ones,
 // saving current ones, and adding tracks to current ones
+import CMGFile from "classes/cmgfile";
+import { useCMGContext } from "cmgcontext";
 import { useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import CMGFile from "../classes/cmgfile";
-import { useCMGContext } from "../cmgcontext";
-import { newFile, setDirty } from "../utils/cmfiletransactions";
+import { SOUNDFONTLOCATIONOPTIONS } from "types";
+import { newFile, setDirty } from "utils/cmfiletransactions";
+import { getSFFileList } from "utils/getsffilelist";
 import { loadXML, writeFile } from "./filehandlers";
-import { getSFFileList } from "../utils/getsffilelist";
-import { SOUNDFONTLOCATIONOPTIONS } from "../types";
 
 export default function FileMenu() {
   const {

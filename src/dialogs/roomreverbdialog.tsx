@@ -1,7 +1,7 @@
 import { ChangeEvent, useEffect, useState } from "react";
-import Reverb from "../classes/reverb";
-import { useCMGContext } from "../cmgcontext";
-import { setReverb } from "../utils/cmfiletransactions";
+import Reverb from "classes/reverb";
+import { useCMGContext } from "cmgcontext";
+import { setReverb } from "utils/cmfiletransactions";
 
 export default function RoomReverbDialog() {
   const { setFileContents, fileContents } = useCMGContext();

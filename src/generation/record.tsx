@@ -17,15 +17,15 @@
 //
 // when all batches have completed or playing has stopped (in waitForCompletion)
 //  write the accumulated buffer to the recording file
+import Compressor from "classes/compressor";
+import Equalizer from "classes/equalizer";
+import Reverb from "classes/reverb";
+import Volume from "classes/volume";
+import { useCMGContext } from "cmgcontext";
 import { useEffect, useRef, useState } from "react";
-import Compressor from "../classes/compressor";
-import Equalizer from "../classes/equalizer";
-import Reverb from "../classes/reverb";
-import Volume from "../classes/volume";
-import { useCMGContext } from "../cmgcontext";
-import { GENERATIONMODE, GENERATORTYPE, RawSourceData } from "../types";
-import { bufferToMp3 } from "../utils/buffertomp3";
-import { bufferToWav } from "../utils/buffertowav";
+import { GENERATIONMODE, GENERATORTYPE, RawSourceData } from "types";
+import { bufferToMp3 } from "utils/buffertomp3";
+import { bufferToWav } from "utils/buffertowav";
 import { buildRoomNodes } from "./buildroomnodes";
 import { realizeSource } from "./realizesource";
 

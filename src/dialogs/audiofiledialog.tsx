@@ -1,6 +1,6 @@
+import { AudioFile } from "classes/generators";
 import { ChangeEvent, useEffect, useState } from "react";
-import { AudioFile } from "../classes/generators";
-import { precision } from "../sfcomponents/util";
+import { precision } from "sfcomponents/util";
 
 // provides the form fields and validators for the sfperiodic generator
 export interface AudioFileDialogProps {

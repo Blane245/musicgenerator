@@ -146,7 +146,7 @@ export function realizeSource(
       const gen = rawSourceData.gen as Algorithmic;
       if (gen.reverbDecay > 0 && gen.reverbDuration > 0) {
         gen.setContext(ctx);
-        gen.connect(vol, destination);
+        gen.connect(panner, destination);
       }
     }
     return {

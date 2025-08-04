@@ -1,5 +1,5 @@
 import { ChangeEvent } from "react";
-import { ModulatorAttributeData, MODULATOR } from "../types";
+import { MODULATOR, ModulatorAttributeData } from "types";
 
 type OscillatorProperitesBoxProps = {
   name: string;
@@ -18,8 +18,16 @@ type OscillatorProperitesBoxProps = {
 export default function OscillatorPropertiesBox(
   props: OscillatorProperitesBoxProps
 ): JSX.Element {
-  const { name, type, center, centerSuffix, frequency, amplitude, phase, handleChange } =
-    props;
+  const {
+    name,
+    type,
+    center,
+    centerSuffix,
+    frequency,
+    amplitude,
+    phase,
+    handleChange,
+  } = props;
   return (
     <div className="oscillator">
       <div className="typetitle">Modulator</div>
@@ -50,7 +58,9 @@ export default function OscillatorPropertiesBox(
           onChange={handleChange}
           value={center.value}
         />
-        <span style={{ fontSize: "small" }}>&nbsp;{centerSuffix(center.value)}</span>
+        <span style={{ fontSize: "small" }}>
+          &nbsp;{centerSuffix(center.value)}
+        </span>
       </div>
       <div className="frequency">
         <input

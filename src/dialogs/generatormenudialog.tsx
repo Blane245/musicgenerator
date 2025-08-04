@@ -1,12 +1,12 @@
+import Track from "classes/track";
+import { useCMGContext } from "cmgcontext";
 import { buildSources } from "generation/buildsources";
+import Generate from "generation/generate";
 import ReadyGenerate from "generation/readygenerate";
 import { useState } from "react";
-import Track from "../classes/track";
-import { useCMGContext } from "../cmgcontext";
-import Generate from "../generation/generate";
-import { GENERATIONMODE, GeneratorType } from "../types";
-import { flipGeneratorMute } from "../utils/cmfiletransactions";
-import setCursor from "../utils/setcursor";
+import { GENERATIONMODE, GeneratorType } from "types";
+import { flipGeneratorMute } from "utils/cmfiletransactions";
+import setCursor from "utils/setcursor";
 import GeneratorCopyMoveDialog from "./generatorcopymovedialog";
 import GeneratorDeleteDialog from "./generatordeletedialog";
 

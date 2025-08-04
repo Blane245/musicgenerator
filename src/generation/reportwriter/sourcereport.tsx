@@ -1,14 +1,14 @@
+import CMGFile from "classes/cmgfile";
+import { Algorithmic, AudioFile, Silent } from "classes/generators";
+import { buildSources } from "generation/buildsources";
+import ReadyGenerate from "generation/readygenerate";
+import { attenuate } from "sfcomponents/util";
 import {
   GENERATIONMODE,
   GENERATORTYPE,
   GeneratorType,
   RawSourceData,
 } from "../../types";
-import { Algorithmic, AudioFile, Silent } from "../../classes/generators";
-import { buildSources } from "../../generation/buildsources";
-import ReadyGenerate from "../../generation/readygenerate";
-import CMGFile from "../../classes/cmgfile";
-import { attenuate } from "../../sfcomponents/util";
 
 export interface SourceReportProps {
   generator: GeneratorType | undefined; // undefined if for all generators

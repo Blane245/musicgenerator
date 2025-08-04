@@ -342,3 +342,14 @@ export type ActiveSource = {
   vol: GainNode;
   stopTime: number;
 };
+
+export type SignalLevelsType = {
+  leftVolume: number;
+  rightVolume: number;
+  leftSpectrum: Uint8Array;
+  rightSpectrum: Uint8Array;
+}
+export const FFTSIZE: number = 512;
+export const MINDECIBELS: number = -90;
+export const MAXDECIBELS: number = -10;
+

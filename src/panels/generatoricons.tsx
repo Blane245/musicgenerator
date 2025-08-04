@@ -2,16 +2,16 @@
 // Handle icon positioning requests
 // Handle timeline and timeinterval changes
 // Menu functions are handled by the GeneratorMenu component
+import Track from "classes/track";
+import { useCMGContext } from "cmgcontext";
+import GeneratorMenuDialog from "dialogs/generatormenudialog";
 import { MouseEvent, useEffect, useState } from "react";
-import Track from "../classes/track";
-import { useCMGContext } from "../cmgcontext";
-import { GeneratorType, TimeLineScales } from "../types";
+import { GeneratorType, TimeLineScales } from "types";
 import {
   moveGeneratorBodyPosition,
   moveGeneratorTime,
-} from "../utils/cmfiletransactions";
-import GeneratorMenuDialog from "dialogs/generatormenudialog";
-import setCursor from "../utils/setcursor";
+} from "utils/cmfiletransactions";
+import setCursor from "utils/setcursor";
 
 export interface GeneratorIconProps {
   track: Track;

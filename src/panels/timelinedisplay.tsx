@@ -61,13 +61,13 @@ export default function TimeLineDisplay() {
       setTimeLine(newTimeLine);
       const newTimeTicks: TimeTicks | null = updateTimeTicks(newTimeLine);
       if (newTimeTicks) setTicks(newTimeTicks);
-    // console.log(
-    //   "update timeline and ticks on display change, timelineWidth, timelineHeight, newtimeline newticks",
-    //   timelineWidth,
-    //   timelineHeight,
-    //   newTimeLine,
-    //   newTimeTicks
-    // );
+      // console.log(
+      //   "update timeline and ticks on display change, timelineWidth, timelineHeight, newtimeline newticks",
+      //   timelineWidth,
+      //   timelineHeight,
+      //   newTimeLine,
+      //   newTimeTicks
+      // );
     }
   }, [timelineWidth, timelineHeight]);
 

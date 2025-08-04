@@ -1,18 +1,18 @@
 // provides CRUD for all types of generators
+import { Algorithmic, AudioFile, Silent } from "classes/generators";
+import Track from "classes/track";
+import { useCMGContext } from "cmgcontext";
+import { buildSources } from "generation/buildsources";
 import Generate from "generation/generate";
+import ReadyGenerate from "generation/readygenerate";
 import { ChangeEvent, FormEvent, MouseEvent, useEffect, useState } from "react";
-import { Algorithmic, AudioFile, Silent } from "../classes/generators";
-import Track from "../classes/track";
-import { useCMGContext } from "../cmgcontext";
-import { buildSources } from "../generation/buildsources";
-import ReadyGenerate from "../generation/readygenerate";
-import { SoundFontPool } from "../sfcomponents/soundfontpool";
-import { Preset } from "../sfcomponents/types";
-import { bankPresettoName, precision } from "../sfcomponents/util";
-import { SoundFont2 } from "../soundfont2";
-import { GENERATIONMODE, GeneratorType, GENERATORTYPE } from "../types";
-import { addGenerator, modifyGenerator } from "../utils/cmfiletransactions";
-import { getGeneratorUID } from "../utils/getgeneratoruid";
+import { SoundFontPool } from "sfcomponents/soundfontpool";
+import { Preset } from "sfcomponents/types";
+import { bankPresettoName, precision } from "sfcomponents/util";
+import { SoundFont2 } from "soundfont2";
+import { GENERATIONMODE, GeneratorType, GENERATORTYPE } from "types";
+import { addGenerator, modifyGenerator } from "utils/cmfiletransactions";
+import { getGeneratorUID } from "utils/getgeneratoruid";
 import GeneratorTypeForm from "./generatortypeform";
 
 // The icon starts at the generator's start time and ends at the generators endtime

@@ -1,7 +1,7 @@
+import Volume from "classes/volume";
+import { useCMGContext } from "cmgcontext";
 import { ChangeEvent, useEffect, useState } from "react";
-import Volume from "../classes/volume";
-import { useCMGContext } from "../cmgcontext";
-import { setVolume } from "../utils/cmfiletransactions";
+import { setVolume } from "utils/cmfiletransactions";
 
 export default function RoomVolumeDialog() {
   const { fileContents, setFileContents } = useCMGContext();
@@ -23,9 +23,7 @@ export default function RoomVolumeDialog() {
       <p className="title">{`Volume`}</p>
       <div className="sliders">
         <div className="slider" key={`roomvolume`}>
-          <span className="param">
-            {"dB"}
-          </span>
+          <span className="param">{"dB"}</span>
           <span className="param">{volumeData.volume.toString()}</span>
           <input
             type="range"

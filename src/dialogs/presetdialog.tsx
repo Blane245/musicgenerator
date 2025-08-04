@@ -1,10 +1,10 @@
+import { Algorithmic } from "classes/generators";
 import { ChangeEvent, useState } from "react";
-import { Algorithmic } from "../classes/generators";
-import { getPresetNote } from "../sfcomponents/loadpresetnote";
-import { Preset } from "../sfcomponents/types";
-import { bankPresettoName, presetNameToPreset } from "../sfcomponents/util";
-import { SoundFont2 } from "../soundfont2";
-import { RawSourceData } from "../types";
+import { getPresetNote } from "sfcomponents/loadpresetnote";
+import { Preset } from "sfcomponents/types";
+import { bankPresettoName, presetNameToPreset } from "sfcomponents/util";
+import { SoundFont2 } from "soundfont2";
+import { RawSourceData } from "types";
 export interface PresetDialogProps {
   generator: Algorithmic;
   setViewPreset: Function;

@@ -1,0 +1,138 @@
+classDiagram
+Home -- useCMGProvider
+Home -- Header
+Home -- Body
+Home -- Footer
+Home -- Preview
+Home -- GeneratorDialog
+
+Header -- FileMenu
+Header -- EditMenu
+Header -- PlayMenu
+Header -- HelpMenu
+Header -- TimeLineControls
+Header -- TimeLineDisplay
+
+FileMenu -- CMGFile
+
+CMGFile -- Volume
+CMGFile -- Reverb
+CMGFile -- Compressor
+CMGFile -- Equalizer
+CMGFile -- Track
+
+Track -- Silent
+Track -- Algorithmic
+Track -- AudioFile
+
+Algorithmic -- AutoregressiveValues
+Algorithmic -- ConstantValues
+Algorithmic -- MarkovianValues
+Algorithmic -- OscillatorValues
+Algorithmic -- WienerValues
+Algorithmic -- SoundFont2
+
+AutoregressiveValues -- RandomNumber
+MarkovianValues -- RandomNumber
+WienerValues -- RandomNumber
+
+EditMenu -- Track
+
+PlayMenu -- Report
+PlayMenu -- Record
+
+Report -- Track
+Report -- SourceReport
+Report -- TrackReport
+
+SourceReport -- Algorithmic
+SourceReport -- AudioFile
+SourceReport -- Silent
+
+TrackReport -- Track
+TrackReport -- GeneratorReport
+
+GeneratorReport -- CMGFile
+GeneratorReport -- Algorithmic
+GeneratorReport -- AudioFile
+GeneratorReport -- AutoregressiveValues
+GeneratorReport -- ConstantValues
+GeneratorReport -- MarkovianValues
+GeneratorReport -- OscillatorValues
+GeneratorReport -- WienerValues
+
+Record -- Compressor
+Record -- Equalizer
+Record -- Reverb
+Record -- Volume
+
+HelpMenu -- MidiFrequencyDialog
+
+TimeLineControls -- TimeLine
+TimeLineDisplay -- TimeLine
+
+Body -- TracksDisplay
+
+TracksDisplay -- Track
+TracksDisplay -- TrackControls
+TracksDisplay -- GeneratorIcons
+
+TrackControls -- Track
+
+GeneratorIcons -- Track
+GeneratorIcons -- GeneratorMenuDialog
+
+GeneratorMenuDialog -- Track
+GeneratorMenuDialog -- Generate
+GeneratorMenuDialog -- GenerateCopyMoveDialog
+GeneratorMenuDialog -- GeneratorDeleteDialog
+
+Generate -- Preview
+Generate -- Record
+
+Preview -- Algorithmic
+Preview -- SignalLevel
+Preview -- TimeLine
+Preview -- RoomReverbDialog
+Preview -- RoomCompressorDialog
+Preview -- RoomEqualizerDialog
+Preview -- RoomVolumeDialog
+
+RoomReverbDialog -- Reverb
+RoomCompressorDialog -- Compressor
+RoomEqualizerDialog -- Equalizer
+RoomVolumeDialog -- Volume
+
+Footer -- RoomReverbDialog
+Footer -- RoomCompressorDialog
+Footer -- RoomEqualizerDialog
+Footer -- RoomVolumeDialog
+
+GeneratorDialog -- Algorithmic
+GeneratorDialog -- AudioFile
+GeneratorDialog -- Silent
+GeneratorDialog -- Track
+GeneratorDialog -- GeneratorTypeForm
+
+GeneratorTypeForm -- Algorithmic
+GeneratorTypeForm -- AudioFile
+GeneratorTypeForm -- AlgorithmicDialog
+GeneratorTypeForm -- AudioFileDialog
+
+AlgorithmicDialog -- Algorithmic
+AlgorithmicDialog -- ConstantValues
+AlgorithmicDialog -- AutoregressiveValues
+AlgorithmicDialog -- MarkovianValues
+AlgorithmicDialog -- OscillatorValues
+AlgorithmicDialog -- WienerValues
+AlgorithmicDialog -- AutoregressivePropertiesBox
+AlgorithmicDialog -- ConstantPropertiesBox
+AlgorithmicDialog -- MarkovianPropertiesBox
+AlgorithmicDialog -- OscillatorPropertiesBox
+AlgorithmicDialog -- WienerPropertiesBox
+AlgorithmicDialog -- PresetDialog
+AlgorithmicDialog -- MidiFrequencyDialog
+
+PresetDialog -- Algorithmic
+
+AudioFileDialog -- AudioFile

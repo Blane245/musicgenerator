@@ -1,6 +1,8 @@
 // Display and interact with a track's controls,
 // including delete, rename, mute, solo, move up, move down
 // and add generator
+import Track from "classes/track";
+import { useCMGContext } from "cmgcontext";
 import { ChangeEvent, FormEvent, MouseEvent, useState } from "react";
 import {
   AiFillCaretDown,
@@ -12,15 +14,13 @@ import {
 import { CgRename } from "react-icons/cg";
 import { IoPerson, IoPersonOutline } from "react-icons/io5";
 import { RiAiGenerate } from "react-icons/ri";
-import Track from "../classes/track";
-import { useCMGContext } from "../cmgcontext";
-import { GENERATORTYPE } from "../types";
+import { GENERATORTYPE } from "types";
 import {
   deleteTrack,
   flipTrackAttribute,
   moveTrack,
   renameTrack,
-} from "../utils/cmfiletransactions";
+} from "utils/cmfiletransactions";
 
 export interface TrackControlsProps {
   tracks: Track[];

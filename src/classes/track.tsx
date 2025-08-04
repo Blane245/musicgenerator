@@ -1,5 +1,5 @@
-import { GENERATORTYPE, GeneratorType } from "../types";
-import { getAttributeValue, getElementElement } from "../utils/xmlfunctions";
+import { GENERATORTYPE, GeneratorType } from "types";
+import { getAttributeValue, getElementElement } from "utils/xmlfunctions";
 import { Algorithmic, AudioFile, Silent } from "./generators";
 export default class Track {
   name: string;

@@ -21,7 +21,8 @@ import {
   RawSourceData,
   SOUNDFONTLOCATIONOPTIONS,
   TimelineInterval,
-  EditGenerator
+  EditGenerator,
+  SignalLevelsType
 } from "./types";
 
 // the elements of this application that are used at many levels
@@ -96,8 +97,8 @@ interface CMGContextType {
   setGeneratorsPlaying: Dispatch<SetStateAction<GeneratorType[]>>;
   recordFormat: string;
   setRecordFormat: Dispatch<SetStateAction<string>>;
-  signalLevels: { left: number; right: number };
-  setSignalLevels: Dispatch<SetStateAction<{ left: number; right: number }>>;
+  signalLevels: SignalLevelsType;
+  setSignalLevels: Dispatch<SetStateAction<SignalLevelsType>>;
   // generatorType: GENERATORTYPE;
   // setGeneratorType: Dispatch<SetStateAction<GENERATORTYPE>>;
 }
@@ -151,10 +152,8 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     []
   );
   const [recordFormat, setRecordFormat] = useState<string>("mp3");
-  const [signalLevels, setSignalLevels] = useState<{
-    left: number;
-    right: number;
-  }>({ left: -90, right: -90 });
+  const [signalLevels, setSignalLevels] = useState<SignalLevelsType> (
+  { leftVolume: -90, rightVolume: -90, leftSpectrum: new Uint8Array(0), rightSpectrum: new Uint8Array(0) });
   // const [generatorType, setGeneratorType] = useState<GENERATORTYPE>(
   //   GENERATORTYPE.Silent
   // );

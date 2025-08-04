@@ -1,7 +1,7 @@
 // this class represets the time line
 // it has a start time, and extent, and a format for major and minor ticks
 // it can be zoomed in or out
-import { TimeLineScales } from "../types";
+import { TimeLineScales } from "types";
 
 export default class TimeLine {
   startTime: number; //

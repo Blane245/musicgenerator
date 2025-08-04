@@ -1,18 +1,18 @@
 // display the time line based on the current start time and
 // zoom level
 // handle time line interval editing
+import TimeLine from "classes/timeline";
+import { useCMGContext } from "cmgcontext";
 import {
   CiCircleChevLeft,
   CiCircleChevRight,
   CiZoomIn,
   CiZoomOut,
 } from "react-icons/ci";
-import TimeLine from "../classes/timeline";
-import { useCMGContext } from "../cmgcontext";
-import { TimeLineScales } from "../types";
+import { TimeLineScales } from "types";
 // render the timeline and control the timeline interval
 export default function TimeLineControls() {
-  const { timeLine, setTimeLine, playing } = useCMGContext();
+  const { timeLine, setTimeLine } = useCMGContext();
 
   const handleZoomIn = (): void => {
     setTimeLine((c: TimeLine | null) => {
@@ -63,7 +63,9 @@ export default function TimeLineControls() {
       </button>
       <button
         style={{ fontSize: "15px" }}
-        disabled={!timeLine || timeLine.currentZoomLevel == TimeLineScales.length - 1}
+        disabled={
+          !timeLine || timeLine.currentZoomLevel == TimeLineScales.length - 1
+        }
         onClick={handleZoomOut}
       >
         <CiZoomOut />

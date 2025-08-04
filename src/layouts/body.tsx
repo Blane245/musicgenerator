@@ -1,8 +1,8 @@
 // the body of the CMG page. It contains the track
 // information is a scrollable
-import { useEffect, useState } from "react";
-import { useCMGContext } from "../cmgcontext";
-import TracksDisplay from "../panels/tracksdisplay";
+import { useCMGContext } from "cmgcontext";
+import TracksDisplay from "panels/tracksdisplay";
+import { useEffect } from "react";
 export default function Body() {
   const { bodyHeight, displayWidth, setStatus } = useCMGContext();
 
@@ -11,8 +11,8 @@ export default function Body() {
   }, []);
 
   return (
-      <div className="body" style={{width: displayWidth, height: bodyHeight}}>
-        <TracksDisplay />
-      </div>
+    <div className="body" style={{ width: displayWidth, height: bodyHeight }}>
+      <TracksDisplay />
+    </div>
   );
 }

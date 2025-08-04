@@ -1,5 +1,5 @@
 import { ChangeEvent } from "react";
-import { WienerType } from "../types";
+import { WienerType } from "types";
 
 export interface AutoregressivePropertiesBoxProps {
   name: string;
@@ -12,7 +12,9 @@ export interface AutoregressivePropertiesBoxProps {
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
 }
-export default function AutoregressivePropertiesBox(props: AutoregressivePropertiesBoxProps) {
+export default function AutoregressivePropertiesBox(
+  props: AutoregressivePropertiesBoxProps
+) {
   const { name, values, min, max, step, valueSuffix, handleChange } = props;
   return (
     <div className="autoregressive">
@@ -33,8 +35,10 @@ export default function AutoregressivePropertiesBox(props: AutoregressivePropert
           onChange={handleChange}
           value={values.initialValue}
         />
-        <span style={{ fontSize: "small" }}>&nbsp;{valueSuffix(values.initialValue)}</span>
-          </div>
+        <span style={{ fontSize: "small" }}>
+          &nbsp;{valueSuffix(values.initialValue)}
+        </span>
+      </div>
       <div className="seed">
         <input
           name={name.concat(".seed")}
@@ -75,7 +79,9 @@ export default function AutoregressivePropertiesBox(props: AutoregressivePropert
           onChange={handleChange}
           value={values.lo}
         />
-        <span style={{ fontSize: "small" }}>&nbsp;{valueSuffix(values.lo)}</span>
+        <span style={{ fontSize: "small" }}>
+          &nbsp;{valueSuffix(values.lo)}
+        </span>
       </div>
       <div className="hi">
         <input
@@ -87,7 +93,9 @@ export default function AutoregressivePropertiesBox(props: AutoregressivePropert
           onChange={handleChange}
           value={values.hi}
         />
-        <span style={{ fontSize: "small" }}>&nbsp;{valueSuffix(values.hi)}</span>
+        <span style={{ fontSize: "small" }}>
+          &nbsp;{valueSuffix(values.hi)}
+        </span>
       </div>
     </div>
   );

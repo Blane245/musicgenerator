@@ -1,7 +1,7 @@
+import Equalizer from "classes/equalizer";
+import { useCMGContext } from "cmgcontext";
 import { ChangeEvent, useEffect, useState } from "react";
-import Equalizer from "../classes/equalizer";
-import { useCMGContext } from "../cmgcontext";
-import { setEqualizer } from "../utils/cmfiletransactions";
+import { setEqualizer } from "utils/cmfiletransactions";
 
 export default function RoomEqualizerDialog() {
   const { fileContents, setFileContents } = useCMGContext();

@@ -1,4 +1,4 @@
-import { getAttributeValue, getElementElement } from "../utils/xmlfunctions";
+import { getAttributeValue, getElementElement } from "utils/xmlfunctions";
 
 export default class Reverb {
   name: string;
@@ -34,7 +34,7 @@ export default class Reverb {
       this.effect = this.context.createConvolver();
       this.effect.buffer = impulse;
       // console.log(`convolution effect ${this.effect.buffer?.length}`);
-    } 
+    }
     // else console.log(`no reverb effect`);
   }
 

@@ -38,10 +38,12 @@ import { realizeSource } from "generation/realizesource";
 import { useEffect, useRef, useState } from "react";
 import {
   ActiveSource,
+  FFTSIZE,
   GENERATIONMODE,
   GeneratorType,
   GENERATORTYPE,
   RawSourceData,
+  SignalLevelsType,
   TimeLineScales,
   TimeTicks,
 } from "types";
@@ -75,10 +77,6 @@ type SourceToDrawingSectionEntry = {
   sourceIndex: number;
   sectionIndex: number;
 };
-type SignalLevels = {
-  left: number;
-  right: number;
-};
 
 // this component uses very few state variables as all subcomponents are
 // highly integrated
@@ -103,9 +101,8 @@ export default function Preview(params: PreviewProps): JSX.Element {
     footerHeight,
     timeLine,
   } = useCMGContext();
-  const [pendingSourceData, setPendingSourceData] = useState<RawSourceData[]>(
-    []
-  );
+  const spectrumWidth: number = 200;
+  const pendingSourceData = useRef<RawSourceData[]>([]);
   const [drawingSections, setDrawingSections] = useState<DrawingSection[]>([]);
   const [sourceToDrawingSectionMap, setSourceToDrawingSectionMap] = useState<
     SourceToDrawingSectionEntry[]
@@ -121,17 +118,19 @@ export default function Preview(params: PreviewProps): JSX.Element {
   );
   const activeSources = useRef<ActiveSource[]>([]);
   const [activeSourcesCount, setActiveSourcesCount] = useState<number>(0);
-  const [signalLevels, setSignalLevels] = useState<SignalLevels>({
-    left: -90,
-    right: -90,
+  const [signalLevels, setSignalLevels] = useState<SignalLevelsType>({
+    leftVolume: -90,
+    rightVolume: -90,
+    leftSpectrum: new Uint8Array(0),
+    rightSpectrum: new Uint8Array(0),
   });
 
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
-  let concentrator: GainNode | null = null;
-
+  const [concentrator, setConcentrator] = useState<GainNode | null>(null);
   const [drawing, setDrawing] = useState<HTMLElement | null>(null);
   const [running, setRunning] = useState<boolean>(false);
   const [isPaused, setIsPaused] = useState<boolean>(false);
+  const paused = useRef<boolean>(false);
   const [timeProgress, setTimeProgress] = useState<number>(-1);
   const [ticks, setTicks] = useState<TimeTicks>({
     majorTickCount: 0,
@@ -143,8 +142,8 @@ export default function Preview(params: PreviewProps): JSX.Element {
     scaleExtent: 0,
     labelFormat: "",
   });
-  let reflectionDelay: number = 0;
-  let analyzer: SignalLevel | null = null;
+  const [reflectionDelay, setReflectionDelay] = useState<number>(0);
+  const [analyser, setAnalyser] = useState<SignalLevel | null>(null);
 
   const HUELEFT: number = 0;
   const HUERIGHT: number = 270;
@@ -188,8 +187,10 @@ export default function Preview(params: PreviewProps): JSX.Element {
   // prepare the drawing when new sources arrive
   useEffect(() => {
     console.log(
-      "initializing preview layout with new data for new sources or previewtimeline pan right",
-      sourceData.length
+      "initializing preview layout with new source data",
+      sourceData.length,
+      "offsetTime",
+      offsetTime
     );
 
     // initialize the timeprogress value
@@ -215,7 +216,14 @@ export default function Preview(params: PreviewProps): JSX.Element {
     setSourceToDrawingSectionMap(newMap);
 
     // initialize the pending source data
-    setPendingSourceData(sourceData);
+    pendingSourceData.current = [...sourceData];
+
+    // initilize the audiocontext and prepare the room
+    // establish the context and realize the room effects
+    const ctx: AudioContext = new AudioContext();
+    ctx.suspend();
+    setAudioContext(ctx);
+    initializeRoomEffects(ctx);
   }, [sourceData]);
 
   // draw the sources when a new previewtimeline and a drawing exists
@@ -223,7 +231,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
     if (previewTimeline.current && drawing) {
       console.log("previewtimeline or drawing update ");
       DrawSources(
-        pendingSourceData,
+        pendingSourceData.current,
         drawing,
         previewTimeline.current,
         timeProgress,
@@ -242,9 +250,10 @@ export default function Preview(params: PreviewProps): JSX.Element {
     tickId && clearTimeout(tickId);
     playingId && clearTimeout(playingId);
     signalId && clearTimeout(signalId);
-    if (audioContext) {
+    if (audioContext && audioContext.state != "closed") {
       audioContext.close();
     }
+    setAudioContext(null);
   }
 
   // either start the previewer or exit
@@ -254,24 +263,22 @@ export default function Preview(params: PreviewProps): JSX.Element {
       return;
     }
 
+    if (!audioContext) {
+      console.log("starting preview wihtout an audiocontext");
+      return;
+    }
     setRunning(true);
-    console.log("previewing new sourcedata at offsettime", offsetTime);
-
-    // establish the context and realize the room effects
-    const ctx: AudioContext = new AudioContext();
-    setAudioContext(ctx);
-    ctx.suspend;
-    initializeRoomEffects(ctx);
+    console.log("previewing new sourcedata at time", audioContext.currentTime);
 
     // the real time scheduler
-    ctx.resume();
-    scheduler(ctx);
     // time progress updated every second
-    tick(ctx);
+    tick();
     // generator highlighter running every 1/2 seconds
-    playingGenerators(ctx);
+    playingGenerators();
     // volume level monitor running every 1/2 second
-    volumeMonitor(ctx);
+    volumeMonitor();
+    audioContext.resume();
+    scheduler();
   }
 
   // on a pause, stop the timers
@@ -281,30 +288,31 @@ export default function Preview(params: PreviewProps): JSX.Element {
       console.log("no audio context on pause request");
       return;
     }
-    // if (paused.current) {
     if (isPaused) {
       console.log(
         "exit from pause at",
         audioContext.currentTime,
         "activeSource count",
-        activeSources.current.length
+        activeSources.current.length,
+        "pendingSourceData count",
+        pendingSourceData.current.length
       );
-      // paused.current = false;
       setIsPaused(false);
+      paused.current = false;
+      tick();
+      playingGenerators();
+      volumeMonitor();
       audioContext.resume();
-      scheduler(audioContext);
-      tick(audioContext);
-      playingGenerators(audioContext);
-      volumeMonitor(audioContext);
+      scheduler();
     } else {
       console.log("enter pause at", audioContext.currentTime);
-      // paused.current = true;
       setIsPaused(true);
+      paused.current = true;
       audioContext.suspend();
-      timerID && clearTimeout(timerID);
-      tickId && clearTimeout(tickId);
-      playingId && clearTimeout(playingId);
-      signalId && clearTimeout(signalId);
+      scheduler();
+      tick();
+      playingGenerators();
+      volumeMonitor();
     }
   }
 
@@ -348,7 +356,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
           <input
             type="range"
             readOnly
-            value={signalLevels.left}
+            value={signalLevels.leftVolume}
             min={-90}
             max={0}
           ></input>
@@ -357,7 +365,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
           <input
             type="range"
             readOnly
-            value={signalLevels.right}
+            value={signalLevels.rightVolume}
             min={-90}
             max={0}
           ></input>
@@ -423,7 +431,50 @@ export default function Preview(params: PreviewProps): JSX.Element {
               </tr>
             </tbody>
           </table>
+          <div>
+            {`Active Generators: ${activeGenerators.current.toString()}`}
+          </div>
         </div>
+        {signalLevels ? (
+          <>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width={spectrumWidth}
+              height={footerHeight}
+              viewBox={`0 0 ${spectrumWidth} ${footerHeight}`}
+              className="leftspectrum"
+            >
+              <rect
+                id="leftspectrum"
+                x={0}
+                y={0}
+                width={spectrumWidth}
+                height={footerHeight}
+                fill="white"
+                stroke="black"
+              />
+              {DrawSpectrum(signalLevels.leftSpectrum)}
+            </svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width={spectrumWidth}
+              height={footerHeight}
+              viewBox={`0 0 ${spectrumWidth} ${footerHeight}`}
+              className="rightspectrum"
+            >
+              <rect
+                id="rightspectrum"
+                x={0}
+                y={0}
+                width={spectrumWidth}
+                height={footerHeight}
+                fill="white"
+                stroke="black"
+              />
+              {DrawSpectrum(signalLevels.rightSpectrum)}
+            </svg>
+          </>
+        ) : null}
         <RoomVolumeDialog />
         <RoomReverbDialog />
         <RoomCompressorDialog />
@@ -439,7 +490,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
     } else if (s.gen.type == GENERATORTYPE.Algorithmic) {
       const gen: Algorithmic = s.gen as Algorithmic;
       if (gen.preset != undefined) {
-        if (gen.preset?.header.bank == 128) {
+        if (gen.preset.header.bank == 128) {
           return SectionType.Percussion;
         } else return SectionType.Instrument;
       } else return SectionType.None;
@@ -544,6 +595,8 @@ export default function Preview(params: PreviewProps): JSX.Element {
             //   iSection
             // );
           }
+          break;
+        case SectionType.None:
           break;
         default: {
           console.log(
@@ -745,26 +798,33 @@ export default function Preview(params: PreviewProps): JSX.Element {
         "http://www.w3.org/2000/svg",
         "text"
       );
-      sectionNameElement.textContent = section.type + "s (" + (section.loValue - 5).toFixed(0).toString() + ")";
+      sectionNameElement.textContent =
+        section.type +
+        "s (" +
+        (section.loValue - 5).toFixed(0).toString() +
+        ")";
       sectionNameElement.setAttribute("x", "2");
       sectionNameElement.setAttribute(
         "y",
         (section.height + section.verticalOffset - 5).toString()
       );
-      sectionNameElement.style = "font-size: 12pt; fill: black;";
+      sectionNameElement.setAttribute("font-size", "12pt");
+      sectionNameElement.setAttribute("fill", "black");
       drawing.appendChild(sectionNameElement);
       const sectionHiElement: SVGTextElement = document.createElementNS(
         "http://www.w3.org/2000/svg",
         "text"
       );
-      sectionHiElement.textContent = "(" + (section.hiValue + 5).toFixed(0).toString() + ")";
+      sectionHiElement.textContent =
+        "(" + (section.hiValue + 5).toFixed(0).toString() + ")";
       sectionHiElement.setAttribute("x", "2");
       sectionHiElement.setAttribute(
-        "y",(section.verticalOffset + 15).toString()
+        "y",
+        (section.verticalOffset + 15).toString()
       );
-      sectionHiElement.style = "font-size: 12pt; fill: black;";
+      sectionNameElement.setAttribute("font-size", "12pt");
+      sectionNameElement.setAttribute("fill", "black");
       drawing.appendChild(sectionHiElement);
-
     });
 
     // get the time line start and end points. time progress should be between
@@ -904,33 +964,57 @@ export default function Preview(params: PreviewProps): JSX.Element {
     sourceElement.setAttribute("stroke", stroke);
   }
 
-  function scheduler(ctx: AudioContext): void {
+  function scheduler(): void {
     // if (paused.current) {
-    if (isPaused) {
+    if (paused.current) {
       console.log("scheduler paused");
       timerID && clearTimeout(timerID);
       return;
     }
-    let triggerUpdate: boolean = false;
+    if (!audioContext) return;
+    // check if done or stopped
+    const done: boolean = audioContext.currentTime > playbackLength;
+    if (!done && playing.current) {
+      timerID = window.setTimeout(scheduler, LOOKAHEAD);
+    } else {
+      let endTime: number = playbackLength;
+      if (audioContext.state !== "closed") {
+        endTime = audioContext.currentTime;
+        audioContext.suspend();
+        audioContext.close();
+      }
+      console.log("completed preview at ", endTime);
+      onExit();
+      return;
+    }
+
+    if (!audioContext || !concentrator) return;
     let newActiveSources: ActiveSource[] = [...activeSources.current];
     if (playing.current && previewTimeline.current) {
-      // eliminate any pending sources whose stoptime is
-      const aheadTime = ctx.currentTime + SCHEDULEAHEADTIME;
+      const aheadTime = audioContext.currentTime + SCHEDULEAHEADTIME;
       let nStarted: number = 0;
       let nStopped: number = 0;
       while (nextTime < aheadTime) {
         // console.log(activeSources.length,'active sources at time ', nextTime);
-        pendingSourceData.forEach((s: RawSourceData) => {
-          if (!ctx || !concentrator) return;
-
+        // assuming the pending sorces are sorted in starttime order ...
+        let stopSearch: boolean = false;
+        for (
+          let iPending: number = 0;
+          iPending < pendingSourceData.current.length && !stopSearch;
+          iPending++
+        ) {
+          const s = pendingSourceData.current[iPending];
+          // pendingSourceData.current.forEach((s: RawSourceData) => {
           // add any sources that are ready to start and are not already started
+          // if (!s.source.started)
+          //   console.log('source candidate for starting at time',aheadTime,s.source.startTime, s.source.duration);
           if (
             aheadTime >= s.source.startTime &&
             aheadTime <= s.source.startTime + s.source.duration &&
             !s.source.started
           ) {
             const activeSource: ActiveSource = realizeSource(
-              ctx,
+              audioContext,
               s,
               s.index,
               concentrator
@@ -946,21 +1030,21 @@ export default function Preview(params: PreviewProps): JSX.Element {
             newActiveSources.push(activeSource);
             s.source.started = true;
             redrawSource(s);
-            triggerUpdate = true;
             nStarted++;
           }
-        });
+          if (s.source.startTime > aheadTime) stopSearch = true;
+          // });
+        }
 
         // disconnect all of the nodes that have finished playing
         // and delete them
         // don't turn them off until the early reflections stop
         // console.log('activesources count', newActiveSources);
         newActiveSources = newActiveSources.filter((activeSource) => {
-          if (!ctx) return false;
-
-          const thisSource: RawSourceData | undefined = pendingSourceData.find(
-            (s) => s.index == activeSource.sourceIndex
-          );
+          const thisSource: RawSourceData | undefined =
+            pendingSourceData.current.find(
+              (s) => s.index == activeSource.sourceIndex
+            );
           if (thisSource == undefined) {
             console.log(
               "could not find active source with index",
@@ -974,17 +1058,22 @@ export default function Preview(params: PreviewProps): JSX.Element {
               ? 0
               : reflectionDelay / 1000 + thisSource.source.duration);
           // console.log('source stop candidate stoptime, audioContext', stopTime, ctx.currentTime);
-          if (ctx.currentTime > stopTime) {
+          if (audioContext.currentTime > stopTime) {
             if (activeSource.gen.type != GENERATORTYPE.Silent) {
               activeSource.source.disconnect();
               activeSource.vol.disconnect();
               activeSource.panner.disconnect();
             }
             thisSource.source.started = false;
-            // console.log("source stopped at", stopTime);
-            redrawSource(thisSource);
+            if (activeSource.gen.type != GENERATORTYPE.Silent)
+              redrawSource(thisSource);
+            // console.log(
+            //   "source",
+            //   activeSource.sourceIndex,
+            //   "stopped at",
+            //   stopTime
+            // );
             nStopped++;
-            triggerUpdate = true;
             return false;
           } else return true;
         });
@@ -992,38 +1081,36 @@ export default function Preview(params: PreviewProps): JSX.Element {
         nextTime += SCHEDULEAHEADTIME;
       }
       // notify the display engine of the sources currently playing
-      if (triggerUpdate) {
-        // console.log('activesources has changed', newActiveSources.length);
+      if (nStarted > 0 || nStopped > 0) {
+        console.log(
+          "activesources has changed",
+          newActiveSources.length,
+          "pendingSources",
+          pendingSourceData.current.length
+        );
         activeSources.current = newActiveSources;
         setActiveSourcesCount(newActiveSources.length);
       }
     }
-    // check if done or stopped
-    const done: boolean = ctx.currentTime > playbackLength;
-    if (!done && playing.current) {
-      timerID = window.setTimeout(scheduler, LOOKAHEAD, ctx);
-    } else {
-      if (ctx.state !== "closed") {
-        ctx.suspend();
-        ctx.close();
-      }
-      console.log("completed preview at ", playbackLength);
-      onExit();
-    }
   }
   // time progress clicker for updating the time progress widget
-  function tick(ctx: AudioContext): void {
-    // if (paused.current) {
-    if (isPaused) {
+  function tick(): void {
+    if (paused.current) {
       console.log("tick paused");
       tickId && clearTimeout(tickId);
       return;
     }
-    if (playing.current && ctx.currentTime <= playbackLength) {
-      // console.log("tick at", ctx.currentTime);
-      tickId = window.setTimeout(tick, tickInterval, ctx);
+    if (!audioContext) {
+      console.log("no audio context for tick");
+      return;
+    }
+    if (playing.current && audioContext.currentTime <= playbackLength) {
+      console.log("tick at", audioContext.currentTime);
+      tickId = window.setTimeout(tick, tickInterval);
       if (previewTimeline.current) {
-        const newTime: number = Math.round(ctx.currentTime + offsetTime);
+        const newTime: number = Math.round(
+          audioContext.currentTime + offsetTime
+        );
         const ptl: TimeLine | null = updateTimeline(newTime);
         if (!ptl) return;
         const timelineStart = ptl.startTime;
@@ -1032,18 +1119,17 @@ export default function Preview(params: PreviewProps): JSX.Element {
         // trim the pending sources
         if (ptl.startTime != previewTimeline.current.startTime) {
           previewTimeline.current = ptl;
-          const newSourceData: RawSourceData[] = pendingSourceData.filter(
-            (source) => {
+          const newSourceData: RawSourceData[] =
+            pendingSourceData.current.filter((source) => {
               const sourceStopTime: number = source.source.stopTime;
               return sourceStopTime >= timelineStart;
-            }
-          );
-          if (newSourceData.length != pendingSourceData.length) {
+            });
+          if (newSourceData.length != pendingSourceData.current.length) {
             // console.log(
             //   "remaining sources after trimming",
             //   newSourceData.length
             // );
-            setPendingSourceData(newSourceData);
+            pendingSourceData.current = newSourceData;
           }
           if (drawing)
             DrawSources(
@@ -1064,16 +1150,15 @@ export default function Preview(params: PreviewProps): JSX.Element {
   }
 
   // determine which generators are currently playing
-  function playingGenerators(ctx: AudioContext) {
-    // if (paused.current) {
-    if (isPaused) {
+  function playingGenerators() {
+    if (paused.current) {
       console.log("playingGenerators paused");
       playingId && clearTimeout(playingId);
       return;
     }
-
+    if (!audioContext) return;
     // update the generators playing list
-    if (playing.current && ctx.currentTime <= playbackLength) {
+    if (playing.current && audioContext.currentTime <= playbackLength) {
       const newActiveGenerators: string[] = [];
       // console.log(
       //   "checking",
@@ -1087,8 +1172,8 @@ export default function Preview(params: PreviewProps): JSX.Element {
           0
         ) {
           if (
-            ctx.currentTime >= s.gen.startTime &&
-            ctx.currentTime <= s.gen.stopTime
+            audioContext.currentTime >= s.gen.startTime &&
+            audioContext.currentTime <= s.gen.stopTime
           ) {
             // console.log(
             //   "active generator at time",
@@ -1102,31 +1187,43 @@ export default function Preview(params: PreviewProps): JSX.Element {
         activeGenerators.current = newActiveGenerators;
         setActiveGeneratorsCount(newActiveGenerators.length);
       });
-      playingId = window.setTimeout(playingGenerators, 500, ctx);
+      playingId = window.setTimeout(playingGenerators, 500);
     } else {
       playingId && clearTimeout(playingId);
     }
   }
 
-  function volumeMonitor(ctx: AudioContext) {
-    // if (paused.current) {
-    if (isPaused) {
+  // get the volume and spectra once a second
+  function volumeMonitor() {
+    if (paused.current) {
       console.log("volumeMonitor paused");
       signalId && clearTimeout(signalId);
       return;
     }
-
-    if (playing.current && ctx.currentTime <= playbackLength) {
-      // get the current volume levels
+    if (!audioContext) return;
+    if (playing.current && audioContext.currentTime <= playbackLength) {
+      // get the current volume and spectrum levels
       setSignalLevels(() => {
-        if (!analyzer) return { left: -90, right: -90 };
-        const { left, right } = analyzer.getValues();
-        return { left, right };
+        if (!analyser)
+          return {
+            leftVolume: -90,
+            rightVolume: -90,
+            leftSpectrum: new Uint8Array(0),
+            rightSpectrum: new Uint8Array(0),
+          };
+        const { leftVolume, rightVolume, leftSpectrum, rightSpectrum } =
+          analyser.getValues();
+        return { leftVolume, rightVolume, leftSpectrum, rightSpectrum };
       });
-      signalId = window.setTimeout(volumeMonitor, 500, ctx);
+      signalId = window.setTimeout(volumeMonitor, 1000);
     } else {
       signalId && clearTimeout(signalId);
-      setSignalLevels({ left: -90, right: -90 });
+      setSignalLevels({
+        leftVolume: -90,
+        rightVolume: -90,
+        leftSpectrum: new Uint8Array(0),
+        rightSpectrum: new Uint8Array(0),
+      });
     }
   }
 
@@ -1209,31 +1306,64 @@ export default function Preview(params: PreviewProps): JSX.Element {
     fileContents.volume.setContext(ctx);
     fileContents.reverb.setContext(ctx);
 
-    concentrator = buildRoomNodes(
-      fileContents.compressor,
-      fileContents.equalizer,
-      fileContents.volume,
-      fileContents.reverb,
-      ctx
+    setConcentrator(
+      buildRoomNodes(
+        fileContents.compressor,
+        fileContents.equalizer,
+        fileContents.volume,
+        fileContents.reverb,
+        ctx
+      )
     );
-    // determine the amount of time that the early reflections start
-    if (fileContents.reverb.leftWall.gain > 0)
-      reflectionDelay = Math.max(
-        reflectionDelay,
-        fileContents.reverb.leftWall.delay
-      );
-    if (fileContents.reverb.rightWall.gain > 0)
-      reflectionDelay = Math.max(
-        reflectionDelay,
-        fileContents.reverb.rightWall.delay
-      );
-    if (fileContents.reverb.ceiling.gain > 0)
-      reflectionDelay = Math.max(
-        reflectionDelay,
-        fileContents.reverb.ceiling.delay
-      );
 
-    // connect to the signal analyzer to the output of the volume (assumed to be last)
-    analyzer = new SignalLevel(ctx, fileContents.volume.effect as GainNode);
+    // determine the amount of time that the reverberation causes
+    const theDelay: number = Math.max(
+      0,
+      fileContents.reverb.leftWall.delay,
+      fileContents.reverb.rightWall.delay,
+      fileContents.reverb.ceiling.delay
+    );
+    setReflectionDelay(theDelay);
+    console.log("reflection delay is", theDelay);
+    // connect to the signal analyser to the output of the volume (assumed to be last)
+    setAnalyser(new SignalLevel(ctx, fileContents.volume.effect as GainNode));
+  }
+  function DrawSpectrum(spectrum: Uint8Array): JSX.Element[] {
+    if (!spectrum || spectrum.length == 0) return [<></>];
+    // console.log('drawing spectrum, length', spectrum.length, 'time', audioContext?.currentTime);
+    const result: JSX.Element[] = [];
+    const minFrequency = frequencyForBinIndex(0);
+    const maxFrequency = frequencyForBinIndex(spectrum.length - 1);
+    let d: string = `M 0 ${spectrumToPixels(spectrum[0], spectrum[0])} `;
+    for (let i = 1; i < spectrum.length; i++) {
+      const frequency = frequencyForBinIndex(i);
+      d += `L ${frequencyToPixels(
+        frequency,
+        minFrequency,
+        maxFrequency,
+        0,
+        spectrumWidth
+      )} ${spectrumToPixels(spectrum[i], spectrum[0])} `;
+    }
+    result.push(<path d={d} stroke="red" fill="none" />);
+    return result;
+    function frequencyToPixels(
+      value: number,
+      min: number,
+      max: number,
+      start: number,
+      width: number
+    ) {
+      return start + ((value - min) * width) / (max - min);
+    }
+    function spectrumToPixels(value: number, v0: number) {
+      return footerHeight * (1.0 - (value - v0 + 256) / 512);
+    }
+
+    function frequencyForBinIndex(index: number) {
+      if (!audioContext || !analyser) return 10000;
+      return Math.log10(((index + 1) * audioContext.sampleRate) / FFTSIZE / 2);
+      // return (((index + 1) * audioContext.sampleRate) / FFTSIZE / 2);
+    }
   }
 }

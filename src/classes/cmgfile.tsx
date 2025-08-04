@@ -1,5 +1,5 @@
-import { GeneratorType } from "../types";
-import { getAttributeValue } from "../utils/xmlfunctions";
+import { GeneratorType } from "types";
+import { getAttributeValue } from "utils/xmlfunctions";
 import Compressor from "./compressor";
 import Equalizer from "./equalizer";
 import Reverb from "./reverb";

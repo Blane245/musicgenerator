@@ -246,11 +246,9 @@ body {
       justify-self: right;
       max-width: 300px;
       width: 100%;
-      height: 170px;
+      height: 180px;
       justify-content: center;
       align-items: center;
-      margin-right: 10px;
-      margin-bottom: 10px;
       outline: solid #5c75b8;
 
       .title {
@@ -301,11 +299,9 @@ body {
       justify-self: right;
       max-width: 300px;
       width: 100%;
-      height: 170px;
+      height: 180px;
       justify-content: center;
       align-items: center;
-      margin-right: 10px;
-      margin-bottom: 10px;
       outline: solid #5c75b8;
       cursor: inherit;
 
@@ -359,11 +355,9 @@ body {
       justify-self: right;
       max-width: 300px;
       width: 100%;
-      height: 170px;
+      height: 180px;
       justify-content: center;
       align-items: center;
-      margin-right: 10px;
-      margin-bottom: 10px;
       outline: solid #5c75b8;
       cursor: inherit;
 
@@ -417,11 +411,9 @@ body {
       justify-self: right;
       max-width: 300px;
       width: 100%;
-      height: 170px;
+      height: 180px;
       justify-content: center;
       align-items: center;
-      margin-right: 10px;
-      margin-bottom: 10px;
       outline: solid #5c75b8;
       cursor: inherit;
 
@@ -945,10 +937,16 @@ div.algorithmic-table {
   .footer {
     grid-area: footer;
     display: grid;
-    grid-template-columns: 1fr 300px 200px 300px 40px;
-    grid-template-areas: "status reverb compressor equalizer volume";
+    grid-template-columns: 1fr 200px 200px 300px 200px 300px 40px;
+    grid-template-areas: "status leftSpectrum rightSpectrum reverb compressor equalizer volume";
     .status {
-      grid-area: "status";
+      grid-area: status;
+    }
+    .leftSpectrum {
+      grid-area: leftSpectrum;
+    }
+    .rightSpectrum {
+      grid-area: rightSpectrum;
     }
     .compressor {
       display: block;
@@ -956,11 +954,9 @@ div.algorithmic-table {
       justify-self: right;
       max-width: 300px;
       width: 100%;
-      height: 170px;
+      height: 180px;
       justify-content: center;
       align-items: center;
-      margin-right: 10px;
-      margin-bottom: 10px;
       outline: solid #5c75b8;
 
       .title {
@@ -1011,11 +1007,9 @@ div.algorithmic-table {
       justify-self: right;
       max-width: 300px;
       width: 100%;
-      height: 170px;
+      height: 180px;
       justify-content: center;
       align-items: center;
-      margin-right: 10px;
-      margin-bottom: 10px;
       outline: solid #5c75b8;
       cursor: inherit;
 
@@ -1069,11 +1063,9 @@ div.algorithmic-table {
       justify-self: right;
       max-width: 300px;
       width: 100%;
-      height: 170px;
+      height: 180px;
       justify-content: center;
       align-items: center;
-      margin-right: 10px;
-      margin-bottom: 10px;
       outline: solid #5c75b8;
       cursor: inherit;
 
@@ -1127,11 +1119,9 @@ div.algorithmic-table {
       justify-self: right;
       max-width: 300px;
       width: 100%;
-      height: 170px;
+      height: 180px;
       justify-content: center;
       align-items: center;
-      margin-right: 10px;
-      margin-bottom: 10px;
       outline: solid #5c75b8;
       cursor: inherit;
 

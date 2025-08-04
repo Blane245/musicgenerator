@@ -1,5 +1,7 @@
 // turn the sound generators into a preview or recording based on
 // which generators are selected and which mode is selected
+import { useCMGContext } from "cmgcontext";
+import Preview from "layouts/preview";
 import { useEffect, useState } from "react";
 import {
   GENERATIONMODE,
@@ -7,8 +9,6 @@ import {
   RawSourceData,
   SAMPLERATE,
 } from "types";
-import { useCMGContext } from "../cmgcontext";
-import Preview from "../layouts/preview";
 import { buildSources } from "./buildsources";
 import ReadyGenerate from "./readygenerate";
 import Record from "./record";

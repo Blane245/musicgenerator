@@ -1,20 +1,20 @@
 // The file menu handles creating new files, opening existing ones,
 // saving current ones, and adding tracks to current ones
-import { FormEvent, useEffect, useState } from "react";
-import Track from "../classes/track";
-import { useCMGContext } from "../cmgcontext";
-import { addTrack, setFileComment } from "../utils/cmfiletransactions";
-import { getTrackUID } from "../utils/gettrackuid";
-import {
-  GeneratorType,
-  GENERATORTYPE,
-  SFFILELOCATIONITEM,
-  SFLOCALURIITEM,
-  SFSERVERURIITEM,
-  SOUNDFONTLOCATIONOPTIONS,
-} from "../types";
-import { Algorithmic } from "../classes/generators";
-import { getSFFileList } from "../utils/getsffilelist";
+// import { Algorithmic } from "classes/generators";
+import Track from "classes/track";
+import { useCMGContext } from "cmgcontext";
+import { useState } from "react";
+import { addTrack, setFileComment } from "utils/cmfiletransactions";
+import { getTrackUID } from "utils/gettrackuid";
+// import {
+//   GeneratorType,
+//   GENERATORTYPE,
+//   SFFILELOCATIONITEM,
+//   SFLOCALURIITEM,
+//   SFSERVERURIITEM,
+//   SOUNDFONTLOCATIONOPTIONS,
+// } from "../types";
+// import { getSFFileList } from "../utils/getsffilelist";
 
 export default function EditMenu() {
   const {
@@ -23,26 +23,26 @@ export default function EditMenu() {
     setStatus,
     setRecordFormat,
     playing,
-    SFFileList,
-    setSFFileList,
-    SFFileLocation,
-    setSFFileLocation,
-    SFLocalURI,
-    setSFLocalURI,
-    SFServerURI,
-    setSFServerURI,
+    // SFFileList,
+    // setSFFileList,
+    // SFFileLocation,
+    // setSFFileLocation,
+    // SFLocalURI,
+    // setSFLocalURI,
+    // SFServerURI,
+    // setSFServerURI,
   } = useCMGContext();
   const [comment, setComment] = useState<string>("");
   const [commentModal, setCommentModal] = useState<boolean>(false);
-  const [preferencesModal, setPreferencesModal] = useState<boolean>(false);
-  const [errorMsgs, setErrorMsgs] = useState<string[]>([]);
-  const [newLocation, setNewLocation] = useState<SOUNDFONTLOCATIONOPTIONS>(
-    SOUNDFONTLOCATIONOPTIONS.Server
-  );
+  // const [preferencesModal, setPreferencesModal] = useState<boolean>(false);
+  // const [errorMsgs, setErrorMsgs] = useState<string[]>([]);
+  // const [newLocation, setNewLocation] = useState<SOUNDFONTLOCATIONOPTIONS>(
+  //   SOUNDFONTLOCATIONOPTIONS.Server
+  // );
 
-  useEffect(() => {
-    setNewLocation(SFFileLocation);
-  }, [SFFileLocation]);
+  // useEffect(() => {
+  //   setNewLocation(SFFileLocation);
+  // }, [SFFileLocation]);
   // edit the CMG file's comment
   function handleEditComment() {
     setCommentModal(true);
@@ -76,64 +76,64 @@ export default function EditMenu() {
     setStatus(`Record format set to ${format}`);
   }
 
-  function handleEditPreferences() {
-    setPreferencesModal(true);
-  }
+  // function handleEditPreferences() {
+  //   setPreferencesModal(true);
+  // }
 
-  function handlePreferencesSubmit(event: FormEvent<Element>): void {
-    event.preventDefault();
+  // function handlePreferencesSubmit(event: FormEvent<Element>): void {
+  //   event.preventDefault();
 
-    // get the new SF file list
-    const location: SOUNDFONTLOCATIONOPTIONS = newLocation;
-    const uri: string =
-      location == SOUNDFONTLOCATIONOPTIONS.Local
-        ? event.target["SFLocalURI"].value
-        : event.target["SFServerURI"].value;
-    getSFFileList(
-      // location,
-      uri,
-      setSFFileList,
-      setStatus
-    );
+  //   // get the new SF file list
+  //   const location: SOUNDFONTLOCATIONOPTIONS = newLocation;
+  //   const uri: string =
+  //     location == SOUNDFONTLOCATIONOPTIONS.Local
+  //       ? event.target["SFLocalURI"].value
+  //       : event.target["SFServerURI"].value;
+  //   getSFFileList(
+  //     // location,
+  //     uri,
+  //     setSFFileList,
+  //     setStatus
+  //   );
 
-    const msgs: string[] = [];
-    // check all current algorithmic generators to see if the selected
-    // file is in this list
-    fileContents.tracks.forEach((t) => {
-      t.generators.forEach((g: GeneratorType) => {
-        if (g.type == GENERATORTYPE.Algorithmic) {
-          if (SFFileList.indexOf((g as Algorithmic).soundFontFile) < 0) {
-            msgs.push(
-              `Generator ${g.name} is using '${
-                (g as Algorithmic).soundFontFile
-              }' which is not in that location `
-            );
-          }
-        }
-      });
-    });
+  //   const msgs: string[] = [];
+  //   // check all current algorithmic generators to see if the selected
+  //   // file is in this list
+  //   fileContents.tracks.forEach((t) => {
+  //     t.generators.forEach((g: GeneratorType) => {
+  //       if (g.type == GENERATORTYPE.Algorithmic) {
+  //         if (SFFileList.indexOf((g as Algorithmic).soundFontFile) < 0) {
+  //           msgs.push(
+  //             `Generator ${g.name} is using '${
+  //               (g as Algorithmic).soundFontFile
+  //             }' which is not in that location `
+  //           );
+  //         }
+  //       }
+  //     });
+  //   });
 
-    if (msgs.length == 0) {
-      // update the react hooks and local storage
-      setSFFileLocation(newLocation);
-      setSFLocalURI(event.target["SFLocalURI"].value);
-      setSFServerURI(event.target["SFServerURI"].value);
-      window.localStorage.setItem(SFFILELOCATIONITEM, newLocation);
-      window.localStorage.setItem(
-        SFLOCALURIITEM,
-        event.target["SFLocalURI"].value
-      );
-      window.localStorage.setItem(
-        SFSERVERURIITEM,
-        event.target["SFServerURI"].value
-      );
-      // disable the preferences modal
-      setErrorMsgs([]);
-      setPreferencesModal(false);
-    }
-    // errors occurred
-    else setErrorMsgs(msgs);
-  }
+  //   if (msgs.length == 0) {
+  //     // update the react hooks and local storage
+  //     setSFFileLocation(newLocation);
+  //     setSFLocalURI(event.target["SFLocalURI"].value);
+  //     setSFServerURI(event.target["SFServerURI"].value);
+  //     window.localStorage.setItem(SFFILELOCATIONITEM, newLocation);
+  //     window.localStorage.setItem(
+  //       SFLOCALURIITEM,
+  //       event.target["SFLocalURI"].value
+  //     );
+  //     window.localStorage.setItem(
+  //       SFSERVERURIITEM,
+  //       event.target["SFServerURI"].value
+  //     );
+  //     // disable the preferences modal
+  //     setErrorMsgs([]);
+  //     setPreferencesModal(false);
+  //   }
+  //   // errors occurred
+  //   else setErrorMsgs(msgs);
+  // }
   function handleMenuSelect(action: string) {
     if (playing.current) return;
     switch (action) {
@@ -149,9 +149,9 @@ export default function EditMenu() {
       case "wav":
         handleRecordFormat("wav");
         break;
-      case "preferences":
-        handleEditPreferences();
-        break;
+      // case "preferences":
+      //   handleEditPreferences();
+      //   break;
       default:
         break;
     }
@@ -172,12 +172,12 @@ export default function EditMenu() {
             <div className="dItem" onClick={() => handleMenuSelect("comment")}>
               Edit Comment...
             </div>
-            <div
+            {/* <div
               className="dItem"
               onClick={() => handleMenuSelect("preferences")}
             >
               Edit Preferences...
-            </div>
+            </div> */}
             <div className="dItem" id="link1">
               Record Format
               <i className="fa fa-caret-down"></i>
@@ -216,7 +216,7 @@ export default function EditMenu() {
           </div>
         </div>
       ) : null}
-      {preferencesModal ? (
+      {/* {preferencesModal ? (
         <div className="modal-content">
           <div className="modal-header">
             <h2> Edit Preferences'</h2>
@@ -304,7 +304,7 @@ export default function EditMenu() {
             ))}
           </div>
         </div>
-      ) : null}
+      ) : null} */}
     </>
   );
 }

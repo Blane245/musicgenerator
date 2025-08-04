@@ -1,7 +1,7 @@
+import Compressor from "classes/compressor";
+import { useCMGContext } from "cmgcontext";
 import { ChangeEvent, useEffect, useState } from "react";
-import Compressor from "../classes/compressor";
-import { useCMGContext } from "../cmgcontext";
-import { setCompressor } from "../utils/cmfiletransactions";
+import { setCompressor } from "utils/cmfiletransactions";
 
 export default function RoomCompressorDialog() {
   const { setFileContents, fileContents } = useCMGContext();

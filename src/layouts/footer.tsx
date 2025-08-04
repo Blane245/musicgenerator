@@ -7,7 +7,7 @@ import RoomVolumeDialog from "dialogs/roomvolumedialog";
 
 // the footer will contain the equalizer
 export default function Footer() {
-  const { status} = useCMGContext();
+  const { status } = useCMGContext();
 
   return (
     <div className="footer">

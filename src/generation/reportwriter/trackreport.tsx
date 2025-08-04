@@ -1,7 +1,7 @@
-import { GeneratorType } from "../../types";
-import Track from "../../classes/track";
+import CMGFile from "classes/cmgfile";
+import Track from "classes/track";
+import { GeneratorType } from "types";
 import GeneratorReport from "./generatorreport";
-import CMGFile from "../../classes/cmgfile";
 
 export interface TrackReportProps {
   track: Track;

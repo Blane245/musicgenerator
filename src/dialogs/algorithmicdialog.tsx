@@ -1,23 +1,23 @@
-import { ChangeEvent, useEffect, useState } from "react";
 import {
   AutoregressiveValues,
   ConstantValues,
   MarkovianValues,
   OscillatorValues,
   WienerValues,
-} from "../classes/algorithmvalues";
-import { Algorithmic } from "../classes/generators";
-import { useCMGContext } from "../cmgcontext";
-import { bankPresettoName, toNote } from "../sfcomponents/util";
-import { ALGORITHMTYPE, SOUNDFONTLOCATIONOPTIONS } from "../types";
-import { getSFFileList } from "../utils/getsffilelist";
+} from "classes/algorithmvalues";
+import { Algorithmic } from "classes/generators";
+import { useCMGContext } from "cmgcontext";
+import { ChangeEvent, useEffect, useState } from "react";
+import { bankPresettoName, toNote } from "sfcomponents/util";
+import { ALGORITHMTYPE, SOUNDFONTLOCATIONOPTIONS } from "types";
+import { getSFFileList } from "utils/getsffilelist";
+import AutoregressivePropertiesBox from "./autoregresivepropertiesbox";
+import ConstantPropertiesBox from "./constantpropertiesbox";
 import MarkovianPropertiesBox from "./markovianpropertiesbox";
+import MidiFrequencyDialog from "./midifrequencydialog";
 import OscillatorPropertiesBox from "./oscillatorpropertiesbox";
 import PresetDialog from "./presetdialog";
 import WienerPropertiesBox from "./wienerpropertiesbox";
-import MidiFrequencyDialog from "./midifrequencydialog";
-import ConstantPropertiesBox from "./constantpropertiesbox";
-import AutoregressivePropertiesBox from "./autoregresivepropertiesbox";
 
 // provides the form fields and validators for the algorithmic generator
 
@@ -274,7 +274,7 @@ export default function AlgorithmicDialog(
                 value: (formData.noteP as OscillatorValues).values.frequency,
                 lo: 0,
                 hi: 1000000,
-                step: .001,
+                step: 0.001,
                 suffix: "(mHz)",
               }}
               amplitude={{
@@ -303,7 +303,7 @@ export default function AlgorithmicDialog(
                 if (value < 0) return "";
                 else return " ".concat(toNote(value));
               }}
-              stepSuffix={()=> "Midi"}
+              stepSuffix={() => "Midi"}
               min={0}
               max={127}
               step={0.1}
@@ -320,7 +320,6 @@ export default function AlgorithmicDialog(
               max={127}
               step={0.001}
               valueSuffix={(value: number) => toNote(value)}
-
             />
           ) : null}
           {formData.noteP &&
@@ -333,7 +332,6 @@ export default function AlgorithmicDialog(
               max={127}
               step={0.001}
               valueSuffix={(value: number) => toNote(value)}
-
             />
           ) : null}
           {formData.noteP &&
@@ -346,7 +344,6 @@ export default function AlgorithmicDialog(
               max={127}
               step={0.001}
               valueSuffix={(value: number) => toNote(value)}
-
             />
           ) : null}
         </div>
@@ -421,7 +418,7 @@ export default function AlgorithmicDialog(
               valueSuffix={() => {
                 return "";
               }}
-              stepSuffix={()=>"BPM"}
+              stepSuffix={() => "BPM"}
               values={(formData.speedP as MarkovianValues).values}
               min={1}
               max={1000}
@@ -451,7 +448,6 @@ export default function AlgorithmicDialog(
               max={1000}
               step={1}
               valueSuffix={() => "BPM"}
-
             />
           ) : null}
           {formData.speedP &&
@@ -464,7 +460,6 @@ export default function AlgorithmicDialog(
               max={1000}
               step={0.001}
               valueSuffix={() => "BPM"}
-
             />
           ) : null}
         </div>
@@ -539,7 +534,7 @@ export default function AlgorithmicDialog(
               valueSuffix={() => {
                 return "";
               }}
-              stepSuffix={()=>"dB"}
+              stepSuffix={() => "dB"}
               values={(formData.volumeP as MarkovianValues).values}
               min={-50}
               max={50}
@@ -569,7 +564,6 @@ export default function AlgorithmicDialog(
               max={50}
               step={1}
               valueSuffix={() => "dB"}
-
             />
           ) : null}
           {formData.volumeP &&
@@ -582,7 +576,6 @@ export default function AlgorithmicDialog(
               max={50}
               step={1}
               valueSuffix={() => "dB"}
-
             />
           ) : null}
         </div>
@@ -655,7 +648,7 @@ export default function AlgorithmicDialog(
               valueSuffix={() => {
                 return "";
               }}
-              stepSuffix={()=>"[-1,+]"}
+              stepSuffix={() => "[-1,+]"}
               values={(formData.panP as MarkovianValues).values}
               min={-1}
               max={1}
