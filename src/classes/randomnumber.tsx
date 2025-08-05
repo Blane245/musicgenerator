@@ -49,8 +49,8 @@ export default class RandomNumber {
       c = (c + t) | 0;
       this.#seed[0] = a;
       this.#seed[1] = b;
-      this.#seed[3] = c;
-      this.#seed[4] = d;
+      this.#seed[2] = c;
+      this.#seed[3] = d;
       return (t >>> 0) / 4294967296;
     }
   }

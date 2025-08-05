@@ -289,14 +289,13 @@ export class AutoregressiveValues extends AlgorithmValues {
         return;
     }
   }
-  override getCurrentValue(_time: number): number {
+  override getCurrentValue(time: number): number {
+    if (time == 0) return this.values.initialValue;
     const epsilon: number = (this.values.rn.rand() - 0.5) * this.values.sigma;
-    // const result:number = this.values.currentValue + this.values.initialValue;
-    let newValue: number = this.values.currentValue * this.values.alpha + epsilon;
-    if (newValue + this.values.initialValue > this.values.hi ||
-      newValue + this.values.initialValue < this.values.lo)
-      newValue = this.values.currentValue * this.values.alpha - epsilon;
-    newValue = newValue + this.values.initialValue;
+    let newValue: number = (this.values.currentValue - this.values.initialValue) * this.values.alpha + epsilon + this.values.initialValue;
+    if (newValue > this.values.hi ||
+      newValue < this.values.lo)
+      newValue = (this.values.currentValue - this.values.initialValue) * this.values.alpha - epsilon + this.values.initialValue;
     newValue = Math.max(Math.min(newValue, this.values.hi), this.values.lo);
     this.values.currentValue = newValue;
     return newValue;
@@ -395,6 +394,7 @@ export class MarkovianValues extends AlgorithmValues {
     switch (name) {
       case "startValue":
         this.values.startValue = parseFloat(value);
+        this.values.currentValue = this.values.startValue;
         return;
       case "seed":
         this.values.seed = value;

@@ -341,9 +341,9 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                 name="startTime"
                 type="number"
                 min={0}
-                step={0.1}
+                step={0.01}
                 onChange={handleChange}
-                value={precision(formData.startTime, 1)}
+                value={precision(formData.startTime, 2)}
               />
               <span> (sec) </span>
             </label>
@@ -353,9 +353,9 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                 name="stopTime"
                 type="number"
                 min={0}
-                step={0.1}
+                step={0.01}
                 onChange={handleChange}
-                value={precision(formData.stopTime, 1)}
+                value={precision(formData.stopTime, 2)}
               />
               <span> (sec) </span>
             </label>

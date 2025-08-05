@@ -9,10 +9,7 @@
     - watch that pause/resume working properly and that the preview always starts at the proper place.
 - the general user flute preset cannot play faster than 180 BPM. It generates silence above that speed. must be something about the attack, sustain, or release. At 200BPM, the repeat rate is 300ms. The flute at midi 72, and velocity of 63, the attack, sustain, and release are 4.8ms, 952ms, and 250ms respectively. There is no delay, hold, or decay.
 
-#4.0.0 Release notes
-- implemented graphical display for preview, including spectra
-- refactored generator icons as it was getting quite large
-- repairs to time interval processing and display
-- implemented zero duration delay, attack, hold, decay, release
-- repaired add generator menu and generator icon menu scrolling
-- disabled all functions except stop recording and preview when playing
+#4.0.1 Updates
+- fixed error in random number genertor
+- correct autoregressive current value calculator
+- step changes to start and stop time in generator dialog

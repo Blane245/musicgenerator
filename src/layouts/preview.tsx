@@ -147,7 +147,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
 
   const HUELEFT: number = 0;
   const HUERIGHT: number = 270;
-  const SATURATIONLO: number = 50;
+  const SATURATIONLO: number = 20;
   const SATURATIONHI: number = 100;
   const LIGHTNESSLO: number = 40;
   const LIGHTNESSHI: number = 60;
