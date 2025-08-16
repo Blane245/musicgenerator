@@ -23,7 +23,7 @@ export default function GeneratorCopyMoveDialog(props: GeneratorCopyMoveProps) {
   function onCancel() {
     setDialogVisible(false);
     setStatus("");
-    setMenuVisible(false);
+    setMenuVisible(null);
   }
   function onChange(event: ChangeEvent<HTMLSelectElement>) {
     setSelectedTrackName(event?.target.value);
@@ -32,7 +32,7 @@ export default function GeneratorCopyMoveDialog(props: GeneratorCopyMoveProps) {
     event.preventDefault();
     event.stopPropagation();
     setDialogVisible(false);
-    setMenuVisible(false);
+    setMenuVisible(null);
     // handle move or copy
     const targetTrack: Track | undefined = fileContents.tracks.find(
       (t) => t.name == selectedTrackName

@@ -7,17 +7,19 @@ import { MouseEvent, useEffect, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import {
   DEFAULTLOCALSFURI,
-  DEFAULTSERVERSFURI,
+  DEFAULTRECORDFORMAT,
   GENERATIONMODE,
   MouseLocation,
-  SFFILELOCATIONITEM,
-  SFLOCALURIITEM,
-  SFSERVERURIITEM,
-  SOUNDFONTLOCATIONOPTIONS,
+  RECENTCMGDIRECTORY,
+  RECENTFILES,
+  RECENTRECORDDIRECTORY,
+  RECORDFORMAT,
+  SFFILELOCATION,
 } from "types";
 import setCursor from "utils/setcursor";
 import { useCMGContext } from "../cmgcontext";
 import "./home.css";
+import { getDirectoryList } from "utils/getdirectorylist";
 export default function Home() {
   const {
     setScreenHeight,
@@ -34,18 +36,24 @@ export default function Home() {
     setFooterHeight,
     setBodyHeight,
     setVerticalScrollWidth,
+    setSFLocalDirectory,
+    setSFFileList,
+    SFFileList,
+    setRecordFormat,
+    setRecentFiles,
+    setRecentCMGDirectory,
+    setRecentRecordDirectory,
     editGeneratorData,
     generatorDialogVisible,
     mouseDown,
     setMouseLocation,
-    setSFLocalURI,
-    setSFServerURI,
     playing,
     mode,
     setMode,
     playbackLength,
     offsetTime,
     sourceData,
+    setStatus,
   } = useCMGContext();
 
   // set up the the layout and handle screen size changes
@@ -126,30 +134,63 @@ export default function Home() {
   }, []);
   // get the soundfont file location from local storage at startup
   // default to server
+  // localstorage items
+  // record format - 'recordFormat' (default 'mp3')
+  // sf file location - 'SFFileLocation' (default C:/soundfonts)
+  // recent files - 'recentfiles'
   useEffect(() => {
-    let location: string | null =
-      window.localStorage.getItem(SFFILELOCATIONITEM);
-    if (!location) {
-      window.localStorage.setItem(
-        SFFILELOCATIONITEM,
-        SOUNDFONTLOCATIONOPTIONS.Server
-      );
-      window.localStorage.setItem(SFLOCALURIITEM, DEFAULTLOCALSFURI);
-      location = SOUNDFONTLOCATIONOPTIONS.Server;
+    let SFFileLocation: string | null =
+      window.localStorage.getItem(SFFILELOCATION);
+    if (!SFFileLocation) {
+      window.localStorage.setItem(SFFILELOCATION, DEFAULTLOCALSFURI);
+      SFFileLocation = DEFAULTLOCALSFURI;
+      setSFLocalDirectory(SFFileLocation);
+    } else setSFLocalDirectory(SFFileLocation);
+
+    // load the soundfont file list
+    try {
+      getDirectoryList(SFFileLocation, ["sf2", "SF2"], setSFFileList, setStatus);
+    } catch (error) {
+      setStatus(error as string);
     }
-    location = window.localStorage.getItem(SFLOCALURIITEM);
-    if (!location) {
-      window.localStorage.setItem(SFLOCALURIITEM, DEFAULTLOCALSFURI);
-      location = DEFAULTLOCALSFURI;
+
+    let recordFormat: string | null = window.localStorage.getItem(RECORDFORMAT);
+    if (!recordFormat) {
+      window.localStorage.setItem(RECORDFORMAT, DEFAULTRECORDFORMAT);
+      setRecordFormat(DEFAULTRECORDFORMAT);
+    } else setRecordFormat(recordFormat);
+
+    const recentFiles: string | null = window.localStorage.getItem(RECENTFILES);
+    if (!recentFiles) {
+      setRecentFiles([]);
+    } else {
+      const recentFileArray: string[] = recentFiles.split("|").filter((f)=>f!="");
+      if (recentFileArray[0] != "")
+        setRecentFiles(recentFileArray);
     }
-    setSFLocalURI(location);
-    location = window.localStorage.getItem(SFSERVERURIITEM);
-    if (!location) {
-      window.localStorage.setItem(SFSERVERURIITEM, DEFAULTSERVERSFURI);
-      location = DEFAULTSERVERSFURI;
+
+    const recentCMGDirectory: string | null =
+      window.localStorage.getItem(RECENTCMGDIRECTORY);
+    if (!recentCMGDirectory) {
+      setRecentCMGDirectory("");
+    } else {
+      setRecentCMGDirectory(recentCMGDirectory);
     }
-    setSFServerURI(location);
+
+    const recentRecordDirectory: string | null = window.localStorage.getItem(
+      RECENTRECORDDIRECTORY
+    );
+    if (!recentRecordDirectory) {
+      setRecentRecordDirectory("");
+    } else {
+      setRecentRecordDirectory(recentRecordDirectory);
+    }
   }, []);
+
+  // notify the user that the SF file list has been loaded
+  useEffect(()=> {
+    setStatus(`${SFFileList.length} Soundfont files loaded.`);
+  }, [SFFileList])
 
   // some of the components of this app process mouse movements. The
   // function below capture those movements and pass them along

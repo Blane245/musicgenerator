@@ -1,49 +1,55 @@
 // The file menu handles creating new files, opening existing ones,
 // saving current ones, and adding tracks to current ones
 // import { Algorithmic } from "classes/generators";
+import { Algorithmic } from "classes/generators";
 import Track from "classes/track";
 import { useCMGContext } from "cmgcontext";
-import { useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import { GENERATORTYPE, RECORDFORMAT, SFFILELOCATION } from "types";
 import { addTrack, setFileComment } from "utils/cmfiletransactions";
+import { getDirectoryList } from "utils/getdirectorylist";
 import { getTrackUID } from "utils/gettrackuid";
-// import {
-//   GeneratorType,
-//   GENERATORTYPE,
-//   SFFILELOCATIONITEM,
-//   SFLOCALURIITEM,
-//   SFSERVERURIITEM,
-//   SOUNDFONTLOCATIONOPTIONS,
-// } from "../types";
-// import { getSFFileList } from "../utils/getsffilelist";
 
 export default function EditMenu() {
   const {
+    setSFLocalDirectory,
     fileContents,
     setFileContents,
     setStatus,
     setRecordFormat,
+    setSFFileList,
+    SFFileList,
     playing,
-    // SFFileList,
-    // setSFFileList,
-    // SFFileLocation,
-    // setSFFileLocation,
-    // SFLocalURI,
-    // setSFLocalURI,
-    // SFServerURI,
-    // setSFServerURI,
+    recordFormat,
+    SFLocalDirectory,
   } = useCMGContext();
   const [comment, setComment] = useState<string>("");
   const [commentModal, setCommentModal] = useState<boolean>(false);
-  // const [preferencesModal, setPreferencesModal] = useState<boolean>(false);
-  // const [errorMsgs, setErrorMsgs] = useState<string[]>([]);
-  // const [newLocation, setNewLocation] = useState<SOUNDFONTLOCATIONOPTIONS>(
-  //   SOUNDFONTLOCATIONOPTIONS.Server
-  // );
+  const [preferencesModal, setPreferencesModal] = useState<boolean>(false);
+  const [errorMsgs, setErrorMsgs] = useState<string[]>([]);
 
-  // useEffect(() => {
-  //   setNewLocation(SFFileLocation);
-  // }, [SFFileLocation]);
-  // edit the CMG file's comment
+  // when a new SF dirctory is set, make sue that all soundfont files
+  // used by current generators are present in the new directory
+  useEffect(() => {
+    // check if any generators are using a soundfont file that does not
+    // exist in the new directory
+    const errors: string[] = [];
+    const found: Track | undefined = fileContents.tracks.find(
+      (t) =>
+        t.generators.find(
+          (g) =>
+            (g.type == GENERATORTYPE.Algorithmic &&
+              SFFileList.find((f) => (g as Algorithmic).soundFontFile == f)) ||
+            g.type != GENERATORTYPE.Algorithmic
+        ) != undefined
+    );
+    if (found != undefined)
+      errors.push(
+        `The current composition contains a generator that uses a soundfont file that is not it this directory.`
+      );
+    setErrorMsgs(errors);
+  }, [SFFileList]);
+
   function handleEditComment() {
     setCommentModal(true);
   }
@@ -71,69 +77,49 @@ export default function EditMenu() {
     setStatus(`Track '${newTrack.name}' Added`);
   }
 
-  function handleRecordFormat(format: string) {
-    setRecordFormat(format);
-    setStatus(`Record format set to ${format}`);
+  function handleEditPreferences() {
+    setPreferencesModal(true);
   }
 
-  // function handleEditPreferences() {
-  //   setPreferencesModal(true);
-  // }
+  function handlePreferencesSubmit(event: FormEvent<Element>): void {
+    event.preventDefault();
+    event.stopPropagation();
 
-  // function handlePreferencesSubmit(event: FormEvent<Element>): void {
-  //   event.preventDefault();
+    const newErrors: string[] = [];
+    // get the form values
+    let location: string = event.target["SFLocalDirectory"].value;
+    const format: string = event.target["recordFormat"].value;
 
-  //   // get the new SF file list
-  //   const location: SOUNDFONTLOCATIONOPTIONS = newLocation;
-  //   const uri: string =
-  //     location == SOUNDFONTLOCATIONOPTIONS.Local
-  //       ? event.target["SFLocalURI"].value
-  //       : event.target["SFServerURI"].value;
-  //   getSFFileList(
-  //     // location,
-  //     uri,
-  //     setSFFileList,
-  //     setStatus
-  //   );
+    // check the format for with 'mp3' or 'wav'
+    if (["mp3", "wav"].indexOf(format) < 0) {
+      newErrors.push(`${format} is not a valid recording format`);
+    }
 
-  //   const msgs: string[] = [];
-  //   // check all current algorithmic generators to see if the selected
-  //   // file is in this list
-  //   fileContents.tracks.forEach((t) => {
-  //     t.generators.forEach((g: GeneratorType) => {
-  //       if (g.type == GENERATORTYPE.Algorithmic) {
-  //         if (SFFileList.indexOf((g as Algorithmic).soundFontFile) < 0) {
-  //           msgs.push(
-  //             `Generator ${g.name} is using '${
-  //               (g as Algorithmic).soundFontFile
-  //             }' which is not in that location `
-  //           );
-  //         }
-  //       }
-  //     });
-  //   });
+    // check if the soundfont file location has changed
+    let newSFFileList: { list: string[]; error: string } = {
+      list: [],
+      error: "",
+    };
 
-  //   if (msgs.length == 0) {
-  //     // update the react hooks and local storage
-  //     setSFFileLocation(newLocation);
-  //     setSFLocalURI(event.target["SFLocalURI"].value);
-  //     setSFServerURI(event.target["SFServerURI"].value);
-  //     window.localStorage.setItem(SFFILELOCATIONITEM, newLocation);
-  //     window.localStorage.setItem(
-  //       SFLOCALURIITEM,
-  //       event.target["SFLocalURI"].value
-  //     );
-  //     window.localStorage.setItem(
-  //       SFSERVERURIITEM,
-  //       event.target["SFServerURI"].value
-  //     );
-  //     // disable the preferences modal
-  //     setErrorMsgs([]);
-  //     setPreferencesModal(false);
-  //   }
-  //   // errors occurred
-  //   else setErrorMsgs(msgs);
-  // }
+    try {
+      location = location.replace(/\\/g,'/');
+      getDirectoryList(location, ["sf2", "SF2"], setSFFileList, setStatus);
+    } catch (e) {
+      newErrors.push(e as string);
+    }
+
+    setErrorMsgs(newErrors);
+    if (newErrors.length != 0) return;
+
+    // update the react hooks and local storage
+    setRecordFormat(format);
+    window.localStorage.setItem(RECORDFORMAT, format);
+    setSFLocalDirectory(location);
+    window.localStorage.setItem(SFFILELOCATION, location);
+    setSFFileList(newSFFileList.list);
+    // disable the preferences modal
+    setPreferencesModal(false);
+  }
   function handleMenuSelect(action: string) {
     if (playing.current) return;
     switch (action) {
@@ -143,15 +129,9 @@ export default function EditMenu() {
       case "track":
         handleNewTrack();
         break;
-      case "mp3":
-        handleRecordFormat("mp3");
+      case "preferences":
+        handleEditPreferences();
         break;
-      case "wav":
-        handleRecordFormat("wav");
-        break;
-      // case "preferences":
-      //   handleEditPreferences();
-      //   break;
       default:
         break;
     }
@@ -172,23 +152,11 @@ export default function EditMenu() {
             <div className="dItem" onClick={() => handleMenuSelect("comment")}>
               Edit Comment...
             </div>
-            {/* <div
+            <div
               className="dItem"
               onClick={() => handleMenuSelect("preferences")}
             >
               Edit Preferences...
-            </div> */}
-            <div className="dItem" id="link1">
-              Record Format
-              <i className="fa fa-caret-down"></i>
-              <div className="dropdown-two">
-                <div className="dItem" onClick={() => handleMenuSelect("mp3")}>
-                  mp3
-                </div>
-                <div className="dItem" onClick={() => handleMenuSelect("wav")}>
-                  wav
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -216,95 +184,65 @@ export default function EditMenu() {
           </div>
         </div>
       ) : null}
-      {/* {preferencesModal ? (
+      {preferencesModal ? (
         <div className="modal-content">
           <div className="modal-header">
-            <h2> Edit Preferences'</h2>
+            <h2> Edit Preferences</h2>
           </div>
           <div className="modal-body">
             <form onSubmit={handlePreferencesSubmit}>
-              <p>SoundFont file location</p>
               <label>
-                Local
-                {SFFileLocation == SOUNDFONTLOCATIONOPTIONS.Local ? (
-                  <input
-                    type="radio"
-                    id="SFlocal"
-                    name="SFlocation"
-                    value="Local"
-                    checked
-                    onChange={() =>
-                      setNewLocation(SOUNDFONTLOCATIONOPTIONS.Server)
-                    }
-                  />
-                ) : (
-                  <input
-                    type="radio"
-                    name="SFlocation"
-                    value="Local"
-                    onChange={() =>
-                      setNewLocation(SOUNDFONTLOCATIONOPTIONS.Local)
-                    }
-                  />
-                )}
-              </label>
-              <label>
-                Local URI{" "}
+                Soundfont Directory:&nbsp;
                 <input
                   type="text"
                   size={50}
-                  name="SFLocalURI"
-                  value={SFLocalURI}
-                  onChange={(e) => setSFLocalURI(e.currentTarget.value)}
+                  name="SFLocalDirectory"
+                  defaultValue={SFLocalDirectory}
+                  style={{ marginBottom: "2px" }}
                 />
               </label>
               <br />
               <label>
-                Server
-                {SFFileLocation == SOUNDFONTLOCATIONOPTIONS.Server ? (
-                  <input
-                    type="radio"
-                    id="SFserver"
-                    name="SFlocation"
-                    value="server"
-                    checked
-                    onChange={() =>
-                      setNewLocation(SOUNDFONTLOCATIONOPTIONS.Local)
-                    }
-                  />
-                ) : (
-                  <input
-                    type="radio"
-                    name="SFlocation"
-                    value="Local"
-                    onChange={() =>
-                      setNewLocation(SOUNDFONTLOCATIONOPTIONS.Server)
-                    }
-                  />
-                )}
-              </label>
-              <label>
-                Server URI{" "}
-                <input
-                  type="text"
-                  size={50}
-                  name="SFServerURI"
-                  value={SFServerURI}
-                  onChange={(e) => setSFServerURI(e.currentTarget.value)}
-                />
+                Record Format:&nbsp;
+                <select
+                  id="recordFormat"
+                  name="recordFormat"
+                  value={recordFormat}
+                >
+                  <option value="mp3">mp3</option>
+                  <option value="wav">wav</option>
+                </select>
               </label>
               <br />
               <input type="submit" value="Save" />
+              <button
+                onClick={() => setPreferencesModal(false)}
+                style={{
+                  color: "ButtonText",
+                  backgroundColor: "ButtonFace",
+                  fontSize: "12px",
+                  paddingLeft: "6px",
+                  paddingTop: "1px",
+                  paddingRight: "6px",
+                  paddingBottom: "1px",
+                  border: "3.333",
+                }}
+              >
+                Cancel
+              </button>
             </form>
           </div>
           <div className="modal-footer">
-            <button onClick={() => setPreferencesModal(false)}>Cancel</button>
-            {errorMsgs.map((m) => (
-              <p>{m}</p>
-            ))}
+            <div>
+              {errorMsgs.map((m, i) => (
+                <h3 color="red" key={`error-${i}`}>
+                  {m}
+                </h3>
+              ))}
+            </div>
           </div>
         </div>
-      ) : null} */}
+      ) : null}
     </>
   );
 }

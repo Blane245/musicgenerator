@@ -19,7 +19,6 @@ import {
   GeneratorType,
   MouseLocation,
   RawSourceData,
-  SOUNDFONTLOCATIONOPTIONS,
   TimelineInterval,
   EditGenerator,
   SignalLevelsType
@@ -53,12 +52,16 @@ interface CMGContextType {
   setFooterHeight: Dispatch<SetStateAction<number>>;
   verticalScrollWidth: number;
   setVerticalScrollWidth: Dispatch<SetStateAction<number>>;
-  SFFileLocation: SOUNDFONTLOCATIONOPTIONS;
-  setSFFileLocation: Dispatch<SetStateAction<SOUNDFONTLOCATIONOPTIONS>>;
-  SFLocalURI: string;
-  setSFLocalURI: Dispatch<SetStateAction<string>>;
-  SFServerURI: string;
-  setSFServerURI: Dispatch<SetStateAction<string>>;
+  SFLocalDirectory: string;
+  setSFLocalDirectory: Dispatch<SetStateAction<string>>;
+  recordFormat: string;
+  setRecordFormat: Dispatch<SetStateAction<string>>;
+  recentFiles: string[];
+  setRecentFiles: Dispatch<SetStateAction<string[]>>;
+  recentCMGDirectory: string;
+  setRecentCMGDirectory: Dispatch<SetStateAction<string>>;
+  recentRecordDirectory: string;
+  setRecentRecordDirectory: Dispatch<SetStateAction<string>>;
   SFFileList: string[];
   setSFFileList: Dispatch<SetStateAction<string[]>>;
   fileName: string;
@@ -84,8 +87,6 @@ interface CMGContextType {
   setTimeInterval: Dispatch<SetStateAction<TimelineInterval>>;
   generatorDialogVisible: boolean;
   setGeneratorDialogVisible: Dispatch<SetStateAction<boolean>>;
-  editGeneratorMenuVisible: boolean;
-  setEditGeneratorMenuVisible: Dispatch<SetStateAction<boolean>>;
   trackIndex: number;
   setTrackIndex: Dispatch<SetStateAction<number>>;
   editGeneratorData: EditGenerator;
@@ -95,17 +96,14 @@ interface CMGContextType {
   setMouseLocation: Dispatch<SetStateAction<MouseLocation | null>>;
   generatorsPlaying: GeneratorType[];
   setGeneratorsPlaying: Dispatch<SetStateAction<GeneratorType[]>>;
-  recordFormat: string;
-  setRecordFormat: Dispatch<SetStateAction<string>>;
   signalLevels: SignalLevelsType;
   setSignalLevels: Dispatch<SetStateAction<SignalLevelsType>>;
-  // generatorType: GENERATORTYPE;
-  // setGeneratorType: Dispatch<SetStateAction<GENERATORTYPE>>;
 }
 
 const CMGContext = createContext<CMGContextType | undefined>(undefined);
 
 export const CMGProvider = ({ children }: { children: ReactNode }) => {
+  // items used to define the window layout
   const [screenHeight, setScreenHeight] = useState<number>(0);
   const [screenWidth, setScreenWidth] = useState<number>(0);
   const [displayWidth, setDisplayWidth] = useState<number>(0);
@@ -119,17 +117,20 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
   const [previewWidth, setPreviewWidth] = useState<number>(0);
   const [footerHeight, setFooterHeight] = useState<number>(0);
   const [verticalScrollWidth, setVerticalScrollWidth] = useState<number>(0);
-  const [SFFileLocation, setSFFileLocation] =
-    useState<SOUNDFONTLOCATIONOPTIONS>(SOUNDFONTLOCATIONOPTIONS.Server);
-  const [SFFileList, setSFFileList] = useState<string[]>([]);
-  const [SFLocalURI, setSFLocalURI] = useState<string>("");
-  const [SFServerURI, setSFServerURI] = useState<string>("");
 
+  // items stored in local storage
+  const [SFLocalDirectory, setSFLocalDirectory] = useState<string>("");
+  const [recordFormat, setRecordFormat] = useState<string>("mp3");
+  const [recentFiles, setRecentFiles] = useState<string[]>([]);
+  const [recentCMGDirectory, setRecentCMGDirectory] = useState<string>("");
+  const [recentRecordDirectory, setRecentRecordDirectory] = useState<string>("");
+  const [SFFileList, setSFFileList] = useState<string[]>([]);
+
+  // items used to define the UI and mode of operation
   const [fileContents, setFileContents] = useState<CMGFile>(new CMGFile());
   const [status, setStatus] = useState<string>("");
   const [timeLine, setTimeLine] = useState<TimeLine | null>(null);
   const [fileName, setFileName] = useState<string>("");
-
   const playing = useRef<boolean>(false);
   const [mode, setMode] = useState<GENERATIONMODE>(GENERATIONMODE.idle);
   const [playbackLength, setPlaybackLength] = useState<number>(0);
@@ -141,22 +142,19 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     endOffset: -1,
   });
   const [generatorDialogVisible, setGeneratorDialogVisible] = useState<boolean>(false);
-  const [editGeneratorMenuVisible, setEditGeneratorMenuVisible] = useState<boolean>(false);
   const [editGeneratorData, setEditGeneratorData] = useState<EditGenerator>({track: null, generator: null, type: null, newGenerator: false})
   const [trackIndex, setTrackIndex] = useState<number>(-1);
+  const [generatorsPlaying, setGeneratorsPlaying] = useState<GeneratorType[]>(
+    []
+  );
+  const [signalLevels, setSignalLevels] = useState<SignalLevelsType> (
+  { leftVolume: -90, rightVolume: -90, leftSpectrum: new Uint8Array(0), rightSpectrum: new Uint8Array(0) });
+
+  // items used to manage mouse interactivity
   const mouseDown = useRef<boolean>(false);
   const [mouseLocation, setMouseLocation] = useState<MouseLocation | null>(
     null
   );
-  const [generatorsPlaying, setGeneratorsPlaying] = useState<GeneratorType[]>(
-    []
-  );
-  const [recordFormat, setRecordFormat] = useState<string>("mp3");
-  const [signalLevels, setSignalLevels] = useState<SignalLevelsType> (
-  { leftVolume: -90, rightVolume: -90, leftSpectrum: new Uint8Array(0), rightSpectrum: new Uint8Array(0) });
-  // const [generatorType, setGeneratorType] = useState<GENERATORTYPE>(
-  //   GENERATORTYPE.Silent
-  // );
   const contextValue = {
     screenHeight,
     setScreenHeight,
@@ -184,14 +182,18 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     setFooterHeight,
     verticalScrollWidth,
     setVerticalScrollWidth,
-    SFFileLocation,
-    setSFFileLocation,
+    SFLocalDirectory,
+    setSFLocalDirectory,
+    recordFormat,
+    setRecordFormat,
+    recentFiles,
+    setRecentFiles,
+    recentCMGDirectory,
+    setRecentCMGDirectory,
+    recentRecordDirectory,
+    setRecentRecordDirectory,
     SFFileList,
     setSFFileList,
-    SFLocalURI,
-    setSFLocalURI,
-    SFServerURI,
-    setSFServerURI,
     fileName,
     setFileName,
     fileContents,
@@ -215,8 +217,6 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     setTimeInterval,
     generatorDialogVisible,
     setGeneratorDialogVisible,
-    editGeneratorMenuVisible,
-    setEditGeneratorMenuVisible,
     editGeneratorData,
     setEditGeneratorData,
     trackIndex,
@@ -226,8 +226,6 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     setMouseLocation,
     generatorsPlaying,
     setGeneratorsPlaying,
-    recordFormat,
-    setRecordFormat,
     signalLevels,
     setSignalLevels,
     // generatorType,

@@ -42,9 +42,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     setSourceData,
     setPlaybackLength,
     setOffsetTime,
-    SFFileLocation,
-    SFLocalURI,
-    SFServerURI,
     setGeneratorDialogVisible,
     setEditGeneratorData,
   } = useCMGContext();
@@ -182,7 +179,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     });
   }
 
-  function validate(formData: GeneratorType): string[] {
+  function validate(): string[] {
     const msgs: string[] = [];
     switch (formData.type) {
       case GENERATORTYPE.Silent:
@@ -228,7 +225,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
   function handleSubmit(event: FormEvent<Element>): void {
     event.preventDefault();
 
-    const msgs: string[] = validate(formData);
+    const msgs: string[] = validate();
     if (msgs.length == 0) {
       if (newGenerator) {
         // add a new generator to the current track
@@ -249,7 +246,8 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
   }
 
   function handlePreview() {
-    const msgs: string[] = validate(formData);
+    const msgs: string[] = validate();
+    if (formData.name != oldName) msgs.push('Cannot preview after renaming the generator. Modify or add first and then preview.')
     if (msgs.length != 0) return;
     const {
       AlgorithmicGenerators,
@@ -285,12 +283,12 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     setSourceData(builtSourceData);
     playing.current = true;
     // when preview is complete, reshow this dialog with the latest data
-    setEditGeneratorData({
-      track: track,
-      generator: formData,
-      type: formData.type,
-      newGenerator: newGenerator,
-    });
+    // setEditGeneratorData({
+    //   track: track,
+    //   generator: formData,
+    //   type: formData.type,
+    //   newGenerator: newGenerator,
+    // });
     setPreviewVisible(true);
     setMode(GENERATIONMODE.solo);
     setStatus(``);
@@ -394,34 +392,33 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
   );
 
   function loadSoundFontandUpdate(fileName: string) {
-    setLocked(true);
-    // load the soundfont file and set the presets
-    async function LoadFile(fileName: string) {
-      const { soundFont } = await SoundFontPool(
-        fileName,
-        SFFileLocation,
-        SFLocalURI,
-        SFServerURI
-      );
-      setSoundFontData(() => {
-        const presets: Preset[] = (soundFont.presets as Preset[]).sort(
-          (a, b) => {
-            if (a.header.bank < b.header.bank) return -1;
-            if (a.header.bank > b.header.bank) return 1;
-            return a.header.preset - b.header.preset;
-          }
-        );
-        const preset: Preset = presets[0] as Preset;
-        const presetName: string = bankPresettoName(preset);
-        const newSoundFontData: SFDataType = {
-          soundFont: soundFont,
-          presets: presets,
-          preset: preset,
-          presetName: presetName,
-        };
-        return newSoundFontData;
-      });
+    try {
+      setLocked(true);
+      LoadFile(fileName);
+      // load the soundfont file and set the presets
+      async function LoadFile(fileName: string) {
+        const { soundFont } = await SoundFontPool(fileName);
+        setSoundFontData(() => {
+          const presets: Preset[] = (soundFont.presets as Preset[]).sort(
+            (a, b) => {
+              if (a.header.bank < b.header.bank) return -1;
+              if (a.header.bank > b.header.bank) return 1;
+              return a.header.preset - b.header.preset;
+            }
+          );
+          const preset: Preset = presets[0] as Preset;
+          const presetName: string = bankPresettoName(preset);
+          const newSoundFontData: SFDataType = {
+            soundFont: soundFont,
+            presets: presets,
+            preset: preset,
+            presetName: presetName,
+          };
+          return newSoundFontData;
+        });
+      }
+    } catch (e: any) {
+      setStatus(e);
     }
-    LoadFile(fileName);
   }
 }

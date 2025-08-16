@@ -45,7 +45,7 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
   function onPreviewClick() {
     handleReadySolo();
     setPreviewVisible(true);
-    setMenuVisible(false);
+    setMenuVisible(null);
     setMode(GENERATIONMODE.solo);
     setStatus(``);
   }
@@ -58,7 +58,7 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
       type: generator.type,
     });
     setGeneratorDialogVisible(true);
-    setMenuVisible(false);
+    setMenuVisible(null);
     setCursor("default");
     setStatus(``);
   }
@@ -82,7 +82,7 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
     );
     if (index < 0) return;
     flipGeneratorMute(track, index, setFileContents);
-    setMenuVisible(false);
+    setMenuVisible(null);
     setCursor("default");
     setStatus(``);
   }
@@ -178,7 +178,7 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
               <div className="dItem" onClick={() => onDeleteClick()}>
                 Delete
               </div>
-              <div className="dItem" onClick={() => setMenuVisible(false)}>
+              <div className="dItem" onClick={() => setMenuVisible(null)}>
                 Exit
               </div>
             </div>

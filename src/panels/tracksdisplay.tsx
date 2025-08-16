@@ -26,7 +26,7 @@ export default function TracksDisplay() {
               key={`track-control:${t.name}`}
               style={{ width: controlWidth }}
             >
-              <TrackControls tracks={tracks} track={t} trackIndex={i} />
+              <TrackControls tracks={tracks} track={t} trackIndex={i}/>
             </div>
             <div
               className="track-display"
@@ -34,7 +34,7 @@ export default function TracksDisplay() {
               id={`track-display:${t.name}`}
               style={{ width: timelineWidth }}
             >
-              <GeneratorIcons track={t} key={`track-generators:${t.name}`} />
+              <GeneratorIcons track={t}/>
             </div>
           </>
         );

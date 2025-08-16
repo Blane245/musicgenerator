@@ -432,7 +432,10 @@ export default function Preview(params: PreviewProps): JSX.Element {
             </tbody>
           </table>
           <div>
-            {`Active Generators: ${activeGenerators.current.toString()}`}
+            Active Generators:
+          </div>
+          <div>
+            {activeGenerators.current.toString()}
           </div>
         </div>
         {signalLevels ? (
@@ -863,7 +866,8 @@ export default function Preview(params: PreviewProps): JSX.Element {
     // loop through the source data and find each that appears on the current
     // time line
     sources.forEach((s: RawSourceData) => {
-      const { startTime, stopTime, note } = s.source;
+      const { startTime, stopTime, note, loop, sample, sampleRate } = s.source;
+      const soundStopTime: number = loop?stopTime + offsetTime: startTime + sample.length / sampleRate;
 
       // determine if any part of the source appears in the time line
       const lineStart = Math.min(
@@ -871,7 +875,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
         timelineEnd
       );
       const lineEnd = Math.min(
-        Math.max(timelineStart, stopTime + offsetTime),
+        Math.max(timelineStart, soundStopTime + offsetTime),
         timelineEnd
       );
       if (lineStart >= lineEnd) {

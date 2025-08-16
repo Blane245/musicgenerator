@@ -10,7 +10,7 @@ import { RIFFChunk } from './riffChunk';
 export const parseBuffer = (buffer: Uint8Array): RIFFChunk => {
   const id = getChunkId(buffer);
   if (id !== 'RIFF') {
-    throw new ParseError('Invalid file format', 'RIFF', id);
+    throw new ParseError('Invalid Soundfont file format', 'RIFF', id);
   }
 
   const signature = getChunkId(buffer, 8);

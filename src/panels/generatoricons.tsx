@@ -38,11 +38,10 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     mouseDown,
     mouseLocation,
     setMouseLocation,
-    editGeneratorMenuVisible,
-    setEditGeneratorMenuVisible,
   } = useCMGContext();
   const [boxIndex, setBoxIndex] = useState<number>(-1);
   const [generatorIndex, setGeneratorIndex] = useState<number>(-1);
+  const [editGeneratorMenuVisible,setEditGeneratorMenuVisible] = useState<Track | null>(null);
   const [menuX, setMenuX] = useState<number>(0);
   const [menuY, setMenuY] = useState<number>(0);
   const [generatorBoxes, setGeneratorBoxes] = useState<GeneratorBox[]>([]);
@@ -162,7 +161,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     // where the generator's text is located.
     setMenuX(box.position.x + box.width / 2.0);
     setMenuY(box.position.y + box.height / 3.0 - 100);
-    setEditGeneratorMenuVisible(true);
+    setEditGeneratorMenuVisible(track);
     setStatus(``);
   }
 
@@ -318,7 +317,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
           </>
         ))}
       </svg>
-      {editGeneratorMenuVisible && generatorIndex >= 0 ? (
+      {editGeneratorMenuVisible && editGeneratorMenuVisible == track && generatorIndex >= 0 ? (
         <GeneratorMenuDialog
           track={track}
           generator={track.generators[generatorIndex]}

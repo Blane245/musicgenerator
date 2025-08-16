@@ -1,4 +1,4 @@
-import { GeneratorType } from "types";
+import { GeneratorType, RECENTCMGDIRECTORY } from "types";
 import { getAttributeValue } from "utils/xmlfunctions";
 import Compressor from "./compressor";
 import Equalizer from "./equalizer";
@@ -52,8 +52,9 @@ export default class CMGFile {
     return newFile;
   }
 
-  appendXML(doc: XMLDocument, elem: Element, name: string): void {
-    elem.setAttribute("name", name);
+  appendXML(doc: XMLDocument, elem: Element, fileName: string): void {
+    const nameParts:string[] = fileName.split('/');
+    elem.setAttribute("name", nameParts[nameParts.length-1]);
     elem.setAttribute("version", this.version);
     elem.setAttribute("comment", this.comment);
     this.compressor.appendXML(doc, elem);
@@ -63,7 +64,10 @@ export default class CMGFile {
   }
 
   async getXML(fcElem: Element, fileName: string) {
-    this.name = fileName;
+    const nameParts: string[] = fileName.split("/");
+    if (nameParts)
+      this.name =
+        nameParts.length > 0 ? nameParts[nameParts.length - 1] : fileName;
     try {
       this.comment = getAttributeValue(fcElem, "comment", "string") as string;
     } catch {

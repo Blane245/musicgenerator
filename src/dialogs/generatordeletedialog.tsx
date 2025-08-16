@@ -18,13 +18,13 @@ export default function GeneratorDeleteDialog(props: GeneratorDeleteProps) {
   function onCancel() {
     setDialogVisible(false);
     setStatus("");
-    setMenuVisible(false);
+    setMenuVisible(null);
   }
   function onOK(event: FormEvent<Element>) {
     event.preventDefault();
     event.stopPropagation();
     setDialogVisible(false);
-    setMenuVisible(false);
+    setMenuVisible(null);
     // handle delete
     const currentTrack: Track | undefined = fileContents.tracks.find(
       (t) => t.name == trackName

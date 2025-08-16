@@ -492,7 +492,12 @@ export class Algorithmic extends Silent {
     try {
       const returnElem: Element = elem;
       await super.appendXML(doc, returnElem);
-      returnElem.setAttribute("soundFontFile", this.soundFontFile);
+      // strip the path from the file name
+      const nameParts:string[] = this.soundFontFile.split('/');
+      if (nameParts.length == 0)
+        returnElem.setAttribute("soundFontFile", this.soundFontFile); 
+      else
+        returnElem.setAttribute("soundFontFile", nameParts[nameParts.length - 1]);
       returnElem.setAttribute("presetName", this.presetName);
       returnElem.setAttribute("velocity", this.velocity.toString());
       returnElem.setAttribute("isLooping", this.isLooping ? "true" : "false");

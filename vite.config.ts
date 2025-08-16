@@ -14,6 +14,8 @@ export default defineConfig(({ mode }) => {
       "import.meta.env.AUTHOR": JSON.stringify(packageJson.author),
       "import.meta.env.REPOSITORY": JSON.stringify(packageJson.repository),
       "import.meta.env.BUILD_DATE": JSON.stringify(new Date().toISOString()),
+      "import.meta.env.SERVERPORT": JSON.stringify(6001),
+      "import.meta.env.PORT": JSON.stringify(3006),
     },
     build: {
       manifest: true,
@@ -23,16 +25,7 @@ export default defineConfig(({ mode }) => {
       pure: mode === 'production'? ['console.log']: [],
     },
     server: {
-      proxy: {
-        "/soundfonts": {
-          target: "http://lanedb.hopto.org",
-          changeOrigin: true,
-        },
-        "/local_soundfonts": {
-          target:"http://localhost:6000",
-          rewrite: path => path.replace("local_", ''),        
-        }
-      },
+      port: 3006,
     },
   };
 });

@@ -17,23 +17,19 @@ import {
   triangleModulator,
 } from "../modulators";
 import { SoundFont2 } from "../soundfont2";
+import { Buffer } from "buffer";
 
 export const SAMPLERATE: number = 44100;
 
 export const EPS: number = 1e-4;
 
-export enum SOUNDFONTLOCATIONOPTIONS {
-  "Local" = "Local",
-  "Server" = "Server",
-}
-
-export const SFFILELOCATIONITEM: string = "SFFileLocation";
-export const SFLOCALURIITEM: string = "SFLocalURI";
-export const SFSERVERURIITEM: string = "SFServerURI";
-
-export const DEFAULTLOCALSFURI: string = "/local_soundfonts";
-
-export const DEFAULTSERVERSFURI: string = "/soundfonts";
+export const RECORDFORMAT: string = "recordFormat";
+export const DEFAULTRECORDFORMAT: string = "mp3";
+export const SFFILELOCATION: string = "SFFileLocation";
+export const DEFAULTLOCALSFURI: string = "/SoundFonts";
+export const RECENTFILES: string = "recentFiles";
+export const RECENTCMGDIRECTORY: string = "recentCMGDirectory";
+export const RECENTRECORDDIRECTORY: string = "recentRECORDDirectory";
 
 export type MouseLocation = {
   X: number;
@@ -353,3 +349,9 @@ export const FFTSIZE: number = 512;
 export const MINDECIBELS: number = -90;
 export const MAXDECIBELS: number = -10;
 
+export type ServerResponse = {
+  error: boolean;
+  status?: string;
+  list?: {name: string; path: string}[];
+  file?: { type: string, data:Buffer};
+}

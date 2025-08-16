@@ -473,15 +473,17 @@ export class MarkovianValues extends AlgorithmValues {
         break;
       case MARKOVSTATE.up:
         value += this.values.range.step;
-        value = Math.min(value, this.values.range.hi);
-        if (Math.abs(value - this.values.currentValue) < EPS)
-          value -= this.values.range.step;
+        // bounce off of limit, if necessary
+        if (value > this.values.range.hi) {
+          value = Math.max(value-this.values.range.step, this.values.range.lo);
+        }
         break;
       case MARKOVSTATE.down:
         value -= this.values.range.step;
-        value = Math.max(value, this.values.range.lo);
-        if (Math.abs(value - this.values.currentValue) < EPS)
-          value += this.values.range.step;
+        // bounce off of limit, if necessary
+        if (value < this.values.range.lo) {
+          value = Math.min(value+this.values.range.step, this.values.range.hi);
+        }
         break;
       default:
         break;
@@ -751,8 +753,8 @@ export class WienerValues extends AlgorithmValues {
     const values: WienerType = algorithm.values;
     if (values.seed == "") errors.push("Seed must not be blank");
     if (values.sigma < 0) errors.push("Sigma must be nonnegative");
-    if (values.lo < -1 || values.hi <= values.lo)
-      errors.push("Lo must be nonnegative and hi must be greater than lo");
+    if (values.lo < -10 || values.hi <= values.lo)
+      errors.push("Lo greater than -10 and hi must be greater than lo");
     return errors;
   }
 }

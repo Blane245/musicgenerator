@@ -9,8 +9,7 @@ import { Algorithmic } from "classes/generators";
 import { useCMGContext } from "cmgcontext";
 import { ChangeEvent, useEffect, useState } from "react";
 import { bankPresettoName, toNote } from "sfcomponents/util";
-import { ALGORITHMTYPE, SOUNDFONTLOCATIONOPTIONS } from "types";
-import { getSFFileList } from "utils/getsffilelist";
+import { ALGORITHMTYPE } from "types";
 import AutoregressivePropertiesBox from "./autoregresivepropertiesbox";
 import ConstantPropertiesBox from "./constantpropertiesbox";
 import MarkovianPropertiesBox from "./markovianpropertiesbox";
@@ -33,28 +32,23 @@ export default function AlgorithmicDialog(
 ): JSX.Element {
   const {
     SFFileList,
-    SFLocalURI,
-    SFFileLocation,
-    SFServerURI,
-    setSFFileList,
-    setStatus,
   } = useCMGContext();
   const { formData, handleChange } = props;
   const [open, setOpen] = useState<boolean>(false);
   const [viewPreset, setViewPreset] = useState<boolean>(false);
 
   // load the soundfont file list if it haw not been loaded
-  useEffect(() => {
-    if (SFFileList.length == 0) {
-      getSFFileList(
-        SFFileLocation == SOUNDFONTLOCATIONOPTIONS.Server
-          ? SFServerURI
-          : SFLocalURI,
-        setSFFileList,
-        setStatus
-      );
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (SFFileList.length == 0) {
+  //     getSFFileList(
+  //       SFFileLocation == SOUNDFONTLOCATIONOPTIONS.Server
+  //         ? SFServerURI
+  //         : SFLocalURI,
+  //       setSFFileList,
+  //       setStatus
+  //     );
+  //   }
+  // }, []);
 
   return (
     <>
@@ -433,7 +427,7 @@ export default function AlgorithmicDialog(
               values={(formData.speedP as WienerValues).values}
               min={1}
               max={1000}
-              step={1}
+              step={.1}
               valueSuffix={() => ""}
               handleChange={handleChange}
             />
@@ -549,7 +543,7 @@ export default function AlgorithmicDialog(
               values={(formData.volumeP as WienerValues).values}
               min={-50}
               max={50}
-              step={1}
+              step={.1}
               valueSuffix={() => ""}
               handleChange={handleChange}
             />

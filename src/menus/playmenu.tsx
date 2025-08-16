@@ -53,6 +53,9 @@ export default function PlayMenu() {
   // if the current one is 'dirty' the user is asked to confirm over-write
   function handleRecord() {
     setMode(GENERATIONMODE.record);
+
+    // display a dialog for selecting a file with and without overwrite allowed
+    
     const types: FilePickerAcceptType[] =
       recordFormat == "mp3"
         ? [{ description: "MP3 file", accept: { "audio/mp3": [".mp3"] } }]
