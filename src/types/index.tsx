@@ -349,9 +349,32 @@ export const FFTSIZE: number = 512;
 export const MINDECIBELS: number = -90;
 export const MAXDECIBELS: number = -10;
 
+export enum ENTRYTYPE {
+  BlockDevice = "BlockDevice",
+  CharacterDevice = "CharacterDevice",
+  Directory = "Directory",
+  FIFO = "FIFO",
+  File = "File",
+  Socket = "Socket",
+  SymbolicLink = "SymbolicLink",
+  Unknown = "Unknown",
+}
+export type DirectoryEntry = {
+  name: string;
+  path: string;
+  type: ENTRYTYPE;
+}
+export type FileEntry = { data: Buffer, type: string};
 export type ServerResponse = {
   error: boolean;
   status?: string;
-  list?: {name: string; path: string}[];
-  file?: { type: string, data:Buffer};
+  list?: DirectoryEntry[];
+  file?: FileEntry;
+};
+export type DirectoryList = string[];
+export type FSEntry = {
+  mountPoint: string,
+  list: string[];
 }
+export type FSList = FSEntry[];
+

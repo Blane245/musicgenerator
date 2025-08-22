@@ -21,12 +21,14 @@ export default function FileMenu() {
     setFileName,
     recentCMGDirectory,
     setRecentCMGDirectory,
+    timeLine,
+    setTimeLine,
   } = useCMGContext();
   const [open, setOpen] = useState<string>("");
   const [dialogType, setDialogType] = useState<string>("");
   const [title, setTitle] = useState<string>("");
-  const [newAllowed, setNewAllowed] = useState<boolean>(false);
   const [fileExists, setFileExists] = useState<boolean>(false);
+  const [mode, setMode] = useState<string>("");
 
   // initialize the recent file list display to none
   useEffect(() => {
@@ -35,10 +37,9 @@ export default function FileMenu() {
   // when the file dialog provides a file name, either open the
   // file or perform saveas
   useEffect(() => {
-    if (dialogType == "open" && fileName != "") {
+    if (dialogType == "Open" && fileName != "") {
       readFileContents(fileName);
-    }
-    else if (dialogType == "saveas" && fileName != "") {
+    } else if (dialogType == "Save" && fileName != "") {
       // attempt to save as without overwrite
       saveFileContents(fileName, false);
     }
@@ -49,8 +50,7 @@ export default function FileMenu() {
   useHotkeys(
     "ctrl+s",
     () => {
-      if (!playing.current)
-        saveFileContents(fileName, true);
+      if (!playing.current) saveFileContents(fileName, true);
     },
     { preventDefault: true }
   );
@@ -106,18 +106,17 @@ export default function FileMenu() {
       if (name == "") {
         // this is open of an unnamed file - use FileDialog
         setTitle("Select the CMG File to open");
-        setNewAllowed(false);
-        setDialogType("open");
+        setDialogType("Open");
+        setMode('dialog')
       } else {
-        document.body.style.cursor = 'wait';
         readFileContents(name);
         setFileContents((prev) => {
-          const nameParts = name.split('/');
-          prev.name = nameParts[nameParts.length-1];
+          const nameParts = name.split("\\");
+          prev.name = nameParts[nameParts.length - 1];
           return prev;
         });
+        addRecent(fileName);
         window.localStorage.setItem(RECENTCMGDIRECTORY, recentCMGDirectory);
-        document.body.style.cursor = 'normal';
       }
     }
   }
@@ -128,8 +127,8 @@ export default function FileMenu() {
     setOpen("");
     showRecentList(false);
     setTitle("Enter File Name to Save File");
-    setNewAllowed(true);
-    setDialogType("saveas");
+    setDialogType("Save");
+    setMode('dialog');
   }
 
   function handleFileSave() {
@@ -215,7 +214,7 @@ export default function FileMenu() {
                   <div
                     className="dItem"
                     key={`rf-${f}`}
-                    onClick={(e) => handleRecentSelect(e,f)}
+                    onClick={(e) => handleRecentSelect(e, f)}
                   >
                     {f}
                   </div>
@@ -225,15 +224,16 @@ export default function FileMenu() {
           </div>
         </div>
       </div>
-      {dialogType != "" ? (
+      {mode != "" ? (
         <FileDialog
           title={title}
-          newAllowed={newAllowed}
-          types={["cmg"]}
+          action={dialogType}
+          fileTypes={["cmg"]}
           directory={recentCMGDirectory}
           setDirectory={setRecentCMGDirectory}
-          setFileName={setFileName}
-          setType={setDialogType}
+          setFile={setFileName}
+          setMode={setMode}
+          setStatus={setStatus}
         />
       ) : null}
       {open != "" ? (
@@ -287,17 +287,15 @@ export default function FileMenu() {
     </>
   );
 
-  async function saveFileContents(
-    name: string,
-    overWrite: boolean
-  ) {
+  async function saveFileContents(name: string, overWrite: boolean) {
     const page: HTMLElement | null = document.getElementById("page");
     // save the xml data
     try {
       const error: string | undefined = await writeCMGFile(
         fileName,
         overWrite,
-        fileContents
+        fileContents,
+        timeLine
       );
       if (error == "file exists but overwrite is false") {
         setFileExists(true);
@@ -319,17 +317,28 @@ export default function FileMenu() {
   }
   async function readFileContents(name: string) {
     const page = document.getElementById("page");
-
+    document.body.style.cursor='wait';
     try {
       if (page) page.inert = true;
-      const fileContents: CMGFile | null = await readCMGFile(name);
-      if (fileContents) {
-        setFileContents(fileContents);
-        setStatus(`File '${name}' loaded`);
-        if (page) page.inert = false;
-        // add file to recentFiles list
-        addRecent(fileName);
-        setFileName(name);
+      if (timeLine) {
+        const { fileContents, timeLine: thisTimeLine } = await readCMGFile(
+          name,
+          timeLine.width,
+          timeLine.height
+        );
+        if (fileContents) {
+          setFileContents(fileContents);
+          setStatus(`File '${name}' loaded`);
+          if (page) page.inert = false;
+          // add file to recentFiles list
+          addRecent(name);
+          setFileName(name);
+          setTimeLine(thisTimeLine);
+        }
+      } else {
+        setStatus(
+          "Error reading cmg file. Time Line has not yet been defined."
+        );
       }
     } catch (err) {
       const e = err as Error;
@@ -338,12 +347,14 @@ export default function FileMenu() {
       );
       if (page) page.inert = false;
     }
+    document.body.style.cursor = 'default';
   }
 
   // add file to recent files list. if it is already there, move to the top
   function addRecent(fileName: string) {
+    console.log(`adding ${fileName} to the recent files list`);
     let theList: string[] = [...recentFiles];
-    theList = theList.filter((f) => f != fileName).filter((f) => f!="");
+    theList = theList.filter((f) => f != fileName).filter((f) => f != "");
     theList.unshift(fileName);
     // trim the list to 10 names
     theList = theList.filter((_f, i) => i < 10);

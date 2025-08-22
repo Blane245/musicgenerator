@@ -1,12 +1,12 @@
 #Bugs
 - have to double click file menu (?)
+- the general user flute preset cannot play faster than 180 BPM. It generates silence above that speed. must be something about the attack, sustain, or release. At 200BPM, the repeat rate is 300ms. The flute at midi 72, and velocity of 63, the attack, sustain, and release are 4.8ms, 952ms, and 250ms respectively. There is no delay, hold, or decay.
+    - the problem seems to be with the attack time. Other instruments without attack (e.g. piccolo) do not have this problem. 
 #Enhancements
-- consider enhancing filedialog to look more like the windows dialog. Also soundfont path preference
 - disable delay of a preset. For presets that have multiple instruments, the shortest delay is removed and the other instrument delays are shortened.
 - implement a note velocity modulator. Should add some expression to notes
 - implement granular synthesis to achieve vibrato, tremelo, glissandi, and other effects
 - consider using slow time line scrolling during preview
-- add the current timeline scaling to the CMGFile when it is saved and reestablish it when loaded
 
 # A local file server
 A local directory/file server running on port 6001 has been written with the follow endpoints:
@@ -51,10 +51,6 @@ Use cases for local file access include
     - saveAs a .cmg file. If the file aleady exists, prompt the user to confirm overwrite
 
 #Bugs
-- preview issues
-    - watch that pause/resume working properly and that the preview always starts at the proper place.
-- the general user flute preset cannot play faster than 180 BPM. It generates silence above that speed. must be something about the attack, sustain, or release. At 200BPM, the repeat rate is 300ms. The flute at midi 72, and velocity of 63, the attack, sustain, and release are 4.8ms, 952ms, and 250ms respectively. There is no delay, hold, or decay.
-    - the problem seems to be with the attack time. Other instruments without attack (e.g. piccolo) do not have this problem. 
 
 #4.0.1 Updates
 - fixed error in random number generator
@@ -64,3 +60,4 @@ Use cases for local file access include
 - A recent Files capability was implemented. This required the services of a file server app running on the local machine on port 6001. Details on how to install and run this server is forthcoming. 
 - Preview source duration reflects whether the source is looping or not
 - GUI updates to the Generator Add/Modify dialog
+- The time line pan and zoom setting are now part of the save composition. 

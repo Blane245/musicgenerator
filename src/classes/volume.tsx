@@ -1,5 +1,5 @@
 import { getAttributeValue } from "utils/xmlfunctions";
-import { v2g } from "utils/v2g";
+import { v2g } from "../utils/v2g";
 
 // room volume
 export default class Volume {

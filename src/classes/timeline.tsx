@@ -2,6 +2,7 @@
 // it has a start time, and extent, and a format for major and minor ticks
 // it can be zoomed in or out
 import { TimeLineScales } from "types";
+import { getAttributeValue } from "utils/xmlfunctions";
 
 export default class TimeLine {
   startTime: number; //
@@ -43,5 +44,17 @@ export default class TimeLine {
     n.startTime = this.startTime;
     n.currentZoomLevel = this.currentZoomLevel;
     return n;
+  }
+  appendXML(_doc: XMLDocument, elem: Element, _fileName: string) {
+    elem.setAttribute("startTime", this.startTime.toString());
+    elem.setAttribute("currentZoomLevel", this.currentZoomLevel.toString());
+  }
+  getXML(tElem: Element, _fileName: string) {
+    this.startTime = getAttributeValue(tElem, "startTime", "float") as number;
+    this.currentZoomLevel = getAttributeValue(
+      tElem,
+      "currentZoomLevel",
+      "int"
+    ) as number;
   }
 }

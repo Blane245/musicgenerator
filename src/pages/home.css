@@ -61,7 +61,6 @@ body {
 
 .navbar {
   height: 40px;
-  background-color: white;
   overflow: visible;
 }
 
@@ -225,6 +224,7 @@ ul:after {
     "body"
     "footer";
   .header {
+    background-color: lightblue;
     position: absolute;
     grid-area: header;
     top: 0;
@@ -295,6 +295,7 @@ ul:after {
     overflow-x: hidden;
   }
   .footer {
+    background-color: lightskyblue;
     display: grid;
     grid-area: footer;
     grid-template-columns: 1fr 300px 200px 300px 40px;
@@ -311,9 +312,10 @@ ul:after {
       margin-left: 5px;
       font-size: 20pt;
       font-weight: bold;
-      color:hsl(54, 100%, 21%)
+      color:hsl(32, 100%, 21%)
     }
     .compressor {
+      background-color: white;
       display: block;
       grid-area: compressor;
       justify-self: right;
@@ -367,6 +369,7 @@ ul:after {
       }
     }
     .reverb {
+      background-color: white;
       display: block;
       grid-area: reverb;
       justify-self: right;
@@ -423,6 +426,7 @@ ul:after {
     }
 
     .equalizer {
+      background-color: white;
       display: block;
       grid-column: equalizer;
       justify-self: right;
@@ -479,6 +483,7 @@ ul:after {
     }
 
     .volume {
+      background-color: white;
       display: block;
       grid-area: volume;
       justify-self: right;
@@ -975,7 +980,7 @@ div.algorithmic-table {
     "footer";
   gap: 0px;
   position: relative;
-  background-color: white;
+  background-color: lightblue;
   .header {
     grid-area: header;
     display: grid;
@@ -1008,6 +1013,7 @@ div.algorithmic-table {
     background-color: rgb(230, 230, 230);
   }
   .footer {
+    background-color: lightskyblue;
     grid-area: footer;
     display: grid;
     grid-template-columns: 1fr 200px 200px 300px 200px 300px 40px;
@@ -1016,12 +1022,15 @@ div.algorithmic-table {
       grid-area: status;
     }
     .leftSpectrum {
+      background-color: white;
       grid-area: leftSpectrum;
     }
     .rightSpectrum {
+      background-color: white;
       grid-area: rightSpectrum;
     }
     .compressor {
+      background-color: white;
       display: block;
       grid-area: compressor;
       justify-self: right;
@@ -1075,6 +1084,7 @@ div.algorithmic-table {
       }
     }
     .reverb {
+      background-color: white;
       display: block;
       grid-area: reverb;
       justify-self: right;
@@ -1131,6 +1141,7 @@ div.algorithmic-table {
     }
 
     .equalizer {
+      background-color: white;
       display: block;
       grid-column: equalizer;
       justify-self: right;
@@ -1187,6 +1198,7 @@ div.algorithmic-table {
     }
 
     .volume {
+      background-color: white;
       display: block;
       grid-area: volume;
       justify-self: right;
@@ -1240,6 +1252,162 @@ div.algorithmic-table {
   }
 }
 
+.filedialog {
+  /* border-radius and resize are not working */
+  border: thin solid black;
+  position: absolute;
+  display: grid;
+  top: 100px;
+  left: 100px;
+  width: 75%;
+  grid-template-rows: 70px 320px 100px;
+  grid-template-areas: "header" "body" "footer";
+  .filedialogheader {
+    display: grid;
+    background-color: lightcoral;
+    grid-area: header;
+    grid-template-rows: 35px 35px;
+    grid-template-areas:
+      "titlerow"
+      "directoryrow";
+    .titlerow {
+      grid-area: titlerow;
+      display: grid;
+      grid-template-columns: 40px 1fr 50px;
+      grid-template-areas: "icon title exit";
+      gap: 0;
+      .icon {
+        grid-area: icon;
+      }
+      .title {
+        grid-area: title;
+      }
+      .exit {
+        grid-area: exit;
+      }
+      .exit > button {
+        font-size: 12pt;
+        size: 12pt;
+      }
+    }
+    .directoryrow {
+      grid-area: directoryrow;
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      grid-template-areas: "navigation directory";
+      gap: 0;
+      .navigation {
+        grid-area: navigation;
+      }
+      .directory {
+        grid-area: directory;
+      }
+    }
+  }
+  .filedialogbody {
+    grid-area: body;
+    display: grid;
+    grid-template-rows: 320px;
+    grid-template-areas: "searchtable";
+    background-color: white;;
+    gap: 0;
+    .searchtable {
+      grid-area: searchtable;
+      display: grid;
+      grid-template-areas: "filesystemlist directorylist";
+      grid-template-columns: 1fr 2fr;
+      .filesystemlist {
+        resize: horizontal;
+        display: block;
+        grid-area: filesystemlist;
+        overflow: scroll;
+        overflow-x: hidden;
+        text-align: left;
+        margin-left: 5px;
+      }
+      .directorylist {
+        resize: horizontal;
+        display:block;
+        align-self: normal;
+        grid-area: directorylist;
+        overflow: scroll;
+        overflow-x: hidden;
+        text-align: left;
+        margin-left: 5px;
+      }
+    }
+  }
+  .filedialogfooter {
+    background-color: lightsalmon;
+    position: fixed;
+    top:auto;
+    bottom:inherit;
+    width:inherit;
+    grid-area: footer;
+    display: grid;
+    grid-template-rows: 50px 50px;
+    grid-template-areas: "filerow" "status";
+    .filerow {
+      display:grid;
+      grid-template-areas: "filename" 'filetypes';
+      grid-template-rows: 1fr 1fr;
+      grid-area: filerow;
+      .filename {
+        grid-area: filename;
+        display: block;
+        align-self: flex-end;
+        margin-bottom: 5px;
+        margin-left: 20px;
+        font-size: 12pt;
+        text-align: left;
+      }
+      .filetypes {
+        grid-area: filetypes;
+        display: block;
+        align-self: flex-end;
+        margin-bottom: 5px;
+        margin-left: 45px;
+        font-size: 12pt;
+        text-align: left;
+      }
+    }
+    .status {
+      grid-area: status;
+      border-top: thin solid black;
+      display: grid;
+      grid-template-columns: 1fr 120px;
+      grid-template-areas: "message buttons";
+      .message {
+        grid-area: message;
+        display: block;
+        align-self: flex-end;
+        margin-bottom: 5px;
+        margin-left: 5px;
+        font-size: 12pt;
+        text-align: left;
+      }
+      .buttons {
+        grid-area: buttons;
+        display: block;
+        align-self: flex-end;
+        margin-bottom: 5px;
+        margin-left: 5px;
+        font-size: 12pt;
+      }
+    }
+
+    /* contains a status message and Save/Open and Cancel buttons */
+  }
+}
+input:hover {
+  background-color: lightcyan;
+}
+.directoryentry {
+  font-size: 16px;
+}
+.directoryentry:hover {
+  background-color: lightcyan;
+}
 @keyframes animatetop {
   from {
     top: -300px;

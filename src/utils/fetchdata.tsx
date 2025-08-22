@@ -1,4 +1,4 @@
-import { ServerResponse } from "types";
+import { type ServerResponse } from "../types";
 
 // issue the fetch request for file list or specific file
 export default async function fetchData(
@@ -30,6 +30,6 @@ export default async function fetchData(
     return json;
   } catch (e: any) {
     console.log(`fetch exception ${e}`);
-    return { error: true, status: "Local file server not responding." };
+    return { error: true, status: `${e}` };
   }
 }

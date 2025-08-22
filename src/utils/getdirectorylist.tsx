@@ -1,5 +1,5 @@
 // get the list of soundfont files either from local storage or from the server
-import { ServerResponse } from "types";
+import { type ServerResponse } from "../types";
 import fetchData from "./fetchdata";
 
 export async function getDirectoryList(

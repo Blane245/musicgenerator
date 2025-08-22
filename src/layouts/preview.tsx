@@ -1086,12 +1086,12 @@ export default function Preview(params: PreviewProps): JSX.Element {
       }
       // notify the display engine of the sources currently playing
       if (nStarted > 0 || nStopped > 0) {
-        console.log(
-          "activesources has changed",
-          newActiveSources.length,
-          "pendingSources",
-          pendingSourceData.current.length
-        );
+        // console.log(
+        //   "activesources has changed",
+        //   newActiveSources.length,
+        //   "pendingSources",
+        //   pendingSourceData.current.length
+        // );
         activeSources.current = newActiveSources;
         setActiveSourcesCount(newActiveSources.length);
       }
@@ -1109,7 +1109,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
       return;
     }
     if (playing.current && audioContext.currentTime <= playbackLength) {
-      console.log("tick at", audioContext.currentTime);
+      // console.log("tick at", audioContext.currentTime);
       tickId = window.setTimeout(tick, tickInterval);
       if (previewTimeline.current) {
         const newTime: number = Math.round(
