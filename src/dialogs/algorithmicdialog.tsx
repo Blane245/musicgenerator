@@ -7,7 +7,7 @@ import {
 } from "classes/algorithmvalues";
 import { Algorithmic } from "classes/generators";
 import { useCMGContext } from "cmgcontext";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useState } from "react";
 import { bankPresettoName, toNote } from "sfcomponents/util";
 import { ALGORITHMTYPE } from "types";
 import AutoregressivePropertiesBox from "./autoregresivepropertiesbox";
@@ -30,25 +30,10 @@ export interface AlgorithmicDialogProps {
 export default function AlgorithmicDialog(
   props: AlgorithmicDialogProps
 ): JSX.Element {
-  const {
-    SFFileList,
-  } = useCMGContext();
+  const { SFFileList } = useCMGContext();
   const { formData, handleChange } = props;
   const [open, setOpen] = useState<boolean>(false);
   const [viewPreset, setViewPreset] = useState<boolean>(false);
-
-  // load the soundfont file list if it haw not been loaded
-  // useEffect(() => {
-  //   if (SFFileList.length == 0) {
-  //     getSFFileList(
-  //       SFFileLocation == SOUNDFONTLOCATIONOPTIONS.Server
-  //         ? SFServerURI
-  //         : SFLocalURI,
-  //       setSFFileList,
-  //       setStatus
-  //     );
-  //   }
-  // }, []);
 
   return (
     <>
@@ -427,7 +412,7 @@ export default function AlgorithmicDialog(
               values={(formData.speedP as WienerValues).values}
               min={1}
               max={1000}
-              step={.1}
+              step={0.1}
               valueSuffix={() => ""}
               handleChange={handleChange}
             />
@@ -454,6 +439,122 @@ export default function AlgorithmicDialog(
               max={1000}
               step={0.001}
               valueSuffix={() => "BPM"}
+            />
+          ) : null}
+        </div>
+      </div>
+      <hr />
+      <div className="algorithmic-table">
+        <div className="attribute">Duration (sec)</div>
+        <div className="gentype">
+          <label>
+            Algorithm:&nbsp;
+            <select
+              name="durationP.algorithmType"
+              onChange={handleChange}
+              value={
+                formData.durationP
+                  ? formData.durationP.algorithmType
+                  : ALGORITHMTYPE.None
+              }
+            >
+              {Object.values(ALGORITHMTYPE).map((p) => {
+                return (
+                  <option key={`durationPmodulator-${p}`} value={p}>
+                    {p}
+                  </option>
+                );
+              })}
+            </select>
+          </label>
+        </div>
+        <div className="parameters">
+          {formData.durationP &&
+          formData.durationP.algorithmType == ALGORITHMTYPE.Oscillator ? (
+            <OscillatorPropertiesBox
+              name="durationP.oscillator.values"
+              type={(formData.durationP as OscillatorValues).values.type}
+              center={{
+                value: (formData.durationP as OscillatorValues).values.center,
+                lo: 0,
+                hi: 1000,
+                step: 0.01,
+                suffix: "(sec)",
+              }}
+              centerSuffix={() => "sec"}
+              frequency={{
+                value: (formData.durationP as OscillatorValues).values.frequency,
+                lo: 0,
+                hi: 1000000,
+                step: 1,
+                suffix: "(mHz)",
+              }}
+              amplitude={{
+                value: (formData.durationP as OscillatorValues).values.amplitude,
+                lo: 0,
+                hi: 1000,
+                step: 1,
+                suffix: "(sec)",
+              }}
+              phase={{
+                value: (formData.durationP as OscillatorValues).values.phase,
+                lo: -360,
+                hi: 360,
+                step: 1,
+                suffix: "(degrees)",
+              }}
+              handleChange={handleChange}
+            />
+          ) : null}
+          {formData.durationP &&
+          formData.durationP.algorithmType == ALGORITHMTYPE.Markovian ? (
+            <MarkovianPropertiesBox
+              name="durationP.markovian.values"
+              valueSuffix={() => {
+                return "";
+              }}
+              stepSuffix={() => "sec"}
+              values={(formData.durationP as MarkovianValues).values}
+              min={1}
+              max={1000}
+              step={1}
+              handleChange={handleChange}
+            />
+          ) : null}
+          {formData.durationP &&
+          formData.durationP.algorithmType == ALGORITHMTYPE.Wiener ? (
+            <WienerPropertiesBox
+              name="durationP.wiener.values"
+              values={(formData.durationP as WienerValues).values}
+              min={1}
+              max={1000}
+              step={0.1}
+              valueSuffix={() => ""}
+              handleChange={handleChange}
+            />
+          ) : null}
+          {formData.durationP &&
+          formData.durationP.algorithmType == ALGORITHMTYPE.Constant ? (
+            <ConstantPropertiesBox
+              name="durationP.constant.values"
+              values={(formData.durationP as ConstantValues).values}
+              handleChange={handleChange}
+              min={0}
+              max={1000}
+              step={0.01}
+              valueSuffix={() => "sec"}
+            />
+          ) : null}
+          {formData.durationP &&
+          formData.durationP.algorithmType == ALGORITHMTYPE.Autoregressive ? (
+            <AutoregressivePropertiesBox
+              name="durationP.autogregressive.values"
+              values={(formData.durationP as AutoregressiveValues).values}
+              handleChange={handleChange}
+              min={1}
+              max={1000}
+              step={0.001}
+              valueSuffix={() => "sec"}
             />
           ) : null}
         </div>
@@ -532,7 +633,7 @@ export default function AlgorithmicDialog(
               values={(formData.volumeP as MarkovianValues).values}
               min={-50}
               max={50}
-              step={1}
+              step={0.1}
               handleChange={handleChange}
             />
           ) : null}
@@ -543,7 +644,7 @@ export default function AlgorithmicDialog(
               values={(formData.volumeP as WienerValues).values}
               min={-50}
               max={50}
-              step={.1}
+              step={0.1}
               valueSuffix={() => ""}
               handleChange={handleChange}
             />

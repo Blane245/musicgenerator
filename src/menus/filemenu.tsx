@@ -41,7 +41,10 @@ export default function FileMenu() {
       readFileContents(fileName);
     } else if (dialogType == "Save" && fileName != "") {
       // attempt to save as without overwrite
-      saveFileContents(fileName, false);
+      let correctFileName: string = fileName;
+      if (!fileName.includes(recentCMGDirectory))
+        correctFileName = recentCMGDirectory + '\\' + correctFileName;
+      saveFileContents(correctFileName, false);
     }
     setDialogType("");
   }, [fileName]);

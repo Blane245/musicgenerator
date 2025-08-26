@@ -218,7 +218,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
     // initialize the pending source data
     pendingSourceData.current = [...sourceData];
 
-    // initilize the audiocontext and prepare the room
+    // initialize the audiocontext and prepare the room
     // establish the context and realize the room effects
     const ctx: AudioContext = new AudioContext();
     ctx.suspend();
@@ -264,7 +264,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
     }
 
     if (!audioContext) {
-      console.log("starting preview wihtout an audiocontext");
+      console.log("starting preview without an audiocontext");
       return;
     }
     setRunning(true);
@@ -1030,7 +1030,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
                 s.source.duration
               );
             }
-            // console.log("source", s.index, "started at ", s.source.startTime);
+            console.log("source", s.index, "started at ", s.source.startTime, 'duration', s.source.duration);
             newActiveSources.push(activeSource);
             s.source.started = true;
             redrawSource(s);

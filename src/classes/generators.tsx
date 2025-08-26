@@ -163,6 +163,7 @@ export class Algorithmic extends Silent {
   reverbDecay: number;
   noteP: Algorithm;
   speedP: Algorithm;
+  durationP: Algorithm;
   volumeP: Algorithm;
   panP: Algorithm;
 
@@ -190,6 +191,7 @@ export class Algorithmic extends Silent {
     this.reverbDuration = 0;
     this.noteP = new ConstantValues();
     this.speedP = new ConstantValues();
+    this.durationP = new ConstantValues();
     this.volumeP = new ConstantValues();
     this.panP = new ConstantValues();
   }
@@ -264,6 +266,7 @@ export class Algorithmic extends Silent {
     n.reverbDecay = this.reverbDecay;
     n.noteP = this.noteP ? this.noteP.copy() : undefined;
     n.speedP = this.speedP ? this.speedP.copy() : undefined;
+    n.durationP = this.durationP ? this.durationP.copy() : undefined;
     n.volumeP = this.volumeP ? this.volumeP.copy() : undefined;
     n.panP = this.panP ? this.panP.copy() : undefined;
     return n;
@@ -356,6 +359,25 @@ export class Algorithmic extends Silent {
             return;
         }
         break;
+      case "durationP.algorithmType":
+        switch (value) {
+          case "Constant":
+            this.durationP = new ConstantValues();
+            return;
+          case "Autoregressive":
+            this.durationP = new AutoregressiveValues();
+            return;
+          case "Oscillator":
+            this.durationP = new OscillatorValues();
+            return;
+          case "Markovian":
+            this.durationP = new MarkovianValues();
+            return;
+          case "Wiener":
+            this.durationP = new WienerValues();
+            return;
+        }
+        break;
       case "volumeP.algorithmType":
         switch (value) {
           case "Constant":
@@ -407,6 +429,9 @@ export class Algorithmic extends Silent {
       case "speedP":
         if (this.speedP) this.speedP.setAttribute(valueName, value);
         break;
+      case "durationP":
+        if (this.durationP) this.durationP.setAttribute(valueName, value);
+        break;
       case "volumeP":
         if (this.volumeP) this.volumeP.setAttribute(valueName, value);
         break;
@@ -429,6 +454,7 @@ export class Algorithmic extends Silent {
     velocity: number;
     note: number;
     speed: number;
+    duration: number;
     volume: number;
     pan: number;
   } {
@@ -443,6 +469,9 @@ export class Algorithmic extends Silent {
     const speed: number = this.speedP
       ? this.speedP.getCurrentValue(time - this.startTime)
       : 0;
+    const duration: number = this.durationP
+      ? this.durationP.getCurrentValue(time - this.startTime)
+      : 0;
     const volume: number = this.volumeP
       ? this.volumeP.getCurrentValue(time - this.startTime)
       : 0;
@@ -452,7 +481,7 @@ export class Algorithmic extends Silent {
 
     // modify the note based on those selectable in the octave
     note = this.#getSelectedNote(note);
-    return { beat, note, velocity, speed, volume, pan };
+    return { beat, note, velocity, speed, duration, volume, pan };
   }
 
   #getSelectedNote(note: number): number {
@@ -493,11 +522,14 @@ export class Algorithmic extends Silent {
       const returnElem: Element = elem;
       await super.appendXML(doc, returnElem);
       // strip the path from the file name
-      const nameParts:string[] = this.soundFontFile.split('/');
+      const nameParts: string[] = this.soundFontFile.split("/");
       if (nameParts.length == 0)
-        returnElem.setAttribute("soundFontFile", this.soundFontFile); 
+        returnElem.setAttribute("soundFontFile", this.soundFontFile);
       else
-        returnElem.setAttribute("soundFontFile", nameParts[nameParts.length - 1]);
+        returnElem.setAttribute(
+          "soundFontFile",
+          nameParts[nameParts.length - 1]
+        );
       returnElem.setAttribute("presetName", this.presetName);
       returnElem.setAttribute("velocity", this.velocity.toString());
       returnElem.setAttribute("isLooping", this.isLooping ? "true" : "false");
@@ -516,14 +548,17 @@ export class Algorithmic extends Silent {
 
       const notePElem: Element = doc.createElement("noteP");
       const speedPElem: Element = doc.createElement("speedP");
+      const durationPElem: Element = doc.createElement("durationP");
       const volumePElem: Element = doc.createElement("volumeP");
       const panPElem: Element = doc.createElement("panP");
       returnElem.appendChild(notePElem);
       returnElem.appendChild(speedPElem);
+      returnElem.appendChild(durationPElem);
       returnElem.appendChild(volumePElem);
       returnElem.appendChild(panPElem);
       this.noteP?.appendXML(doc, notePElem);
       this.speedP?.appendXML(doc, speedPElem);
+      this.durationP?.appendXML(doc, durationPElem);
       this.volumeP?.appendXML(doc, volumePElem);
       this.panP?.appendXML(doc, panPElem);
       return Promise.resolve(returnElem);
@@ -611,6 +646,12 @@ export class Algorithmic extends Silent {
 
       const notePElem: Element = getElementElement(elem, "noteP");
       const speedPElem: Element = getElementElement(elem, "speedP");
+      let durationPElem: Element | null = null;
+      try {
+        durationPElem = getElementElement(elem, "durationP");
+      } catch {
+        durationPElem = null;
+      }
       const volumePElem: Element = getElementElement(elem, "volumeP");
       const panPElem: Element = getElementElement(elem, "panP");
       const notePType: ALGORITHMTYPE = getAttributeValue(
@@ -623,6 +664,13 @@ export class Algorithmic extends Silent {
         "algorithmType",
         "string"
       ) as ALGORITHMTYPE;
+      let durationPType:ALGORITHMTYPE = ALGORITHMTYPE.Constant;
+      if (durationPElem)
+        durationPType = getAttributeValue(
+          durationPElem,
+          "algorithmType",
+          "string"
+        ) as ALGORITHMTYPE;
       const volumePType: ALGORITHMTYPE = getAttributeValue(
         volumePElem,
         "algorithmType",
@@ -665,6 +713,26 @@ export class Algorithmic extends Silent {
           break;
         case ALGORITHMTYPE.Wiener:
           g.speedP = await WienerValues.getXML(speedPElem, version);
+          break;
+      }
+      switch (durationPType) {
+        case ALGORITHMTYPE.Constant:
+          if (durationPElem)
+            g.durationP = await ConstantValues.getXML(durationPElem, version);
+          else 
+            g.durationP = new ConstantValues({seed: "", rn: new RandomNumber(""), value:0});
+          break;
+        case ALGORITHMTYPE.Autoregressive:
+          g.durationP = await AutoregressiveValues.getXML(durationPElem as Element, version);
+          break;
+        case ALGORITHMTYPE.Oscillator:
+          g.durationP = await OscillatorValues.getXML(durationPElem as Element, version);
+          break;
+        case ALGORITHMTYPE.Markovian:
+          g.durationP = await MarkovianValues.getXML(durationPElem as Element, version);
+          break;
+        case ALGORITHMTYPE.Wiener:
+          g.durationP = await WienerValues.getXML(durationPElem as Element, version);
           break;
       }
       switch (volumePType) {
@@ -729,7 +797,9 @@ export class Algorithmic extends Silent {
           break;
         case ALGORITHMTYPE.Autoregressive:
           result.push(
-            ...AutoregressiveValues.validate(values.noteP as AutoregressiveValues)
+            ...AutoregressiveValues.validate(
+              values.noteP as AutoregressiveValues
+            )
           );
           break;
         case ALGORITHMTYPE.Oscillator:
@@ -757,7 +827,9 @@ export class Algorithmic extends Silent {
           break;
         case ALGORITHMTYPE.Autoregressive:
           result.push(
-            ...AutoregressiveValues.validate(values.speedP as AutoregressiveValues)
+            ...AutoregressiveValues.validate(
+              values.speedP as AutoregressiveValues
+            )
           );
           break;
         case ALGORITHMTYPE.Oscillator:
@@ -775,6 +847,37 @@ export class Algorithmic extends Silent {
           break;
       }
     }
+    if (values.durationP) {
+      const durationPType: ALGORITHMTYPE = values.durationP.algorithmType;
+      switch (durationPType) {
+        case ALGORITHMTYPE.Constant:
+          result.push(
+            ...ConstantValues.validate(values.durationP as ConstantValues)
+          );
+          break;
+        case ALGORITHMTYPE.Autoregressive:
+          result.push(
+            ...AutoregressiveValues.validate(
+              values.durationP as AutoregressiveValues
+            )
+          );
+          break;
+        case ALGORITHMTYPE.Oscillator:
+          result.push(
+            ...OscillatorValues.validate(values.durationP as OscillatorValues)
+          );
+          break;
+        case ALGORITHMTYPE.Markovian:
+          result.push(
+            ...MarkovianValues.validate(values.durationP as MarkovianValues)
+          );
+          break;
+        case ALGORITHMTYPE.Wiener:
+          result.push(...WienerValues.validate(values.durationP as WienerValues));
+          break;
+      }
+
+    }
     if (values.volumeP) {
       const volumePType: ALGORITHMTYPE = values.volumeP.algorithmType;
       switch (volumePType) {
@@ -785,7 +888,9 @@ export class Algorithmic extends Silent {
           break;
         case ALGORITHMTYPE.Autoregressive:
           result.push(
-            ...AutoregressiveValues.validate(values.volumeP as AutoregressiveValues)
+            ...AutoregressiveValues.validate(
+              values.volumeP as AutoregressiveValues
+            )
           );
           break;
         case ALGORITHMTYPE.Oscillator:
@@ -813,7 +918,9 @@ export class Algorithmic extends Silent {
           break;
         case ALGORITHMTYPE.Autoregressive:
           result.push(
-            ...AutoregressiveValues.validate(values.panP as AutoregressiveValues)
+            ...AutoregressiveValues.validate(
+              values.panP as AutoregressiveValues
+            )
           );
           break;
         case ALGORITHMTYPE.Oscillator:
@@ -838,7 +945,7 @@ export class Algorithmic extends Silent {
 // this class represents an audio file that can be used as a generator source
 export class AudioFile extends Silent {
   fileName: string;
-  samples: Float32Array[];
+  samples: Float32Array<ArrayBuffer>[];
   sampleRate: number;
   duration: number;
   volume: number;
@@ -899,7 +1006,7 @@ export class AudioFile extends Silent {
       // start any compression of audio samples necessary
       // should be one for each channel
       const audioPromises: Promise<string>[] = [];
-      this.samples.forEach((sample: Float32Array) => {
+      this.samples.forEach((sample: Float32Array<ArrayBuffer>) => {
         const samplePromise: Promise<string> = compressAndConvertToString(
           sample.buffer
         );
@@ -948,14 +1055,14 @@ export class AudioFile extends Silent {
       ) as number;
 
       // decompress the samples
-      const samplePromises: Promise<Float32Array>[] = [];
+      const samplePromises: Promise<Float32Array<ArrayBuffer>>[] = [];
       for (let i = 0; i < numberOfChannels; i++) {
         const sampleString: string = getAttributeValue(
           elem,
           `sample${i}`,
           "string"
         ) as string;
-        const samplePromise: Promise<Float32Array> =
+        const samplePromise: Promise<Float32Array<ArrayBuffer>> =
           convertFromJsonAndDecompress(sampleString);
         samplePromises.push(samplePromise);
       }
@@ -969,7 +1076,9 @@ export class AudioFile extends Silent {
 
       // load the decompressed samples
       if (samplePromises.length > 0) {
-        const samples: Float32Array[] = await Promise.all(samplePromises);
+        const samples: Float32Array<ArrayBuffer>[] = await Promise.all(
+          samplePromises
+        );
         g.samples = samples;
       }
 

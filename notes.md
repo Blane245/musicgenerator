@@ -1,8 +1,17 @@
-#Bugs
+# things to to
+- changing note duration from 0 makes noe silent
+- better ranges for duration values
+- 
+- update documentation 
+# Bugs
+- timeline goes back to default when file is saved. Time interval is then wrong
+- loose comment edits before save
+- pressing ctrl-s when no file has been identified causes an internal server error. 
 - have to double click file menu (?)
 - the general user flute preset cannot play faster than 180 BPM. It generates silence above that speed. must be something about the attack, sustain, or release. At 200BPM, the repeat rate is 300ms. The flute at midi 72, and velocity of 63, the attack, sustain, and release are 4.8ms, 952ms, and 250ms respectively. There is no delay, hold, or decay.
     - the problem seems to be with the attack time. Other instruments without attack (e.g. piccolo) do not have this problem. 
 #Enhancements
+- implement a way to end note tone earlier than its duration (stoptime-starttime) to achieve staccato effect. 
 - disable delay of a preset. For presets that have multiple instruments, the shortest delay is removed and the other instrument delays are shortened.
 - implement a note velocity modulator. Should add some expression to notes
 - implement granular synthesis to achieve vibrato, tremelo, glissandi, and other effects

@@ -29,6 +29,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
         0,
         0,
         1,
+        1,
         midi,
         vel,
         0,

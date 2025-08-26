@@ -47,6 +47,7 @@ export const getPresetNote = (
   preset: Preset,
   noiseAmplitude: number,
   noiseDispersion: number,
+  initialDuration: number,
   interval: number,
   pitchValue: number,
   velocity: number,
@@ -129,8 +130,8 @@ export const getPresetNote = (
       0,
       interval - delay - attack - hold - decay
     );
-    const releaseInterval: number = release;
-    const duration: number = interval + release;
+    const releaseInterval: number = initialDuration == interval? release: 0;
+    const duration: number = interval + releaseInterval;
     let sustainLevel = attenuate(1.0, sustainVolEnv / 10);
     let noisySample: Float32Array = new Float32Array(0);
     // add noise to the sample if necessary

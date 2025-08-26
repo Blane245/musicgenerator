@@ -266,8 +266,15 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
     setSelectedFile(enteredFile);
   }, [enteredFile]);
   function onAction() {
-    setFile(`${selectedFile}`);
-    setDirectory(selectedDirectory);
+    // selectedFile must has an extent
+    const nameParts: string[] = selectedFile.split('.');
+    if (nameParts.length < 2) {
+      setError(`File Name must include an extent`);
+      return;
+  }
+    const extendedFile: string = selectedFile.includes(selectedDirectory)? selectedFile: selectedDirectory + '\\' + selectedFile;
+    setFile(extendedFile.replace(/\//g, '\\'));
+    setDirectory(selectedDirectory.replace(/\//g, '\\'));
     setStatus("");
     setMode("");
   }
