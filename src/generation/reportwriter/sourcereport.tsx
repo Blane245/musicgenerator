@@ -2,7 +2,6 @@ import CMGFile from "classes/cmgfile";
 import { Algorithmic, AudioFile, Silent } from "classes/generators";
 import { buildSources } from "generation/buildsources";
 import ReadyGenerate from "generation/readygenerate";
-import { attenuate } from "sfcomponents/util";
 import {
   GENERATIONMODE,
   GENERATORTYPE,
@@ -52,6 +51,7 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
     sources = result.sources;
     error = result.error;
   }
+  //TODO add instrument data
   return (
     <>
       {error != "" ? <h5>Error in source construction - {error}</h5> : null}
@@ -65,7 +65,7 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
           <tr>
             {!generator ? <th>Generator</th> : null}
             <th>Start Time</th>
-            <th>Stop Time</th>
+            {/* <th>Stop Time</th> */}
             <th>Duration</th>
             <th>Note</th>
             <th>Sample Count</th>
@@ -74,7 +74,7 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
               <br />
               Rate
             </th>
-            <th>
+            {/* <th>
               Delay
               <br />
               (sec)
@@ -108,12 +108,12 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
               Release
               <br />
               (sec)
-            </th>
-            <th>
+            </th> */}
+            {/* <th>
               Attenuation
               <br />
               (dB)
-            </th>
+            </th> */}
             <th>
               Vol
               <br />
@@ -131,12 +131,12 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
             <tr>
               {!generator ? <th>{s.gen.name}</th> : null}
               <td>{s.source.startTime.toFixed(3)}</td>
-              <td>{s.source.stopTime.toFixed(3)}</td>
+              {/* <td>{s.source.stopTime.toFixed(3)}</td> */}
               <td>{s.source.duration.toFixed(3)}</td>
               <td>{s.source.note.toFixed(2)}</td>
               <td>{s.source.sample[0].length}</td>
               <td>{s.source.playbackRate.toFixed(3)}</td>
-              <td>{(s.source.startTime + s.vol.delayInterval).toFixed(3)}</td>
+              {/* <td>{(s.source.startTime + s.vol.delayInterval).toFixed(3)}</td>
               <td>
                 {(
                   s.source.startTime +
@@ -170,7 +170,7 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
               </td>
               <td>{s.vol.sustainLevel.toFixed(3)}</td>
               <td>{s.source.stopTime.toFixed(3)}</td>
-              <td>{attenuate(1, s.vol.initialAttenuation / 10).toFixed(0)}</td>
+              <td>{attenuate(1, s.vol.initialAttenuation / 10).toFixed(0)}</td> */}
               <td>{s.vol.value.toFixed(3)}</td>
               <td>{s.panner.value.toFixed(3)}</td>
             </tr>

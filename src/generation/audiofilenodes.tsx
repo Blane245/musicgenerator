@@ -1,26 +1,38 @@
 // this prepares for playing a loaded audiofile without any modulation other than
 // a volume setting
 
+import { dBToGain } from "sfcomponents/util";
 import { AudioFile } from "../classes/generators";
 import { RawSourceData } from "../types";
 
-export function getBufferSourceNodesFromAudioFile(gen: AudioFile, sourceCount: number): RawSourceData[] {
+export function getBufferSourceNodesFromAudioFile(
+  gen: AudioFile,
+  sourceCount: number
+): RawSourceData[] {
   const { startTime, stopTime, volume, samples, duration, sampleRate } = gen;
   const sourceData: RawSourceData[] = [];
 
   const holdInterval = duration;
+
+  // apply the volume to all channels of the audiofile sample
+  const volumeGain: number = dBToGain(volume);
+  const theseSamples: Float32Array[] = [];
+  samples.forEach((c: Float32Array) => {
+    const thisSample: Float32Array = new Float32Array(c);
+    thisSample.forEach((s) => {
+      s = s * volumeGain;
+    });
+    theseSamples.push(thisSample);
+  });
   sourceData.push({
     gen,
-    index:sourceCount,
+    index: sourceCount,
     source: {
-      sample: samples,
-      sampleRate: sampleRate,
+      sample: theseSamples,
+      sampleRate,
       note: 0,
       playbackRate: 1.0,
-      loopStart: 0,
-      loopEnd: 0,
-      loop: false,
-      startTime: startTime,
+      startTime,
       duration: holdInterval,
       stopTime: stopTime,
       started: false,
@@ -28,18 +40,7 @@ export function getBufferSourceNodesFromAudioFile(gen: AudioFile, sourceCount: n
     panner: {
       value: 0,
     },
-    vol: {
-      attackInterval: 0,
-      holdInterval,
-      releaseInterval:0,
-      delayInterval: 0.001,
-      decayInterval: 0.001,
-      sustainInterval: 0.001,
-      sustainLevel: 0.001,
-      value: volume,
-      initialAttenuation: 0,
-
-    },
+    vol: {value: 0},
   });
   return sourceData;
 }

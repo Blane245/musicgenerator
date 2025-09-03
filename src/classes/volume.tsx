@@ -3,13 +3,11 @@ import { v2g } from "../utils/v2g";
 
 // room volume
 export default class Volume {
-  name: string;
   context: AudioContext | OfflineAudioContext | undefined;
   volume: number;
   effect: GainNode | undefined;
 
-  constructor(name: string) {
-    this.name = name;
+  constructor() {
     this.context = undefined;
     this.volume = 0;
   }
@@ -30,7 +28,7 @@ export default class Volume {
   }
 
   copy(): Volume {
-    const n = new Volume(this.name);
+    const n = new Volume();
     n.context = this.context;
     n.volume = this.volume;
     n.effect = this.effect;

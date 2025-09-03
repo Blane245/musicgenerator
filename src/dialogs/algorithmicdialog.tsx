@@ -34,7 +34,6 @@ export default function AlgorithmicDialog(
   const { formData, handleChange } = props;
   const [open, setOpen] = useState<boolean>(false);
   const [viewPreset, setViewPreset] = useState<boolean>(false);
-
   return (
     <>
       <label>
@@ -377,7 +376,7 @@ export default function AlgorithmicDialog(
                 value: (formData.speedP as OscillatorValues).values.amplitude,
                 lo: 0,
                 hi: 1000,
-                step: 1,
+                step: 0.001,
                 suffix: "(BPM)",
               }}
               phase={{
@@ -429,6 +428,7 @@ export default function AlgorithmicDialog(
               valueSuffix={() => "BPM"}
             />
           ) : null}
+          <div></div>
           {formData.speedP &&
           formData.speedP.algorithmType == ALGORITHMTYPE.Autoregressive ? (
             <AutoregressivePropertiesBox
@@ -476,12 +476,12 @@ export default function AlgorithmicDialog(
               type={(formData.durationP as OscillatorValues).values.type}
               center={{
                 value: (formData.durationP as OscillatorValues).values.center,
-                lo: 0,
-                hi: 1000,
-                step: 0.01,
-                suffix: "(sec)",
+                lo: 1,
+                hi: 100,
+                step: 1,
+                suffix: "(%)",
               }}
-              centerSuffix={() => "sec"}
+              centerSuffix={() => "%"}
               frequency={{
                 value: (formData.durationP as OscillatorValues).values.frequency,
                 lo: 0,
@@ -492,9 +492,9 @@ export default function AlgorithmicDialog(
               amplitude={{
                 value: (formData.durationP as OscillatorValues).values.amplitude,
                 lo: 0,
-                hi: 1000,
+                hi: 100,
                 step: 1,
-                suffix: "(sec)",
+                suffix: "(%)",
               }}
               phase={{
                 value: (formData.durationP as OscillatorValues).values.phase,
@@ -513,10 +513,10 @@ export default function AlgorithmicDialog(
               valueSuffix={() => {
                 return "";
               }}
-              stepSuffix={() => "sec"}
+              stepSuffix={() => "%"}
               values={(formData.durationP as MarkovianValues).values}
               min={1}
-              max={1000}
+              max={100}
               step={1}
               handleChange={handleChange}
             />
@@ -527,9 +527,9 @@ export default function AlgorithmicDialog(
               name="durationP.wiener.values"
               values={(formData.durationP as WienerValues).values}
               min={1}
-              max={1000}
-              step={0.1}
-              valueSuffix={() => ""}
+              max={100}
+              step={1}
+              valueSuffix={() => "%"}
               handleChange={handleChange}
             />
           ) : null}
@@ -539,10 +539,10 @@ export default function AlgorithmicDialog(
               name="durationP.constant.values"
               values={(formData.durationP as ConstantValues).values}
               handleChange={handleChange}
-              min={0}
-              max={1000}
-              step={0.01}
-              valueSuffix={() => "sec"}
+              min={1}
+              max={100}
+              step={1}
+              valueSuffix={() => "%"}
             />
           ) : null}
           {formData.durationP &&
@@ -552,9 +552,9 @@ export default function AlgorithmicDialog(
               values={(formData.durationP as AutoregressiveValues).values}
               handleChange={handleChange}
               min={1}
-              max={1000}
-              step={0.001}
-              valueSuffix={() => "sec"}
+              max={100}
+              step={1}
+              valueSuffix={() => "%"}
             />
           ) : null}
         </div>
@@ -609,7 +609,7 @@ export default function AlgorithmicDialog(
                 value: (formData.volumeP as OscillatorValues).values.amplitude,
                 lo: 0,
                 hi: 10,
-                step: 1,
+                step: 0.001,
                 suffix: "(dB)",
               }}
               phase={{
@@ -723,7 +723,7 @@ export default function AlgorithmicDialog(
                 value: (formData.panP as OscillatorValues).values.amplitude,
                 lo: 0,
                 hi: 2,
-                step: 0.1,
+                step: 0.001,
                 suffix: "[0,2]",
               }}
               phase={{
@@ -791,7 +791,7 @@ export default function AlgorithmicDialog(
       </div>
       {open ? <MidiFrequencyDialog setOpen={setOpen} /> : null}
       {viewPreset ? (
-        <PresetDialog generator={formData} setViewPreset={setViewPreset} />
+        <PresetDialog generator={formData} setViewPreset={setViewPreset}/>
       ) : null}
     </>
   );

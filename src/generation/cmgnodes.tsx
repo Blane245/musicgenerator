@@ -16,9 +16,6 @@ export function getBufferSourceNodesFromSilent(gen: Silent, sourceCount: number)
       sampleRate: 0,
       note: 0,
       playbackRate: 0,
-      loopStart: 0,
-      loopEnd: 0,
-      loop: false,
       startTime: startTime,
       duration: stopTime - startTime,
       stopTime: stopTime,
@@ -27,18 +24,7 @@ export function getBufferSourceNodesFromSilent(gen: Silent, sourceCount: number)
     panner: {
       value: 0,
     },
-    vol: {
-      attackInterval: 0,
-      holdInterval: 0,
-      releaseInterval:0,
-      delayInterval: 0,
-      decayInterval: 0,
-      sustainInterval: 0,
-      sustainLevel: 0,
-      value: 0,
-      initialAttenuation: 0,
-
-    },
+    vol: {value: 0},
   });
   return sourceData;
 }

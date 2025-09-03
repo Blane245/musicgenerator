@@ -125,9 +125,10 @@ value of 3600 timecents or 8 seconds attack time.
       : undefined;
   const absoluteValue = izoneValue ?? izoneGlobalValue ?? defaultValue;
   const relativeValue = pzoneValue ?? pzoneGlobalValue ?? 0;
-  /* if (index === 38) {
-    console.log('get 38', absoluteValue, relativeValue);
-  } */
+  if (index === 48) {
+    console.log('get 48', izoneValue, izoneGlobalValue, defaultValue, 
+      pzoneValue, pzoneGlobalValue, absoluteValue, relativeValue);
+  }
   return absoluteValue + relativeValue;
 };
 

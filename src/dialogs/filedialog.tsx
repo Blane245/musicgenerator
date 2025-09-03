@@ -43,6 +43,9 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
   const [queueLocation, setQueueLocation] = useState<number>(0);
   const [enteredDirectory, setEnteredDirectory] = useState<string>("");
   const [enteredFile, setEnteredFile] = useState<string>("");
+  const [disableBack, setDisableBack] = useState<boolean>(true);
+  const [disableForward, setDisableForward] = useState<boolean>(true);
+  const [disableUp, setDisableUp] = useState<boolean>(true);
 
   // on entry build the filesystem directory
   // this requires getting all of the mount points and assembling the
@@ -103,8 +106,54 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
         `Error while ready filesystem directory ${(e as Error).message}`
       );
     }
-  }, [directory]);
+  }, []);
 
+  useEffect(() => {
+    try {
+      if (selectedDirectory == "") {
+        setDirectoryList([]);
+        return;
+      }
+      getDirectoryList(selectedDirectory).then((response: ServerResponse) => {
+        if (response.error) {
+          setError(
+            response.status
+              ? response.status
+              : `Error while retrieving directory list for ${selectedDirectory}`
+          );
+          setDirectoryList([]);
+          return;
+        }
+        if (!response.list) {
+          setError(`No entries in directory ${selectedDirectory}`);
+          return;
+        }
+
+        // push the selected directory in the location queue
+        setError(`Directory loaded: '${selectedDirectory}'`);
+        if (directoryQueue.indexOf(selectedDirectory) < 0) {
+          const newQueue: string[] = [...directoryQueue];
+          newQueue.push(selectedDirectory);
+          setDirectoryQueue(newQueue);
+          setQueueLocation(newQueue.length - 1);
+          setNavigationButtons(newQueue.length - 1, newQueue);
+          console.log("new location queue", newQueue);
+        }
+      });
+    } catch (error: any) {
+      setError((error as Error).message);
+      setDirectoryList([]);
+      setSelectedFile("");
+    }
+  }, [selectedDirectory]);
+
+  useEffect(() => {
+    if (enteredDirectory != "") setSelectedDirectory(enteredDirectory);
+  }, [enteredDirectory]);
+
+  useEffect(() => {
+    setSelectedFile(enteredFile);
+  }, [enteredFile]);
   // when the filesystem directory list is updated, sort it by
   // mount point and then by directory name
   // remove double back slashes
@@ -161,8 +210,8 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
         list: [],
       };
 
-    // TODO for now, no filtering
-    // trim the directory list down to only files that are match type and directories
+    // trim the directory list down to only directories and files that are match types
+    // first sort the entire list
     let list: DirectoryEntry[] = response.list.sort(
       (a: DirectoryEntry, b: DirectoryEntry) => {
         const aIsFile: boolean = a.type == ENTRYTYPE.File;
@@ -190,6 +239,8 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
         return 1; // default to greater
       }
     );
+
+    // now remove things not wanted
     list = list.filter((entry: DirectoryEntry) => {
       const isFile: boolean = entry.type == ENTRYTYPE.File;
       const isDirectory: boolean =
@@ -204,10 +255,12 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
       const thisExtent: string = nameParts[nameParts.length - 1];
       return fileTypes.indexOf(thisExtent) >= 0;
     });
+
+    // change all \\ to \ and all / to \
     list = list.map((entry: DirectoryEntry) => {
       return {
-        name: entry.name.replace(/\\\\/g, "\\"),
-        path: entry.path.replace(/\\\\/g, "\\"),
+        name: entry.name.replace(/\\\\|\//g, "\\"),
+        path: entry.path.replace(/\\\\|\//g, "\\"),
         type: entry.type,
       };
     });
@@ -220,51 +273,6 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
   }
 
   // load the directory list whenever the current directory changes
-  useEffect(() => {
-    try {
-      if (selectedDirectory == "") {
-        setDirectoryList([]);
-        return;
-      }
-      getDirectoryList(selectedDirectory).then((response: ServerResponse) => {
-        if (response.error) {
-          setError(
-            response.status
-              ? response.status
-              : `Error while retrieving directory list for ${selectedDirectory}`
-          );
-          setDirectoryList([]);
-          return;
-        }
-        if (!response.list) {
-          setError(`No entries in directory ${selectedDirectory}`);
-          return;
-        }
-
-        // push the selected directory in the location queue
-        setError(`Directory loaded: '${selectedDirectory}'`);
-        if (directoryQueue.indexOf(selectedDirectory) < 0) {
-          const newQueue: string[] = [...directoryQueue];
-          newQueue.push(selectedDirectory);
-          setDirectoryQueue(newQueue);
-          setQueueLocation(newQueue.length - 1);
-          setNavigationButtons(newQueue.length - 1, newQueue);
-          console.log("new location queue", newQueue);
-        }
-      });
-    } catch (error: any) {
-      setError((error as Error).message);
-      setDirectoryList([]);
-      setSelectedFile("");
-    }
-  }, [selectedDirectory]);
-
-  useEffect(() => {
-    if (enteredDirectory != "") setSelectedDirectory(enteredDirectory);
-  }, [enteredDirectory]);
-  useEffect(() => {
-    setSelectedFile(enteredFile);
-  }, [enteredFile]);
   function onAction() {
     // selectedFile must has an extent
     const nameParts: string[] = selectedFile.split('.');
@@ -273,15 +281,14 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
       return;
   }
     const extendedFile: string = selectedFile.includes(selectedDirectory)? selectedFile: selectedDirectory + '\\' + selectedFile;
-    setFile(extendedFile.replace(/\//g, '\\'));
-    setDirectory(selectedDirectory.replace(/\//g, '\\'));
+    setFile(extendedFile.replace(/\\\\|\//g, '\\'));
+    setDirectory(selectedDirectory.replace(/\\\\|\//g, '\\'));
     setStatus("");
     setMode("");
   }
 
   function onExit() {
     setFile("");
-    setDirectory("");
     setMode("");
   }
 
@@ -292,7 +299,6 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
     else setDisableUp(queue[location].split("\\").length <= 1);
   }
 
-  const [disableBack, setDisableBack] = useState<boolean>(true);
   function onBack() {
     if (queueLocation > 0) {
       const newDirectory: string = directoryQueue[queueLocation - 1];
@@ -304,7 +310,6 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
     } else setNavigationButtons(queueLocation, directoryQueue);
   }
 
-  const [disableForward, setDisableForward] = useState<boolean>(true);
   function onForward() {
     if (queueLocation < directoryQueue.length - 1) {
       const newDirectory: string = directoryQueue[queueLocation + 1];
@@ -316,7 +321,6 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
     } else setNavigationButtons(queueLocation, directoryQueue);
   }
 
-  const [disableUp, setDisableUp] = useState<boolean>(true);
   function onUp() {
     const nameParts: string[] = selectedDirectory.split("\\");
     if (nameParts.length > 1) {
@@ -338,7 +342,8 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
   function onDirectory(e: React.FocusEvent<HTMLInputElement>) {
     setEnteredDirectory(e.currentTarget.value);
   }
-  function onDirectoryClick(clickItem: string, type: string) {
+
+  function onItemClick(clickItem: string, type: string) {
     if (type == "file") {
       setEnteredFile(clickItem);
     } else {
@@ -397,14 +402,6 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
               width="99%"
               initialValue={enteredDirectory}
               onBlur={onDirectory}
-
-              // <input
-              //   id="selecteddirectory"
-              //   name="selecteddirectory"
-              //   type="text"
-              //   style={{ width: '99%'}}
-              //   defaultValue={enteredDirectory}
-              //   onBlur={(e) => onDirectory(e)}
             />
           </div>
         </div>
@@ -417,7 +414,7 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
                 <div key={`drive-${entry.mountPoint}`}>
                   <div
                     onClick={() =>
-                      onDirectoryClick(entry.mountPoint, "directory")
+                      onItemClick(entry.mountPoint, "directory")
                     }
                   >
                     {entry.mountPoint}
@@ -427,7 +424,7 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
                       <div
                         className="directoryentry"
                         onClick={() =>
-                          onDirectoryClick(
+                          onItemClick(
                             `${entry.mountPoint}\\${item}`,
                             "directory"
                           )
@@ -447,10 +444,10 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
               return (
                 <div
                   className="directoryentry"
-                  style={{ color: isFile ? "red" : "black" }}
+                  style={{ color: isFile ? "firebrick" : "black" }}
                   key={`${entry.path}${entry.name}`}
                   onClick={() =>
-                    onDirectoryClick(
+                    onItemClick(
                       `${entry.path}\\${entry.name}`,
                       isFile ? "file" : "directory"
                     )

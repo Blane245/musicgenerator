@@ -1,55 +1,49 @@
 import { FFTSIZE, MAXDECIBELS, MINDECIBELS, SignalLevelsType } from "types";
 
 export default class SignalLevel {
-  left: number;
-  right: number;
-  fftSize: number;
   #context: AudioContext; // not usable in recording mode
   #filter: BiquadFilterNode;
   #splitter: ChannelSplitterNode;
   #leftAnalyser: AnalyserNode
   #rightAnalyser: AnalyserNode;
-  #BUFFERSIZE: number = 2048;
   #leftDataArray: Float32Array;
   #rightDataArray: Float32Array;
 
   constructor(context: AudioContext, source: AudioNode) {
-    this.left = -90;
-    this.right = -90;
     this.#context = context;
     this.#filter = context.createBiquadFilter();
     this.#filter.type = 'highpass';
-    this.#filter.frequency.value = 10;
-    this.#filter.Q.value = 10;
+    this.#filter.frequency.value = 20;
     source.connect(this.#filter);
     this.#splitter = context.createChannelSplitter(2);
     this.#filter.connect(this.#splitter);
     this.#leftAnalyser = this.#context.createAnalyser();
-    this.#leftAnalyser.fftSize = this.#BUFFERSIZE;
-    this.#rightAnalyser = this.#context.createAnalyser();
-    this.#rightAnalyser.fftSize = this.#BUFFERSIZE;
-    this.#leftDataArray = new Float32Array(this.#leftAnalyser.frequencyBinCount);
-    this.#rightDataArray = new Float32Array(this.#rightAnalyser.frequencyBinCount);
-    this.#splitter.connect(this.#leftAnalyser, 0, 0);
-    this.#splitter.connect(this.#rightAnalyser, 1, 0);
-    this.fftSize = FFTSIZE;
     this.#leftAnalyser.fftSize = FFTSIZE;
-    this.#rightAnalyser.fftSize = FFTSIZE;
     this.#leftAnalyser.minDecibels = MINDECIBELS;
     this.#leftAnalyser.maxDecibels = MAXDECIBELS;
     this.#leftAnalyser.smoothingTimeConstant = 0.8;
+    this.#leftDataArray = new Float32Array(this.#leftAnalyser.frequencyBinCount);
+    this.#splitter.connect(this.#leftAnalyser, 0, 0);
+    this.#rightAnalyser = this.#context.createAnalyser();
+    this.#rightAnalyser.fftSize = FFTSIZE;
+    this.#rightAnalyser.minDecibels = MINDECIBELS;
+    this.#rightAnalyser.maxDecibels = MAXDECIBELS;
     this.#rightAnalyser.smoothingTimeConstant = 0.8;
+    this.#rightDataArray = new Float32Array(this.#rightAnalyser.frequencyBinCount);
+    this.#splitter.connect(this.#rightAnalyser, 1, 0);
   }
 
   #getAverage(analyser: AnalyserNode, dataArray: Float32Array): number {
     if (dataArray.length > 0) {
+      // @ts-ignore
       analyser.getFloatTimeDomainData(dataArray);
       let average: number = 0;
       for (let index = 0; index < dataArray.length; index++) {
-        average +=dataArray[index]*dataArray[index];
+        average +=dataArray[index];
       }
       average = average / dataArray.length;
-      return 10 * Math.log10(average);
+      // return 10 * Math.log10(average);
+      return average;
     } else return 0;
   }
 

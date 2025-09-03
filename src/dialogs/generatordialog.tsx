@@ -40,10 +40,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     playing,
     setMode,
     setSourceData,
-    setPlaybackLength,
-    setOffsetTime,
     setGeneratorDialogVisible,
-    setEditGeneratorData,
   } = useCMGContext();
   const [previewVisible, setPreviewVisible] = useState<boolean>(false);
   const [oldName, setOldName] = useState<string>("");
@@ -253,8 +250,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
       AlgorithmicGenerators,
       AudioFileGenerators,
       SilentGenerators,
-      playbackLength,
-      offsetTime,
       error,
     } = ReadyGenerate({
       mode: GENERATIONMODE.solo,
@@ -262,8 +257,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
       fileContents,
       timeInterval,
     });
-    setPlaybackLength(playbackLength);
-    setOffsetTime(offsetTime);
     setStatus(error);
     if (error != "") return;
     const { sources: builtSourceData, error: buildError } = buildSources({

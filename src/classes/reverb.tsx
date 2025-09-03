@@ -1,136 +1,175 @@
+import { softDisconnect } from "utils/softdisconnect";
 import { getAttributeValue, getElementElement } from "utils/xmlfunctions";
 
 export default class Reverb {
-  name: string;
+  enabled: boolean;
   duration: number;
   decay: number;
-  effect: ConvolverNode | undefined;
-  context: AudioContext | OfflineAudioContext | undefined;
   // left wall, right wall, ceiling
   leftWall: { delay: number; gain: number };
   rightWall: { delay: number; gain: number };
   ceiling: { delay: number; gain: number };
+  effectIn: GainNode | null;
+  effectOut: GainNode | null;
+  #context: AudioContext | OfflineAudioContext | null;
+  #reverbHead: AudioNode | null;
+  #efNode: ConvolverNode | null;
+  #lwNode: DelayNode | null;
+  #rwNode: DelayNode | null;
+  #ceNode: DelayNode | null;
+  #lwGain: GainNode | null;
+  #rwGain: GainNode | null;
+  #ceGain: GainNode | null;
 
-  constructor(name: string) {
-    this.name = name;
+  constructor() {
+    this.enabled = true;
     this.duration = 1.0;
     this.decay = 2.0;
-    this.effect = undefined;
-    this.context = undefined;
     this.leftWall = { delay: 0, gain: 0 };
     this.rightWall = { delay: 0, gain: 0 };
     this.ceiling = { delay: 0, gain: 0 };
+    this.effectIn = null;
+    this.effectOut = null;
+    this.#context = null;
+    this.#reverbHead = null;
+    this.#efNode = null;
+    this.#rwNode = null;
+    this.#lwNode = null;
+    this.#ceNode = null;
+    this.#rwGain = null;
+    this.#lwGain = null;
+    this.#ceGain = null;
   }
 
   setContext(context: AudioContext | OfflineAudioContext) {
-    this.context = context;
+    this.#context = context;
+    this.effectIn = context.createGain();
+    this.effectOut = context.createGain();
+    this.#reverbHead = context.createGain();
 
     // set up the diffuse reverberation
-    const impulse: AudioBuffer | undefined = this.impulseResponse(
+    const impulse: AudioBuffer | null = this.#impulseResponse(
       this.duration,
       this.decay
     );
     if (impulse) {
-      this.effect = this.context.createConvolver();
-      this.effect.buffer = impulse;
-      // console.log(`convolution effect ${this.effect.buffer?.length}`);
+      this.#efNode = context.createConvolver();
+      this.#efNode.buffer = impulse;
+      this.#reverbHead.connect(this.#efNode);
+      this.#efNode.connect(this.effectOut);
+      this.#reverbHead.connect(this.effectOut);
     }
-    // else console.log(`no reverb effect`);
+
+    // set the wall and ceiling reverbs
+    this.#lwNode = context.createDelay(1);
+    this.#rwNode = context.createDelay(1);
+    this.#ceNode = context.createDelay(1);
+    this.#lwGain = context.createGain();
+    this.#rwGain = context.createGain();
+    this.#ceGain = context.createGain();
+    this.#reverbHead.connect(this.#lwNode);
+    this.#reverbHead.connect(this.#rwNode);
+    this.#reverbHead.connect(this.#ceNode);
+    this.#reverbHead.connect(this.effectOut);
+    this.#lwNode.connect(this.#lwGain);
+    this.#rwNode.connect(this.#rwGain);
+    this.#ceNode.connect(this.#ceGain);
+    this.#lwGain.connect(this.effectOut);
+    this.#rwGain.connect(this.effectOut);
+    this.#ceGain.connect(this.effectOut);
+    this.#lwNode.delayTime.value = this.leftWall.delay;
+    this.#lwGain.gain.value = this.leftWall.gain;
+    this.#rwNode.delayTime.value = this.leftWall.delay;
+    this.#rwGain.gain.value = this.leftWall.gain;
+    this.#ceNode.delayTime.value = this.leftWall.delay;
+    this.#ceGain.gain.value = this.leftWall.gain;
   }
 
   // generate far field impulse reverb response
-  impulseResponse(duration: number, decay: number): AudioBuffer | undefined {
-    if (this.context && duration > 0 && decay > 0) {
-      const length = this.context.sampleRate * duration;
-      const impulse = this.context.createBuffer(
+  #impulseResponse(duration: number, decay: number): AudioBuffer | null {
+    if (this.#context && duration > 0) {
+      const length = this.#context.sampleRate;
+      const impulse = this.#context.createBuffer(
         1,
         length,
-        this.context.sampleRate
+        this.#context.sampleRate
       );
-      const IR = impulse?.getChannelData(0);
+      const IR = impulse.getChannelData(0);
       for (let i = 0; i < length; i++) {
         IR[i] = (1 * Math.random() - 1) * Math.pow(1 - 1 / length, decay);
       }
       return impulse;
     } else {
-      return undefined;
+      return null;
     }
   }
 
-  connect(source: AudioNode, destination: AudioNode) {
-    // connect the diffuse reverb effect if it exists
-    // connect the source to the destination
-    if (this.effect && this.context && this.duration > 0 && this.decay > 0) {
-      const gain: GainNode = this.context.createGain();
-      gain.gain.value = 1.0;
-      source.connect(gain);
-      gain.connect(this.effect);
-      this.effect.connect(destination);
-    }
+  connect(destination: AudioNode) {
+    if (!this.effectOut) return;
+    this.effectOut.connect(destination);
+    this.#enable(this.enabled);
+  }
 
-    // connect the early delays if they exist
-    // set up the early reflections
-    if (this.context && this.leftWall.gain > 0 && this.leftWall.delay > 0) {
-      const delayNode: DelayNode = this.context.createDelay(1);
-      delayNode.delayTime.value = this.leftWall.delay / 1000;
-      const gainNode: GainNode = this.context.createGain();
-      gainNode.gain.value = this.leftWall.gain;
-      source.connect(delayNode);
-      delayNode.connect(gainNode);
-      gainNode.connect(destination);
+  // enabled - connect the effectIn to the reverb, disconnect effectIn from effectOut
+  // disabled - disconnect effectIn from the reverb, connect effectIn to effectOut
+  #enable(enabled: boolean) {
+    if (
+      !this.#reverbHead ||
+      !this.effectIn ||
+      !this.effectOut
+    )
+      return;
+    if (enabled) {
+      try {
+        softDisconnect(this.effectIn, this.effectOut);
+      } catch (e) {}
+      this.effectIn.connect(this.#reverbHead);
+    } else {
+      try {
+        softDisconnect(this.effectIn, this.#reverbHead);
+      } catch (e) {}
+      this.effectIn.connect(this.effectOut);
     }
-    if (this.context && this.rightWall.gain > 0 && this.rightWall.delay > 0) {
-      const delayNode: DelayNode = this.context.createDelay(1);
-      delayNode.delayTime.value = this.rightWall.delay / 1000;
-      const gainNode: GainNode = this.context.createGain();
-      gainNode.gain.value = this.rightWall.gain;
-      source.connect(delayNode);
-      delayNode.connect(gainNode);
-      gainNode.connect(destination);
-    }
-    if (this.context && this.ceiling.gain > 0 && this.ceiling.delay > 0) {
-      const delayNode: DelayNode = this.context.createDelay(1);
-      delayNode.delayTime.value = this.ceiling.delay / 1000;
-      const gainNode: GainNode = this.context.createGain();
-      gainNode.gain.value = this.ceiling.gain;
-      source.connect(delayNode);
-      delayNode.connect(gainNode);
-      gainNode.connect(destination);
-    }
-
-    // connect the source to the destination at any rate
-    source.connect(destination);
   }
 
   // this version has two walls and ceiling handling early reflection
   setAttribute(name: string, value: string): void {
     switch (name) {
-      case "reverb.name":
-        this.name = value;
+      case "reverb.enabled":
+        this.enabled = value == "true";
+        this.#enable(this.enabled);
         break;
       case "reverb.duration":
         this.duration = parseFloat(value);
+        if (this.#efNode) this.#efNode.buffer = this.#impulseResponse(this.duration, this.decay);
         break;
       case "reverb.decay":
         this.decay = parseFloat(value);
+        if (this.#efNode) this.#efNode.buffer = this.#impulseResponse(this.duration, this.decay);
         break;
       case "reverb.leftwall.delay":
         this.leftWall.delay = parseFloat(value);
+        if (this.#lwNode) this.#lwNode.delayTime.value = this.leftWall.delay;
         break;
       case "reverb.leftwall.gain":
         this.leftWall.gain = parseFloat(value);
+        if (this.#lwGain) this.#lwGain.gain.value = this.leftWall.delay;
         break;
       case "reverb.rightwall.delay":
         this.rightWall.delay = parseFloat(value);
+        if (this.#rwNode) this.#rwNode.delayTime.value = this.rightWall.delay;
         break;
       case "reverb.rightwall.gain":
         this.rightWall.gain = parseFloat(value);
+        if (this.#rwGain) this.#rwGain.gain.value = this.rightWall.delay;
         break;
       case "reverb.ceiling.delay":
         this.ceiling.delay = parseFloat(value);
+        if (this.#ceNode) this.#ceNode.delayTime.value = this.ceiling.delay;
         break;
       case "reverb.ceiling.gain":
         this.ceiling.gain = parseFloat(value);
+        if (this.#ceGain) this.#ceGain.gain.value = this.ceiling.delay;
         break;
       default:
         break;
@@ -138,21 +177,56 @@ export default class Reverb {
   }
 
   copy(): Reverb {
-    const n = new Reverb(this.name);
-    n.context = this.context;
-    n.effect = this.effect;
+    const n = new Reverb();
+    n.enabled = this.enabled;
     n.duration = this.duration;
     n.decay = this.decay;
     n.leftWall = { ...this.leftWall };
     n.rightWall = { ...this.rightWall };
     n.ceiling = { ...this.ceiling };
+    n.#context = this.#context;
+    n.effectIn = this.effectIn;
+    n.effectOut = this.effectOut;
+    n.#reverbHead = this.#reverbHead;
+    n.#efNode = this.#efNode;
+    n.#lwNode = this.#lwNode;
+    n.#rwNode = this.#rwNode;
+    n.#ceNode = this.#ceNode;
     return n;
+  }
+
+  reset() {
+    this.duration = 1.0;
+    this.decay = 2.0;
+    this.leftWall = { delay: 0, gain: 0}
+    this.rightWall = { delay: 0, gain: 0}
+    this.ceiling = { delay: 0, gain: 0}
+    if (this.#efNode) {
+      this.#efNode.buffer = this.#impulseResponse(this.duration, this.decay);
+    }
+    if (this.#lwNode && this.#lwGain) {
+      this.#lwNode.delayTime.value = this.leftWall.delay;
+      this.#lwGain.gain.value = this.leftWall.gain;
+    }
+    if (this.#rwNode && this.#rwGain) {
+      this.#rwNode.delayTime.value = this.rightWall.delay;
+      this.#rwGain.gain.value = this.rightWall.gain;
+    }
+    if (this.#ceNode && this.#ceGain) {
+      this.#ceNode.delayTime.value = this.ceiling.delay;
+      this.#ceGain.gain.value = this.ceiling.gain;
+    }
   }
 
   getXML(fcElem: Element, _version: string): void {
     try {
       const cElem: Element = getElementElement(fcElem, "reverb");
-      this.name = getAttributeValue(cElem, "name", "float") as string;
+      try {
+        this.enabled =
+          (getAttributeValue(cElem, "enabled", "string") as string) == "true";
+      } catch (e) {
+        this.enabled = true;
+      }
       this.duration = getAttributeValue(cElem, "duration", "float") as number;
       this.decay = getAttributeValue(cElem, "decay", "float") as number;
       this.leftWall.delay = getAttributeValue(
@@ -198,7 +272,7 @@ export default class Reverb {
   }
   appendXML(doc: XMLDocument, elem: Element): void {
     const cElement: Element = doc.createElement("reverb");
-    cElement.setAttribute("name", this.name);
+    cElement.setAttribute("enabled", this.enabled ? "true" : "false");
     cElement.setAttribute("duration", this.duration.toString());
     cElement.setAttribute("decay", this.decay.toString());
     cElement.setAttribute("leftwalldelay", this.leftWall.delay.toString());

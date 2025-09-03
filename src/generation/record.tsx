@@ -33,7 +33,6 @@ export interface RecordProps {
   recordHandle: FileSystemFileHandle;
   sourceData: RawSourceData[];
   sampleRate: number;
-  playbackLength: number;
   setMode: Function;
   setRecordHandle: Function;
   recordFormat: string;
@@ -44,7 +43,6 @@ export default function Record(params: RecordProps) {
     sourceData,
     recordHandle,
     sampleRate,
-    playbackLength,
     recordFormat,
     setMode,
     setRecordHandle,
@@ -55,6 +53,10 @@ export default function Record(params: RecordProps) {
   const [completed, setCompleted] = useState<number>(-1);
 
   // initialize the complete recording
+  let playbackLength: number = 0;
+  sourceData.forEach((s) => {
+    playbackLength = Math.max(playbackLength, s.source.stopTime);
+  })
   const result = useRef<Float32Array[]>([
     new Float32Array(Math.ceil(playbackLength * sampleRate)).fill(0),
     new Float32Array(Math.ceil(playbackLength * sampleRate)).fill(0),

@@ -30,7 +30,7 @@ export async function compressAndConvertToString(data: ArrayBuffer): Promise<str
 
 export async function convertFromJsonAndDecompress(
   jsonObject: string
-): Promise<Float32Array<ArrayBuffer>> {
+): Promise<Float32Array> {
   const base64String: string = createBase64String(jsonObject);
   const compressedData: ArrayBuffer = base64ToArrayBuffer(base64String);
   const decompressedData: ArrayBuffer = await decompressData(compressedData);

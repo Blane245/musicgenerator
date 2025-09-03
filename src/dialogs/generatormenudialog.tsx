@@ -98,8 +98,6 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
       AlgorithmicGenerators,
       AudioFileGenerators,
       SilentGenerators,
-      playbackLength,
-      offsetTime,
       error,
     } = ReadyGenerate({
       mode: GENERATIONMODE.solo,
@@ -107,8 +105,6 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
       fileContents,
       timeInterval,
     });
-    setPlaybackLength(playbackLength);
-    setOffsetTime(offsetTime);
     setStatus(error);
     if (error != "") return;
     const { sources: builtSourceData, error: buildError } = buildSources({

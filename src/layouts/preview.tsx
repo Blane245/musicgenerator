@@ -48,13 +48,12 @@ import {
   TimeTicks,
 } from "types";
 import getTickLinesandLabels from "utils/getticklinesandlabels";
+import { linearInterpolate } from "utils/interpolation";
 import updateTimeTicks from "utils/updatetimeticks";
 
 // as this function is non-reactive except for exit, stop, pause, resume, many of its props
 // are CMG context variables
 export interface PreviewProps {
-  playbackLength: number;
-  offsetTime: number;
   sourceData: RawSourceData[];
   setMode: Function;
   appName: string;
@@ -81,14 +80,8 @@ type SourceToDrawingSectionEntry = {
 // this component uses very few state variables as all subcomponents are
 // highly integrated
 export default function Preview(params: PreviewProps): JSX.Element {
-  const {
-    sourceData,
-    offsetTime,
-    playbackLength,
-    setMode,
-    appName,
-    appVersion,
-  } = params;
+  const { setMode, appName, appVersion } = params;
+  let { sourceData} = params;
   const {
     fileContents,
     fileName,
@@ -113,14 +106,16 @@ export default function Preview(params: PreviewProps): JSX.Element {
   const previewTimeline = useRef<TimeLine | null>(null);
   const activeGenerators = useRef<string[]>([]);
   const [activeGeneratorsCount, setActiveGeneratorsCount] = useState<number>(0);
+  const [playbackLength, setPlaybackLength] = useState<number>(0);
+  const [offsetTime, setOffsetTime] = useState<number>(0);
   const [selectedGenerators, setSelectedGenerators] = useState<GeneratorType[]>(
     []
   );
   const activeSources = useRef<ActiveSource[]>([]);
   const [activeSourcesCount, setActiveSourcesCount] = useState<number>(0);
   const [signalLevels, setSignalLevels] = useState<SignalLevelsType>({
-    leftVolume: -90,
-    rightVolume: -90,
+    leftVolume: -128,
+    rightVolume: -128,
     leftSpectrum: new Uint8Array(0),
     rightSpectrum: new Uint8Array(0),
   });
@@ -145,12 +140,12 @@ export default function Preview(params: PreviewProps): JSX.Element {
   const [reflectionDelay, setReflectionDelay] = useState<number>(0);
   const [analyser, setAnalyser] = useState<SignalLevel | null>(null);
 
-  const HUELEFT: number = 0;
-  const HUERIGHT: number = 270;
-  const SATURATIONLO: number = 20;
+  const HUELEFT: number = 225;
+  const HUERIGHT: number = 380;
+  const SATURATIONLO: number = 60;
   const SATURATIONHI: number = 100;
-  const LIGHTNESSLO: number = 40;
-  const LIGHTNESSHI: number = 60;
+  const LIGHTNESSLO: number = 60;
+  const LIGHTNESSHI: number = 80;
   let tickId: number = 0;
   let playingId: number = 0;
   let signalId = 0;
@@ -186,15 +181,27 @@ export default function Preview(params: PreviewProps): JSX.Element {
 
   // prepare the drawing when new sources arrive
   useEffect(() => {
+    // find the offsettime and playback length
+    let newLength: number = 0;
+    let newOffset: number = Number.MAX_VALUE;
+    sourceData.forEach((s) => {
+      newLength = Math.max(newLength, s.source.stopTime);
+      newOffset = Math.min(newOffset, s.source.startTime);
+    });
+    setPlaybackLength(newLength - newOffset);
+    setOffsetTime(newOffset);
+
     console.log(
       "initializing preview layout with new source data",
       sourceData.length,
       "offsetTime",
-      offsetTime
+      newOffset,
+      "playbackLength",
+      newLength
     );
 
     // initialize the timeprogress value
-    setTimeProgress(offsetTime);
+    setTimeProgress(newOffset);
 
     const newDrawing: HTMLElement | null = document.getElementById("drawing");
     setDrawing(newDrawing);
@@ -253,7 +260,12 @@ export default function Preview(params: PreviewProps): JSX.Element {
     if (audioContext && audioContext.state != "closed") {
       audioContext.close();
     }
+    // free up some memory
     setAudioContext(null);
+    setDrawing(null);
+    sourceData = [];
+    activeSources.current = [];
+    pendingSourceData.current = [];
   }
 
   // either start the previewer or exit
@@ -357,8 +369,8 @@ export default function Preview(params: PreviewProps): JSX.Element {
             type="range"
             readOnly
             value={signalLevels.leftVolume}
-            min={-90}
-            max={0}
+            min={-128}
+            max={128}
           ></input>
         </div>
         <div className="right">
@@ -366,8 +378,8 @@ export default function Preview(params: PreviewProps): JSX.Element {
             type="range"
             readOnly
             value={signalLevels.rightVolume}
-            min={-90}
-            max={0}
+            min={-128}
+            max={128}
           ></input>
         </div>
       </div>
@@ -431,12 +443,8 @@ export default function Preview(params: PreviewProps): JSX.Element {
               </tr>
             </tbody>
           </table>
-          <div>
-            Active Generators:
-          </div>
-          <div>
-            {activeGenerators.current.toString()}
-          </div>
+          <div>Active Generators:</div>
+          <div>{activeGenerators.current.toString()}</div>
         </div>
         {signalLevels ? (
           <>
@@ -866,16 +874,16 @@ export default function Preview(params: PreviewProps): JSX.Element {
     // loop through the source data and find each that appears on the current
     // time line
     sources.forEach((s: RawSourceData) => {
-      const { startTime, stopTime, note, loop, sample, sampleRate } = s.source;
-      const soundStopTime: number = loop?stopTime + offsetTime: startTime + sample.length / sampleRate;
+      const { startTime, duration, note } = s.source;
+      // const soundStopTime: number = loop?stopTime + offsetTime: startTime + sample.length / sampleRate;
 
       // determine if any part of the source appears in the time line
       const lineStart = Math.min(
-        Math.max(timelineStart, startTime + offsetTime),
+        Math.max(timelineStart, startTime),
         timelineEnd
       );
       const lineEnd = Math.min(
-        Math.max(timelineStart, soundStopTime + offsetTime),
+        Math.max(timelineStart, startTime + duration),
         timelineEnd
       );
       if (lineStart >= lineEnd) {
@@ -894,15 +902,15 @@ export default function Preview(params: PreviewProps): JSX.Element {
       const { height, type, loValue, hiValue, verticalOffset } =
         sections[sectionIndex];
 
-      // convert the source's start and stop time to drawing coorindates
+      // convert the source's start and stop time to drawing coordinate
       const xStart: number = getOffsetFromTime(
-        startTime + offsetTime,
+        lineStart,
         displayWidth,
         timelineStart,
         timelineEnd
       );
       const xEnd: number = getOffsetFromTime(
-        stopTime + offsetTime,
+        lineEnd,
         displayWidth,
         timelineStart,
         timelineEnd
@@ -922,10 +930,9 @@ export default function Preview(params: PreviewProps): JSX.Element {
           height,
           verticalOffset
         );
-        const hue = getHue(s.panner.value);
-        const saturation: number = getSaturation(s.vol.value);
-        // const saturation: number = 100;
-        const lightness: number = getLightness(s.source.started);
+        const hue = linearInterpolate(s.panner.value, -1, 1, HUELEFT, HUERIGHT) % 360;
+        const saturation: number = Math.min(SATURATIONLO, Math.max(SATURATIONHI,linearInterpolate(s.vol.value, -3, 0, SATURATIONLO, SATURATIONHI)));
+        const lightness: number = !s.source.started? LIGHTNESSLO: LIGHTNESSHI;
         stroke = "hsl(" + hue + "," + saturation + "%," + lightness + "%";
         const newLine: SVGLineElement = document.createElementNS(
           "http://www.w3.org/2000/svg",
@@ -961,9 +968,9 @@ export default function Preview(params: PreviewProps): JSX.Element {
       console.log("line not found for source", s.index);
       return;
     }
-    const hue = getHue(s.panner.value);
-    const saturation: number = getSaturation(s.vol.value);
-    const lightness: number = getLightness(s.source.started);
+        const hue = linearInterpolate(s.panner.value, -1, 1, HUELEFT, HUERIGHT) % 360;
+        const saturation: number = Math.min(SATURATIONLO, Math.max(SATURATIONHI,linearInterpolate(s.vol.value, -3, 0, SATURATIONLO, SATURATIONHI)));
+        const lightness: number = !s.source.started? LIGHTNESSLO: LIGHTNESSHI;
     const stroke = "hsl(" + hue + "," + saturation + "%," + lightness + "%";
     sourceElement.setAttribute("stroke", stroke);
   }
@@ -1013,8 +1020,8 @@ export default function Preview(params: PreviewProps): JSX.Element {
           // if (!s.source.started)
           //   console.log('source candidate for starting at time',aheadTime,s.source.startTime, s.source.duration);
           if (
-            aheadTime >= s.source.startTime &&
-            aheadTime <= s.source.startTime + s.source.duration &&
+            aheadTime >= s.source.startTime - offsetTime &&
+            aheadTime <= s.source.startTime + s.source.duration - offsetTime &&
             !s.source.started
           ) {
             const activeSource: ActiveSource = realizeSource(
@@ -1025,18 +1032,18 @@ export default function Preview(params: PreviewProps): JSX.Element {
             );
             if (activeSource.gen.type != GENERATORTYPE.Silent) {
               activeSource.source.start(
-                s.source.startTime,
+                s.source.startTime - offsetTime,
                 0,
                 s.source.duration
               );
             }
-            console.log("source", s.index, "started at ", s.source.startTime, 'duration', s.source.duration);
+            // console.log("source", s.index, "started at ", s.source.startTime, 'duration', s.source.duration);
             newActiveSources.push(activeSource);
             s.source.started = true;
             redrawSource(s);
             nStarted++;
           }
-          if (s.source.startTime > aheadTime) stopSearch = true;
+          if (s.source.startTime - offsetTime > aheadTime) stopSearch = true;
           // });
         }
 
@@ -1057,7 +1064,8 @@ export default function Preview(params: PreviewProps): JSX.Element {
             return;
           }
           const stopTime: number =
-            activeSource.stopTime +
+            activeSource.stopTime -
+            offsetTime +
             (reflectionDelay == 0
               ? 0
               : reflectionDelay / 1000 + thisSource.source.duration);
@@ -1067,6 +1075,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
               activeSource.source.disconnect();
               activeSource.vol.disconnect();
               activeSource.panner.disconnect();
+              console.log('source stopped at', audioContext.currentTime);
             }
             thisSource.source.started = false;
             if (activeSource.gen.type != GENERATORTYPE.Silent)
@@ -1119,7 +1128,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
         if (!ptl) return;
         const timelineStart = ptl.startTime;
 
-        // if the timeline starttime chanages update the timeline and
+        // if the timeline starttime changes update the timeline and
         // trim the pending sources
         if (ptl.startTime != previewTimeline.current.startTime) {
           previewTimeline.current = ptl;
@@ -1231,21 +1240,6 @@ export default function Preview(params: PreviewProps): JSX.Element {
     }
   }
 
-  function getHue(pan: number): number {
-    let result: number = HUELEFT + ((pan - -1) * (HUERIGHT - HUELEFT)) / 2;
-    return Math.max(Math.min(result, HUERIGHT), HUELEFT);
-  }
-
-  function getSaturation(vol: number): number {
-    let result: number =
-      SATURATIONLO + ((vol - -10) * (SATURATIONHI - SATURATIONLO)) / 20;
-    return Math.max(Math.min(result, SATURATIONHI), SATURATIONLO);
-  }
-
-  function getLightness(started: boolean): number {
-    return started ? LIGHTNESSHI : LIGHTNESSLO;
-  }
-
   function getOffsetFromTime(
     time: number,
     width: number,
@@ -1329,8 +1323,9 @@ export default function Preview(params: PreviewProps): JSX.Element {
     );
     setReflectionDelay(theDelay);
     console.log("reflection delay is", theDelay);
-    // connect to the signal analyser to the output of the volume (assumed to be last)
+    // connect to the signal analyser to the output of the volumes and spectra (assumed to be last)
     setAnalyser(new SignalLevel(ctx, fileContents.volume.effect as GainNode));
+    console.log("analyzer connected", fileContents.volume.effect);
   }
   function DrawSpectrum(spectrum: Uint8Array): JSX.Element[] {
     if (!spectrum || spectrum.length == 0) return [<></>];
@@ -1338,36 +1333,19 @@ export default function Preview(params: PreviewProps): JSX.Element {
     const result: JSX.Element[] = [];
     const minFrequency = frequencyForBinIndex(0);
     const maxFrequency = frequencyForBinIndex(spectrum.length - 1);
-    let d: string = `M 0 ${spectrumToPixels(spectrum[0], spectrum[0])} `;
+    let d: string = `M 0 ${footerHeight * (1.0 - (spectrum[0]) /255)} `;
     for (let i = 1; i < spectrum.length; i++) {
       const frequency = frequencyForBinIndex(i);
-      d += `L ${frequencyToPixels(
-        frequency,
-        minFrequency,
-        maxFrequency,
-        0,
-        spectrumWidth
-      )} ${spectrumToPixels(spectrum[i], spectrum[0])} `;
+      d += `L 
+       ${linearInterpolate(frequency, minFrequency, maxFrequency, 0, spectrumWidth)}
+       ${footerHeight * (1.0 - (spectrum[i]) / 255)} `;
     }
     result.push(<path d={d} stroke="red" fill="none" />);
     return result;
-    function frequencyToPixels(
-      value: number,
-      min: number,
-      max: number,
-      start: number,
-      width: number
-    ) {
-      return start + ((value - min) * width) / (max - min);
-    }
-    function spectrumToPixels(value: number, v0: number) {
-      return footerHeight * (1.0 - (value - v0 + 256) / 512);
-    }
 
     function frequencyForBinIndex(index: number) {
-      if (!audioContext || !analyser) return 10000;
+      if (!audioContext) return 10000;
       return Math.log10(((index + 1) * audioContext.sampleRate) / FFTSIZE / 2);
-      // return (((index + 1) * audioContext.sampleRate) / FFTSIZE / 2);
     }
   }
 }

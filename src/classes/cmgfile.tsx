@@ -1,4 +1,4 @@
-import { GeneratorType, RECENTCMGDIRECTORY } from "types";
+import { GeneratorType } from "types";
 import { getAttributeValue } from "utils/xmlfunctions";
 import Compressor from "./compressor";
 import Equalizer from "./equalizer";
@@ -21,10 +21,10 @@ export default class CMGFile {
     this.name = "";
     // @ts-ignore
     this.version = import.meta.env.VERSION;
-    this.compressor = new Compressor("roomcompressor");
-    this.equalizer = new Equalizer("roomequalizer");
-    this.volume = new Volume("roomvolume");
-    this.reverb = new Reverb("roomreverb");
+    this.compressor = new Compressor();
+    this.equalizer = new Equalizer();
+    this.volume = new Volume();
+    this.reverb = new Reverb();
     this.tracks = [];
     this.comment = "";
   }
@@ -64,10 +64,7 @@ export default class CMGFile {
   }
 
   async getXML(fcElem: Element, fileName: string) {
-    const nameParts: string[] = fileName.split("/");
-    if (nameParts)
-      this.name =
-        nameParts.length > 0 ? nameParts[nameParts.length - 1] : fileName;
+    this.name = fileName;
     try {
       this.comment = getAttributeValue(fcElem, "comment", "string") as string;
     } catch {

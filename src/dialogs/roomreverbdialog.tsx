@@ -6,7 +6,7 @@ import { setReverb } from "utils/cmfiletransactions";
 export default function RoomReverbDialog() {
   const { setFileContents, fileContents } = useCMGContext();
   const [reverbData, setReverbData] = useState<Reverb>(
-    new Reverb("reverb")
+    new Reverb()
   );
 
   useEffect(() => {
@@ -22,18 +22,32 @@ export default function RoomReverbDialog() {
     }
     setReverb(n, setFileContents);
   }
+
+  function handleEnable() {
+    const eventName: string = 'reverb.enabled';
+    const eventValue:string = reverbData.enabled?'false':'true';
+    const n: Reverb = reverbData.copy();
+    n.setAttribute(eventName, eventValue);
+    setReverb(n, setFileContents);
+  }
+
   function reset() {
-    const n = new Reverb ('roomreverb');
+    reverbData.reset();
+    const n = reverbData.copy();
     setReverb(n, setFileContents);
   }
   return (
-    <div className="reverb">
-      <p className="title">
+    <div className="reverb" style={{backgroundColor: reverbData.enabled? 'white': 'lightpink'}}>
+      <div className="title">
+        <label>
+          <input type="checkbox" onChange={(()=> handleEnable())} checked={reverbData.enabled}/>
+          <span>&nbsp;Enable&nbsp;</span>
+        </label>
         Reverb Reset:&nbsp;
         <button className="button" onClick={reset}>
           &nbsp;
         </button>
-      </p>
+      </div>
       <div className="sliders">
         <div className="slider" key={'roomreverb'}>
           <span className="param">Duration (sec)</span>

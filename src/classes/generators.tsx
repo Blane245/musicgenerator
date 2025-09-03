@@ -464,20 +464,26 @@ export class Algorithmic extends Silent {
     const beat = this.#beatSequence[entry] != 0;
     const velocity = this.velocity;
     let note: number = this.noteP
-      ? this.noteP.getCurrentValue(time - this.startTime)
+      ? this.noteP.getCurrentValue(time)
       : 0;
-    const speed: number = this.speedP
-      ? this.speedP.getCurrentValue(time - this.startTime)
+    note = Math.min(127, Math.max(0, note));
+
+    let speed: number = this.speedP
+      ? this.speedP.getCurrentValue(time)
       : 0;
-    const duration: number = this.durationP
-      ? this.durationP.getCurrentValue(time - this.startTime)
+    speed = Math.min(10000, Math.max(0.001, speed));
+    let duration: number = this.durationP
+      ? this.durationP.getCurrentValue(time)
       : 0;
-    const volume: number = this.volumeP
-      ? this.volumeP.getCurrentValue(time - this.startTime)
+    duration = Math.min(100, Math.max(0, duration));
+    let volume: number = this.volumeP
+      ? this.volumeP.getCurrentValue(time)
       : 0;
-    const pan: number = this.panP
-      ? this.panP.getCurrentValue(time - this.startTime)
+    volume = Math.min(-10, Math.max(10, volume));
+    let pan: number = this.panP
+      ? this.panP.getCurrentValue(time)
       : 0;
+    pan = Math.min(1, Math.max(-1, pan));
 
     // modify the note based on those selectable in the octave
     note = this.#getSelectedNote(note);
@@ -664,7 +670,7 @@ export class Algorithmic extends Silent {
         "algorithmType",
         "string"
       ) as ALGORITHMTYPE;
-      let durationPType:ALGORITHMTYPE = ALGORITHMTYPE.Constant;
+      let durationPType: ALGORITHMTYPE = ALGORITHMTYPE.Constant;
       if (durationPElem)
         durationPType = getAttributeValue(
           durationPElem,
@@ -715,25 +721,42 @@ export class Algorithmic extends Silent {
           g.speedP = await WienerValues.getXML(speedPElem, version);
           break;
       }
-      switch (durationPType) {
-        case ALGORITHMTYPE.Constant:
-          if (durationPElem)
+      if (!durationPElem) {
+        g.durationP = new ConstantValues({
+          seed: "",
+          rn: new RandomNumber(""),
+          value: 100,
+        });
+      } else {
+        switch (durationPType) {
+          case ALGORITHMTYPE.Constant:
             g.durationP = await ConstantValues.getXML(durationPElem, version);
-          else 
-            g.durationP = new ConstantValues({seed: "", rn: new RandomNumber(""), value:0});
-          break;
-        case ALGORITHMTYPE.Autoregressive:
-          g.durationP = await AutoregressiveValues.getXML(durationPElem as Element, version);
-          break;
-        case ALGORITHMTYPE.Oscillator:
-          g.durationP = await OscillatorValues.getXML(durationPElem as Element, version);
-          break;
-        case ALGORITHMTYPE.Markovian:
-          g.durationP = await MarkovianValues.getXML(durationPElem as Element, version);
-          break;
-        case ALGORITHMTYPE.Wiener:
-          g.durationP = await WienerValues.getXML(durationPElem as Element, version);
-          break;
+            break;
+          case ALGORITHMTYPE.Autoregressive:
+            g.durationP = await AutoregressiveValues.getXML(
+              durationPElem as Element,
+              version
+            );
+            break;
+          case ALGORITHMTYPE.Oscillator:
+            g.durationP = await OscillatorValues.getXML(
+              durationPElem as Element,
+              version
+            );
+            break;
+          case ALGORITHMTYPE.Markovian:
+            g.durationP = await MarkovianValues.getXML(
+              durationPElem as Element,
+              version
+            );
+            break;
+          case ALGORITHMTYPE.Wiener:
+            g.durationP = await WienerValues.getXML(
+              durationPElem as Element,
+              version
+            );
+            break;
+        }
       }
       switch (volumePType) {
         case ALGORITHMTYPE.Constant:
@@ -873,10 +896,11 @@ export class Algorithmic extends Silent {
           );
           break;
         case ALGORITHMTYPE.Wiener:
-          result.push(...WienerValues.validate(values.durationP as WienerValues));
+          result.push(
+            ...WienerValues.validate(values.durationP as WienerValues)
+          );
           break;
       }
-
     }
     if (values.volumeP) {
       const volumePType: ALGORITHMTYPE = values.volumeP.algorithmType;
@@ -945,7 +969,7 @@ export class Algorithmic extends Silent {
 // this class represents an audio file that can be used as a generator source
 export class AudioFile extends Silent {
   fileName: string;
-  samples: Float32Array<ArrayBuffer>[];
+  samples: Float32Array[];
   sampleRate: number;
   duration: number;
   volume: number;
@@ -986,6 +1010,7 @@ export class AudioFile extends Silent {
       this.sampleRate
     );
     for (let i = 0; i < numberOfChannels; i++) {
+      // @ts-ignore
       source.buffer.copyToChannel(this.samples[i], i);
     }
   }
@@ -1006,8 +1031,9 @@ export class AudioFile extends Silent {
       // start any compression of audio samples necessary
       // should be one for each channel
       const audioPromises: Promise<string>[] = [];
-      this.samples.forEach((sample: Float32Array<ArrayBuffer>) => {
+      this.samples.forEach((sample: Float32Array) => {
         const samplePromise: Promise<string> = compressAndConvertToString(
+          // @ts-ignore
           sample.buffer
         );
         audioPromises.push(samplePromise);
@@ -1055,14 +1081,14 @@ export class AudioFile extends Silent {
       ) as number;
 
       // decompress the samples
-      const samplePromises: Promise<Float32Array<ArrayBuffer>>[] = [];
+      const samplePromises: Promise<Float32Array>[] = [];
       for (let i = 0; i < numberOfChannels; i++) {
         const sampleString: string = getAttributeValue(
           elem,
           `sample${i}`,
           "string"
         ) as string;
-        const samplePromise: Promise<Float32Array<ArrayBuffer>> =
+        const samplePromise: Promise<Float32Array> =
           convertFromJsonAndDecompress(sampleString);
         samplePromises.push(samplePromise);
       }
@@ -1076,9 +1102,7 @@ export class AudioFile extends Silent {
 
       // load the decompressed samples
       if (samplePromises.length > 0) {
-        const samples: Float32Array<ArrayBuffer>[] = await Promise.all(
-          samplePromises
-        );
+        const samples: Float32Array[] = await Promise.all(samplePromises);
         g.samples = samples;
       }
 

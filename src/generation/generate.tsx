@@ -24,8 +24,6 @@ export default function Generate(props: GeneratorProps) {
   const { setStatus, playing, mode, setMode, fileContents, timeInterval } =
     useCMGContext();
   const [error, setError] = useState<string>("");
-  const [playbackLength, setPlaybackLength] = useState<number>(0);
-  const [offsetTime, setOffsetTime] = useState<number>(0);
 
   // all of the work of the generator is done by this hook when the
   // mode changes to anything but idle
@@ -39,8 +37,6 @@ export default function Generate(props: GeneratorProps) {
       AlgorithmicGenerators,
       AudioFileGenerators,
       SilentGenerators,
-      playbackLength,
-      offsetTime,
       error,
     } = ReadyGenerate({
       mode,
@@ -48,9 +44,7 @@ export default function Generate(props: GeneratorProps) {
       fileContents,
       timeInterval,
     });
-    setPlaybackLength(playbackLength);
-    setOffsetTime(offsetTime);
-
+    
     // catch any errors will selecting generators
     setError(error);
     if (error != "") return;
@@ -89,7 +83,6 @@ export default function Generate(props: GeneratorProps) {
           setRecordHandle={setRecordHandle}
           sourceData={sourceData}
           sampleRate={SAMPLERATE}
-          playbackLength={playbackLength}
           recordFormat={recordFormat as string}
           setMode={setMode}
         />
@@ -99,8 +92,6 @@ export default function Generate(props: GeneratorProps) {
         <Preview
           appName="Computer Music Generator"
           appVersion={import.meta.env.VERSION}
-          playbackLength={playbackLength}
-          offsetTime={offsetTime}
           sourceData={sourceData}
           setMode={setMode}
         />

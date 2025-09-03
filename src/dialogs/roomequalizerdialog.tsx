@@ -6,39 +6,46 @@ import { setEqualizer } from "utils/cmfiletransactions";
 export default function RoomEqualizerDialog() {
   const { fileContents, setFileContents } = useCMGContext();
   const [equalizerData, setEqualizerData] = useState<Equalizer>(
-    new Equalizer("equalizer")
+    new Equalizer()
   );
 
   useEffect(() => {
     setEqualizerData(fileContents.equalizer);
   }, [fileContents.equalizer]);
 
-  function handleChange(event: ChangeEvent<HTMLInputElement>, i: number): void {
+  function handleGain(event: ChangeEvent<HTMLInputElement>, i: number): void {
     const value: number = parseInt(event.target["value"]);
     const n: Equalizer = equalizerData.copy();
     n.setGain(i, value);
     setEqualizer(n, setFileContents);
   }
 
+  function handleEnable() {
+    const eventName: string = 'equalizer.enabled';
+    const eventValue:string = equalizerData.enabled?'false':'true';
+    const n: Equalizer = equalizerData.copy();
+    n.setAttribute(eventName, eventValue);
+    setEqualizer(n, setFileContents);
+  }
+
   function reset() {
+    equalizerData.reset();
     const n = equalizerData.copy();
-    n.gains = Array(equalizerData.gains.length).fill(0);
-    if (equalizerData.context) {
-      for (let i = 0; i < n.gains.length; i++) {
-        n.effects[i].gain.value = 0;
-      }
-    }
     setEqualizer(n, setFileContents);
   }
 
   return (
-    <div className="equalizer">
-      <p className="title">
+    <div className="equalizer"  style={{backgroundColor: equalizerData.enabled? 'white': 'lightpink'}}>
+      <div className="title">
+        <label>
+          <input type="checkbox" onChange={(()=> handleEnable())} checked={equalizerData.enabled}/>
+          <span>&nbsp;Enable&nbsp;</span>
+        </label>
         Equalizer (+- 15dB) Freqs (Hz) Reset: &nbsp;
         <button className="button" onClick={reset}>
           &nbsp;
         </button>
-      </p>
+      </div>
       <div className="sliders">
         {equalizerData.gains.map((g, i) => {
           return (
@@ -57,7 +64,7 @@ export default function RoomEqualizerDialog() {
                 max="15"
                 step="1"
                 value={g}
-                onChange={(event) => handleChange(event, i)}
+                onChange={(event) => handleGain(event, i)}
               />
             </div>
           );

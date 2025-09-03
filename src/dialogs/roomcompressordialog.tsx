@@ -6,7 +6,7 @@ import { setCompressor } from "utils/cmfiletransactions";
 export default function RoomCompressorDialog() {
   const { setFileContents, fileContents } = useCMGContext();
   const [compressorData, setCompressorData] = useState<Compressor>(
-    new Compressor("compressor")
+    new Compressor()
   );
 
   useEffect(() => {
@@ -22,35 +22,36 @@ export default function RoomCompressorDialog() {
     }
     setCompressor(n, setFileContents);
   }
+  function handleEnable() {
+    const eventName: string = 'compressor.enabled';
+    const eventValue:string = compressorData.enabled?'false':'true';
+    const n: Compressor = compressorData.copy();
+    n.setAttribute(eventName, eventValue);
+    setCompressor(n, setFileContents);
+  }
+
   function reset() {
+    compressorData.reset();
     const n = compressorData.copy();
-    n.threshold = -24;
-    n.knee = 30;
-    n.ratio = 12;
-    n.attack = 0.003;
-    n.release = 0.25;
-    if (n.effect) {
-      n.effect.threshold.value = n.threshold;
-      n.effect.knee.value = n.knee;
-      n.effect.ratio.value = n.ratio;
-      n.effect.attack.value = n.attack;
-      n.effect.release.value = n.attack;
-    }
     setCompressor(n, setFileContents);
   }
   return (
-    <div className="compressor">
-      <p className="title">
+    <div className="compressor"  style={{backgroundColor: compressorData.enabled? 'white': 'lightpink'}}>
+      <div className="title">
+        <label>
+          <input type="checkbox" onChange={(()=> handleEnable())} checked={compressorData.enabled}/>
+          <span>&nbsp;Enable&nbsp;</span>
+        </label>
         Compressor Reset:&nbsp;
         <button className="button" onClick={reset}>
           &nbsp;
         </button>
-        {compressorData.effect
-          ? ` - Current Reduction: ${compressorData.effect.reduction.toFixed(
+        {compressorData.compressor
+          ? ` - Current Reduction: ${compressorData.compressor.reduction.toFixed(
               0
             )}`
           : ""}
-      </p>
+      </div>
       <div className="sliders">
         <div className="slider">
           <span className="param">Threshold (dB)</span>

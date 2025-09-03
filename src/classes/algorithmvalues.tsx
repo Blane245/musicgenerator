@@ -290,8 +290,12 @@ export class AutoregressiveValues extends AlgorithmValues {
     }
   }
   override getCurrentValue(time: number): number {
-    if (time == 0) return this.values.initialValue;
-    const epsilon: number = (this.values.rn.rand() - 0.5) * this.values.sigma;
+    let epsilon: number = 0;
+    if (time == 0) {
+      this.values.currentValue = this.values.initialValue;
+      return this.values.initialValue;
+    } else 
+      epsilon = (this.values.rn.rand() - 0.5) * this.values.sigma;
     let newValue: number = (this.values.currentValue - this.values.initialValue) * this.values.alpha + epsilon + this.values.initialValue;
     if (newValue > this.values.hi ||
       newValue < this.values.lo)
@@ -441,7 +445,12 @@ export class MarkovianValues extends AlgorithmValues {
     }
   }
 
-  override getCurrentValue(_time: number): number {
+  override getCurrentValue(time: number): number {
+    if (time == 0) {
+      this.values.currentState = MARKOVSTATE.same;
+      this.values.currentValue = this.values.startValue;
+      return this.values.startValue;
+    } 
     const x: number = this.values.rn.rand();
     let newState: MARKOVSTATE = MARKOVSTATE.same;
     switch (this.values.currentState) {
@@ -671,38 +680,21 @@ export class WienerValues extends AlgorithmValues {
     }
   }
 
-  #firstValue: boolean = true;
-  #startTime: number = 0;
   override getCurrentValue(time: number): number {
     // determine the next Wiener series value and bound it between lo and hi
     // reverse the trend if the value goes too high or too low
-    let result: number = this.values.initialValue;
-    if (this.#firstValue || this.values.sigma == 0) {
-      this.#firstValue = false;
-      this.#startTime = time;
-      return result;
-    }
-    const random: number = gaussianRandom(
+    if (time == 0 || (this.values.sigma == 0 && this.values.alpha)) return this.values.initialValue;
+
+    const random: number = (this.values.sigma == 0? 0: gaussianRandom(
       0,
-      this.values.sigma * Math.sqrt(time - this.#startTime),
+      this.values.sigma * Math.sqrt(time),
       this.values.rn
-    );
-    result =
+    ));
+    const result =
       this.values.initialValue +
-      this.values.alpha * (time - this.#startTime) +
+      this.values.alpha * (time) +
       random;
-    // console.log('Wiener values',
-    //   'time', time,
-    //   'startTime', this.#startTime,
-    //   'seed', this.values.seed,
-    //   'initial', this.values.initialValue,
-    //   'alpha', this.values.alpha,
-    //   'sigma', this.values.sigma,
-    //   'random', random,
-    //   'result', result,
-    //   'lo', this.values.lo,
-    //   'hi', this.values.hi
-    // );
+    // TODO havn't figured out how to bounce off of the limits
     return Math.min(this.values.hi, Math.max(this.values.lo, result));
   }
 

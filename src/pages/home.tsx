@@ -297,8 +297,6 @@ export default function Home() {
         <Preview
           appName="Computer Music Generator"
           appVersion={import.meta.env.VERSION}
-          playbackLength={playbackLength}
-          offsetTime={offsetTime}
           sourceData={sourceData}
           setMode={setMode}
         />

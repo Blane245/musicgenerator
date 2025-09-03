@@ -63,7 +63,7 @@ export type Algorithm =
   | undefined
   | ConstantValues
   | AutoregressiveValues
-  | AlgorithmValues
+  // | AlgorithmValues
   | OscillatorValues
   | MarkovianValues
   | WienerValues;
@@ -305,9 +305,9 @@ export type RawSourceData = {
     sample: Float32Array[]; // the sf instrument sample converted to float32 or noise as float32
     sampleRate: number; // hz/sec
     playbackRate: number; // sf playback rate or 1 for noise
-    loopStart: number; // sf loopstart index or 0 for noise
-    loopEnd: number; // sf loopEnd index or sample.length for noise
-    loop: boolean; // true/false depending on sf and option or false for noise
+    // loopStart: number; // sf loopstart index or 0 for noise
+    // loopEnd: number; // sf loopEnd index or sample.length for noise
+    // loop: boolean; // true/false depending on sf and option or false for noise
     startTime: number; // start time of the source within the generator
     duration: number; // attackInterval + holdInterval + releaseInterval
     stopTime: number; // startTime + duration
@@ -316,17 +316,48 @@ export type RawSourceData = {
   panner: {
     value: number; // pan value from generator
   };
-  vol: {
-    delayInterval: number;
-    attackInterval: number; // attack time from sf as limited
-    holdInterval: number; // the original note's duration minus the attack time
-    decayInterval: number;
-    sustainInterval: number;
-    releaseInterval: number; // release time from sf as limited
-    sustainLevel: number;
-    initialAttenuation: number;
-    value: number; // the current volume value
-  };
+  vol: { value: number; }
+  //   delayInterval: number;
+  //   attackInterval: number; // attack time from sf as limited
+  //   holdInterval: number; // the original note's duration minus the attack time
+  //   decayInterval: number;
+  //   sustainInterval: number;
+  //   releaseInterval: number; // release time from sf as limited
+  //   sustainLevel: number;
+  //   initialAttenuation: number;
+  //   value: number; // the current volume value
+  // };
+  instrument?: {
+    name: string;
+    loopStart: number;
+    loopEnd: number;
+    loop: boolean;
+    rootKey: number;
+    pitchCorrection: number;
+    fineTune: number;
+    baseDetune: number;
+    cents: number;
+    delayVolEnv: number;
+    attackVolEnv: number;
+    holdVolEnv: number;
+    decayVolEnv: number;
+    releaseVolEnv: number;
+    sustainVolEnv: number;
+    delayEnd: number;
+    attackEnd: number;
+    holdEnd: number;
+    decayEnd: number;
+    noteEnd: number;
+    interval: number;
+    duration: number;
+    releaseEnd: number;
+    totalTime: number;
+    noteEndGain: number;
+    volumeValue: number;
+    volumeGain: number;
+    sustainGain: number;
+    attenuation: number;
+  }
 };
 
 // the attributes of a source that is managed during preview
@@ -345,8 +376,8 @@ export type SignalLevelsType = {
   leftSpectrum: Uint8Array;
   rightSpectrum: Uint8Array;
 }
-export const FFTSIZE: number = 512;
-export const MINDECIBELS: number = -90;
+export const FFTSIZE: number = 2048;
+export const MINDECIBELS: number = -100;
 export const MAXDECIBELS: number = -10;
 
 export enum ENTRYTYPE {

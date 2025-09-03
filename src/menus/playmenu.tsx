@@ -52,10 +52,8 @@ export default function PlayMenu() {
   // handle request to open a file.
   // if the current one is 'dirty' the user is asked to confirm over-write
   function handleRecord() {
-    setMode(GENERATIONMODE.record);
 
     // display a dialog for selecting a file with and without overwrite allowed
-    
     const types: FilePickerAcceptType[] =
       recordFormat == "mp3"
         ? [{ description: "MP3 file", accept: { "audio/mp3": [".mp3"] } }]
@@ -82,8 +80,6 @@ export default function PlayMenu() {
       AlgorithmicGenerators,
       AudioFileGenerators,
       SilentGenerators,
-      playbackLength,
-      offsetTime,
       error,
     } = ReadyGenerate({
       mode: playMode,
@@ -91,12 +87,12 @@ export default function PlayMenu() {
       fileContents,
       timeInterval,
     });
-    setPlaybackLength(playbackLength);
-    setOffsetTime(offsetTime);
 
     // catch any errors will selecting generators
     setStatus(error);
     if (error != "") return;
+
+    if (playMode == GENERATIONMODE.record) handleRecord();
 
     // build the generator sources
     const { sources: builtSourceData, error: buildError } = buildSources({
@@ -111,7 +107,7 @@ export default function PlayMenu() {
     setSourceData(builtSourceData);
     // let the system know that playing is entered
     if (playMode == GENERATIONMODE.preview) handlePreview();
-    else handleRecord();
+    else setMode(GENERATIONMODE.record);
     // make sure that the generator dialog does not appear after preview or record
     setGeneratorDialogVisible(false);
   }
@@ -175,7 +171,6 @@ export default function PlayMenu() {
           setRecordHandle={setRecordHandle}
           sourceData={sourceData}
           sampleRate={SAMPLERATE}
-          playbackLength={playbackLength}
           recordFormat={recordFormat as string}
           setMode={setMode}
         />

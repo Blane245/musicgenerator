@@ -3,16 +3,27 @@
 // handle time line interval editing
 import TimeLine from "classes/timeline";
 import { useCMGContext } from "cmgcontext";
+import { useEffect } from "react";
 import {
   CiCircleChevLeft,
   CiCircleChevRight,
   CiZoomIn,
   CiZoomOut,
 } from "react-icons/ci";
-import { TimeLineScales } from "types";
+import { TimelineInterval, TimeLineScales } from "types";
+import updateTimeInterval from "utils/updatetimeinterval";
 // render the timeline and control the timeline interval
 export default function TimeLineControls() {
-  const { timeLine, setTimeLine } = useCMGContext();
+  const { timeLine, setTimeLine, timeInterval, setTimeInterval } =
+    useCMGContext();
+
+  // when the timeline changes update the timeInterval
+  useEffect(() => {
+    if (!timeLine) return;
+    const newInterval: TimelineInterval | null = updateTimeInterval(timeInterval, timeLine);
+    if (!newInterval) return;
+    setTimeInterval(newInterval);
+  }, [timeLine]);
 
   const handleZoomIn = (): void => {
     setTimeLine((c: TimeLine | null) => {

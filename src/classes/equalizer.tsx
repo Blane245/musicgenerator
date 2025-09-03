@@ -1,88 +1,120 @@
+import { softDisconnect } from "utils/softdisconnect";
 import { getAttributeValue, getElementElement } from "../utils/xmlfunctions";
 
 // This is a 10 octave equalizer made of lowshelf, peaking, and highshelf filter
 const BANDS: number[] = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 15000];
 const BANDCOUNT: number = BANDS.length;
 export default class Equalizer {
-  name: string;
-  context: AudioContext | OfflineAudioContext | undefined;
-  effects: BiquadFilterNode[];
+  enabled: boolean;
+  effectIn: AudioNode | null;
+  effectOut: AudioNode | null;
+  #filterHead: AudioNode | null;
+  #filters: BiquadFilterNode[];
+  #context: AudioContext | OfflineAudioContext | null;
   frequencies: number[];
   gains: number[];
 
-  constructor(name: string) {
-    this.name = name;
-    this.context = undefined;
-    this.effects = [];
+  constructor() {
+    this.enabled = true;
+    this.#context = null;
+    this.#filterHead = null;
+    this.#filters = [];
     this.frequencies = BANDS;
     this.gains = Array(BANDCOUNT).fill(0);
+    this.effectIn = null;
+    this.effectOut = null;
+    this.#filters = [];
+    this.#context = null;
   }
 
   // set the context and build the equalizer
   setContext(context: AudioContext | OfflineAudioContext) {
-    this.context = context;
+    this.#context = context;
+    this.effectIn = context.createGain();
+    this.effectOut = context.createGain();
+    this.#filterHead = context.createGain();
 
-    // create all of the effects
-    this.effects = [];
+    // create all of the filters
+    this.#filters = [];
     for (let i = 0; i < BANDCOUNT; i++) {
-      this.effects.push(this.context.createBiquadFilter());
+      const newFilter = context.createBiquadFilter();
+      this.#filters.push(context.createBiquadFilter());
+      this.#filterHead.connect(newFilter);
+      newFilter.type = "peaking";
+      newFilter.frequency.value = BANDS[i];
+      newFilter.gain.value = this.gains[i];
+      const ratio: number = i < BANDCOUNT - 1 ? BANDS[i + 1] / BANDS[i] : 2;
+      newFilter.Q.value = Math.sqrt(ratio);
+      newFilter.connect(this.effectOut);
     }
+  }
 
-    // the first filter is a low shelf filter
-    // the last filter is a high shelf filter
-    // the middle effects are peak effects with the Q value being sqrt (next freq/this freq)
-    this.effects[0].frequency.value = BANDS[0];
-    this.effects[0].type = "lowshelf";
-    this.effects[0].gain.value = this.gains[0];
+  connect(destination: AudioNode) {
+    if (!this.effectIn || !this.effectOut) return;
+    this.effectOut.connect(destination);
+    this.#enable(this.enabled);
+  }
 
-    this.effects[BANDCOUNT - 1].frequency.value = BANDS[BANDCOUNT - 1];
-    this.effects[BANDCOUNT - 1].type = "highshelf";
-    this.effects[BANDCOUNT - 1].gain.value = this.gains[BANDCOUNT - 1];
-
-    // build the peaking effects and connect them in series the lowshelf
-    for (let i = 1; i < BANDCOUNT - 1; i++) {
-      this.effects[i].type = "peaking";
-      this.effects[i].frequency.value = BANDS[i];
-      this.effects[i].gain.value = this.gains[i];
-      const ratio: number = BANDS[i + 1] / BANDS[i];
-      this.effects[i].Q.value = Math.sqrt(ratio);
-      this.effects[i - 1].connect(this.effects[i]);
+  // enabled - connect the effectIn to the filters, disconnect effectIn from effectOut
+  // disabled - disconnect effectIn from the filters, connect effectIn to effectOut
+  #enable(enabled: boolean) {
+    if (!this.#filterHead || !this.effectIn || !this.effectOut)
+      return;
+    if (enabled) {
+      try {
+        softDisconnect(this.effectIn, this.effectOut);
+      } catch (e) {}
+      this.effectIn.connect(this.#filterHead);
+    } else {
+      try {
+        softDisconnect(this.effectIn, this.#filterHead);
+      } catch (e) {}
+      this.effectIn.connect(this.effectOut);
     }
-
-    // connect the last peaking filter to the highshelf
-    this.effects[BANDCOUNT - 2].connect(this.effects[BANDCOUNT - 1]);
   }
 
   setGain(band: number, value: number): void {
     this.gains[band] = value;
-    if (this.context) this.effects[band].gain.value = value;
-  }
-
-  getGain(band: number): number {
-    if (this.context) return this.effects[band].gain.value;
-    else return this.gains[band];
-  }
-
-  front(): BiquadFilterNode {
-    return this.effects[0];
-  }
-
-  back(): BiquadFilterNode {
-    return this.effects[BANDCOUNT - 1];
+    if (this.#context) this.#filters[band].gain.value = value;
   }
 
   copy(): Equalizer {
-    const n = new Equalizer(this.name);
-    n.context = this.context;
+    const n = new Equalizer();
+    n.enabled = this.enabled;
+    n.#context = this.#context;
+    n.effectIn = this.effectIn;
+    n.effectOut = this.effectOut;
+    n.#filters = [...this.#filters];
     n.frequencies = this.frequencies;
-    n.effects = [...this.effects];
     n.gains = [...this.gains];
     return n;
+  }
+
+  reset() {
+    this.gains = Array(BANDCOUNT).fill(0);
+    this.#filters.forEach((f) => {
+      f.gain.value = 0;
+    });
+  }
+
+  setAttribute(name: string, value: string): void {
+    switch (name) {
+      case "equalizer.enabled":
+        this.enabled = value == "true";
+        this.#enable(this.enabled);
+        break;
+    }
   }
 
   getXML(fcElem: Element, _version: string): void {
     try {
       const eElement: Element = getElementElement(fcElem, "equalizer");
+      try {
+        this.enabled =
+          (getAttributeValue(eElement, "enabled", "string") as string) == "true";
+      } catch (e) {
+        this.enabled = true;
+      }
       for (let i = 0; i < BANDCOUNT; i++) {
         this.gains[i] = getAttributeValue(
           eElement,
@@ -95,6 +127,7 @@ export default class Equalizer {
 
   appendXML(doc: XMLDocument, elem: Element): void {
     const eElement: Element = doc.createElement("equalizer");
+    eElement.setAttribute("enabled", this.enabled ? "true" : "false");
     for (let i = 0; i < BANDCOUNT; i++) {
       eElement.setAttribute(`gain${i}`, this.gains[i].toString());
     }

@@ -48,18 +48,14 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
   AlgorithmicGenerators: Algorithmic[];
   AudioFileGenerators: AudioFile[];
   SilentGenerators: Silent[];
-  playbackLength: number;
-  offsetTime: number;
   error: string;
 } {
   const { mode, generator, fileContents, timeInterval } = props;
   let AlgorithmicGenerators: Algorithmic[] = [];
   let AudioFileGenerators: AudioFile[] = [];
   let SilentGenerators: Silent[] = [];
-  let playbackLength: number = 0;
   let error: string = "";
-  let offsetTime: number = 0;
-
+  
   // get the active generators for the entire rendering
   if (mode == GENERATIONMODE.preview || mode == GENERATIONMODE.record) {
     // the timeline interval overrides other filters
@@ -71,45 +67,40 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
       const startTime: number = timeInterval.startTime;
       const endTime: number = timeInterval.endTime;
 
-      // find the selected generator with the earliest start time
-      const firstGeneratorTime: number = findEarliestSelected(
-        fileContents,
-        startTime,
-        endTime
-      );
-      if (firstGeneratorTime == Number.MAX_VALUE) {
-        return {
-          AlgorithmicGenerators,
-          AudioFileGenerators,
-          SilentGenerators,
-          playbackLength,
-          offsetTime,
-          error: "No generator found to play",
-        };
-      }
-      offsetTime = firstGeneratorTime;
+      // // find the selected generator with the earliest start time
+      // const firstGeneratorTime: number = findEarliestSelected(
+      //   fileContents,
+      //   startTime,
+      //   endTime
+      // );
+      // if (firstGeneratorTime == Number.MAX_VALUE) {
+      //   return {
+      //     AlgorithmicGenerators,
+      //     AudioFileGenerators,
+      //     SilentGenerators,
+      //     error: "No generator found to play",
+      //   };
+      // }
       fileContents.tracks.forEach((t) => {
         t.generators.forEach((g) => {
           if (isSelected(g, startTime, endTime)) {
             // move the generators time back to zero with the
             // earliest selected as zero and the others following
-            const thisG: GeneratorType = g.copy();
-            thisG.startTime = thisG.startTime - firstGeneratorTime;
-            thisG.stopTime = thisG.stopTime - firstGeneratorTime;
+            // const thisG: GeneratorType = g.copy();
+            // thisG.startTime = thisG.startTime - firstGeneratorTime;
+            // thisG.stopTime = thisG.stopTime - firstGeneratorTime;
             if (g.type == GENERATORTYPE.Algorithmic)
-              AlgorithmicGenerators.push(thisG as Algorithmic);
+              AlgorithmicGenerators.push(g as Algorithmic);
             if (g.type == GENERATORTYPE.AudioFile)
-              AudioFileGenerators.push(thisG as AudioFile);
+              AudioFileGenerators.push(g as AudioFile);
             if (g.type == GENERATORTYPE.Silent)
-              SilentGenerators.push(thisG as Silent);
-            playbackLength = Math.max(thisG.stopTime + 1, playbackLength);
+              SilentGenerators.push(g as Silent);
           }
         });
       });
     } else {
       // find if there are any solo tracks
       let isSolo: boolean = fileContents.tracks.findIndex((t) => t.solo) >= 0;
-      offsetTime = Number.MAX_VALUE;
       fileContents.tracks.forEach((t) => {
         if (!t.mute) {
           if ((isSolo && t.solo) || !isSolo) {
@@ -129,70 +120,45 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
                 if (g.type == GENERATORTYPE.Silent) {
                   SilentGenerators.push(g as Silent);
                 }
-                offsetTime = Math.min(offsetTime, g.startTime);
-                playbackLength = Math.max(playbackLength, g.stopTime + 1);
               }
             });
           }
         }
       });
-      if (offsetTime == Number.MAX_VALUE) {
-        return {
-          AlgorithmicGenerators,
-          AudioFileGenerators,
-          SilentGenerators,
-          playbackLength,
-          offsetTime,
-          error:
-            "No generators found to play",
-        };
-      }
-      // adjust the active generators start and stop time based on the
-      // offset
-      if (offsetTime > 0) {
-        AlgorithmicGenerators = AlgorithmicGenerators.map((g) => {
-          const n = g.copy();
-          n.startTime -= offsetTime;
-          n.stopTime -= offsetTime;
-          return n;
-        });
-        AudioFileGenerators = AudioFileGenerators.map((g) => {
-          const n = g.copy();
-          n.startTime -= offsetTime;
-          n.stopTime -= offsetTime;
-          return n;
-        });
-        SilentGenerators = SilentGenerators.map((g) => {
-          const n = g.copy();
-          n.startTime -= offsetTime;
-          n.stopTime -= offsetTime;
-          return n;
-        });
-        playbackLength -= offsetTime;
-      }
+
+      // // adjust the active generators start and stop time based on the
+      // // offset
+      // if (offsetTime > 0) {
+      //   AlgorithmicGenerators = AlgorithmicGenerators.map((g) => {
+      //     const n = g.copy();
+      //     n.startTime -= offsetTime;
+      //     n.stopTime -= offsetTime;
+      //     return n;
+      //   });
+      //   AudioFileGenerators = AudioFileGenerators.map((g) => {
+      //     const n = g.copy();
+      //     n.startTime -= offsetTime;
+      //     n.stopTime -= offsetTime;
+      //     return n;
+      //   });
+      //   SilentGenerators = SilentGenerators.map((g) => {
+      //     const n = g.copy();
+      //     n.startTime -= offsetTime;
+      //     n.stopTime -= offsetTime;
+      //     return n;
+      //   });
+      //   playbackLength -= offsetTime;
+      // }
     }
     // get the generator being soloed and shift its start time to zero
   } else if (mode == GENERATIONMODE.solo && generator) {
-    offsetTime = generator.startTime;
     if (!generator.mute) {
       if (generator.type == GENERATORTYPE.Algorithmic) {
-        const tempGen: Algorithmic = (generator as Algorithmic).copy();
-        tempGen.stopTime = tempGen.stopTime - tempGen.startTime;
-        tempGen.startTime = 0;
-        AlgorithmicGenerators.push(tempGen);
-        playbackLength = tempGen.stopTime + 1;
+        AlgorithmicGenerators.push(generator as Algorithmic);
       } else if (generator.type == GENERATORTYPE.AudioFile) {
-        const tempGen: AudioFile = (generator as AudioFile).copy();
-        tempGen.stopTime = tempGen.stopTime - tempGen.startTime;
-        tempGen.startTime = 0;
-        AudioFileGenerators.push(tempGen);
-        playbackLength = tempGen.stopTime + 1;
+        AudioFileGenerators.push(generator as AudioFile);
       } else if (generator.type == GENERATORTYPE.Silent) {
-        const tempGen: Silent = (generator as Silent).copy();
-        tempGen.stopTime = tempGen.stopTime - tempGen.startTime;
-        tempGen.startTime = 0;
-        SilentGenerators.push(tempGen);
-        playbackLength = tempGen.stopTime + 1;
+        SilentGenerators.push(generator as Silent);
       }
     }
   }
@@ -208,8 +174,6 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
     AlgorithmicGenerators,
     AudioFileGenerators,
     SilentGenerators,
-    playbackLength,
-    offsetTime,
     error,
   };
 }

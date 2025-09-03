@@ -91,6 +91,7 @@ body {
   font-family: inherit;
   margin: 0;
   overflow: visible;
+  z-index: 99;
 }
 
 .navbar a:hover,
@@ -298,7 +299,7 @@ ul:after {
     background-color: lightskyblue;
     display: grid;
     grid-area: footer;
-    grid-template-columns: 1fr 300px 200px 300px 40px;
+    grid-template-columns: 1fr 300px 300px 300px 40px;
     grid-template-areas: "status reverb compressor equalizer volume";
     position: fixed;
     width: 100%;
@@ -596,7 +597,7 @@ ul:after {
   z-index: 10;
   top: 160px;
   left: 200px;
-  width: 50em;
+  width:50em;
   background-color: #fefefe;
   margin: 0;
   padding: 0;
@@ -1010,13 +1011,13 @@ div.algorithmic-table {
   }
   .drawing {
     grid-area: drawing;
-    background-color: rgb(230, 230, 230);
+    background-color: white
   }
   .footer {
     background-color: lightskyblue;
     grid-area: footer;
     display: grid;
-    grid-template-columns: 1fr 200px 200px 300px 200px 300px 40px;
+    grid-template-columns: 1fr 200px 200px 300px 300px 300px 40px;
     grid-template-areas: "status leftSpectrum rightSpectrum reverb compressor equalizer volume";
     .status {
       grid-area: status;
@@ -1264,7 +1265,7 @@ div.algorithmic-table {
   grid-template-areas: "header" "body" "footer";
   .filedialogheader {
     display: grid;
-    background-color: lightcoral;
+    background-color: lightskyblue;
     grid-area: header;
     grid-template-rows: 35px 35px;
     grid-template-areas:
@@ -1293,7 +1294,7 @@ div.algorithmic-table {
     .directoryrow {
       grid-area: directoryrow;
       display: grid;
-      grid-template-columns: 100px 1fr;
+      grid-template-columns: 150px 1fr;
       grid-template-areas: "navigation directory";
       gap: 0;
       .navigation {
@@ -1338,7 +1339,7 @@ div.algorithmic-table {
     }
   }
   .filedialogfooter {
-    background-color: lightsalmon;
+    background-color: lightgray;
     position: fixed;
     top:auto;
     bottom:inherit;
@@ -1381,7 +1382,7 @@ div.algorithmic-table {
         grid-area: message;
         display: block;
         align-self: flex-end;
-        margin-bottom: 5px;
+        margin-bottom: 10px;
         margin-left: 5px;
         font-size: 12pt;
         text-align: left;
