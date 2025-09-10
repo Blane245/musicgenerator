@@ -116,7 +116,8 @@ export default class Reverb {
     if (
       !this.#reverbHead ||
       !this.effectIn ||
-      !this.effectOut
+      !this.effectOut ||
+      !this.#context
     )
       return;
     if (enabled) {
@@ -137,7 +138,7 @@ export default class Reverb {
     switch (name) {
       case "reverb.enabled":
         this.enabled = value == "true";
-        this.#enable(this.enabled);
+        if (this.#context) this.#enable(this.enabled);
         break;
       case "reverb.duration":
         this.duration = parseFloat(value);

@@ -4,7 +4,7 @@ import { getPresetNote } from "sfcomponents/getpresetnote";
 import { Preset } from "sfcomponents/types";
 import {
   bankPresettoName,
-  precision,
+  precisionString,
   presetNameToPreset,
 } from "sfcomponents/util";
 import { SoundFont2 } from "soundfont2";
@@ -23,7 +23,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
   const [presetInterval, setPresetInterval] = useState<number>(1);
   const [presetDuration, setPresetDuration] = useState<number>(100);
   const [presetVolume, setPresetVolume] = useState<number>(0);
-  const [presetInfo, setPresetInfo] = useState<RawSourceData[] | null>(null);
+  const [presetInfo, setPresetInfo] = useState<RawSourceData[]>([]);
 
   useEffect(() => {
     let midi: number = 60;
@@ -33,7 +33,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
     let interval: number = 1;
     if (generator.speedP) {
       const value = generator.speedP.getCurrentValue(0);
-      interval = value == 0? 1: 60.0 / value;
+      interval = value == 0 ? 1 : 60.0 / value;
     }
 
     setPresetInterval(interval);
@@ -65,7 +65,6 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
       generator,
       preset,
       0,
-      0,
       interval,
       (interval * duration) / 100.0,
       midi,
@@ -76,7 +75,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
       0
     );
     if (result.length > 0) setPresetInfo(result);
-    else setPresetInfo(null);
+    else setPresetInfo([]);
   }
 
   function handlePresetName(e: ChangeEvent) {
@@ -171,43 +170,74 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
       );
   }
 
-  function drawEnvelope(s: RawSourceData) {
-    if (!s.instrument) return ;
-    const canvas: HTMLCanvasElement | null = document.getElementById(s.instrument.name) as HTMLCanvasElement;
-    if (!canvas) return ;
-    const ctx:CanvasRenderingContext2D | null = canvas.getContext('2d');
-    if (!ctx) return ;
-    const tScale: number = canvas.width / s.instrument.totalTime;
-    const aScale: number =  canvas.height / s.instrument.volumeGain;
-    // envelope points
-    const times: number[] = [
-      0, 
-      s.instrument.delayEnd * tScale,
-      s.instrument.attackEnd * tScale,
-      s.instrument.holdEnd * tScale,
-      s.instrument.decayEnd * tScale,
-      s.instrument.noteEnd * tScale,
-      s.instrument.releaseEnd * tScale,
-    ]
-    const gains: number[] = [
-      0,
-      0,
-      s.instrument.volumeGain * aScale,
-      s.instrument.volumeGain * aScale,
-      s.instrument.sustainGain * aScale,
-      s.instrument.noteEndGain * aScale,
-      0,
-    ]
-    ctx.beginPath();
-    ctx.moveTo(times[0],gains[0]);
-    times.forEach((t, i) => {
-      if (i != 0)
-        ctx.lineTo(t, gains[i]);
+  function signalLevel(sample: Float32Array): number {
+    let level: number = 0;
+    sample.forEach((s) => {
+      level += Math.abs(s);
     });
-    ctx.fill();
-    return
+    return sample.length == 0 ? 0 : level / sample.length;
   }
 
+  const DISPLAYWIDTH: number = 750;
+  const ENVHEIGHT: number = 50;
+
+  function drawEnvelopes(pI: RawSourceData[]): JSX.Element[] {
+    const result: JSX.Element[] = [];
+
+    // get the longest total time of all of the instruments for scaling
+    let maxTime: number = 0;
+    pI.forEach((p) => {
+      if (p.instrument) maxTime = Math.max(p.instrument.totalTime, maxTime);
+    });
+    if (maxTime == 0 || pI.length == 0)
+      return [<div>No Signal Envelopes to Display</div>];
+    const xScale: number = DISPLAYWIDTH / maxTime;
+    const yScale: number = ENVHEIGHT / 1;
+    const lineTo = (x: number, y: number): string => {
+      return `L${x * xScale} ${yScale * (1 - y)} `;
+    };
+    result.push(<div>Signal Envelopes</div>);
+    pI.forEach((p) => {
+      if (p.instrument) {
+        let path: string = "";
+        path += `M0 ${ENVHEIGHT} `;
+        p.instrument.envelope.forEach((e: { t: number; g: number }) => {
+          path += lineTo(e.t, e.g);
+        });
+        path += "Z";
+        result.push(
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height={ENVHEIGHT.toString()}
+            width={DISPLAYWIDTH.toString()}
+            fill="black"
+          >
+            <path d={path} fill="black" />
+          </svg>
+        );
+        result.push(<br />);
+      }
+    });
+    return result;
+  }
+
+  const numberCell = (object: object | undefined, value: string, precision: number): JSX.Element => {
+    if (object == undefined || object[value] == undefined) return <td style={{textAlign:'right'}}>0</td>;
+    return (
+      <td style={{ textAlign: "right" }}>
+        {precisionString(object[value], precision)}
+      </td>
+    );
+  };
+  const lengthCell = (object: object | undefined, array: string, dimension: number, precision: number): JSX.Element => {
+    if (object == undefined || object[array] == undefined) return <td style={{textAlign:'right'}}>0</td>;
+    const value: number = dimension < 0? object[array].length: object[array][dimension].length;
+    return (
+      <td style={{ textAlign: "right" }}>
+        {precisionString(value, precision)}
+      </td>
+    );
+  };
   return (
     <>
       <div
@@ -216,7 +246,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
           display: "block",
           top: 0,
           left: 0,
-          width: "100em",
+          width: DISPLAYWIDTH.toString(),
         }}
       >
         <div className="modal-header">
@@ -306,225 +336,296 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
           {presetInfo ? (
             <table>
               <tbody>
-                <tr>
+                <tr key='name'>
                   <td>name</td>
                   {presetInfo.map((s: RawSourceData) => (
-                    <td key={'name-'+s.instrument?.name}>{s.instrument?.name}</td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>loopStart</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.instrument?.loopStart}</td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>loopEnd</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.instrument?.loopEnd}</td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>loop</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.instrument?.loop ? "true" : "false"}</td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>rootKey</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.instrument?.rootKey}</td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>pitchCorrection</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.instrument?.pitchCorrection}</td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>fineTune</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.instrument?.fineTune}</td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>baseDetune</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.instrument?.baseDetune}</td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>cents</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.instrument?.cents}</td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>delayVolEnv</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.instrument?.delayVolEnv}</td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>attackVolEnv</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.instrument?.attackVolEnv}</td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>holdVolEnv</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.instrument?.holdVolEnv}</td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>decayVolEnv</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.instrument?.decayVolEnv}</td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>sustainVolEnv</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.instrument?.sustainVolEnv}</td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>releaseVolEnv</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.instrument?.releaseVolEnv}</td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>delayEnd</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.instrument?.delayEnd}</td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>attackEnd</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.instrument?.attackEnd}</td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>holdEnd</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.instrument?.holdEnd}</td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>decayEnd</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.instrument?.decayEnd}</td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>noteEnd</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.instrument?.noteEnd}</td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>interval</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.instrument?.interval}</td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>duration</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.instrument?.duration}</td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>releaseEnd</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.instrument?.releaseEnd}</td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>totalTime</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.instrument?.totalTime}</td>
+                    <td
+                      style={{ textAlign: "right" }}
+                      key={"name-" + s.instrument?.name}
+                    >
+                      {s.instrument?.name}
+                    </td>
                   ))}
                 </tr>
                 <tr>
                   <td>sampleRate</td>
                   {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.source.sampleRate}</td>
+                    numberCell(s.source, 'sampleRate', 0)
                   ))}
+                </tr>
+                <tr>
+                  <td>loopStart</td>
+                  {presetInfo.map((s: RawSourceData) => (
+                    <td style={{ textAlign: "right" }}>
+                      {s.instrument?.loopStart}
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td>loopEnd</td>
+                  {presetInfo.map((s: RawSourceData) => (
+                    <td style={{ textAlign: "right" }}>
+                      {s.instrument?.loopEnd}
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td>loop</td>
+                  {presetInfo.map((s: RawSourceData) => (
+                    <td style={{ textAlign: "right" }}>
+                      {s.instrument?.loop ? "true" : "false"}
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td>rootKey</td>
+                  {presetInfo.map((s: RawSourceData) => (
+                    numberCell(s.instrument, 'rootKey', 0)
+                  ))}
+                </tr>
+                <tr>
+                  <td>pitchCorrection</td>
+                  {presetInfo.map((s: RawSourceData) => (
+                    numberCell(s.instrument, 'pitchCorrection', 0)
+                  ))}
+                </tr>
+                <tr>
+                  <td>fineTune</td>
+                  {presetInfo.map((s: RawSourceData) => (
+                    numberCell(s.instrument, 'fineTune', 0)
+                  ))}
+                </tr>
+                <tr>
+                  <td>baseDetune</td>
+                  {presetInfo.map((s: RawSourceData) => (
+                    numberCell(s.instrument, 'baseDetune', 0)
+                  ))}
+                </tr>
+                <tr>
+                  <td>cents</td>
+                  {presetInfo.map((s: RawSourceData) =>
+                    numberCell(s.instrument, 'cents', 0)
+                  )}
+                </tr>
+                <tr>
+                  <td>delayVolEnv</td>
+                  {presetInfo.map((s: RawSourceData) => (
+                    numberCell(s.instrument, 'delayVolEnv', 0)
+                  ))}
+                </tr>
+                <tr>
+                  <td>attackVolEnv</td>
+                  {presetInfo.map((s: RawSourceData) => (
+                    numberCell(s.instrument, 'attackVolEnv', 0)
+                  ))}
+                </tr>
+                <tr>
+                  <td>holdVolEnv</td>
+                  {presetInfo.map((s: RawSourceData) => (
+                    numberCell(s.instrument, 'holdVolEnv', 0)
+                  ))}
+                </tr>
+                <tr>
+                  <td>decayVolEnv</td>
+                  {presetInfo.map((s: RawSourceData) => (
+                    numberCell(s.instrument, 'delayVolEnv', 0)
+                  ))}
+                </tr>
+                <tr>
+                  <td>sustainVolEnv</td>
+                  {presetInfo.map((s: RawSourceData) => (
+                    numberCell(s.instrument, 'sustainVolEnv', 0)
+                  ))}
+                </tr>
+                <tr>
+                  <td>releaseVolEnv</td>
+                  {presetInfo.map((s: RawSourceData) => (
+                    numberCell(s.instrument, 'releaseVolEnv', 0)
+                  ))}
+                </tr>
+                <tr>
+                  <td>delayEnd</td>
+                  {presetInfo.map((s: RawSourceData) => (
+                    numberCell(s.instrument, 'delayEnd', 3)
+                  ))}
+                </tr>
+                <tr>
+                  <td>attackEnd</td>
+                  {presetInfo.map((s: RawSourceData) => (
+                    numberCell(s.instrument, 'attackEnd', 3)
+                    )
+                  )}
+                </tr>
+                <tr>
+                  <td>holdEnd</td>
+                  {presetInfo.map((s: RawSourceData) => (
+                    numberCell(s.instrument, 'holdEnd', 3)
+                    )
+                  )}
+                </tr>
+                <tr>
+                  <td>decayEnd</td>
+                  {presetInfo.map((s: RawSourceData) =>(
+                    numberCell(s.instrument, 'decayEnd', 3)
+                    )
+                  )}
+                </tr>
+                <tr>
+                  <td>noteEnd</td>
+                  {presetInfo.map((s: RawSourceData) =>(
+                    numberCell(s.instrument, 'noteEnd', 3)
+                    )
+                  )}
+                </tr>
+                <tr>
+                  <td>interval</td>
+                  {presetInfo.map((s: RawSourceData) =>(
+                    numberCell(s.instrument, 'interval', 3)
+                    )
+                  )}
+                </tr>
+                <tr>
+                  <td>duration</td>
+                  {presetInfo.map((s: RawSourceData) =>(
+                    numberCell(s.instrument, 'duration', 3)
+                    )
+                  )}
+                </tr>
+                <tr>
+                  <td>releaseEnd</td>
+                  {presetInfo.map((s: RawSourceData) =>(
+                    numberCell(s.instrument, 'releaseEnd', 3)
+                    )
+                  )}
+                </tr>
+                <tr>
+                  <td>instrumentSampleRate</td>
+                  {presetInfo.map((s: RawSourceData) => (
+                    numberCell(s.instrument, 'sampleRate', 0)
+                    )
+                    )}
+                </tr>
+                <tr>
+                  <td>instrumentSampleLength</td>
+                  {presetInfo.map((s: RawSourceData) => (
+                    lengthCell(s.instrument, 'sample', -1, 0)
+                    )
+                    )}
                 </tr>
                 <tr>
                   <td>sampleLength</td>
                   {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.source.sample[0].length}</td>
-                  ))}
+                    lengthCell(s.source, 'sample', 0, 0)
+                    )
+                    )}
                 </tr>
                 <tr>
                   <td>playbackRate</td>
                   {presetInfo.map((s: RawSourceData) => (
-                    <td>{precision(s.source.playbackRate, 4)}</td>
-                  ))}
+                    numberCell(s.source, 'playbackRate', 4)
+                    )
+                    )}
                 </tr>
                 <tr>
                   <td>volumeValue</td>
                   {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.instrument?.volumeValue}</td>
-                  ))}
+                    numberCell(s.instrument, 'volumeValue', 1)
+                    )
+                    )}
                 </tr>
                 <tr>
                   <td>volumeGain</td>
                   {presetInfo.map((s: RawSourceData) => (
-                    <td>{s.instrument?.volumeGain}</td>
-                  ))}
+                    numberCell(s.instrument, 'volumeGain', 3)
+                    )
+                )}
                 </tr>
                 <tr>
                   <td>attenuation</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    s.instrument? 
-                    <td>{precision(s.instrument.attenuation, 3)}</td>
-                    :<td>0</td>
-                  ))}
+                  {presetInfo.map((s: RawSourceData) =>(
+                    numberCell(s.instrument, 'attenuation', 3)
+                    )
+                  )}
                 </tr>
                 <tr>
                   <td>sustainGain</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    s.instrument?
-                    <td>{precision(s.instrument.sustainGain, 3)}</td>
-                    :<td>0</td>
-                  ))}
+                  {presetInfo.map((s: RawSourceData) =>(
+                    numberCell(s.instrument, 'sustainGain', 3)
+                    )
+                  )}
                 </tr>
                 <tr>
                   <td>noteEndGain</td>
+                  {presetInfo.map((s: RawSourceData) =>(
+                    numberCell(s.instrument, 'noteEndGain', 3)
+                    )
+                  )}
+                </tr>
+                <tr>
+                  <td>signalLevel</td>
                   {presetInfo.map((s: RawSourceData) => (
-                    s.instrument?
-                    <td>{precision(s.instrument.noteEndGain, 3)}</td>
-                    :<td>0</td>
+                    <td style={{ textAlign: "right" }}>
+                      {precisionString(signalLevel(s.source.sample[0]), 3)}
+                    </td>
                   ))}
                 </tr>
                 <tr>
-                  <td>Envelope</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    s.instrument?
-                    <td><svg height='100' width='300' xmlns="http://www.w3.org/2000/svg">
-                      <path d={`M 0 100
-                      L${s.instrument.delayEnd * 300 / s.instrument.totalTime} 100 
-                      L${s.instrument.attackEnd * 300 / s.instrument.totalTime} 0 
-                      L${s.instrument.holdEnd * 300 / s.instrument.totalTime} 0 
-                      L${s.instrument.decayEnd * 300 / s.instrument.totalTime} ${100-s.instrument.noteEndGain*100}  
-                      L${s.instrument.noteEnd * 300 / s.instrument.totalTime} ${100-s.instrument.noteEndGain*100} 
-                      L${s.instrument.releaseEnd * 300 / s.instrument.totalTime} 100
-                      Z`}
-                      style={{fill:'black'}} />
-                    </svg></td>
-                    :<td>0</td>
-                  ))}
+                  <td>totalTime</td>
+                  {presetInfo.map((s: RawSourceData) =>(
+                    numberCell(s.instrument, 'totalTime', 3)
+                    )
+                  )}
                 </tr>
+                {/* <tr>
+                  <td>Envelope</td>
+                  {presetInfo.map((s: RawSourceData) =>
+                    s.instrument ? (
+                      <td>
+                        <svg
+                          height="100"
+                          width="300"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d={`M 0 100
+                      L${
+                        (s.instrument.delayEnd * 300) / s.instrument.totalTime
+                      } 100 
+                      L${
+                        (s.instrument.attackEnd * 300) / s.instrument.totalTime
+                      } 0 
+                      L${
+                        (s.instrument.holdEnd * 300) / s.instrument.totalTime
+                      } 0 
+                      L${Math.min(
+                        (s.instrument.decayEnd * 300) / s.instrument.totalTime,
+                        (s.instrument.noteEnd * 300) / s.instrument.totalTime
+                      )} ${100 - s.instrument.noteEndGain * 100}  
+                      L${
+                        (s.instrument.noteEnd * 300) / s.instrument.totalTime
+                      } ${100 - s.instrument.noteEndGain * 100} 
+                      L${
+                        (s.instrument.releaseEnd * 300) / s.instrument.totalTime
+                      } 100
+                      Z`}
+                            style={{ fill: "black" }}
+                          />
+                        </svg>
+                      </td>
+                    ) : (
+                      <td>{"_"}</td>
+                    )
+                  )}
+                </tr> */}
               </tbody>
             </table>
           ) : null}
+          <div id="drawenvelopes">
+            <>{drawEnvelopes(presetInfo)}</>
+          </div>
+          {/* draw all of the envelopes across the bottom xmin is 0, xmax max(totalTime), ymin is 0, ymax is attenuation for each
+          each is stacked with height of 50
+            */}
         </div>
         <div className="modal-footer">
           <button onClick={() => setViewPreset(false)}>Done</button>

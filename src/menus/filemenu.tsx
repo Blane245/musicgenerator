@@ -56,7 +56,7 @@ export default function FileMenu() {
     setDialogType("");
   }, [fileName]);
 
-  // a couple of hot keys are supported for faile saving and opening
+  // a couple of hot keys are supported for file saving and opening
   useHotkeys(
     "ctrl+s",
     () => {
@@ -292,10 +292,10 @@ export default function FileMenu() {
               New File...
             </div>
             <div className="dItem" onClick={() => handleMenuSelect("open")}>
-              Open File...
+              Open File... (ctrl+o)
             </div>
             <div className="dItem" onClick={() => handleMenuSelect("save")}>
-              Save File
+              Save File (ctrl+s)
             </div>
             <div className="dItem" onClick={() => handleMenuSelect("saveas")}>
               Save As...

@@ -13,7 +13,7 @@ export default class SignalLevel {
     this.#context = context;
     this.#filter = context.createBiquadFilter();
     this.#filter.type = 'highpass';
-    this.#filter.frequency.value = 20;
+    this.#filter.frequency.value = 40;
     source.connect(this.#filter);
     this.#splitter = context.createChannelSplitter(2);
     this.#filter.connect(this.#splitter);
@@ -39,7 +39,7 @@ export default class SignalLevel {
       analyser.getFloatTimeDomainData(dataArray);
       let average: number = 0;
       for (let index = 0; index < dataArray.length; index++) {
-        average +=dataArray[index];
+        average +=Math.abs(dataArray[index]);
       }
       average = average / dataArray.length;
       // return 10 * Math.log10(average);
@@ -56,7 +56,7 @@ export default class SignalLevel {
       const rightSpectrum = new Uint8Array(this.#rightAnalyser.frequencyBinCount);
       this.#leftAnalyser.getByteFrequencyData(leftSpectrum);
       this.#rightAnalyser.getByteFrequencyData(rightSpectrum);
-
+      // console.log('volumes', leftVolume, rightVolume)
       
       return { leftVolume, rightVolume, leftSpectrum, rightSpectrum };
     } else return { leftVolume: 0, rightVolume: 0, leftSpectrum: new Uint8Array(0), rightSpectrum: new Uint8Array(0) };

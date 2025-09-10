@@ -44,6 +44,7 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
 
   function onPreviewClick() {
     handleReadySolo();
+    setOffsetTime(generator.startTime);
     setPreviewVisible(true);
     setMenuVisible(null);
     setMode(GENERATIONMODE.solo);

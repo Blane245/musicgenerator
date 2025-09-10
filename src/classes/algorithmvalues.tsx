@@ -71,15 +71,13 @@ export class AlgorithmValues {
 
 export class ConstantValues extends AlgorithmValues {
   override values: ConstantType;
-  constructor(
-    values: ConstantType = {
-      seed: "",
-      rn: new RandomNumber(""),
-      value: 0,
-    }
-  ) {
+  constructor(initialValue?: number) {
     super(ALGORITHMTYPE.Constant);
-    this.values = { ...values };
+    this.values = {
+      seed: "seed", 
+      rn: new RandomNumber("seed"), 
+      value: initialValue? initialValue: 0,
+    };
   }
   override copy(): ConstantValues {
     const n = new ConstantValues();
@@ -108,11 +106,7 @@ export class ConstantValues extends AlgorithmValues {
     _version: string
   ): Promise<ConstantValues> {
     try {
-      const g: ConstantValues = new ConstantValues({
-        value: 0,
-        seed: "",
-        rn: new RandomNumber(""),
-      });
+      const g: ConstantValues = new ConstantValues();
       g.values.value = getAttributeValue(elem, "value", "float") as number;
 
       return Promise.resolve(g);
@@ -296,11 +290,13 @@ export class AutoregressiveValues extends AlgorithmValues {
       return this.values.initialValue;
     } else 
       epsilon = (this.values.rn.rand() - 0.5) * this.values.sigma;
-    let newValue: number = (this.values.currentValue - this.values.initialValue) * this.values.alpha + epsilon + this.values.initialValue;
-    if (newValue > this.values.hi ||
-      newValue < this.values.lo)
-      newValue = (this.values.currentValue - this.values.initialValue) * this.values.alpha - epsilon + this.values.initialValue;
-    newValue = Math.max(Math.min(newValue, this.values.hi), this.values.lo);
+    let newValue: number = Math.min(Math.max(
+      (this.values.currentValue - this.values.initialValue) * this.values.alpha + epsilon + this.values.initialValue, 
+      this.values.lo), this.values.hi);
+    // if (newValue > this.values.hi ||
+    //   newValue < this.values.lo)
+    //   newValue = (this.values.currentValue - this.values.initialValue) * this.values.alpha - epsilon + this.values.initialValue;
+    // newValue = Math.max(Math.min(newValue, this.values.hi), this.values.lo);
     this.values.currentValue = newValue;
     return newValue;
   }
@@ -475,24 +471,16 @@ export class MarkovianValues extends AlgorithmValues {
     }
     this.values.currentState = newState;
 
-    // the next value may 'bounce' off of the hi or lo value
+    // the next value cannot exceed the lo and hi range
     let value: number = this.values.currentValue;
     switch (newState) {
       case MARKOVSTATE.same:
         break;
       case MARKOVSTATE.up:
-        value += this.values.range.step;
-        // bounce off of limit, if necessary
-        if (value > this.values.range.hi) {
-          value = Math.max(value-this.values.range.step, this.values.range.lo);
-        }
+        value = Math.min(value + this.values.range.step, this.values.range.hi);
         break;
       case MARKOVSTATE.down:
-        value -= this.values.range.step;
-        // bounce off of limit, if necessary
-        if (value < this.values.range.lo) {
-          value = Math.min(value+this.values.range.step, this.values.range.hi);
-        }
+        value = Math.max(value - this.values.range.step, this.values.range.lo);
         break;
       default:
         break;

@@ -43,6 +43,7 @@ export default function AlgorithmicDialog(
           onChange={handleChange}
           value={formData.soundFontFile}
         >
+          <option key='SF-none' value='None'>None</option>
           {SFFileList.map((p) => {
             return (
               <option key={`SF-${p}`} value={p}>
@@ -160,24 +161,12 @@ export default function AlgorithmicDialog(
           name="noiseAmplitude"
           type="number"
           min={0}
-          max={10}
-          step={0.1}
+          max={1000}
+          step={0.01}
           onChange={handleChange}
           value={formData.noiseAmplitude}
         />
-        <span> </span>
-      </label>
-      <label>
-        &nbsp;Dispersion:&nbsp;
-        <input
-          name="noiseDispersion"
-          type="number"
-          min={0}
-          max={10}
-          step={0.01}
-          onChange={handleChange}
-          value={formData.noiseDispersion}
-        />
+        <span> (% of Volume) </span>
       </label>
       <label>
         &nbsp;Reverb Duration:&nbsp;

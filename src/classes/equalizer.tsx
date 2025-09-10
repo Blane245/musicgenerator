@@ -34,18 +34,34 @@ export default class Equalizer {
     this.effectOut = context.createGain();
     this.#filterHead = context.createGain();
 
-    // create all of the filters
+    // create all of the filters and connect them in series
+    // wiht the first connected to the filter head and the last connected to the
+    // effect output
     this.#filters = [];
+    let lastFilter: BiquadFilterNode | null = null;
     for (let i = 0; i < BANDCOUNT; i++) {
       const newFilter = context.createBiquadFilter();
       this.#filters.push(context.createBiquadFilter());
-      this.#filterHead.connect(newFilter);
-      newFilter.type = "peaking";
-      newFilter.frequency.value = BANDS[i];
-      newFilter.gain.value = this.gains[i];
-      const ratio: number = i < BANDCOUNT - 1 ? BANDS[i + 1] / BANDS[i] : 2;
-      newFilter.Q.value = Math.sqrt(ratio);
-      newFilter.connect(this.effectOut);
+      if (i == 0) {
+        newFilter.type = "highshelf";
+        newFilter.gain.value = 1.0;
+        newFilter.frequency.value = BANDS[i];
+        this.#filterHead.connect(newFilter);
+      } else if (i == BANDCOUNT - 1) {
+        newFilter.type = "lowshelf";
+        newFilter.gain.value = 1.0;
+        newFilter.frequency.value = BANDS[i];
+        if (lastFilter) lastFilter.connect(newFilter);
+        newFilter.connect(this.effectOut);
+      } else {
+        newFilter.type = "peaking";
+        newFilter.frequency.value = BANDS[i];
+        newFilter.gain.value = this.gains[i];
+        const ratio: number = i < BANDCOUNT - 1 ? BANDS[i + 1] / BANDS[i] : 2;
+        newFilter.Q.value = Math.sqrt(ratio);
+        if (lastFilter) lastFilter.connect(newFilter);
+      }
+      lastFilter = newFilter;
     }
   }
 
@@ -58,8 +74,7 @@ export default class Equalizer {
   // enabled - connect the effectIn to the filters, disconnect effectIn from effectOut
   // disabled - disconnect effectIn from the filters, connect effectIn to effectOut
   #enable(enabled: boolean) {
-    if (!this.#filterHead || !this.effectIn || !this.effectOut)
-      return;
+    if (!this.#filterHead || !this.effectIn || !this.effectOut) return;
     if (enabled) {
       try {
         softDisconnect(this.effectIn, this.effectOut);
@@ -111,7 +126,8 @@ export default class Equalizer {
       const eElement: Element = getElementElement(fcElem, "equalizer");
       try {
         this.enabled =
-          (getAttributeValue(eElement, "enabled", "string") as string) == "true";
+          (getAttributeValue(eElement, "enabled", "string") as string) ==
+          "true";
       } catch (e) {
         this.enabled = true;
       }

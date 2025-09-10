@@ -50,7 +50,10 @@ export const normalizePermille = (permille: number):number => permille / 1000;
 
 export const precision = (n: number, digits: number):number => {
   const factor = Math.pow(10, digits);
-  return Math.ceil(n * factor) / factor;
+  return (Math.ceil(n * factor) / factor);
+};
+export const precisionString = (n: number, digits: number):string => {
+  return precision(n, digits).toFixed(digits);
 };
 
 const noteNames: string[] = [

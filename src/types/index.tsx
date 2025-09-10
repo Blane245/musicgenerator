@@ -302,9 +302,9 @@ export type RawSourceData = {
   index: number;
   source: {
     note: number; // midi number of the source
-    sample: Float32Array[]; // the sf instrument sample converted to float32 or noise as float32
-    sampleRate: number; // hz/sec
-    playbackRate: number; // sf playback rate or 1 for noise
+    sample: Float32Array[]; // the sf instrument sample converted to float32 or noise as float32 - length is sampleRate * totalTime * playbackRate
+    sampleRate: number; // hz/sec (includes the playbackRate sampleRate (instrument sample) * playbackRate (as calcuated) )
+    playbackRate: number; // sf playback rate or 1 for noise (will always be one)
     // loopStart: number; // sf loopstart index or 0 for noise
     // loopEnd: number; // sf loopEnd index or sample.length for noise
     // loop: boolean; // true/false depending on sf and option or false for noise
@@ -329,6 +329,8 @@ export type RawSourceData = {
   // };
   instrument?: {
     name: string;
+    sampleRate: number; // sample rate of the instrument
+    sample: Float32Array; // the instrument's samples
     loopStart: number;
     loopEnd: number;
     loop: boolean;
@@ -357,6 +359,7 @@ export type RawSourceData = {
     volumeGain: number;
     sustainGain: number;
     attenuation: number;
+    envelope:{t:number, g:number}[]
   }
 };
 

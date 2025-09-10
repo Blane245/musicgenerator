@@ -18,9 +18,6 @@ export default function PlayMenu() {
     playing,
     mode,
     setMode,
-    playbackLength,
-    setPlaybackLength,
-    setOffsetTime,
     sourceData,
     setSourceData,
     timeInterval,
@@ -31,15 +28,21 @@ export default function PlayMenu() {
     null
   );
   // a couple of hot keys are supported for preview and record
-  useHotkeys("ctrl+p", (event) => {
-    event.preventDefault();
-    if (!playing.current) handlePreview;
-  });
+  useHotkeys(
+    "ctrl+p",
+    () => {
+      if (!playing.current) handlePreview;
+    },
+    { preventDefault: true }
+  );
 
-  useHotkeys("ctrl+r", (event) => {
-    event.preventDefault();
-    if (!playing.current) handleRecord;
-  });
+  useHotkeys(
+    "ctrl+r",
+    () => {
+      if (!playing.current) handleRecord;
+    },
+    { preventDefault: true }
+  );
 
   // handle request to create a new file
   // If the curretn one is 'dirty' the user is
@@ -52,7 +55,6 @@ export default function PlayMenu() {
   // handle request to open a file.
   // if the current one is 'dirty' the user is asked to confirm over-write
   function handleRecord() {
-
     // display a dialog for selecting a file with and without overwrite allowed
     const types: FilePickerAcceptType[] =
       recordFormat == "mp3"
@@ -142,12 +144,12 @@ export default function PlayMenu() {
           <div className="dropdown-one">
             {!playing.current ? (
               <a className="dItem" onClick={() => handleMenuSelect("preview")}>
-                Preview
+                Preview (ctrl+p)
               </a>
             ) : null}
             {!playing.current ? (
               <a className="dItem" onClick={() => handleMenuSelect("record")}>
-                Record
+                Record (ctrl+r)
               </a>
             ) : null}
             {!playing.current ? (

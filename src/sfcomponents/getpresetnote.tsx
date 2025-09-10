@@ -6,6 +6,7 @@ import { getGeneratorValues } from "./generators";
 import { samplePool } from "./samplepool";
 import { InstrumentZone, Preset, PresetZone } from "./types";
 import { attenuate, dBToGain, precision, tc2s } from "./util";
+import { linearInterpolate } from "utils/interpolation";
 
 // select mid range velocity Range
 const isActiveZone = (
@@ -47,7 +48,6 @@ export const getPresetNote = (
   gen: Algorithmic,
   preset: Preset,
   noiseAmplitude: number,
-  noiseDispersion: number,
   interval: number, // the note's time interval
   duration: number, // the note's duration with that interval
   pitchValue: number,
@@ -61,7 +61,7 @@ export const getPresetNote = (
   const zones = getActiveZones(preset, Math.round(pitchValue), velocity);
   const result: RawSourceData[] = zones.map((zone) => {
     // get the sample
-    const { sample, header } = samplePool(zone.sample);
+    const { sample: instrumentSample, header } = samplePool(zone.sample);
 
     // get the preset merged generator attributes
     const {
@@ -70,7 +70,7 @@ export const getPresetNote = (
       endLoop,
       originalPitch,
       pitchCorrection,
-      sampleRate,
+      sampleRate: instrumentSampleRate,
     } = header;
     const {
       // @ts-ignore
@@ -109,8 +109,12 @@ export const getPresetNote = (
         ? overridingRootKey
         : originalPitch;
     const baseDetune = 100 * rootKey + pitchCorrection - fineTune;
-    const cents = pitchValue * 100 - baseDetune;
-    const playbackRate = 1.0 * Math.pow(2, cents / 1200);
+    const cents = pitchValue * 100 - baseDetune - 45;
+
+    // combining the instrument's sampleRate with the playbackRate
+    let playbackRate = 1.0 * Math.pow(2, cents / 1200);
+    const sampleRate: number = Math.floor(instrumentSampleRate * playbackRate);
+    // playbackRate = 1;
 
     // get the sample looping parameters and override looping if requested
     let loopStart: number = 0;
@@ -124,79 +128,94 @@ export const getPresetNote = (
     }
 
     // get the end times for the amplitude envelope
-    const { delayEnd, attackEnd, holdEnd, decayEnd, noteEnd, releaseEnd } =
-      setEndTimes(
-        delayVolEnv,
-        attackVolEnv,
-        holdVolEnv,
-        decayVolEnv,
-        duration,
-        releaseVolEnv,
-        duration != interval
-      );
+    const sampleTime: number =
+      instrumentSample.length / (sampleRate * playbackRate);
+    const delayEnd: number = precision(tc2s(delayVolEnv), 3);
+    const attackEnd: number = delayEnd + precision(tc2s(attackVolEnv), 3);
+    const holdEnd: number = attackEnd + precision(tc2s(holdVolEnv), 3);
+    const decayEnd: number = holdEnd + precision(tc2s(decayVolEnv), 3);
+    // this last two number may be less than the others
+    const noteEnd: number = loop ? duration : Math.min(sampleTime, duration);
+    // release is cutoff if this is a staccatto or the sample is not looping
+    const releaseEnd: number =
+      loop && duration == interval
+        ? noteEnd + precision(tc2s(releaseVolEnv), 3)
+        : noteEnd;
+    const totalTime: number = releaseEnd;
 
-    // determine the total time of the sample
-    const totalTime: number = findTotalTime(
-      delayEnd,
-      attackEnd,
-      holdEnd,
-      decayEnd,
-      duration,
-      releaseEnd,
-      loop,
-      sample,
-      sampleRate
-    );
-    // build the sample
     const volumeGain: number = dBToGain(volumeValue);
     // const attenuation: number = attenuate(1.0, initialAttenuation / 10);
-    //TODO for now, don't handle attenuation. Getting bad values from the zones for index 48
-    const attenuation: number = 1.0;
-    const thisSample: Float32Array = buildSampleArray(
-      sample,
-      sampleRate,
+    const attenuation: number = 1;
+    const sustainGain: number = attenuate(volumeGain, sustainVolEnv / 10);
+
+    // get the envelope curve
+    let noteEndGain: number = 0;
+    const envelope: { t: number; g: number }[] = [{ t: 0, g: 0 }];
+    if (noteEnd < delayEnd) {
+      envelope.push({ t: noteEnd, g: 0 });
+    } else {
+      envelope.push({t:delayEnd, g:0});
+    }
+
+    if (noteEnd >= delayEnd && noteEnd < attackEnd) {
+      noteEndGain = linearInterpolate(noteEnd, delayEnd, attackEnd, 0, 1);
+      envelope.push({ t: noteEnd, g: noteEndGain });
+      if (noteEnd != releaseEnd) envelope.push({ t: releaseEnd, g: 0 });
+    } else if (noteEnd >= attackEnd) {
+      envelope.push({ t: attackEnd, g: 1 });
+      noteEndGain = 1;
+    }
+
+    if (noteEnd >= attackEnd && noteEnd < holdEnd) {
+      envelope.push({ t: noteEnd, g: 1 });
+      if (noteEnd != releaseEnd) envelope.push({ t: releaseEnd, g: 0 });
+      noteEndGain = 1;
+    } else if (noteEnd >= holdEnd) {
+      envelope.push({ t: holdEnd, g: 1 });
+      noteEndGain = 1;
+    }
+
+    if (noteEnd >= holdEnd && noteEnd < decayEnd) {
+      noteEndGain = linearInterpolate(
+        noteEnd,
+        holdEnd,
+        decayEnd,
+        noteEndGain,
+        sustainGain
+      );
+      envelope.push({ t: noteEnd, g: noteEndGain });
+      if (noteEnd != releaseEnd) envelope.push({ t: releaseEnd, g: 0 });
+    } else if(noteEnd >= decayEnd) {
+      envelope.push({ t: decayEnd, g: sustainGain });
+      envelope.push({ t: noteEnd, g: sustainGain });
+      noteEndGain = 1;
+    }
+
+    envelope.push({ t: releaseEnd, g: 0 });
+
+    const sample: Float32Array = buildSampleArray(
+      instrumentSample,
+      instrumentSampleRate,
+      sampleRate, // includes instrumentSampleRate and playbackRate
       loop,
       loopStart,
       loopEnd,
       delayEnd,
       totalTime,
       noiseAmplitude,
-      noiseDispersion,
       volumeGain,
+      attenuation,
       gen.rn
     );
 
-    // apply the amplitude envelope to the sample
-    const sustainGain: number =
-      attenuate(volumeGain, sustainVolEnv / 10);
-    // console.log(`envelope for generator ${gen.name} tone ${pitchValue}:
-    //    delay ${delayEnd} attack ${attackEnd} hold ${holdEnd} decay ${decayEnd}, note ${noteEnd}, release ${releaseEnd}
-    //    time ${totalTime}
-    //    volume ${volumeGain}
-    //    sustain ${sustainGain}
-    //    sample length ${thisSample.length}
-    //    sample rate ${sampleRate}
-    //    `);
-
-    const noteEndGain: number = applyEnvelope(
-      thisSample,
-      sampleRate,
-      delayEnd,
-      attackEnd,
-      holdEnd,
-      decayEnd,
-      noteEnd,
-      releaseEnd,
-      sustainGain,
-      attenuation,
-    );
+    applyEnvelope(sample, sampleRate, envelope);
 
     const aResult: RawSourceData = {
       gen,
       index: sourceCount,
       source: {
         note: pitchValue,
-        sample: [thisSample],
+        sample: [sample],
         sampleRate,
         playbackRate,
         startTime: time,
@@ -210,6 +229,8 @@ export const getPresetNote = (
       vol: { value: volumeValue },
       instrument: {
         name,
+        sampleRate: instrumentSampleRate,
+        sample: instrumentSample,
         loopStart,
         loopEnd,
         loop,
@@ -238,6 +259,7 @@ export const getPresetNote = (
         noteEndGain,
         sustainGain,
         attenuation,
+        envelope,
       },
     };
     sourceCount++;
@@ -246,63 +268,11 @@ export const getPresetNote = (
   return result;
 };
 
-// determine the total time of the sample from the amplitude envelope and the
-// duration. This routine assumes decayEnd <= attackEnd <= holdEnd <= decayEnd
-// if the sample is not looping, then truncate the time to the end of the sample
-function findTotalTime(
-  delayEnd: number,
-  attackEnd: number,
-  holdEnd: number,
-  decayEnd: number,
-  duration: number,
-  releaseEnd: number,
-  looping: boolean,
-  sample: Float32Array,
-  sampleRate: number
-): number {
-  const sampleDuration: number = looping
-    ? Number.MAX_VALUE
-    : sample.length / sampleRate;
-  const thisDuration: number = Math.min(duration, sampleDuration);
-  // if (decayEnd <= thisDuration && holdEnd != decayEnd) return decayEnd; // signal goes to zero before note duration
-  // if (delayEnd > thisDuration) return duration;
-  return releaseEnd;
-}
-
-// set the end time for each part of the amplitude curve. Truncate release on an early end (stacatto)
-function setEndTimes(
-  delayVolEnv: number,
-  attackVolEnv: number,
-  holdVolEnv: number,
-  decayVolEnv: number,
-  duration: number,
-  releaseVolEnd: number,
-  earlyEnd: boolean
-): {
-  delayEnd: number;
-  attackEnd: number;
-  holdEnd: number;
-  decayEnd: number;
-  noteEnd: number;
-  releaseEnd: number;
-} {
-  // delayEnd, attackEnd, holdEnd, and decayEnd are monitonically non-decreasing
-  const delayEnd: number = precision(tc2s(delayVolEnv), 3);
-  const attackEnd: number = delayEnd + precision(tc2s(attackVolEnv), 3);
-  const holdEnd: number = attackEnd + precision(tc2s(holdVolEnv), 3);
-  const decayEnd: number = holdEnd + precision(tc2s(decayVolEnv), 3);
-  // this last two number may be less than the others
-  const noteEnd: number = duration;
-  const releaseEnd: number = earlyEnd
-    ? duration
-    : duration + precision(tc2s(releaseVolEnd), 3);
-  return { delayEnd, attackEnd, holdEnd, decayEnd, noteEnd, releaseEnd };
-}
-
 // construct the sample array from the original sample and the total time and sample rate
 // add zeroes for any delay. Add noise and adsjust the volume
 function buildSampleArray(
-  sample: Float32Array,
+  instrumentSample: Float32Array,
+  instrumentSampleRate: number,
   sampleRate: number,
   looping: boolean,
   loopStart: number,
@@ -310,135 +280,97 @@ function buildSampleArray(
   delayEnd: number,
   totalTime: number,
   noiseAmplitude: number,
-  noiseDispersion: number,
   volume: number,
+  attenuation: number,
   rn: RandomNumber
 ): Float32Array {
   const sampleCount: number = Math.ceil(sampleRate * totalTime);
   const result: Float32Array = new Float32Array(sampleCount);
-  const sampleLength: number = sample.length;
+  const instrumentSampleLength: number = instrumentSample.length;
   const delayCount: number = Math.ceil(sampleRate * delayEnd);
 
-  // get the signal level to balance with noise
-  let signalLevel: number = 0;
-  if (noiseDispersion != 0 && noiseAmplitude != 0)
-    sample.forEach((s) => {
-      signalLevel = Math.max(Math.abs(s), 0);
-    });
-  // copy the initial part of the sample without looping with delay
-  // apply volume and noise
+  // console.log('signal level', signalLevel);
+  // handle sampling where the instrument sample rate is to the final sample rate
+  const deltaIndex: number = instrumentSampleRate / sampleRate;
+  let currentIndex: number = 0;
   let iSample = delayCount;
-  const lastSample: number = looping? loopEnd: sampleLength;
-  for (let i = 0; i < lastSample && iSample < sampleCount; i++) {
-    const thisSample = getSampleWithNoise(
-      sample[i],
-      signalLevel,
-      volume,
-      noiseAmplitude,
-      noiseDispersion,
-      rn
-    );
-    result[iSample] = thisSample;
-    iSample++;
-  }
-  // add any looping, if necessary
-  if (looping) {
-    while (iSample < sampleCount) {
-      for (let i = loopStart; i < loopEnd && iSample < sampleCount; i++) {
-        const thisSample = getSampleWithNoise(
-          sample[i],
-          signalLevel,
-          volume,
-          noiseAmplitude,
-          noiseDispersion,
+  const lastSample: number = looping ? loopEnd : instrumentSampleLength;
+  const noiseLevel: number = noiseAmplitude / 100;
+  while (iSample < sampleCount) {
+    let thisIndex: number = Math.round(currentIndex);
+
+    if (thisIndex < lastSample) {
+      // haven't reach the end
+      result[iSample] =
+        getSampleWithNoise(
+          instrumentSample[thisIndex],
+          noiseLevel,
           rn
-        );
-        result[iSample] = thisSample;
-        iSample++;
+        ) * volume * 
+        attenuation;
+      iSample++;
+    } else if (looping) {
+      // handle looping
+      if (thisIndex >= lastSample) {
+        currentIndex = loopStart;
+        thisIndex = loopStart;
       }
+      result[iSample] =
+        getSampleWithNoise(
+          instrumentSample[thisIndex],
+          noiseLevel,
+          rn
+        ) * volume *
+        attenuation;
+      iSample++;
+    } else {
+      // signal is zero if not looping
+      result[iSample] = 0;
+      iSample++;
     }
+
+    // increment to next index
+    currentIndex += deltaIndex;
+    thisIndex = Math.round(currentIndex);
   }
+
   return result; // an array of size sampleCount to accomodate the entire sound
 }
 
 function getSampleWithNoise(
   sample: number,
-  signalLevel: number,
-  volume: number,
-  noiseAmplitude: number,
-  noiseDispersion: number,
+  noiseLevel: number,
   rn: RandomNumber
 ): number {
   let thisSample = sample;
-  if (noiseAmplitude == 0 || noiseDispersion == 0) {
-    thisSample = thisSample * volume;
-  } else {
-    const noise: number = gaussianRandom(0, noiseDispersion, rn);
+  if (noiseLevel != 0) {
+    const noise: number = gaussianRandom(0, 1, rn);
     thisSample =
-      (volume * (signalLevel * thisSample + noiseAmplitude * noise)) /
-      (signalLevel + noiseAmplitude);
+      (thisSample + noiseLevel * noise) /
+      (1 + noiseLevel);
   }
   return thisSample;
 }
 
-// apply the amplitude envelope to the sample in place
 function applyEnvelope(
   sample: Float32Array,
   sampleRate: number,
-  delayEnd: number,
-  attackEnd: number,
-  holdEnd: number,
-  decayEnd: number,
-  noteEnd: number,
-  releaseEnd: number,
-  sustainGain: number,
-  attenuation: number
-): number {
-  // loop through each sample point, find its time, and apply the envelope
-  console.log('sustainGain in applyEnvelope', sustainGain);
-  const deltaT = 1 / sampleRate;
-  let data:string= "";
-  let noteEndGain: number = 0; // the gain of the envelope when the duration of the note is reached and release is performed
-  sample.forEach((s, i) => {
-    const ti = i * deltaT;
-    if (ti < delayEnd) {
-      // sample has a level of 0
-      s = 0;
-      noteEndGain = 0;
-    }
-    else if (ti < noteEnd) {
-      // in note proper
-      if (ti < attackEnd && attackEnd != delayEnd) {
-        // ramp from 0 to 1
-        const thisGain: number =
-          ((1.0 * (ti - delayEnd)) / (attackEnd - delayEnd)) * attenuation;
-        s = s * thisGain;
-        noteEndGain = thisGain;
-      } else if (ti < holdEnd) {
-        // sample has a gain of 1.
-        noteEndGain = 1.0 * attenuation;
-        s = s * attenuation;
-      } else if (ti < decayEnd && holdEnd != decayEnd) {
-        // from 1 to sustainGain
-        const thisGain: number =
-          (1.0 + ((sustainGain - 1) * (ti - holdEnd)) / (decayEnd - holdEnd)) *
-          attenuation;
-        s = s * thisGain;
-        noteEndGain = thisGain;
-      } else s = s * sustainGain * attenuation;
-    } else {
-      if (ti < releaseEnd && releaseEnd != noteEnd) {
-        // ramp from noteEndGain to 0
-        const thisGain: number =
-          noteEndGain * (1.0 - (ti - noteEnd) / (releaseEnd - noteEnd)) * attenuation;
-        s = s * thisGain;
-        // console.log('release at', ti, 'gain is ', thisGain, 'sample is', s);
-      } else {
-        s = 0;
-        //  console.log('sample is zero at ', i, ti);
-      }
-    }
-    // data+=(i*deltaT).toString()+','+s.toString()+';'
+  envelope: { t: number; g: number }[],
+) {
+  const deltaT: number = 1 / sampleRate;
+  let ti: number = 0;
+  let iEnvelope: number = 0;
+  const maxI: number = envelope.length - 1;
+  sample.forEach((s) => {
+    if (ti >= envelope[iEnvelope].t && iEnvelope < maxI) iEnvelope++;
+    const g: number = envelope[iEnvelope].g != envelope[iEnvelope - 1].g? linearInterpolate(
+      ti,
+      envelope[iEnvelope - 1].t,
+      envelope[iEnvelope].t,
+      envelope[iEnvelope - 1].g,
+      envelope[iEnvelope].g
+    ): envelope[iEnvelope].g;
+    s = s * g;
+    ti+=deltaT;
   });
-  return noteEndGain;
 }

@@ -37,7 +37,6 @@ export function getBufferSourceNodesFromAlgorithmic(
 
   // get the noise parameters
   const noiseAmplitude: number = gen.noiseAmplitude;
-  const noiseDispersion: number = gen.noiseDispersion;
 
   let nextSource: number = sourceCount;
 
@@ -50,7 +49,6 @@ export function getBufferSourceNodesFromAlgorithmic(
         gen,
         preset,
         noiseAmplitude,
-        noiseDispersion,
         interval,
         duration,
         note,

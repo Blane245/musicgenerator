@@ -36,12 +36,15 @@ import RoomVolumeDialog from "dialogs/roomvolumedialog";
 import { buildRoomNodes } from "generation/buildroomnodes";
 import { realizeSource } from "generation/realizesource";
 import { useEffect, useRef, useState } from "react";
+import { toNote } from "sfcomponents/util";
 import {
   ActiveSource,
   FFTSIZE,
   GENERATIONMODE,
   GeneratorType,
   GENERATORTYPE,
+  MAXDECIBELS,
+  MINDECIBELS,
   RawSourceData,
   SignalLevelsType,
   TimeLineScales,
@@ -114,8 +117,8 @@ export default function Preview(params: PreviewProps): JSX.Element {
   const activeSources = useRef<ActiveSource[]>([]);
   const [activeSourcesCount, setActiveSourcesCount] = useState<number>(0);
   const [signalLevels, setSignalLevels] = useState<SignalLevelsType>({
-    leftVolume: -128,
-    rightVolume: -128,
+    leftVolume: 0,
+    rightVolume: 0,
     leftSpectrum: new Uint8Array(0),
     rightSpectrum: new Uint8Array(0),
   });
@@ -327,172 +330,6 @@ export default function Preview(params: PreviewProps): JSX.Element {
       volumeMonitor();
     }
   }
-
-  return (
-    <div
-      className="preview"
-      style={{ height: displayHeight, width: displayWidth }}
-    >
-      <div
-        className="header"
-        style={{ width: displayWidth, height: headerHeight }}
-      >
-        <div className="icon">
-          <img
-            src={CMG2}
-            alt="CGM"
-            style={{ width: 40, height: 40, margin: "0", padding: "0" }}
-          />
-        </div>
-        <div className="buttons">
-          {!running ? (
-            <button onClick={() => onExit()} style={{ fontSize: 12 }}>
-              Exit
-            </button>
-          ) : null}
-          <button onClick={() => OnStartStop()} style={{ fontSize: 12 }}>
-            {running ? "Stop" : "Start"}
-          </button>
-          {running ? (
-            <button onClick={() => onPauseResume()} style={{ fontSize: 12 }}>
-              {isPaused ? "Resume" : "Pause"}
-            </button>
-          ) : null}
-        </div>
-        <div className="title" style={{ fontWeight: "bold" }}>
-          {`${appName}: ${appVersion} (${fileName})${
-            fileContents.dirty ? "*" : ""
-          }`}
-        </div>
-        <div className="left">
-          <input
-            type="range"
-            readOnly
-            value={signalLevels.leftVolume}
-            min={-128}
-            max={128}
-          ></input>
-        </div>
-        <div className="right">
-          <input
-            type="range"
-            readOnly
-            value={signalLevels.rightVolume}
-            min={-128}
-            max={128}
-          ></input>
-        </div>
-      </div>
-      <div
-        className="timeline"
-        style={{ width: displayWidth, height: timelineHeight }}
-      >
-        {previewTimeline.current ? (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width={displayWidth}
-            height={timelineHeight}
-            viewBox={`0 0 ${displayWidth} ${timelineHeight}`}
-          >
-            <rect
-              id="timeline"
-              x={0}
-              y={0}
-              width={displayWidth}
-              height={timelineHeight}
-              fill="white"
-            />
-            <path
-              stroke="black"
-              d={`m 0 ${timelineHeight} H ${displayWidth}`}
-            />
-            {getTickLinesandLabels(previewTimeline.current, ticks)}
-          </svg>
-        ) : null}
-      </div>
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="drawing"
-        id="drawing"
-        width={displayWidth}
-        height={previewHeight}
-      />
-      <div
-        className="footer"
-        style={{ width: displayWidth, height: footerHeight }}
-      >
-        <div className="status">
-          <table>
-            <thead>
-              <tr>
-                <th>Counts</th>
-                <th>Generators</th>
-                <th>Sources</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Total</td>
-                <td>{selectedGenerators.length}</td>
-                <td>{sourceData.length}</td>
-              </tr>
-              <tr>
-                <td>Active </td>
-                <td>{activeGeneratorsCount}</td>
-                <td>{activeSourcesCount}</td>
-              </tr>
-            </tbody>
-          </table>
-          <div>Active Generators:</div>
-          <div>{activeGenerators.current.toString()}</div>
-        </div>
-        {signalLevels ? (
-          <>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width={spectrumWidth}
-              height={footerHeight}
-              viewBox={`0 0 ${spectrumWidth} ${footerHeight}`}
-              className="leftspectrum"
-            >
-              <rect
-                id="leftspectrum"
-                x={0}
-                y={0}
-                width={spectrumWidth}
-                height={footerHeight}
-                fill="white"
-                stroke="black"
-              />
-              {DrawSpectrum(signalLevels.leftSpectrum)}
-            </svg>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width={spectrumWidth}
-              height={footerHeight}
-              viewBox={`0 0 ${spectrumWidth} ${footerHeight}`}
-              className="rightspectrum"
-            >
-              <rect
-                id="rightspectrum"
-                x={0}
-                y={0}
-                width={spectrumWidth}
-                height={footerHeight}
-                fill="white"
-                stroke="black"
-              />
-              {DrawSpectrum(signalLevels.rightSpectrum)}
-            </svg>
-          </>
-        ) : null}
-        <RoomVolumeDialog />
-        <RoomReverbDialog />
-        <RoomCompressorDialog />
-        <RoomEqualizerDialog />
-      </div>
-    </div>
-  );
 
   // get the type of the drawing section based on the source type
   function getSectionType(s: RawSourceData): SectionType {
@@ -805,6 +642,10 @@ export default function Preview(params: PreviewProps): JSX.Element {
       drawing.appendChild(newLine);
 
       // label the section with names and lo and hi values
+      const hiScale: number = (Math.floor(section.hiValue/12) + 1) * 12;
+      const loScale: number = (Math.floor(section.loValue/12) - 1) * 12;
+      const hiNote: string = toNote(hiScale);
+      const loNote: string = toNote(loScale);
       const sectionNameElement: SVGTextElement = document.createElementNS(
         "http://www.w3.org/2000/svg",
         "text"
@@ -812,8 +653,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
       sectionNameElement.textContent =
         section.type +
         "s (" +
-        (section.loValue - 5).toFixed(0).toString() +
-        ")";
+        loScale.toFixed(0).toString()  + ": "+loNote+        ")";
       sectionNameElement.setAttribute("x", "2");
       sectionNameElement.setAttribute(
         "y",
@@ -827,7 +667,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
         "text"
       );
       sectionHiElement.textContent =
-        "(" + (section.hiValue + 5).toFixed(0).toString() + ")";
+        "(" + hiScale.toFixed(0).toString() + ": "+hiNote+")";
       sectionHiElement.setAttribute("x", "2");
       sectionHiElement.setAttribute(
         "y",
@@ -836,6 +676,28 @@ export default function Preview(params: PreviewProps): JSX.Element {
       sectionNameElement.setAttribute("font-size", "12pt");
       sectionNameElement.setAttribute("fill", "black");
       drawing.appendChild(sectionHiElement);
+
+      // draw a dotted line at each midi
+      section.loValue = loScale;
+      section.hiValue = hiScale;
+      const hiMidi = hiScale;
+      const loMidi = loScale;
+      for (let iMidi = loMidi; iMidi < hiMidi; iMidi++) {
+        const y: number = linearInterpolate(iMidi, loMidi, hiMidi, section.height + section.verticalOffset, 0);
+        const midiLineElement: SVGLineElement = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "line"
+        );
+        midiLineElement.setAttribute('x1', '0');
+        midiLineElement.setAttribute('x2', displayWidth.toString());
+        midiLineElement.setAttribute('y1', y.toString());
+        midiLineElement.setAttribute('y2', y.toString());
+
+      midiLineElement.setAttribute("stroke", iMidi % 12 == 0?'lightcoral':'lightgray');
+      midiLineElement.setAttribute("stroke-width", "1");
+      midiLineElement.setAttribute("stroke-dasharray", "5,5");
+        drawing.appendChild(midiLineElement);
+      }
     });
 
     // get the time line start and end points. time progress should be between
@@ -984,7 +846,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
     }
     if (!audioContext) return;
     // check if done or stopped
-    const done: boolean = audioContext.currentTime > playbackLength;
+    const done: boolean = audioContext.currentTime > playbackLength + reflectionDelay;
     if (!done && playing.current) {
       timerID = window.setTimeout(scheduler, LOOKAHEAD);
     } else {
@@ -1075,7 +937,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
               activeSource.source.disconnect();
               activeSource.vol.disconnect();
               activeSource.panner.disconnect();
-              console.log('source stopped at', audioContext.currentTime);
+              // console.log('source stopped at', audioContext.currentTime);
             }
             thisSource.source.started = false;
             if (activeSource.gen.type != GENERATORTYPE.Silent)
@@ -1219,8 +1081,8 @@ export default function Preview(params: PreviewProps): JSX.Element {
       setSignalLevels(() => {
         if (!analyser)
           return {
-            leftVolume: -90,
-            rightVolume: -90,
+            leftVolume: 0,
+            rightVolume: 0,
             leftSpectrum: new Uint8Array(0),
             rightSpectrum: new Uint8Array(0),
           };
@@ -1232,8 +1094,8 @@ export default function Preview(params: PreviewProps): JSX.Element {
     } else {
       signalId && clearTimeout(signalId);
       setSignalLevels({
-        leftVolume: -90,
-        rightVolume: -90,
+        leftVolume: 0,
+        rightVolume: 0,
         leftSpectrum: new Uint8Array(0),
         rightSpectrum: new Uint8Array(0),
       });
@@ -1257,8 +1119,8 @@ export default function Preview(params: PreviewProps): JSX.Element {
     offset: number
   ) {
     // adjust the range to add 10% to lo and 10% to high
-    let lo: number = loMidi - 5;
-    let hi: number = hiMidi + 5;
+    let lo: number = loMidi;
+    let hi: number = hiMidi;
     return height - ((midi - lo) * height) / (hi - lo) + offset;
   }
 
@@ -1328,7 +1190,10 @@ export default function Preview(params: PreviewProps): JSX.Element {
     console.log("analyzer connected", fileContents.volume.effect);
   }
   function DrawSpectrum(spectrum: Uint8Array): JSX.Element[] {
+
     if (!spectrum || spectrum.length == 0) return [<></>];
+
+    // set vertical scale as log
     // console.log('drawing spectrum, length', spectrum.length, 'time', audioContext?.currentTime);
     const result: JSX.Element[] = [];
     const minFrequency = frequencyForBinIndex(0);
@@ -1348,4 +1213,171 @@ export default function Preview(params: PreviewProps): JSX.Element {
       return Math.log10(((index + 1) * audioContext.sampleRate) / FFTSIZE / 2);
     }
   }
+  
+  return (
+    <div
+      className="preview"
+      style={{ height: displayHeight, width: displayWidth }}
+    >
+      <div
+        className="header"
+        style={{ width: displayWidth, height: headerHeight }}
+      >
+        <div className="icon">
+          <img
+            src={CMG2}
+            alt="CGM"
+            style={{ width: 40, height: 40, margin: "0", padding: "0" }}
+          />
+        </div>
+        <div className="buttons">
+          {!running ? (
+            <button onClick={() => onExit()} style={{ fontSize: 12 }}>
+              Exit
+            </button>
+          ) : null}
+          <button onClick={() => OnStartStop()} style={{ fontSize: 12 }}>
+            {running ? "Stop" : "Start"}
+          </button>
+          {running ? (
+            <button onClick={() => onPauseResume()} style={{ fontSize: 12 }}>
+              {isPaused ? "Resume" : "Pause"}
+            </button>
+          ) : null}
+        </div>
+        <div className="title" style={{ fontWeight: "bold" }}>
+          {`${appName}: ${appVersion} (${fileName})${
+            fileContents.dirty ? "*" : ""
+          }`}
+        </div>
+        <div className="left">
+          <input
+            type="range"
+            readOnly
+            value={signalLevels.leftVolume * 100}
+            min={0}
+            max={100}
+          ></input>
+        </div>
+        <div className="right">
+          <input
+            type="range"
+            readOnly
+            value={signalLevels.rightVolume * 100}
+            min={0}
+            max={100}
+          ></input>
+        </div>
+      </div>
+      <div
+        className="timeline"
+        style={{ width: displayWidth, height: timelineHeight }}
+      >
+        {previewTimeline.current ? (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width={displayWidth}
+            height={timelineHeight}
+            viewBox={`0 0 ${displayWidth} ${timelineHeight}`}
+          >
+            <rect
+              id="timeline"
+              x={0}
+              y={0}
+              width={displayWidth}
+              height={timelineHeight}
+              fill="white"
+            />
+            <path
+              stroke="black"
+              d={`m 0 ${timelineHeight} H ${displayWidth}`}
+            />
+            {getTickLinesandLabels(previewTimeline.current, ticks)}
+          </svg>
+        ) : null}
+      </div>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="drawing"
+        id="drawing"
+        width={displayWidth}
+        height={previewHeight}
+      />
+      <div
+        className="footer"
+        style={{ width: displayWidth, height: footerHeight }}
+      >
+        <div className="status">
+          <table>
+            <thead>
+              <tr>
+                <th>Counts</th>
+                <th>Generators</th>
+                <th>Sources</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Total</td>
+                <td>{selectedGenerators.length}</td>
+                <td>{sourceData.length}</td>
+              </tr>
+              <tr>
+                <td>Active </td>
+                <td>{activeGeneratorsCount}</td>
+                <td>{activeSourcesCount}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div>Active Generators:</div>
+          <div>{activeGenerators.current.toString()}</div>
+        </div>
+        {signalLevels ? (
+          <>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width={spectrumWidth}
+              height={footerHeight}
+              viewBox={`0 0 ${spectrumWidth} ${footerHeight}`}
+              className="leftspectrum"
+            >
+              <rect
+                id="leftspectrum"
+                x={0}
+                y={0}
+                width={spectrumWidth}
+                height={footerHeight}
+                fill="white"
+                stroke="black"
+              />
+              {DrawSpectrum(signalLevels.leftSpectrum)}
+            </svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width={spectrumWidth}
+              height={footerHeight}
+              viewBox={`0 0 ${spectrumWidth} ${footerHeight}`}
+              className="rightspectrum"
+            >
+              <rect
+                id="rightspectrum"
+                x={0}
+                y={0}
+                width={spectrumWidth}
+                height={footerHeight}
+                fill="white"
+                stroke="black"
+              />
+              {DrawSpectrum(signalLevels.rightSpectrum)}
+            </svg>
+          </>
+        ) : null}
+        <RoomVolumeDialog />
+        <RoomReverbDialog />
+        <RoomCompressorDialog />
+        <RoomEqualizerDialog />
+      </div>
+    </div>
+  );
+
 }

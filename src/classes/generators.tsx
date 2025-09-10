@@ -156,7 +156,6 @@ export class Algorithmic extends Silent {
   noiseSeed: string;
   rn: RandomNumber;
   noiseAmplitude: number; // dB of Gaussian noise to apply
-  noiseDispersion: number; // std of midi of Gaussion noise
   reverb: ConvolverNode | undefined;
   context: AudioContext | OfflineAudioContext | undefined;
   reverbDuration: number;
@@ -184,14 +183,13 @@ export class Algorithmic extends Silent {
     this.noiseSeed = "seed";
     this.rn = new RandomNumber(this.noiseSeed);
     this.noiseAmplitude = 0;
-    this.noiseDispersion = 0;
     this.reverb = undefined;
     this.context = undefined;
     this.reverbDecay = 0;
     this.reverbDuration = 0;
     this.noteP = new ConstantValues();
     this.speedP = new ConstantValues();
-    this.durationP = new ConstantValues();
+    this.durationP = new ConstantValues(100);
     this.volumeP = new ConstantValues();
     this.panP = new ConstantValues();
   }
@@ -259,7 +257,6 @@ export class Algorithmic extends Silent {
     n.noiseSeed = this.noiseSeed;
     n.rn = this.rn;
     n.noiseAmplitude = this.noiseAmplitude;
-    n.noiseDispersion = this.noiseDispersion;
     n.reverb = this.reverb;
     n.context = this.context;
     n.reverbDuration = this.reverbDuration;
@@ -312,9 +309,6 @@ export class Algorithmic extends Silent {
       case "noiseAmplitude":
         this.noiseAmplitude = parseFloat(value);
         return;
-      case "noiseDispersion":
-        this.noiseDispersion = parseFloat(value);
-        return;
       case "reverbDuration":
         this.reverbDuration = parseFloat(value);
         return;
@@ -362,7 +356,7 @@ export class Algorithmic extends Silent {
       case "durationP.algorithmType":
         switch (value) {
           case "Constant":
-            this.durationP = new ConstantValues();
+            this.durationP = new ConstantValues(100);
             return;
           case "Autoregressive":
             this.durationP = new AutoregressiveValues();
@@ -479,7 +473,7 @@ export class Algorithmic extends Silent {
     let volume: number = this.volumeP
       ? this.volumeP.getCurrentValue(time)
       : 0;
-    volume = Math.min(-10, Math.max(10, volume));
+    volume = Math.min(10, Math.max(-10, volume));
     let pan: number = this.panP
       ? this.panP.getCurrentValue(time)
       : 0;
@@ -545,10 +539,6 @@ export class Algorithmic extends Silent {
       returnElem.setAttribute("noiseSeed", this.noiseSeed);
       returnElem.setAttribute("noteCount", this.noteCount.toString());
       returnElem.setAttribute("noiseAmplitude", this.noiseAmplitude.toString());
-      returnElem.setAttribute(
-        "noiseDispersion",
-        this.noiseDispersion.toString()
-      );
       returnElem.setAttribute("reverbDuration", this.reverbDuration.toString());
       returnElem.setAttribute("reverbDecay", this.reverbDecay.toString());
 
@@ -627,11 +617,6 @@ export class Algorithmic extends Silent {
       g.noiseAmplitude = getAttributeValue(
         elem,
         "noiseAmplitude",
-        "float"
-      ) as number;
-      g.noiseDispersion = getAttributeValue(
-        elem,
-        "noiseDispersion",
         "float"
       ) as number;
       try {
@@ -722,11 +707,7 @@ export class Algorithmic extends Silent {
           break;
       }
       if (!durationPElem) {
-        g.durationP = new ConstantValues({
-          seed: "",
-          rn: new RandomNumber(""),
-          value: 100,
-        });
+        g.durationP = new ConstantValues(100);
       } else {
         switch (durationPType) {
           case ALGORITHMTYPE.Constant:

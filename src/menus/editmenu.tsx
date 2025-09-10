@@ -28,8 +28,6 @@ export default function EditMenu() {
   const [preferencesModal, setPreferencesModal] = useState<boolean>(false);
   const [errorMsgs, setErrorMsgs] = useState<string[]>([]);
 
-  // when a new SF dirctory is set, make sue that all soundfont files
-  // used by current generators are present in the new directory
   useEffect(() => {
     // check if any generators are using a soundfont file that does not
     // exist in the new directory
