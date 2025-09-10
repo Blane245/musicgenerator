@@ -43,8 +43,6 @@ import {
   GENERATIONMODE,
   GeneratorType,
   GENERATORTYPE,
-  MAXDECIBELS,
-  MINDECIBELS,
   RawSourceData,
   SignalLevelsType,
   TimeLineScales,
