@@ -1,6 +1,5 @@
 import Track from "classes/track";
 import {
-  AlgorithmValues,
   AutoregressiveValues,
   ConstantValues,
   MarkovianValues,
@@ -83,13 +82,13 @@ export type ConstantType = {
   value: number; // the constant value
 };
 export type AutoregressiveType = {
-  initialValue: number; // units depend on parameter (note, speed, volume, pan)
+  initialValue: number; // units depend on parameter (note, attack, speed, duration, volume, pan)
   seed: string;
   rn: RandomNumber;
   alpha: number;
-  sigma: number; // units depend on parameter (note, speed, volume, pan)
-  lo: number; // units depend on parameter (note, speed, volume, pan)
-  hi: number; // units depend on parameter (note, speed, volume, pan)
+  sigma: number; // units depend on parameter (note, attack, speed, duration, vvolume, pan)
+  lo: number; // units depend on parameter (note, attack, speed, duration, vvolume, pan)
+  hi: number; // units depend on parameter (note, attack, speed, duration, vvolume, pan)
   currentValue: number;
 };
 export type OscillatorType = {
@@ -358,6 +357,7 @@ export type RawSourceData = {
     volumeValue: number;
     volumeGain: number;
     sustainGain: number;
+    initialAttenuation: number;
     attenuation: number;
     envelope:{t:number, g:number}[]
   }

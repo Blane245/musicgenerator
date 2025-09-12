@@ -19,7 +19,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
   const [presetName, setPresetName] = useState<string>(generator.presetName);
   const [preset, setPreset] = useState<Preset | undefined>(generator.preset);
   const [presetMidi, setPresetMidi] = useState<number>(60);
-  const [presetVel, setPresetVel] = useState<number>(63);
+  const [presetAttack, setPresetAttack] = useState<number>(63);
   const [presetInterval, setPresetInterval] = useState<number>(1);
   const [presetDuration, setPresetDuration] = useState<number>(100);
   const [presetVolume, setPresetVolume] = useState<number>(0);
@@ -46,10 +46,13 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
 
     setPresetVolume(volume);
 
-    const velocity: number = generator.velocity;
-    setPresetVel(velocity);
-    if (preset != undefined)
-      getPresetData(preset, interval, duration, midi, velocity, volume);
+    let attack: number = 63;
+    if (generator.attackP) attack = generator.attackP.getCurrentValue(0);
+
+    setPresetAttack(attack);
+
+    if (preset)
+      getPresetData(preset, interval, duration, midi, attack, volume);
   }, []);
 
   // given a preset, midi, and velocity, get the envelope data
@@ -93,7 +96,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
           presetInterval,
           presetDuration,
           presetMidi,
-          presetVel,
+          presetAttack,
           presetVolume
         );
       }
@@ -109,21 +112,21 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
         presetInterval,
         presetDuration,
         midi,
-        presetVel,
+        presetAttack,
         presetVolume
       );
   }
 
-  function handlePresetVel(e: ChangeEvent) {
-    const vel = e.target["value"];
-    setPresetVel(vel);
+  function handlepresetAttack(e: ChangeEvent) {
+    const attack = e.target["value"];
+    setPresetAttack(attack);
     if (preset)
       getPresetData(
         preset,
         presetInterval,
         presetDuration,
         presetMidi,
-        vel,
+        attack,
         presetVolume
       );
   }
@@ -137,7 +140,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
         presetInterval,
         duration,
         presetMidi,
-        presetVel,
+        presetAttack,
         presetVolume
       );
   }
@@ -151,7 +154,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
         interval,
         presetDuration,
         presetMidi,
-        presetVel,
+        presetAttack,
         presetVolume
       );
   }
@@ -165,7 +168,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
         presetInterval,
         presetDuration,
         presetMidi,
-        presetVel,
+        presetAttack,
         volume
       );
   }
@@ -178,7 +181,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
     return sample.length == 0 ? 0 : level / sample.length;
   }
 
-  const DISPLAYWIDTH: number = 750;
+  const DISPLAYWIDTH: number = 1500;
   const ENVHEIGHT: number = 50;
 
   function drawEnvelopes(pI: RawSourceData[]): JSX.Element[] {
@@ -186,12 +189,13 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
 
     // get the longest total time of all of the instruments for scaling
     let maxTime: number = 0;
+    const xWidth: number = DISPLAYWIDTH - 100;
     pI.forEach((p) => {
       if (p.instrument) maxTime = Math.max(p.instrument.totalTime, maxTime);
     });
     if (maxTime == 0 || pI.length == 0)
       return [<div>No Signal Envelopes to Display</div>];
-    const xScale: number = DISPLAYWIDTH / maxTime;
+    const xScale: number = xWidth / maxTime;
     const yScale: number = ENVHEIGHT / 1;
     const lineTo = (x: number, y: number): string => {
       return `L${x * xScale} ${yScale * (1 - y)} `;
@@ -209,7 +213,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
           <svg
             xmlns="http://www.w3.org/2000/svg"
             height={ENVHEIGHT.toString()}
-            width={DISPLAYWIDTH.toString()}
+            width={xWidth.toString()}
             fill="black"
           >
             <path d={path} fill="black" />
@@ -246,7 +250,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
           display: "block",
           top: 0,
           left: 0,
-          width: DISPLAYWIDTH.toString(),
+          width: DISPLAYWIDTH.toString()+'px',
         }}
       >
         <div className="modal-header">
@@ -285,14 +289,14 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
             <span>&nbsp;(0 - 127)</span>
           </label>
           <label>
-            &nbsp;Velocity:&nbsp;
+            &nbsp;Attack:&nbsp;
             <input
               type="number"
               min={0}
               max={127}
               step={1}
-              onChange={(e) => handlePresetVel(e)}
-              value={presetVel}
+              onChange={(e) => handlepresetAttack(e)}
+              value={presetAttack}
             ></input>
             <span>&nbsp;(0 - 127)</span>
           </label>
@@ -541,7 +545,14 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
                 )}
                 </tr>
                 <tr>
-                  <td>attenuation</td>
+                  <td>attenuationdB</td>
+                  {presetInfo.map((s: RawSourceData) =>(
+                    numberCell(s.instrument, 'initialAttenuation', 3)
+                    )
+                  )}
+                </tr>
+                <tr>
+                  <td>attenuationGain</td>
                   {presetInfo.map((s: RawSourceData) =>(
                     numberCell(s.instrument, 'attenuation', 3)
                     )

@@ -33,7 +33,7 @@ export function getBufferSourceNodesFromAlgorithmic(
 
   // set the start values for each attributes
   gen.initialSequence();
-  let { beat, note, speed, duration: noteDuration, velocity, volume, pan } = gen.getCurrentValues(time - startTime);
+  let { beat, note, speed, duration: noteDuration, attack, volume, pan } = gen.getCurrentValues(time - startTime);
 
   // get the noise parameters
   const noiseAmplitude: number = gen.noiseAmplitude;
@@ -52,7 +52,7 @@ export function getBufferSourceNodesFromAlgorithmic(
         interval,
         duration,
         note,
-        velocity,
+        attack,
         volume,
         pan,
         time,
@@ -62,7 +62,7 @@ export function getBufferSourceNodesFromAlgorithmic(
       nextSource+=connections.length;
     }
     time += interval;
-    ({ beat, note, speed, duration:noteDuration, velocity, volume, pan } = gen.getCurrentValues(time - startTime));
+    ({ beat, note, speed, duration:noteDuration, attack, volume, pan } = gen.getCurrentValues(time - startTime));
   }
 
   return sourceData;

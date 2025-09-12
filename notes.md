@@ -9,10 +9,11 @@ like ctrl+n and ctrl+o do in the file menu
 # Enhancements
 
 - (don't think this is necessary as envelope processing has improved) disable delay of a preset. For presets that have multiple instruments, the shortest delay is removed and the other instrument delays are shortened.
-- implement a note velocity modulator. Should add some expression to notes
 - implement granular synthesis to achieve vibrato, tremelo, glissandi, and other effects
 - consider using slow time line scrolling during preview
 - pipe dream - add a video producer that takes hints from the composer and does drawings based on the sounds and those hints. See the ChatGPT chat on scribble for some guidance on structural hints from the composer. 
+- implement soundfont modulators - this is very complicated and adds alot of controls to each instrument. It would give me better control over attenuation, which is currently problematic. 
+- give user control of spectrum parameters and implement sonograph
 
 # A local file server
 A local directory/file server running on port 6001 has been written with the follow endpoints:
@@ -107,6 +108,7 @@ changes to make.
     - eliminate columns delay - volume
 
 # 4.1.0 Updates
+- implement a note velocity modulator. Should add some expression to notes
 - enable/disable reverb, compressor, equalizer
 - implement a way to end note tone earlier than its duration (stoptime-starttime) to achieve staccato effect. 
 - fixed error in random number generator

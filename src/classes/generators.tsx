@@ -147,7 +147,6 @@ export class Algorithmic extends Silent {
   presets: Preset[]; // the soundfont preset list (not needed for AudioFile or Noise)
   presetName: string; // the soundfont preset name (not needed for AudioFile or Noise)
   preset: Preset | undefined; // the soundfont preset object (derived from the presetName and the soundFont file)
-  velocity: number;
   isLooping: boolean; // should the sample loop?
   measureLength: number; // the number of beats in a measure
   beatCount: number; // the number of strokes in a measure
@@ -161,6 +160,7 @@ export class Algorithmic extends Silent {
   reverbDuration: number;
   reverbDecay: number;
   noteP: Algorithm;
+  attackP: Algorithm;
   speedP: Algorithm;
   durationP: Algorithm;
   volumeP: Algorithm;
@@ -174,7 +174,6 @@ export class Algorithmic extends Silent {
     this.presetName = "";
     this.preset = undefined;
     this.presets = [];
-    this.velocity = 63;
     this.isLooping = true;
     this.measureLength = 4;
     this.beatCount = 4;
@@ -188,6 +187,7 @@ export class Algorithmic extends Silent {
     this.reverbDecay = 0;
     this.reverbDuration = 0;
     this.noteP = new ConstantValues();
+    this.attackP = new ConstantValues(63);
     this.speedP = new ConstantValues();
     this.durationP = new ConstantValues(100);
     this.volumeP = new ConstantValues();
@@ -248,7 +248,6 @@ export class Algorithmic extends Silent {
     n.presetName = this.presetName;
     n.preset = this.preset;
     n.presets = this.presets;
-    n.velocity = this.velocity;
     n.isLooping = this.isLooping;
     n.measureLength = this.measureLength;
     n.beatCount = this.beatCount;
@@ -262,6 +261,7 @@ export class Algorithmic extends Silent {
     n.reverbDuration = this.reverbDuration;
     n.reverbDecay = this.reverbDecay;
     n.noteP = this.noteP ? this.noteP.copy() : undefined;
+    n.attackP = this.attackP ? this.attackP.copy() : undefined;
     n.speedP = this.speedP ? this.speedP.copy() : undefined;
     n.durationP = this.durationP ? this.durationP.copy() : undefined;
     n.volumeP = this.volumeP ? this.volumeP.copy() : undefined;
@@ -285,9 +285,6 @@ export class Algorithmic extends Silent {
         this.presetName = value;
         const { preset } = presetNameToPreset(this.presetName, this.presets);
         this.preset = preset;
-        return;
-      case "velocity":
-        this.velocity = parseInt(value);
         return;
       case "isLooping":
         this.isLooping = value == "true";
@@ -331,6 +328,25 @@ export class Algorithmic extends Silent {
             return;
           case "Wiener":
             this.noteP = new WienerValues();
+            return;
+        }
+        break;
+      case "attackP.algorithmType":
+        switch (value) {
+          case "Constant":
+            this.attackP = new ConstantValues();
+            return;
+          case "Autoregressive":
+            this.attackP = new AutoregressiveValues();
+            return;
+          case "Oscillator":
+            this.attackP = new OscillatorValues();
+            return;
+          case "Markovian":
+            this.attackP = new MarkovianValues();
+            return;
+          case "Wiener":
+            this.attackP = new WienerValues();
             return;
         }
         break;
@@ -420,6 +436,9 @@ export class Algorithmic extends Silent {
       case "noteP":
         if (this.noteP) this.noteP.setAttribute(valueName, value);
         break;
+      case "attackP":
+        if (this.attackP) this.attackP.setAttribute(valueName, value);
+        break;
       case "speedP":
         if (this.speedP) this.speedP.setAttribute(valueName, value);
         break;
@@ -445,7 +464,7 @@ export class Algorithmic extends Silent {
 
   getCurrentValues(time: number): {
     beat: boolean;
-    velocity: number;
+    attack: number;
     note: number;
     speed: number;
     duration: number;
@@ -455,33 +474,33 @@ export class Algorithmic extends Silent {
     const entry: number = this.#currentRhythmEntry;
     this.#currentRhythmEntry =
       (this.#currentRhythmEntry + 1) % this.measureLength;
-    const beat = this.#beatSequence[entry] != 0;
-    const velocity = this.velocity;
-    let note: number = this.noteP
-      ? this.noteP.getCurrentValue(time)
-      : 0;
+    const beat: boolean = this.#beatSequence[entry] != 0;
+
+    let note: number = this.noteP ? this.noteP.getCurrentValue(time) : 0;
     note = Math.min(127, Math.max(0, note));
 
-    let speed: number = this.speedP
-      ? this.speedP.getCurrentValue(time)
+    let attack: number = this.attackP
+      ? this.attackP.getCurrentValue(time)
       : 0;
+    attack = Math.min(127, Math.max(0, attack));
+
+    let speed: number = this.speedP ? this.speedP.getCurrentValue(time) : 0;
     speed = Math.min(10000, Math.max(0.001, speed));
+
     let duration: number = this.durationP
       ? this.durationP.getCurrentValue(time)
       : 0;
     duration = Math.min(100, Math.max(0, duration));
-    let volume: number = this.volumeP
-      ? this.volumeP.getCurrentValue(time)
-      : 0;
+
+    let volume: number = this.volumeP ? this.volumeP.getCurrentValue(time) : 0;
     volume = Math.min(10, Math.max(-10, volume));
-    let pan: number = this.panP
-      ? this.panP.getCurrentValue(time)
-      : 0;
+
+    let pan: number = this.panP ? this.panP.getCurrentValue(time) : 0;
     pan = Math.min(1, Math.max(-1, pan));
 
     // modify the note based on those selectable in the octave
     note = this.#getSelectedNote(note);
-    return { beat, note, velocity, speed, duration, volume, pan };
+    return { beat, note, attack, speed, duration, volume, pan };
   }
 
   #getSelectedNote(note: number): number {
@@ -531,7 +550,6 @@ export class Algorithmic extends Silent {
           nameParts[nameParts.length - 1]
         );
       returnElem.setAttribute("presetName", this.presetName);
-      returnElem.setAttribute("velocity", this.velocity.toString());
       returnElem.setAttribute("isLooping", this.isLooping ? "true" : "false");
       returnElem.setAttribute("measureLength", this.measureLength.toString());
       returnElem.setAttribute("beatCount", this.beatCount.toString());
@@ -543,16 +561,19 @@ export class Algorithmic extends Silent {
       returnElem.setAttribute("reverbDecay", this.reverbDecay.toString());
 
       const notePElem: Element = doc.createElement("noteP");
+      const attackPElem: Element = doc.createElement("attackP");
       const speedPElem: Element = doc.createElement("speedP");
       const durationPElem: Element = doc.createElement("durationP");
       const volumePElem: Element = doc.createElement("volumeP");
       const panPElem: Element = doc.createElement("panP");
       returnElem.appendChild(notePElem);
+      returnElem.appendChild(attackPElem);
       returnElem.appendChild(speedPElem);
       returnElem.appendChild(durationPElem);
       returnElem.appendChild(volumePElem);
       returnElem.appendChild(panPElem);
       this.noteP?.appendXML(doc, notePElem);
+      this.attackP?.appendXML(doc, attackPElem);
       this.speedP?.appendXML(doc, speedPElem);
       this.durationP?.appendXML(doc, durationPElem);
       this.volumeP?.appendXML(doc, volumePElem);
@@ -596,11 +617,6 @@ export class Algorithmic extends Silent {
       } else {
         foundSoundFont.generators.push(g);
       }
-      try {
-        g.velocity = getAttributeValue(elem, "velocity", "int") as number;
-      } catch {
-        g.velocity = 63;
-      }
       g.isLooping =
         (getAttributeValue(elem, "isLooping", "string") as string) == "true";
       g.measureLength = getAttributeValue(
@@ -636,39 +652,8 @@ export class Algorithmic extends Silent {
       }
 
       const notePElem: Element = getElementElement(elem, "noteP");
-      const speedPElem: Element = getElementElement(elem, "speedP");
-      let durationPElem: Element | null = null;
-      try {
-        durationPElem = getElementElement(elem, "durationP");
-      } catch {
-        durationPElem = null;
-      }
-      const volumePElem: Element = getElementElement(elem, "volumeP");
-      const panPElem: Element = getElementElement(elem, "panP");
       const notePType: ALGORITHMTYPE = getAttributeValue(
         notePElem,
-        "algorithmType",
-        "string"
-      ) as ALGORITHMTYPE;
-      const speedPType: ALGORITHMTYPE = getAttributeValue(
-        speedPElem,
-        "algorithmType",
-        "string"
-      ) as ALGORITHMTYPE;
-      let durationPType: ALGORITHMTYPE = ALGORITHMTYPE.Constant;
-      if (durationPElem)
-        durationPType = getAttributeValue(
-          durationPElem,
-          "algorithmType",
-          "string"
-        ) as ALGORITHMTYPE;
-      const volumePType: ALGORITHMTYPE = getAttributeValue(
-        volumePElem,
-        "algorithmType",
-        "string"
-      ) as ALGORITHMTYPE;
-      const panPType: ALGORITHMTYPE = getAttributeValue(
-        panPElem,
         "algorithmType",
         "string"
       ) as ALGORITHMTYPE;
@@ -689,6 +674,52 @@ export class Algorithmic extends Silent {
           g.noteP = await WienerValues.getXML(notePElem, version);
           break;
       }
+
+      let attackPElem: Element | null = null;
+      try {
+        attackPElem = getElementElement(elem, "attackP");
+      } catch {
+        attackPElem = null;
+      }
+      let attackPType: ALGORITHMTYPE = ALGORITHMTYPE.Constant;
+      if (attackPElem)
+           attackPType = getAttributeValue(
+          attackPElem,
+          "algorithmType",
+          "string"
+        ) as ALGORITHMTYPE;
+
+      if (!attackPElem) {
+        g.durationP = new ConstantValues(63);
+      } else {
+        switch (attackPType) {
+          case ALGORITHMTYPE.Constant:
+            g.attackP = await ConstantValues.getXML(attackPElem, version);
+            break;
+          case ALGORITHMTYPE.Autoregressive:
+            g.attackP = await AutoregressiveValues.getXML(
+              attackPElem,
+              version
+            );
+            break;
+          case ALGORITHMTYPE.Oscillator:
+            g.attackP = await OscillatorValues.getXML(attackPElem, version);
+            break;
+          case ALGORITHMTYPE.Markovian:
+            g.attackP = await MarkovianValues.getXML(attackPElem, version);
+            break;
+          case ALGORITHMTYPE.Wiener:
+            g.attackP = await WienerValues.getXML(attackPElem, version);
+            break;
+        }
+      }
+      
+      const speedPElem: Element = getElementElement(elem, "speedP");
+      const speedPType: ALGORITHMTYPE = getAttributeValue(
+        speedPElem,
+        "algorithmType",
+        "string"
+      ) as ALGORITHMTYPE;
       switch (speedPType) {
         case ALGORITHMTYPE.Constant:
           g.speedP = await ConstantValues.getXML(speedPElem, version);
@@ -706,6 +737,20 @@ export class Algorithmic extends Silent {
           g.speedP = await WienerValues.getXML(speedPElem, version);
           break;
       }
+
+      let durationPElem: Element | null = null;
+      try {
+        durationPElem = getElementElement(elem, "durationP");
+      } catch {
+        durationPElem = null;
+      }
+      let durationPType: ALGORITHMTYPE = ALGORITHMTYPE.Constant;
+      if (durationPElem)
+        durationPType = getAttributeValue(
+          durationPElem,
+          "algorithmType",
+          "string"
+        ) as ALGORITHMTYPE;
       if (!durationPElem) {
         g.durationP = new ConstantValues(100);
       } else {
@@ -715,31 +760,29 @@ export class Algorithmic extends Silent {
             break;
           case ALGORITHMTYPE.Autoregressive:
             g.durationP = await AutoregressiveValues.getXML(
-              durationPElem as Element,
+              durationPElem,
               version
             );
             break;
           case ALGORITHMTYPE.Oscillator:
-            g.durationP = await OscillatorValues.getXML(
-              durationPElem as Element,
-              version
-            );
+            g.durationP = await OscillatorValues.getXML(durationPElem, version);
             break;
           case ALGORITHMTYPE.Markovian:
-            g.durationP = await MarkovianValues.getXML(
-              durationPElem as Element,
-              version
-            );
+            g.durationP = await MarkovianValues.getXML(durationPElem, version);
             break;
           case ALGORITHMTYPE.Wiener:
-            g.durationP = await WienerValues.getXML(
-              durationPElem as Element,
-              version
-            );
+            g.durationP = await WienerValues.getXML(durationPElem, version);
             break;
         }
       }
-      switch (volumePType) {
+
+      const volumePElem: Element = getElementElement(elem, "volumeP");
+      const volumePType: ALGORITHMTYPE = getAttributeValue(
+        volumePElem,
+        "algorithmType",
+        "string"
+      ) as ALGORITHMTYPE;
+            switch (volumePType) {
         case ALGORITHMTYPE.Constant:
           g.volumeP = await ConstantValues.getXML(volumePElem, version);
           break;
@@ -756,6 +799,13 @@ export class Algorithmic extends Silent {
           g.volumeP = await WienerValues.getXML(volumePElem, version);
           break;
       }
+
+      const panPElem: Element = getElementElement(elem, "panP");
+      const panPType: ALGORITHMTYPE = getAttributeValue(
+        panPElem,
+        "algorithmType",
+        "string"
+      ) as ALGORITHMTYPE;
       switch (panPType) {
         case ALGORITHMTYPE.Constant:
           g.panP = await ConstantValues.getXML(panPElem, version);
@@ -818,6 +868,36 @@ export class Algorithmic extends Silent {
           break;
         case ALGORITHMTYPE.Wiener:
           result.push(...WienerValues.validate(values.noteP as WienerValues));
+          break;
+      }
+    }
+    if (values.attackP) {
+      const attackPType: ALGORITHMTYPE = values.attackP.algorithmType;
+      switch (attackPType) {
+        case ALGORITHMTYPE.Constant:
+          result.push(
+            ...ConstantValues.validate(values.attackP as ConstantValues)
+          );
+          break;
+        case ALGORITHMTYPE.Autoregressive:
+          result.push(
+            ...AutoregressiveValues.validate(
+              values.attackP as AutoregressiveValues
+            )
+          );
+          break;
+        case ALGORITHMTYPE.Oscillator:
+          result.push(
+            ...OscillatorValues.validate(values.attackP as OscillatorValues)
+          );
+          break;
+        case ALGORITHMTYPE.Markovian:
+          result.push(
+            ...MarkovianValues.validate(values.attackP as MarkovianValues)
+          );
+          break;
+        case ALGORITHMTYPE.Wiener:
+          result.push(...WienerValues.validate(values.attackP as WienerValues));
           break;
       }
     }

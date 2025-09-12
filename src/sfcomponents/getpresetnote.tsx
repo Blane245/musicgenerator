@@ -51,14 +51,14 @@ export const getPresetNote = (
   interval: number, // the note's time interval
   duration: number, // the note's duration with that interval
   pitchValue: number,
-  velocity: number,
+  attack: number,
   volumeValue: number,
   panValue: number,
   time: number,
   nextSource: number
 ): RawSourceData[] => {
   let sourceCount: number = nextSource;
-  const zones = getActiveZones(preset, Math.round(pitchValue), velocity);
+  const zones = getActiveZones(preset, Math.round(pitchValue), attack);
   const result: RawSourceData[] = zones.map((zone) => {
     // get the sample
     const { sample: instrumentSample, header } = samplePool(zone.sample);
@@ -144,7 +144,8 @@ export const getPresetNote = (
     const totalTime: number = releaseEnd;
 
     const volumeGain: number = dBToGain(volumeValue);
-    // const attenuation: number = attenuate(1.0, initialAttenuation / 10);
+    let attenuationdB: number = initialAttenuation / 10;
+    // const attenuation: number = attenuate(1.0, attenuationdB);
     const attenuation: number = 1;
     const sustainGain: number = attenuate(volumeGain, sustainVolEnv / 10);
 
@@ -258,6 +259,7 @@ export const getPresetNote = (
         volumeGain,
         noteEndGain,
         sustainGain,
+        initialAttenuation: attenuationdB,
         attenuation,
         envelope,
       },

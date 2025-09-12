@@ -71,18 +71,6 @@ export default function AlgorithmicDialog(
         </select>
       </label>
       <label>
-        &nbsp;Velocity:&nbsp;
-        <input
-          name="velocity"
-          type="number"
-          min={0}
-          max={127}
-          step={1}
-          onChange={handleChange}
-          value={formData.velocity}
-        />
-      </label>
-      <label>
         &nbsp;Looping?:&nbsp;
         <input
           name="isLooping"
@@ -311,6 +299,127 @@ export default function AlgorithmicDialog(
               max={127}
               step={0.001}
               valueSuffix={(value: number) => toNote(value)}
+            />
+          ) : null}
+        </div>
+      </div>
+      <hr />
+      <div className="algorithmic-table">
+        <div className="attribute">Attack</div>
+        <div className="gentype">
+          <label>
+            Algorithm:&nbsp;
+            <select
+              name="attackP.algorithmType"
+              onChange={handleChange}
+              value={
+                formData.attackP
+                  ? formData.attackP.algorithmType
+                  : ALGORITHMTYPE.None
+              }
+            >
+              {Object.values(ALGORITHMTYPE).map((p) => {
+                return (
+                  <option key={`attackPmodulator-${p}`} value={p}>
+                    {p}
+                  </option>
+                );
+              })}
+            </select>
+          </label>
+        </div>
+        <div className="parameters">
+          {/* build constant, autoregressive, oscillator, markovian, wiener, or euclidean box */}
+          {formData.attackP &&
+          formData.attackP.algorithmType == ALGORITHMTYPE.Oscillator ? (
+            <OscillatorPropertiesBox
+              name="attackP.oscillator.values"
+              type={(formData.attackP as OscillatorValues).values.type}
+              center={{
+                value: (formData.attackP as OscillatorValues).values.center,
+                lo: 0,
+                hi: 127,
+                step: 1,
+                suffix: "(0-127)",
+              }}
+              centerSuffix={(value: number) => {
+                if (value < 0) return "";
+                else return "(0-127)";
+              }}
+              frequency={{
+                value: (formData.attackP as OscillatorValues).values.frequency,
+                lo: 0,
+                hi: 1000000,
+                step: 0.001,
+                suffix: "(mHz)",
+              }}
+              amplitude={{
+                value: (formData.attackP as OscillatorValues).values.amplitude,
+                lo: 0,
+                hi: 127,
+                step: 0.001,
+                suffix: "(0-127)",
+              }}
+              phase={{
+                value: (formData.attackP as OscillatorValues).values.phase,
+                lo: -360,
+                hi: 360,
+                step: 1,
+                suffix: "(degrees)",
+              }}
+              handleChange={handleChange}
+            />
+          ) : null}
+          {formData.attackP &&
+          formData.attackP.algorithmType == ALGORITHMTYPE.Markovian ? (
+            <MarkovianPropertiesBox
+              name="attackP.markovian.values"
+              values={(formData.attackP as MarkovianValues).values}
+              valueSuffix={(value: number) => {
+                if (value < 0) return "";
+                else return " ".concat(toNote(value));
+              }}
+              stepSuffix={() => "(0-127)"}
+              min={0}
+              max={127}
+              step={1}
+              handleChange={handleChange}
+            />
+          ) : null}
+          {formData.attackP &&
+          formData.attackP.algorithmType == ALGORITHMTYPE.Wiener ? (
+            <WienerPropertiesBox
+              name="attackP.wiener.values"
+              values={(formData.attackP as WienerValues).values}
+              handleChange={handleChange}
+              min={0}
+              max={127}
+              step={1}
+              valueSuffix={()=>"(0-127)"}
+            />
+          ) : null}
+          {formData.attackP &&
+          formData.attackP.algorithmType == ALGORITHMTYPE.Constant ? (
+            <ConstantPropertiesBox
+              name="attackP.constant.values"
+              values={(formData.attackP as ConstantValues).values}
+              handleChange={handleChange}
+              min={0}
+              max={127}
+              step={1}
+              valueSuffix={() => "(0-127)"}
+            />
+          ) : null}
+          {formData.attackP &&
+          formData.attackP.algorithmType == ALGORITHMTYPE.Autoregressive ? (
+            <AutoregressivePropertiesBox
+              name="attackP.autogregressive.values"
+              values={(formData.attackP as AutoregressiveValues).values}
+              handleChange={handleChange}
+              min={0}
+              max={127}
+              step={1}
+              valueSuffix={() => "(0-127)"}
             />
           ) : null}
         </div>
