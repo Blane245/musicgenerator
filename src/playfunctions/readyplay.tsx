@@ -1,11 +1,11 @@
 // determine what is to be scheduled for generator based on
 // proper definition and selection filters
 import CMGFile from "../classes/cmgfile";
-import { Algorithmic, Silent, AudioFile } from "../classes/generators";
+import { Algorithmic, AudioFile, Silent } from "../classes/generators";
 import {
   GeneratorType,
-  GENERATIONMODE,
   GENERATORTYPE,
+  PLAYMODE,
   TimelineInterval,
 } from "../types";
 
@@ -20,31 +20,14 @@ function isSelected(
   } else return false;
 }
 
-// find the selected generator that has the earliest start time
-// used to shift all generators to the left in time
-function findEarliestSelected(
-  fileContents: CMGFile,
-  startTime: number,
-  endTime: number
-): number {
-  let earliest: number = Number.MAX_VALUE;
-  fileContents.tracks.forEach((t) => {
-    t.generators.forEach((g) => {
-      if (isSelected(g, startTime, endTime))
-        earliest = Math.min(earliest, g.startTime);
-    });
-  });
-  return earliest;
-}
-
-export interface ReadyGenerateProps {
-  mode: GENERATIONMODE;
+export interface ReadyPlayProps {
+  mode: PLAYMODE;
   generator: GeneratorType | null;
   fileContents: CMGFile;
   timeInterval: TimelineInterval;
 }
 // build the list of generators to the used
-export default function ReadyGenerate(props: ReadyGenerateProps): {
+export default function ReadyPlay(props: ReadyPlayProps): {
   AlgorithmicGenerators: Algorithmic[];
   AudioFileGenerators: AudioFile[];
   SilentGenerators: Silent[];
@@ -57,7 +40,7 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
   let error: string = "";
   
   // get the active generators for the entire rendering
-  if (mode == GENERATIONMODE.preview || mode == GENERATIONMODE.record) {
+  if (mode == PLAYMODE.preview || mode == PLAYMODE.record) {
     // the timeline interval overrides other filters
     if (
       timeInterval.startTime != undefined &&
@@ -151,7 +134,7 @@ export default function ReadyGenerate(props: ReadyGenerateProps): {
       // }
     }
     // get the generator being soloed and shift its start time to zero
-  } else if (mode == GENERATIONMODE.solo && generator) {
+  } else if (mode == PLAYMODE.solo && generator) {
     if (!generator.mute) {
       if (generator.type == GENERATORTYPE.Algorithmic) {
         AlgorithmicGenerators.push(generator as Algorithmic);

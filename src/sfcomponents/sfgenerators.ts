@@ -1,5 +1,5 @@
 import { DEFAULT_GENERATOR_VALUES } from "../soundfont2";
-import { Instrument, InstrumentZone, Preset, PresetZone } from "./types.d";
+import { Instrument, InstrumentZone, Preset, PresetZone } from "./types";
 
 // http://www.synthfont.com/SFSPEC21.PDF page 38
 export const generators = {

@@ -1,6 +1,7 @@
 // The file menu handles creating new files, opening existing ones,
 // saving current ones, and adding tracks to current ones
 import CMGFile from "classes/cmgfile";
+import TimeLine from "classes/timeline";
 import { useCMGContext } from "cmgcontext";
 import FileDialog from "dialogs/filedialog";
 import { useEffect, useState } from "react";
@@ -8,7 +9,6 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { RECENTCMGDIRECTORY, RECENTFILES } from "types";
 import { newFile, setDirty } from "utils/cmfiletransactions";
 import { readCMGFile, writeCMGFile } from "./filehandlers";
-import TimeLine from "classes/timeline";
 
 export default function FileMenu() {
   const {
@@ -133,7 +133,7 @@ export default function FileMenu() {
           prev.name = nameParts[nameParts.length - 1];
           return prev;
         });
-        addRecent(fileName);
+        addRecent(name);
         window.localStorage.setItem(RECENTCMGDIRECTORY, recentCMGDirectory);
         setTimeInterval({ startOffset: 0, endOffset: 0 });
       }

@@ -194,21 +194,21 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
     const uri: string = `/directory/list?name=${directory}`;
     const response: ServerResponse = await fetchData(uri, "GET");
     if (!response)
-      return { error: true, status: "Local server not responding", list: [] };
+      return Promise.resolve({ error: true, status: "Local server not responding", list: [] });
     if (response.error)
-      return {
+      return Promise.resolve( {
         error: true,
         status: response.status
           ? response.status
           : "Local server has unknown error.",
         list: [],
-      };
+      });
     if (!response.list)
-      return {
+      return  Promise.resolve( {
         error: true,
         status: `No directory list was returned from the local server`,
         list: [],
-      };
+      });
 
     // trim the directory list down to only directories and files that are match types
     // first sort the entire list
@@ -265,11 +265,11 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
       };
     });
     setDirectoryList(list);
-    return {
+    return  Promise.resolve(  {
       error: false,
       status: "",
       list: response.list,
-    };
+    });
   }
 
   // load the directory list whenever the current directory changes

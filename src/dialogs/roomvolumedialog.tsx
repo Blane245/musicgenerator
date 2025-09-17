@@ -5,7 +5,7 @@ import { setVolume } from "utils/cmfiletransactions";
 
 export default function RoomVolumeDialog() {
   const { fileContents, setFileContents } = useCMGContext();
-  const [volumeData, setVolumeData] = useState<Volume>(new Volume("volume"));
+  const [volumeData, setVolumeData] = useState<Volume>(new Volume());
 
   useEffect(() => {
     setVolumeData(fileContents.volume);

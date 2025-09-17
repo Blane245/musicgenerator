@@ -1,6 +1,6 @@
 import { Algorithmic } from "classes/generators";
 import { ChangeEvent, useEffect, useState } from "react";
-import { getPresetNote } from "sfcomponents/getpresetnote";
+import { getPresetNote } from "playfunctions/getpresetnote";
 import { Preset } from "sfcomponents/types";
 import {
   bankPresettoName,
@@ -67,6 +67,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
     const result: RawSourceData[] = getPresetNote(
       generator,
       preset,
+      0,
       0,
       interval,
       (interval * duration) / 100.0,

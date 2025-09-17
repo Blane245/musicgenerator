@@ -144,17 +144,30 @@ export default function AlgorithmicDialog(
         />
       </label>
       <label>
+        &nbsp;Noise Frequency:&nbsp;
+        <input
+          name="noiseFrequency"
+          type="number"
+          min={0}
+          max={1000}
+          step={0.001}
+          onChange={handleChange}
+          value={formData.noiseFrequency}
+        />
+        <span> (Hz) </span>
+      </label>
+      <label>
         &nbsp;Noise Level:&nbsp;
         <input
           name="noiseAmplitude"
           type="number"
           min={0}
           max={1000}
-          step={0.01}
+          step={0.001}
           onChange={handleChange}
           value={formData.noiseAmplitude}
         />
-        <span> (% of Volume) </span>
+        <span> (gain) </span>
       </label>
       <label>
         &nbsp;Reverb Duration:&nbsp;

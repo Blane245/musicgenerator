@@ -1,10 +1,10 @@
 import Track from "classes/track";
 import { useCMGContext } from "cmgcontext";
-import { buildSources } from "generation/buildsources";
-import Generate from "generation/generate";
-import ReadyGenerate from "generation/readygenerate";
+import { buildSources } from "playfunctions/buildsources";
+import Play from "playfunctions/play";
+import ReadyGenerate from "playfunctions/readyplay";
 import { useState } from "react";
-import { GENERATIONMODE, GeneratorType } from "types";
+import { GeneratorType, PLAYMODE } from "types";
 import { flipGeneratorMute } from "utils/cmfiletransactions";
 import setCursor from "utils/setcursor";
 import GeneratorCopyMoveDialog from "./generatorcopymovedialog";
@@ -30,7 +30,6 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
     setGeneratorDialogVisible,
     setMode,
     setSourceData,
-    setPlaybackLength,
     setOffsetTime,
     setStatus,
     playing,
@@ -47,7 +46,7 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
     setOffsetTime(generator.startTime);
     setPreviewVisible(true);
     setMenuVisible(null);
-    setMode(GENERATIONMODE.solo);
+    setMode(PLAYMODE.solo);
     setStatus(``);
   }
   function onEditClick() {
@@ -101,7 +100,7 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
       SilentGenerators,
       error,
     } = ReadyGenerate({
-      mode: GENERATIONMODE.solo,
+      mode: PLAYMODE.solo,
       generator: generator,
       fileContents,
       timeInterval,
@@ -182,7 +181,7 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
           </div>
         </div>
       </div>
-      {previewVisible ? <Generate generator={generator} /> : null}
+      {previewVisible ? <Play generator={generator} /> : null}
       {copyMoveDialogVisible ? (
         <GeneratorCopyMoveDialog
           mode={copyMoveMode}

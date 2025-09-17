@@ -15,7 +15,7 @@ import {
 import CMGFile from "./classes/cmgfile";
 import TimeLine from "./classes/timeline";
 import {
-  GENERATIONMODE,
+  PLAYMODE,
   GeneratorType,
   MouseLocation,
   RawSourceData,
@@ -73,8 +73,8 @@ interface CMGContextType {
   timeLine: TimeLine | null;
   setTimeLine: Dispatch<SetStateAction<TimeLine | null>>;
   playing: MutableRefObject<boolean>;
-  mode: GENERATIONMODE;
-  setMode: Dispatch<SetStateAction<GENERATIONMODE>>;
+  mode: PLAYMODE;
+  setMode: Dispatch<SetStateAction<PLAYMODE>>;
   playbackLength: number;
   setPlaybackLength: Dispatch<SetStateAction<number>>;
   offsetTime: number;
@@ -132,7 +132,7 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
   const [timeLine, setTimeLine] = useState<TimeLine | null>(null);
   const [fileName, setFileName] = useState<string>("");
   const playing = useRef<boolean>(false);
-  const [mode, setMode] = useState<GENERATIONMODE>(GENERATIONMODE.idle);
+  const [mode, setMode] = useState<PLAYMODE>(PLAYMODE.idle);
   const [playbackLength, setPlaybackLength] = useState<number>(0);
   const [offsetTime, setOffsetTime] = useState<number>(0);
   const [sourceData, setSourceData] = useState<RawSourceData[]>([]);

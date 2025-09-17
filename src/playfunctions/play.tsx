@@ -1,25 +1,25 @@
 // turn the sound generators into a preview or recording based on
 // which generators are selected and which mode is selected
 import { useCMGContext } from "cmgcontext";
-import Preview from "layouts/preview";
+import Preview from "playfunctions/preview";
 import { useEffect, useState } from "react";
 import {
-  GENERATIONMODE,
+  PLAYMODE,
   GeneratorType,
   RawSourceData,
   SAMPLERATE,
 } from "types";
 import { buildSources } from "./buildsources";
-import ReadyGenerate from "./readygenerate";
+import ReadyGenerate from "./readyplay";
 import Record from "./record";
 
-export interface GeneratorProps {
+export interface PlayProps {
   setRecordHandle?: Function;
   recordFormat?: string;
   recordHandle?: FileSystemFileHandle | null;
   generator: GeneratorType | null;
 }
-export default function Generate(props: GeneratorProps) {
+export default function Play(props: PlayProps) {
   const { setRecordHandle, recordFormat, recordHandle, generator } = props;
   const { setStatus, playing, mode, setMode, fileContents, timeInterval } =
     useCMGContext();
@@ -30,7 +30,7 @@ export default function Generate(props: GeneratorProps) {
   // const [sourceData, setSourceData] = useState<RawSourceData[]>([]);
   const [sourceData, setSourceData] = useState<RawSourceData[]>([]);
   useEffect(() => {
-    if (mode == GENERATIONMODE.idle) return;
+    if (mode == PLAYMODE.idle) return;
 
     // determine the selected generators and make sure they are ready to generate sound
     const {
@@ -66,7 +66,7 @@ export default function Generate(props: GeneratorProps) {
 
   function handleErrorClose() {
     setError("");
-    setMode(GENERATIONMODE.idle);
+    setMode(PLAYMODE.idle);
     setStatus(``);
   }
 
@@ -74,7 +74,7 @@ export default function Generate(props: GeneratorProps) {
   // recording has its own progress bar
   return (
     <>
-      {mode == GENERATIONMODE.record &&
+      {mode == PLAYMODE.record &&
       recordHandle &&
       setRecordHandle &&
       sourceData.length > 0 ? (
@@ -87,7 +87,7 @@ export default function Generate(props: GeneratorProps) {
           setMode={setMode}
         />
       ) : null}
-      {(mode == GENERATIONMODE.preview || mode == GENERATIONMODE.solo) &&
+      {(mode == PLAYMODE.preview || mode == PLAYMODE.solo) &&
       sourceData.length > 0 ? (
         <Preview
           appName="Computer Music Generator"

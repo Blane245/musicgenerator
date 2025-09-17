@@ -3,10 +3,10 @@
   "private": true,
   "version": "4.1.0",
   "type": "module",
-  "homepage": "https://lanedb.hopto.org/cmg3/",
+  "homepage": "https://lanedb.hopto.org/cmg4/",
   "author": {
     "name": "Bob Lane",
-    "url": "https://blane.fun/"
+    "url": "https://github.com/Blane245"
   },
   "repository": {
     "type": "git",
@@ -14,7 +14,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build --base=/cmg3 --mode=production",
+    "build": "tsc -b && vite build --base=/cmg4 --mode=production",
     "lint": "eslint .",
     "preview": "vite preview"
   },

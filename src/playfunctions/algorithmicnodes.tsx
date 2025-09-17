@@ -1,7 +1,7 @@
-import { RawSourceData } from "../types";
-import { Algorithmic } from "../classes/generators";
-import { getPresetNote } from "../sfcomponents/getpresetnote";
-import { AlgorithmValues } from "../classes/algorithmvalues";
+import { RawSourceData } from "types";
+import { Algorithmic } from "classes/generators";
+import { getPresetNote } from "playfunctions/getpresetnote";
+import { AlgorithmValues } from "classes/algorithmvalues";
 import RandomNumber from "../classes/randomnumber";
 
 export function getBufferSourceNodesFromAlgorithmic(
@@ -37,6 +37,7 @@ export function getBufferSourceNodesFromAlgorithmic(
 
   // get the noise parameters
   const noiseAmplitude: number = gen.noiseAmplitude;
+  const noiseFrequency: number = gen.noiseFrequency;
 
   let nextSource: number = sourceCount;
 
@@ -48,6 +49,7 @@ export function getBufferSourceNodesFromAlgorithmic(
       const connections: RawSourceData[] = getPresetNote(
         gen,
         preset,
+        noiseFrequency,
         noiseAmplitude,
         interval,
         duration,

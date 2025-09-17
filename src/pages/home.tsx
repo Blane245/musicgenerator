@@ -2,24 +2,24 @@ import GeneratorDialog from "dialogs/generatordialog";
 import Body from "layouts/body";
 import Footer from "layouts/footer";
 import Header from "layouts/header";
-import Preview from "layouts/preview";
+import Preview from "playfunctions/preview";
 import { MouseEvent, useEffect, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import {
   DEFAULTLOCALSFURI,
   DEFAULTRECORDFORMAT,
-  GENERATIONMODE,
   MouseLocation,
+  PLAYMODE,
   RECENTCMGDIRECTORY,
   RECENTFILES,
   RECENTRECORDDIRECTORY,
   RECORDFORMAT,
   SFFILELOCATION,
 } from "types";
+import { getDirectoryList } from "utils/getdirectorylist";
 import setCursor from "utils/setcursor";
 import { useCMGContext } from "../cmgcontext";
 import "./home.css";
-import { getDirectoryList } from "utils/getdirectorylist";
 export default function Home() {
   const {
     setScreenHeight,
@@ -50,8 +50,6 @@ export default function Home() {
     playing,
     mode,
     setMode,
-    playbackLength,
-    offsetTime,
     sourceData,
     setStatus,
   } = useCMGContext();
@@ -278,7 +276,7 @@ export default function Home() {
       <Helmet>
         <title> Computer Music Generator </title>
       </Helmet>
-      {mode != GENERATIONMODE.preview && mode != GENERATIONMODE.solo ? (
+      {mode != PLAYMODE.preview && mode != PLAYMODE.solo ? (
         <div
           className="page"
           id="page"
@@ -301,7 +299,7 @@ export default function Home() {
           setMode={setMode}
         />
       )}
-      {mode == GENERATIONMODE.idle &&
+      {mode == PLAYMODE.idle &&
       generatorDialogVisible &&
       editGeneratorData.track &&
       editGeneratorData.type ? (

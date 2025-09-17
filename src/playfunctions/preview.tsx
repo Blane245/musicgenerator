@@ -33,14 +33,14 @@ import RoomCompressorDialog from "dialogs/roomcompressordialog";
 import RoomEqualizerDialog from "dialogs/roomequalizerdialog";
 import RoomReverbDialog from "dialogs/roomreverbdialog";
 import RoomVolumeDialog from "dialogs/roomvolumedialog";
-import { buildRoomNodes } from "generation/buildroomnodes";
-import { realizeSource } from "generation/realizesource";
+import { buildRoomNodes } from "playfunctions/buildroomnodes";
+import { realizeSource } from "playfunctions/realizesource";
 import { useEffect, useRef, useState } from "react";
 import { toNote } from "sfcomponents/util";
 import {
   ActiveSource,
   FFTSIZE,
-  GENERATIONMODE,
+  PLAYMODE,
   GeneratorType,
   GENERATORTYPE,
   RawSourceData,
@@ -173,6 +173,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
       while (offsetTime < nP.startTime) {
         nP.startTime -= extent / 2.0;
       }
+      nP.startTime = Math.max(nP.startTime, 0);
       previewTimeline.current = nP;
       setTimeProgress(offsetTime);
       const newTimeTicks: TimeTicks | null = updateTimeTicks(nP);
@@ -250,7 +251,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
   }, [drawing]);
 
   function onExit() {
-    setMode(GENERATIONMODE.idle);
+    setMode(PLAYMODE.idle);
     setRunning(false);
     playing.current = false;
     // paused.current = true;

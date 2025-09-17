@@ -1,14 +1,14 @@
 // The file menu handles creating new files, opening existing ones,
 // saving current ones, and adding tracks to current ones
 import { useCMGContext } from "cmgcontext";
-import { buildSources } from "generation/buildsources";
-import ReadyGenerate from "generation/readygenerate";
-import Record from "generation/record";
-import Report from "generation/reportwriter/report";
+import { buildSources } from "playfunctions/buildsources";
+import ReadyGenerate from "playfunctions/readyplay";
+import Record from "playfunctions/record";
+import Report from "playfunctions/reportwriter/report";
 import { useState } from "react";
 import { renderToString } from "react-dom/server";
 import { useHotkeys } from "react-hotkeys-hook";
-import { GENERATIONMODE, SAMPLERATE } from "types";
+import { PLAYMODE, SAMPLERATE } from "types";
 
 export default function PlayMenu() {
   const {
@@ -31,7 +31,7 @@ export default function PlayMenu() {
   useHotkeys(
     "ctrl+p",
     () => {
-      if (!playing.current) handlePreview;
+      if (!playing.current) handleReadyPlay(PLAYMODE.preview);
     },
     { preventDefault: true }
   );
@@ -39,7 +39,7 @@ export default function PlayMenu() {
   useHotkeys(
     "ctrl+r",
     () => {
-      if (!playing.current) handleRecord;
+      if (!playing.current) handleReadyPlay(PLAYMODE.record);
     },
     { preventDefault: true }
   );
@@ -49,7 +49,7 @@ export default function PlayMenu() {
   // prompted to confirm overwrite
   function handlePreview() {
     playing.current = true;
-    setMode(GENERATIONMODE.preview);
+    setMode(PLAYMODE.preview);
   }
 
   // handle request to open a file.
@@ -76,7 +76,7 @@ export default function PlayMenu() {
   }
 
   // parse the generators and prepare for recording or previewing
-  function handleReadyPlay(playMode: GENERATIONMODE) {
+  function handleReadyPlay(playMode: PLAYMODE) {
     // determine the selected generators and make sure they are ready to generate sound
     const {
       AlgorithmicGenerators,
@@ -94,7 +94,7 @@ export default function PlayMenu() {
     setStatus(error);
     if (error != "") return;
 
-    if (playMode == GENERATIONMODE.record) handleRecord();
+    if (playMode == PLAYMODE.record) handleRecord();
 
     // build the generator sources
     const { sources: builtSourceData, error: buildError } = buildSources({
@@ -108,8 +108,8 @@ export default function PlayMenu() {
     if (buildError != "") return;
     setSourceData(builtSourceData);
     // let the system know that playing is entered
-    if (playMode == GENERATIONMODE.preview) handlePreview();
-    else setMode(GENERATIONMODE.record);
+    if (playMode == PLAYMODE.preview) handlePreview();
+    else setMode(PLAYMODE.record);
     // make sure that the generator dialog does not appear after preview or record
     setGeneratorDialogVisible(false);
   }
@@ -117,10 +117,10 @@ export default function PlayMenu() {
   function handleMenuSelect(action: string) {
     switch (action) {
       case "preview":
-        handleReadyPlay(GENERATIONMODE.preview);
+        handleReadyPlay(PLAYMODE.preview);
         break;
       case "record":
-        handleReadyPlay(GENERATIONMODE.record);
+        handleReadyPlay(PLAYMODE.record);
         break;
       case "stop":
         handleStop();
@@ -165,7 +165,7 @@ export default function PlayMenu() {
           </div>
         </div>
       </div>
-      {mode == GENERATIONMODE.record &&
+      {mode == PLAYMODE.record &&
       recordHandle &&
       sourceData.length > 0 ? (
         <Record

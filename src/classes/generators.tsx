@@ -154,7 +154,8 @@ export class Algorithmic extends Silent {
   #activeNotes: number[]; // the active notes of the octave
   noiseSeed: string;
   rn: RandomNumber;
-  noiseAmplitude: number; // dB of Gaussian noise to apply
+  noiseFrequency: number; // frequency of the modulation moise
+  noiseAmplitude: number; // noise gain
   reverb: ConvolverNode | undefined;
   context: AudioContext | OfflineAudioContext | undefined;
   reverbDuration: number;
@@ -181,6 +182,7 @@ export class Algorithmic extends Silent {
     this.#activeNotes = euclideanRhythm(this.noteCount, 12);
     this.noiseSeed = "seed";
     this.rn = new RandomNumber(this.noiseSeed);
+    this.noiseFrequency = 0;
     this.noiseAmplitude = 0;
     this.reverb = undefined;
     this.context = undefined;
@@ -256,6 +258,7 @@ export class Algorithmic extends Silent {
     n.noiseSeed = this.noiseSeed;
     n.rn = this.rn;
     n.noiseAmplitude = this.noiseAmplitude;
+    n.noiseFrequency = this.noiseFrequency;
     n.reverb = this.reverb;
     n.context = this.context;
     n.reverbDuration = this.reverbDuration;
@@ -305,6 +308,9 @@ export class Algorithmic extends Silent {
         return;
       case "noiseAmplitude":
         this.noiseAmplitude = parseFloat(value);
+        return;
+      case "noiseFrequency":
+        this.noiseFrequency = parseFloat(value);
         return;
       case "reverbDuration":
         this.reverbDuration = parseFloat(value);
@@ -557,6 +563,7 @@ export class Algorithmic extends Silent {
       returnElem.setAttribute("noiseSeed", this.noiseSeed);
       returnElem.setAttribute("noteCount", this.noteCount.toString());
       returnElem.setAttribute("noiseAmplitude", this.noiseAmplitude.toString());
+      returnElem.setAttribute("noiseFrequency", this.noiseFrequency.toString());
       returnElem.setAttribute("reverbDuration", this.reverbDuration.toString());
       returnElem.setAttribute("reverbDecay", this.reverbDecay.toString());
 
@@ -635,6 +642,11 @@ export class Algorithmic extends Silent {
         "noiseAmplitude",
         "float"
       ) as number;
+      try {
+        g.noiseFrequency = getAttributeValue(elem, 'noiseFrequency', 'float') as number;
+      } catch (e) {
+        g.noiseFrequency = 0;
+      }
       try {
         g.reverbDuration = getAttributeValue(
           elem,

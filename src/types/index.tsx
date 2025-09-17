@@ -288,7 +288,7 @@ export enum TIMEINTERVALEDGE {
   Right,
 }
 
-export enum GENERATIONMODE {
+export enum PLAYMODE {
   record = "record",
   preview = "preview",
   solo = "solo",
@@ -304,9 +304,6 @@ export type RawSourceData = {
     sample: Float32Array[]; // the sf instrument sample converted to float32 or noise as float32 - length is sampleRate * totalTime * playbackRate
     sampleRate: number; // hz/sec (includes the playbackRate sampleRate (instrument sample) * playbackRate (as calcuated) )
     playbackRate: number; // sf playback rate or 1 for noise (will always be one)
-    // loopStart: number; // sf loopstart index or 0 for noise
-    // loopEnd: number; // sf loopEnd index or sample.length for noise
-    // loop: boolean; // true/false depending on sf and option or false for noise
     startTime: number; // start time of the source within the generator
     duration: number; // attackInterval + holdInterval + releaseInterval
     stopTime: number; // startTime + duration
@@ -316,16 +313,6 @@ export type RawSourceData = {
     value: number; // pan value from generator
   };
   vol: { value: number; }
-  //   delayInterval: number;
-  //   attackInterval: number; // attack time from sf as limited
-  //   holdInterval: number; // the original note's duration minus the attack time
-  //   decayInterval: number;
-  //   sustainInterval: number;
-  //   releaseInterval: number; // release time from sf as limited
-  //   sustainLevel: number;
-  //   initialAttenuation: number;
-  //   value: number; // the current volume value
-  // };
   instrument?: {
     name: string;
     sampleRate: number; // sample rate of the instrument

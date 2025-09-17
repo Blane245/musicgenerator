@@ -2,15 +2,15 @@
 import { Algorithmic, AudioFile, Silent } from "classes/generators";
 import Track from "classes/track";
 import { useCMGContext } from "cmgcontext";
-import { buildSources } from "generation/buildsources";
-import Generate from "generation/generate";
-import ReadyGenerate from "generation/readygenerate";
+import { buildSources } from "playfunctions/buildsources";
+import Play from "playfunctions/play";
+import ReadyPlay from "playfunctions/readyplay";
 import { ChangeEvent, FormEvent, MouseEvent, useEffect, useState } from "react";
-import { SoundFontPool } from "sfcomponents/soundfontpool";
+import { SFPool } from "sfcomponents/sfpool";
 import { Preset } from "sfcomponents/types";
 import { bankPresettoName, precision } from "sfcomponents/util";
 import { SoundFont2 } from "soundfont2";
-import { GENERATIONMODE, GeneratorType, GENERATORTYPE } from "types";
+import { PLAYMODE, GeneratorType, GENERATORTYPE } from "types";
 import { addGenerator, modifyGenerator } from "utils/cmfiletransactions";
 import { getGeneratorUID } from "utils/getgeneratoruid";
 import GeneratorTypeForm from "./generatortypeform";
@@ -251,8 +251,8 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
       AudioFileGenerators,
       SilentGenerators,
       error,
-    } = ReadyGenerate({
-      mode: GENERATIONMODE.solo,
+    } = ReadyPlay({
+      mode: PLAYMODE.solo,
       generator: formData,
       fileContents,
       timeInterval,
@@ -283,7 +283,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     //   newGenerator: newGenerator,
     // });
     setPreviewVisible(true);
-    setMode(GENERATIONMODE.solo);
+    setMode(PLAYMODE.solo);
     setStatus(``);
   }
 
@@ -380,7 +380,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           ))}
         </div>
       </div>
-      {previewVisible ? <Generate generator={formData} /> : null}
+      {previewVisible ? <Play generator={formData} /> : null}
     </fieldset>
   );
 
@@ -390,7 +390,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
       LoadFile(fileName);
       // load the soundfont file and set the presets
       async function LoadFile(fileName: string) {
-        const { soundFont } = await SoundFontPool(fileName);
+        const { soundFont } = await SFPool(fileName);
         setSoundFontData(() => {
           const presets: Preset[] = (soundFont.presets as Preset[]).sort(
             (a, b) => {

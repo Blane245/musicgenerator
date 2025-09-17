@@ -82,8 +82,10 @@ td {
 }
 .container > div {
   border-right: 2px;
+  align:left;
 }            
-`}
+`
+}
         </style>
       </head>
       <div className="report">

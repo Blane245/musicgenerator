@@ -22,7 +22,7 @@
 import { SoundFont2 } from "../soundfont2";
 import CMGFile from "../classes/cmgfile";
 import Track from "../classes/track";
-import { SoundFontPool } from "../sfcomponents/soundfontpool";
+import { SFPool } from "../sfcomponents/sfpool";
 import { Preset } from "../sfcomponents/types";
 import { presetNameToPreset } from "../sfcomponents/util";
 import {
@@ -152,7 +152,7 @@ export async function readCMGFile(
       const soundFontPromises: Promise<SFPromiseType>[] = [];
       SoundFontGenerators.forEach(async (sff) => {
         try {
-          const soundFontPromise: Promise<SFPromiseType> = SoundFontPool(
+          const soundFontPromise: Promise<SFPromiseType> = SFPool(
             sff.name
           );
           soundFontPromises.push(soundFontPromise);

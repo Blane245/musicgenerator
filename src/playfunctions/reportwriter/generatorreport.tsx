@@ -73,24 +73,30 @@ function AlgorithmicReport(props: AlgorithmicReportProps): JSX.Element {
             <th> Measure Length </th>
             <th> On Beats </th>
             <th> Notes in Octave </th>
+            <th> Noise seed </th>
             <th>
               {" "}
-              Noise Level
+              Noise Frequency
               <br />
-              (dB){" "}
+              (Hz)
             </th>
-            <th> Notes in Octave </th>
-            <th> Noise seed </th>
+            <th>
+              {" "}
+              Noise Amplitude
+              <br />
+              (gain)
+            </th>
             <th>
               {" "}
               Reverb Duration
               <br />
-              (sec){" "}
+              (sec)
             </th>
             <th>
               {" "}
               Reverb Decay
-              <br /> (sec)
+              <br />
+              (sec)
             </th>
           </tr>
         </thead>
@@ -103,82 +109,151 @@ function AlgorithmicReport(props: AlgorithmicReportProps): JSX.Element {
             <td> {g.beatCount} </td>
             <td> {g.noteCount} </td>
             <td> {g.noiseSeed} </td>
+            <td> {g.noiseFrequency} </td>
             <td> {g.noiseAmplitude} </td>
-            <td> {g.noiseDispersion} </td>
             <td> {g.reverbDuration} </td>
             <td> {g.reverbDecay} </td>
           </tr>
         </tbody>
       </table>
-      <h4>
-        Note (midi){"\t"}Algorithm Type: {g.noteP?.algorithmType}
-      </h4>
-      {g.noteP?.algorithmType == ALGORITHMTYPE.Constant ? (
-        <ConstantReport values={g.noteP as ConstantValues} />
-      ) : null}
-      {g.noteP?.algorithmType == ALGORITHMTYPE.Autoregressive ? (
-        <AutoregressiveReport values={g.noteP as AutoregressiveValues} />
-      ) : null}
-      {g.noteP?.algorithmType == ALGORITHMTYPE.Markovian ? (
-        <MarkovianReport values={g.noteP as MarkovianValues} />
-      ) : null}
-      {g.noteP?.algorithmType == ALGORITHMTYPE.Wiener ? (
-        <WeinerReport values={g.noteP as WienerValues} />
-      ) : null}
-      <h4>
-        Speed (BPM){"\t"}Algorithm Type: {g.speedP?.algorithmType}
-      </h4>
-      {g.speedP?.algorithmType == ALGORITHMTYPE.Constant ? (
-        <ConstantReport values={g.speedP as ConstantValues} />
-      ) : null}
-      {g.speedP?.algorithmType == ALGORITHMTYPE.Autoregressive ? (
-        <AutoregressiveReport values={g.speedP as AutoregressiveValues} />
-      ) : null}
-      {g.speedP?.algorithmType == ALGORITHMTYPE.Oscillator ? (
-        <OscillatorReport values={g.speedP as OscillatorValues} />
-      ) : null}
-      {g.speedP?.algorithmType == ALGORITHMTYPE.Markovian ? (
-        <MarkovianReport values={g.speedP as MarkovianValues} />
-      ) : null}
-      {g.speedP?.algorithmType == ALGORITHMTYPE.Wiener ? (
-        <WeinerReport values={g.speedP as WienerValues} />
-      ) : null}
-      <h4>
-        Volume (dB){"\t"}Algorithm Type: {g.volumeP?.algorithmType}
-      </h4>
-      {g.volumeP?.algorithmType == ALGORITHMTYPE.Constant ? (
-        <ConstantReport values={g.volumeP as ConstantValues} />
-      ) : null}
-      {g.volumeP?.algorithmType == ALGORITHMTYPE.Autoregressive ? (
-        <AutoregressiveReport values={g.volumeP as AutoregressiveValues} />
-      ) : null}
-      {g.volumeP?.algorithmType == ALGORITHMTYPE.Oscillator ? (
-        <OscillatorReport values={g.volumeP as OscillatorValues} />
-      ) : null}
-      {g.volumeP?.algorithmType == ALGORITHMTYPE.Markovian ? (
-        <MarkovianReport values={g.volumeP as MarkovianValues} />
-      ) : null}
-      {g.volumeP?.algorithmType == ALGORITHMTYPE.Wiener ? (
-        <WeinerReport values={g.volumeP as WienerValues} />
-      ) : null}
-      <h4>
-        Pan{"\t"}Algorithm Type: {g.panP?.algorithmType}
-      </h4>
-      {g.panP?.algorithmType == ALGORITHMTYPE.Constant ? (
-        <ConstantReport values={g.panP as ConstantValues} />
-      ) : null}
-      {g.panP?.algorithmType == ALGORITHMTYPE.Autoregressive ? (
-        <AutoregressiveReport values={g.panP as AutoregressiveValues} />
-      ) : null}
-      {g.panP?.algorithmType == ALGORITHMTYPE.Oscillator ? (
-        <OscillatorReport values={g.panP as OscillatorValues} />
-      ) : null}
-      {g.panP?.algorithmType == ALGORITHMTYPE.Markovian ? (
-        <MarkovianReport values={g.panP as MarkovianValues} />
-      ) : null}
-      {g.panP?.algorithmType == ALGORITHMTYPE.Wiener ? (
-        <WeinerReport values={g.panP as WienerValues} />
-      ) : null}
+      <div className="container">
+        <div>
+          <h4>
+            Note (midi) Algorithm Type: {g.noteP?.algorithmType}
+          </h4>
+        </div>
+        <div>
+          {g.noteP?.algorithmType == ALGORITHMTYPE.Constant ? (
+            <ConstantReport values={g.noteP as ConstantValues} />
+          ) : null}
+          {g.noteP?.algorithmType == ALGORITHMTYPE.Autoregressive ? (
+            <AutoregressiveReport values={g.noteP as AutoregressiveValues} />
+          ) : null}
+          {g.noteP?.algorithmType == ALGORITHMTYPE.Markovian ? (
+            <MarkovianReport values={g.noteP as MarkovianValues} />
+          ) : null}
+          {g.noteP?.algorithmType == ALGORITHMTYPE.Wiener ? (
+            <WeinerReport values={g.noteP as WienerValues} />
+          ) : null}
+        </div>
+      </div>
+      <div className="container">
+        <div>
+          <h4>
+            Attack (0-127) Algorithm Type: {g.attackP?.algorithmType}
+          </h4>
+        </div>
+        <div>
+          {g.attackP?.algorithmType == ALGORITHMTYPE.Constant ? (
+            <ConstantReport values={g.attackP as ConstantValues} />
+          ) : null}
+          {g.attackP?.algorithmType == ALGORITHMTYPE.Autoregressive ? (
+            <AutoregressiveReport values={g.attackP as AutoregressiveValues} />
+          ) : null}
+          {g.attackP?.algorithmType == ALGORITHMTYPE.Markovian ? (
+            <MarkovianReport values={g.attackP as MarkovianValues} />
+          ) : null}
+          {g.attackP?.algorithmType == ALGORITHMTYPE.Wiener ? (
+            <WeinerReport values={g.attackP as WienerValues} />
+          ) : null}
+        </div>
+      </div>
+      <div className="container">
+        <div>
+          <h4>
+            Speed (BPM) Algorithm Type: {g.speedP?.algorithmType}
+          </h4>
+        </div>
+        <div>
+          {g.speedP?.algorithmType == ALGORITHMTYPE.Constant ? (
+            <ConstantReport values={g.speedP as ConstantValues} />
+          ) : null}
+          {g.speedP?.algorithmType == ALGORITHMTYPE.Autoregressive ? (
+            <AutoregressiveReport values={g.speedP as AutoregressiveValues} />
+          ) : null}
+          {g.speedP?.algorithmType == ALGORITHMTYPE.Oscillator ? (
+            <OscillatorReport values={g.speedP as OscillatorValues} />
+          ) : null}
+          {g.speedP?.algorithmType == ALGORITHMTYPE.Markovian ? (
+            <MarkovianReport values={g.speedP as MarkovianValues} />
+          ) : null}
+          {g.speedP?.algorithmType == ALGORITHMTYPE.Wiener ? (
+            <WeinerReport values={g.speedP as WienerValues} />
+          ) : null}
+        </div>
+      </div>
+      <div className="container">
+        <div>
+          <h4>
+            Duration (%) Algorithm Type: {g.durationP?.algorithmType}
+          </h4>
+        </div>
+        <div>
+          {g.durationP?.algorithmType == ALGORITHMTYPE.Constant ? (
+            <ConstantReport values={g.durationP as ConstantValues} />
+          ) : null}
+          {g.durationP?.algorithmType == ALGORITHMTYPE.Autoregressive ? (
+            <AutoregressiveReport
+              values={g.durationP as AutoregressiveValues}
+            />
+          ) : null}
+          {g.durationP?.algorithmType == ALGORITHMTYPE.Oscillator ? (
+            <OscillatorReport values={g.durationP as OscillatorValues} />
+          ) : null}
+          {g.durationP?.algorithmType == ALGORITHMTYPE.Markovian ? (
+            <MarkovianReport values={g.durationP as MarkovianValues} />
+          ) : null}
+          {g.durationP?.algorithmType == ALGORITHMTYPE.Wiener ? (
+            <WeinerReport values={g.durationP as WienerValues} />
+          ) : null}
+        </div>
+      </div>
+      <div className="container">
+        <h4>
+          Volume (dB) Algorithm Type: {g.volumeP?.algorithmType}
+        </h4>
+        <div>
+          {g.volumeP?.algorithmType == ALGORITHMTYPE.Constant ? (
+            <ConstantReport values={g.volumeP as ConstantValues} />
+          ) : null}
+          {g.volumeP?.algorithmType == ALGORITHMTYPE.Autoregressive ? (
+            <AutoregressiveReport values={g.volumeP as AutoregressiveValues} />
+          ) : null}
+          {g.volumeP?.algorithmType == ALGORITHMTYPE.Oscillator ? (
+            <OscillatorReport values={g.volumeP as OscillatorValues} />
+          ) : null}
+          {g.volumeP?.algorithmType == ALGORITHMTYPE.Markovian ? (
+            <MarkovianReport values={g.volumeP as MarkovianValues} />
+          ) : null}
+          {g.volumeP?.algorithmType == ALGORITHMTYPE.Wiener ? (
+            <WeinerReport values={g.volumeP as WienerValues} />
+          ) : null}
+        </div>
+      </div>
+      <div className="container">
+        <div>
+          <h4>
+            Pan Algorithm Type: {g.panP?.algorithmType}
+          </h4>
+        </div>
+        <div>
+          {g.panP?.algorithmType == ALGORITHMTYPE.Constant ? (
+            <ConstantReport values={g.panP as ConstantValues} />
+          ) : null}
+          {g.panP?.algorithmType == ALGORITHMTYPE.Autoregressive ? (
+            <AutoregressiveReport values={g.panP as AutoregressiveValues} />
+          ) : null}
+          {g.panP?.algorithmType == ALGORITHMTYPE.Oscillator ? (
+            <OscillatorReport values={g.panP as OscillatorValues} />
+          ) : null}
+          {g.panP?.algorithmType == ALGORITHMTYPE.Markovian ? (
+            <MarkovianReport values={g.panP as MarkovianValues} />
+          ) : null}
+          {g.panP?.algorithmType == ALGORITHMTYPE.Wiener ? (
+            <WeinerReport values={g.panP as WienerValues} />
+          ) : null}
+        </div>
+      </div>
     </>
   );
 }

@@ -6,7 +6,7 @@ import { SFPromiseType } from "../types";
 import { loadSoundFont } from "../utils/loadsoundfont";
 import { SoundFontItem } from "./types";
 const pool: SoundFontItem[] = [];
-export async function SoundFontPool(
+export async function SFPool(
   desiredFile: string
 ): Promise<SFPromiseType> {
   const index = pool.findIndex((s: { name: string }) => s.name == desiredFile);

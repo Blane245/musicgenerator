@@ -6,7 +6,7 @@ import { useCMGContext } from "cmgcontext";
 import { MouseEvent, useEffect, useState } from "react";
 import { precision } from "sfcomponents/util";
 import {
-  GENERATIONMODE,
+  PLAYMODE,
   TIMEINTERVALEDGE,
   TIMEINTERVALMODE,
   TimelineInterval,
@@ -73,7 +73,7 @@ export default function TimeLineDisplay() {
 
   // when the timeline or the generation mode changes to idle, update the ticks
   useEffect(() => {
-    if (mode == GENERATIONMODE.idle && timeLine) {
+    if (mode == PLAYMODE.idle && timeLine) {
       const newTimeTicks: TimeTicks | null = updateTimeTicks(timeLine);
       if (newTimeTicks) setTicks(newTimeTicks);
       // const newTimeInterval: TimelineInterval | null = updateTimeInterval(timeInterval, timeLine);

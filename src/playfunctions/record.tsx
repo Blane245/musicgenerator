@@ -23,7 +23,7 @@ import Reverb from "classes/reverb";
 import Volume from "classes/volume";
 import { useCMGContext } from "cmgcontext";
 import { useEffect, useRef, useState } from "react";
-import { GENERATIONMODE, GENERATORTYPE, RawSourceData } from "types";
+import { PLAYMODE, GENERATORTYPE, RawSourceData } from "types";
 import { bufferToMp3 } from "utils/buffertomp3";
 import { bufferToWav } from "utils/buffertowav";
 import { buildRoomNodes } from "./buildroomnodes";
@@ -119,7 +119,7 @@ export default function Record(params: RecordProps) {
         waitForCompletion();
       } catch (e: any) {
         console.error(e);
-        setMode(GENERATIONMODE.idle);
+        setMode(PLAYMODE.idle);
         setRecordHandle(null);
         setStatus(`Error during recording: '${e.description}`);
         playing.current = false;
@@ -153,7 +153,7 @@ export default function Record(params: RecordProps) {
                 (stopTime.getTime() - startTime.getTime()) / 1000
               )} seconds`
             );
-            setMode(GENERATIONMODE.idle);
+            setMode(PLAYMODE.idle);
             setRecordHandle(null);
             playing.current = false;
             completeTimerId.current && clearTimeout(completeTimerId.current);
@@ -168,7 +168,7 @@ export default function Record(params: RecordProps) {
     } else {
       completeTimerId.current && clearTimeout(completeTimerId.current);
       recordingActive.current = false;
-      setMode(GENERATIONMODE.idle);
+      setMode(PLAYMODE.idle);
       setRecordHandle(null);
       setStatus(`Recording stopped early`);
     }

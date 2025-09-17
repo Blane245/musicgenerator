@@ -2,10 +2,10 @@ import RandomNumber from "classes/randomnumber";
 import { Algorithmic } from "../classes/generators";
 import { RawSourceData } from "../types";
 import { gaussianRandom } from "../utils/gaussianrandom";
-import { getGeneratorValues } from "./generators";
-import { samplePool } from "./samplepool";
-import { InstrumentZone, Preset, PresetZone } from "./types";
-import { attenuate, dBToGain, precision, tc2s } from "./util";
+import { getGeneratorValues } from "sfcomponents/sfgenerators";
+import { samplePool } from "sfcomponents/samplepool";
+import { InstrumentZone, Preset, PresetZone } from "sfcomponents/types";
+import { attenuate, dBToGain, midiToFrequency, precision, tc2s } from "sfcomponents/util";
 import { linearInterpolate } from "utils/interpolation";
 
 // select mid range velocity Range
@@ -47,10 +47,11 @@ const getActiveZones = (preset: Preset, midi: number, velocity: number) => {
 export const getPresetNote = (
   gen: Algorithmic,
   preset: Preset,
+  noiseFrequency: number,
   noiseAmplitude: number,
   interval: number, // the note's time interval
   duration: number, // the note's duration with that interval
-  pitchValue: number,
+  pitchValue: number, // midi
   attack: number,
   volumeValue: number,
   panValue: number,
@@ -189,10 +190,10 @@ export const getPresetNote = (
     } else if(noteEnd >= decayEnd) {
       envelope.push({ t: decayEnd, g: sustainGain });
       envelope.push({ t: noteEnd, g: sustainGain });
-      noteEndGain = 1;
+      noteEndGain = sustainGain;
     }
 
-    envelope.push({ t: releaseEnd, g: 0 });
+    if (noteEnd != releaseEnd) envelope.push({ t: releaseEnd, g: 0 });
 
     const sample: Float32Array = buildSampleArray(
       instrumentSample,
@@ -203,6 +204,8 @@ export const getPresetNote = (
       loopEnd,
       delayEnd,
       totalTime,
+      pitchValue,
+      noiseFrequency,
       noiseAmplitude,
       volumeGain,
       attenuation,
@@ -281,6 +284,8 @@ function buildSampleArray(
   loopEnd: number,
   delayEnd: number,
   totalTime: number,
+  midi: number,
+  noiseFrequency: number,
   noiseAmplitude: number,
   volume: number,
   attenuation: number,
@@ -288,6 +293,8 @@ function buildSampleArray(
 ): Float32Array {
   const sampleCount: number = Math.ceil(sampleRate * totalTime);
   const result: Float32Array = new Float32Array(sampleCount);
+  const deltaT: number = 1 / sampleRate;
+  let t: number = 0;
   const instrumentSampleLength: number = instrumentSample.length;
   const delayCount: number = Math.ceil(sampleRate * delayEnd);
 
@@ -297,7 +304,7 @@ function buildSampleArray(
   let currentIndex: number = 0;
   let iSample = delayCount;
   const lastSample: number = looping ? loopEnd : instrumentSampleLength;
-  const noiseLevel: number = noiseAmplitude / 100;
+  const centerFrequency: number = midiToFrequency(midi);
   while (iSample < sampleCount) {
     let thisIndex: number = Math.round(currentIndex);
 
@@ -306,11 +313,15 @@ function buildSampleArray(
       result[iSample] =
         getSampleWithNoise(
           instrumentSample[thisIndex],
-          noiseLevel,
+          t,
+          centerFrequency,
+          noiseFrequency,
+          noiseAmplitude,
           rn
         ) * volume * 
         attenuation;
       iSample++;
+      t+=deltaT;
     } else if (looping) {
       // handle looping
       if (thisIndex >= lastSample) {
@@ -320,15 +331,20 @@ function buildSampleArray(
       result[iSample] =
         getSampleWithNoise(
           instrumentSample[thisIndex],
-          noiseLevel,
+          t,
+          centerFrequency,
+          noiseFrequency,
+          noiseAmplitude,
           rn
         ) * volume *
         attenuation;
       iSample++;
+      t+=deltaT;
     } else {
       // signal is zero if not looping
       result[iSample] = 0;
       iSample++;
+      t+=deltaT;
     }
 
     // increment to next index
@@ -341,15 +357,18 @@ function buildSampleArray(
 
 function getSampleWithNoise(
   sample: number,
-  noiseLevel: number,
+  t: number,
+  frequency: number,
+  noiseFrequency: number,
+  noiseAmplitude: number,
   rn: RandomNumber
 ): number {
   let thisSample = sample;
-  if (noiseLevel != 0) {
-    const noise: number = gaussianRandom(0, 1, rn);
+  if (noiseAmplitude != 0 && noiseFrequency != 0) {
+    const noise: number = gaussianRandom(0, noiseFrequency, rn);
     thisSample =
-      (thisSample + noiseLevel * noise) /
-      (1 + noiseLevel);
+      (thisSample + noiseAmplitude * Math.sin(2 * Math.PI * (frequency + noise) * t)) /
+      (1 + noiseAmplitude);
   }
   return thisSample;
 }

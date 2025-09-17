@@ -78,11 +78,15 @@ CMG files are handled by the ***File*** Menu Items:
 ![alt text](./images/TitleLine.png)
 
 ## Open a CMG File
-* ***Open File ...*** - CMG files are opened by clicking the menu item ***Open File...*** button or by pressing **ctrl-o** on the keyboard. Files with the extent of ***.cmg*** are displayed and the one selected will be read. This includes all of the items that were saved (room compressor setting, room equalizer settings, room volume setting, room reverb settings, and all tracks and generators). If the file is not in proper format, a status message will be displayed and the file will not be opened.
+* ***Open File ...*** - CMG files are opened by clicking the menu item ***Open File...*** button or by pressing **ctrl-o** on the keyboard. Files with the extent of ***.cmg*** are displayed and the one selected will be read. This includes all of the items that were saved (timeline, room compressor, room equalizer, room volume, room reverb settings, and all tracks and generators). If the file is not in proper format, a status message will be displayed and the file will not be opened. When a file is opened, it is placed on the top of the recent files list.
 
 ## Save a CMG File
-* ***Save File ...*** - CMG files are created by accessing the menu item ***Save File...*** or by pressing **ctrl-s** on the keyboard. Files may be placed anywhere that they can be accessed within the file system. Files are saved with a ***.cmg*** extent. If the file already exists, you will be prompted to agree with overwriting the existing file. This saves the room compressor settings, room equalizer settings, room volume settings, and room reverb settings, and all of the tracks and generators defined. 
+* ***Save File*** - CMG files are created by accessing the menu item ***Save File*** or by pressing **ctrl-s** on the keyboard. The current CMG composition is written to the active file. Files may be placed anywhere that they can be accessed within the file system. Files are saved with a ***.cmg*** extent. If the file already exists, you will be prompted to agree with overwriting the existing file. This saves the room compressor settings, room equalizer settings, room volume settings, and room reverb settings, and all of the tracks and generators defined. 
 
+## 'Save As' a CMG File 
+* ***Save As...*** - CMG files can be saved under another name using this option. A file dialog is presented that allows the directory and file name to be specified. The current CMG composition is written to the named file. If the named file already exists, a popup window is displayed asking if the file can be overwritten. Once the file is saved, its name is placed on the top of the recent files list.
+## Open Recent
+* ***Open Recent...*** - Selecting this option will cause a list of up to 10 recently opened or saved files to be listed. The selected file will be read and placed on teh top of the recent files list.
 > <div class="note">*Note: Long projects contain a lot of data and take some time to create. <span style='font-weight:bold;font-style:italic'>Ensure the file is fully saved before existing CMG or shutting done the computer. </span> The <span style='color:lightblue'>Status Bar</span> at the bottom shows a message when the file has been saved and the <span style='color:lightblue'>(*)</span> will disappear from the title line.</div>
 
 # Tracks
@@ -115,10 +119,9 @@ The control section displays the name of the track and provides several track le
 * **Add Generator** - When this button is clicked, a menu is displayed providing a list of generator type that can be added to the track. The initial name of the generator is unique to all generators in the file. See [Editing Generators](#editing-generators) for more details about adding and editing generators. 
 
 # Generators
-Each generator is placed on a track at its start time and extends to its stop time. The name of a generator must be unique within the CMG file to which is belongs. A visual example of tracks and generators in shown below. 
+Each generator is placed on a track at its start time and extends to its stop time. The name of a generator must be unique within the CMG file to which is belongs. A visual example of tracks and generators is shown in the example above.
 
-![alt text](./images/TracksandGenerators.png)
-In this figure are shown seven tracks, each of which has zero or more generators. All of the tracks have been renamed and their names are unique. None of the generators have been renamed except the 1 second of silence at the beginning of the composition. All of the other generators are of the ***Algorithmic*** type.
+In this figure are shown tracks, each of which has zero or more generators. All of the tracks, except the last, have been renamed and their names are unique. All of the other generators are of the ***Algorithmic*** type.
 
 ## Editing Generators
 
@@ -130,9 +133,9 @@ The ***Algorithmic*** generator type uses SoundFont presets. Each preset has a b
 ## Generator Types
 
 ### **Silent**
-The silent generator contains the name of the generator, its type (*Silent*), and its start and stop times. No sound is created by a silent generator. It can be used to offset the start of a composition or extend the ending.  
+The silent generator contains the name of the generator, its type (*Silent*), and its start and stop times. No sound is created by a silent generator. It can be used to offset the start of a composition or extend the ending to allow reverberation to die down.  
 
-The figure shows the panel for adding a new Silent generator. There is an **Add** Button. When a generator is modified, the button is displayed as **Modify**. Add and Modify functions may be canceled by clicking the ***x*** in the upper left-hand corner of the panel or by clicking the **Cancel** button.
+The figure below shows the panel for adding a new Silent generator. There is an **Add** Button. When a generator is modified, the button is displayed as **Modify**. Add and Modify functions may be canceled by clicking the ***x*** in the upper left-hand corner of the panel or by clicking the **Cancel** button.
 ![alt text](./images/SilentEdit.png)
 The fields below are common to all generator types.
 * **Name:** The name of the generator must be unique within all generators in the file. When a new generator is created the default name is a 'G' followed by a unique number. 
@@ -144,7 +147,7 @@ Each generator edit panel has a ***Preview*** button that can be used to preview
 ### Algorithmic 
 When the generator type of *Algorithmic* is added or one is edited, the Add/Edit panel for that type is displayed:
 ![alt text](./images/AlgorithmicEdit1.png)
-This figure illustrates the initial display when a new Algorithmic generator is being added. Note that the algorithm assigned to note, speed, volume, and pan is ***Constant*** and all values are zero. 
+This figure illustrates the initial display when a new Algorithmic generator is being added. Note that the algorithm assigned to note, attack, speed, duration, volume, and pan is ***Constant*** and all values are zero except duration which defaults to 100%.
 The fields and their restrictions are defined as follows: 
 
 * **SoundFont File:** Each Algorithmic generator may have a different SoundFont file. SoundFont files contain sample-based synthesized sounds that are most frequently used by MIDI (Musical Instrument Digital Interface) devices. There are hundreds of SoundFont files existing today. This application has a small collection of them available. More can be added as desired. It is selected from the list of those available using the selection pulldown:
@@ -153,9 +156,9 @@ The fields and their restrictions are defined as follows:
 
   More information about SoundFont files can be found in [Wikipedia](https://en.wikipedia.org/wiki/SoundFont).
 * **Preset:** This is a selection list that identifies which SoundFont preset is to be used by the generator. No preset is available until the SoundFont file has been identified. The presets display their bank, channel number, and name. Only presets available within the SoundFont file can be selected. A SoundFont file and preset must have been selected before an Algorithmic generator can be added.
-* **Velocity:** Preset velocity ranges from 0 to 127 and is used to select how hard a simulated key is pressed. Some presets are sensitive to velocity, most notably the piano. Velocity is also used to select percussive sounds. Velocity ranges from 1 to 127.
 * **Looping:** Instrument samples contain sounds that are produced for a certain amount of time. If the sound needs to be played for longer than the sample, then a sample loop is defined. This is part of the SoundFont protocol. This option allows the default behavior to be overridden such that no looping will be done. 
-* **View Preset** - This button is used to view the details of a preset and a specific midi number and velocity. The number of samples, playback rate, delay, attack, hold, decay, sustain release times, and the sustain level and attenuation can be viewed for each instrument in the preset.
+* **View Preset** - This button is used to view the details of a preset and a specific midi number, attack, interval, duration, and volume. The number of samples, playback rate, delay, attack, hold, decay, sustain release times, and the sustain level and attenuation can be viewed for each instrument in the preset. The gain envelopes for all of the instruments in the preset also appear. 
+![Preset Dialog](<./images/PresetDialog.png>)
 * **Frequency<->Midi** - This button provides a tool to convert between tone frequency and midi number. 
 * **Rhythm** - The beat of the sequence of notes (tones) is determined by a [Euclidean Rhythm](https://en.wikipedia.org/wiki/Euclidean_rhythm) algorithm. The beats that are silent will cause a note to be not heard on that beat. For example, a rhythm that has 4 beats in a measure with 3 of them on will produce a 3/4 rhythm with the first 3 'on' and the last one silent. This is particularly useful when applied to percussive voices, but can be applied to any voice. Rhythm is defined by the following fields:
   * **Measure Length:** The number of beats in a measure. This is an integer greater than zero.
@@ -163,19 +166,20 @@ The fields and their restrictions are defined as follows:
 * **Notes in Octave:** This is how many notes to be used within an octave. The actual notes are determined by a Euclidean Rhythm algorithm where the larger number is 12. For example, if the number of notes in an octave is 7, the notes selected are (0, 2, 3, 5, 7, 8, 10). If primary note is C, the notes to be used in the octave are C, D, D#(Eb), F, G, G#(Ab), and A#(Bb). When a note is generated by one of the algorithms described below, it is moved to the closed selectable note in the octave. If the notes in the octave are set to 12, then all notes are selectable. 
 <a id="randomseed"></a>
 * **Noise Seed:** The is a character string that is used to seed the random number sequence for Gaussian noise. It defaults to the 'seed', which is not a particularly good value and should be changed. Each of the generators has its own seed. This can be the same as another generator if it is desired to have the generators Gaussian noise sequences coupled. See [this](https://stackoverflow.com/questions/16801687/javascript-random-ordering-with-seed) for a good discussion on generating random numbers.
-* **Noise Level:** [Gaussian noise](https://en.wikipedia.org/wiki/Gaussian_noise) can be applied to the generated notes. The level of noise is relative to the original note's signal. A value of 1 means the noise and the original note have the same volume. The center frequency of the noise is at note's frequency ($\mu$ in the following equation). Gaussian probability density function is used to generate noise: $$\varphi(z)=\frac {1}{2\pi\sigma}e^{-\frac {(z-\mu)^2}{2\sigma^2}}$$
-* **Dispersion:** The amount dispersion, $\sigma$, in midi numbers, of the Gaussian noise to be added to each note. This number mus be between 0 and 10, inclusive.
+* **Noise Frequency:** [Gaussian noise](https://en.wikipedia.org/wiki/Gaussian_noise) can be applied to the generated notes as frequency modulation noise. The noise frequency is added to the original note's frequency and then combined with the original signal. 
+* **Noise Amplitude:** This is the gain of the noise. A value of 1 means the noise and the original note have the same volume. 
 * **Reverb Duration:** The preset experiences reverberation that has duration and decay. This is the duration component, in seconds.
 * **Reverb Decay:** This is the decay component of preset reverberation, in seconds. Both duration and decay must be nonzero to have reverberation applied.
     
-
 The values of the sound attributes can be determined by one of three algorithms. These algorithms are discussed below.
   * Note - This determines which note is to be used from the selected SoundFont preset. Sometimes call the midi number, a note may be fractional so that it lies between two integer midi numbers. 
+  * Attack - This defines the preset velocity representing how fast a key was pressed. Higher velocities cause instruments to be added to the preset that have rapid attack profiles. 
   * Speed - This determines the rate at which notes will be played. It is expressed in beats per minute (BPM). 
+  * Duration - This is used to introduce a staccato effect to a note. Any value less that 100% will cause the note to be shortened during its performance period.
   * Volume - The volume of a selected note is expressed in decibels (dB) relative to the original sample level. Every dB reduces or increases the signal level by 2. 
   * Pan - The sound of the note can be panned left (-1) and right (1). Zero (0) is the pan center.
 
-Each of the note, speed, volume, and pan attributes of the sound must have an algorithm assigned. The initial value is *Constant*; however, this must be changed to one of those listed below before a Algorithmic generator can be added or modified. This figure below shows an example of an Algorithmic generator that has different algorithms assigned to the attributes. 
+Each of the note, attack, speed, duration, volume, and pan attributes must have an algorithm assigned. The initial value is *Constant*; however, this must be changed to one of those listed below. The figure below shows an example of an Algorithmic generator that has different algorithms assigned to the attributes. 
 ![alt text](./images/AlgorithmicEdit2.png)
 >>><div class="note">*Note: Midi numbers range from 0 to 127 and correspond to tones of C0 to G9 from the Acoustical Society at https://acousticalsociety.org/. When a midi number is entered, its note name is displayed next to the entry box. Fractional numbers may be entered. For example is 60.5 is entered the note name is displayed as *C4+50*</div>
 The algorithm types are as follows:
@@ -209,9 +213,7 @@ The algorithm types are as follows:
   The rest of the fields define state transition probabilities between the various states of the Markov Chain for the attribute. At any time, an attribute has a specific value. When it is time to obtain a new value, a transition from one state to the next is determined by drawing a random number. Each of the 9 transitions may have a different value but the sum of the three transitions out of a state and into another must sum up to one and each must be less than or equal to 1 and greater than or equal to 0. The figure below illustrates a example of the note attribute value will never stay at the same value and will have a probably of 0.5 of going either up or down.
   ![alt text](./images/MarkovianExample.png)
 
-* **Wiener** This generator uses the [Wiener Process](https://en.wikipedia.org/wiki/Wiener_process) to create a random walk or Brownian motion of the attribute. It starts at some value and randomly walks with a trend and dispersion at each beat. A zero trend will keep the random walk centered around the initial value. A negative trend decrease the value over time, and a positive trend increases the value. The dispersion affects how far from the trend line the value will be. Dispersion increases over time. Values are generated using the Wiener Process $$x_t=x_0+\alpha t+N(0,\sigma\sqrt{t})$$
-
-  where $x_t$ is the new attribute value at time $t$, $x_0$ is initial attribute value, $\alpha$ is the trend, $\sigma$ is the dispersion variable, and $\N$ is the Gaussian noise function which generates a random variable with mean $0$ and standard deviation $\sigma\sqrt{t}$.
+* **Wiener** This generator uses the [Wiener Process](https://en.wikipedia.org/wiki/Wiener_process) to create a random walk or Brownian motion of the attribute. It starts at some value and randomly walks with a trend and dispersion at each beat. A zero trend will keep the random walk centered around the initial value. A negative trend decrease the value over time, and a positive trend increases the value. The dispersion affects how far from the trend line the value will be. Dispersion increases over time.
 
   * **Seed:** This is a character string that is used to start the random number sequence for this generator. See [this](#randomseed) for further discussion about random seeds.
   * **Initial Value:** This is the value where the sequence of values for attribute starts. It must be between *Lo* and *Hi*.
@@ -221,23 +223,18 @@ The algorithm types are as follows:
   * **Hi:** This is the highest value that can be assigned to the attribute. It must be larger than the lo value.
 
 
-* **Autoregressive** This algorithm uses a first-order [Autoregressive Model](https://en.wikipedia.org/wiki/Autoregressive_model) to create a series of values with some persistence. The next value in the series is determined by the formula $$V_{i}=\alpha V_{i-1}+\sigma_i$$
-where
-  * $V_{i}$ is the next value in the series,
-  * $\alpha$ is the persistence parameters, usually between -1 and +1.
-  * $V_{i}$ is the previous value in the series, and
-  * $\sigma$ is a uniformly distributed random number between -0.5 and +0.5.
+* **Autoregressive** This algorithm uses a first-order [Autoregressive Model](https://en.wikipedia.org/wiki/Autoregressive_model) to create a series of values with some persistence. The next value in the series is determined using weighting the previous value and adding a uniformly distributed random number.
 
   The autoregressive model has the following inputs:
 
   * **Seed:** This is a character string that is used to start the random number sequence for this generator. See [this](#randomseed) for further discussion about random seeds.
   * **Initial Value:** This is the value where the sequence of values for attribute starts. It must be between *Lo* and *Hi*.
   * **Alpha:** The value of $\alpha$ in the formula above
-  * **Dispersion:** This value of $\sigma$ in teh formula above 
+  * **Dispersion:** This value of $\sigma$ in the formula above. 
   * **Lo:** This is the lowest value that can be assigned to the attribute. It must be smaller than the hi value.
   * **Hi:** This is the highest value that can be assigned to the attribute. It must be larger than the lo value.
 
-If the values goes of the lo<->hi interval, the sign on $\sigma$ is reversed.
+  The values are restricted to the *lo-hi* interval.
 
 ### AudioFile.
 This is not really a generator as it will play a saved audio file rather than generate a new sound. The user specifies the start time of the playback and its volume. The entire audio file is then played from beginning to end. A good use of an audio file generator is to build up a new composition from the recording of other compositions.  
@@ -291,7 +288,7 @@ This figure illustrates a typical timeline interval with three selected generato
 - **Moving the start or end of the timeline interval** When the mouse is moved over either the start or end of the timeline interval, an *ew-resize* cursor is displayed. A left mouse click with a drag left or right will move the selected end of the interval. Once the mouse is released the new end point is finalized and the generators contained within the interval are highlighted.
 
 # Room Level Functions
-During the rendering of a generated sound composition, all of the sources from all of the active generators are pulled together to allow for the room level audio modulators of volume, reverberation, compression, and equalization to be applied. These modulators are applied to all of the source sources as an aggregate. The parameters of the room level functions are part of the composition definition and are saved so they can be loaded later. The room level controls are located in the right hand corner of the screen. Their values are set by the use of sliders. 
+During the rendering of a generated sound composition, all of the sources from all of the active generators are pulled together to allow for the room level audio modulators of volume, reverberation, compression, and equalization to be applied. These modulators are applied to all of the source sources as an aggregate. The parameters of the room level functions are part of the composition definition and are saved so they can be loaded later. The room level controls are located in the right hand corner of the screen. Their values are set by the use of sliders. Reverberation, compression, and equalization may be disabled.
 ![alt text](./images/roommodulators.png)
 
 ## Room Volume
@@ -349,11 +346,11 @@ A progress bar is displayed while the recording is being constructed.
 
 ## Previewing
 
-When the *Preview* button is clicked, the selected generators will begin to produce sound through the system sound drivers in realtime. A Preview window is displayed so that the sound sources produced by the selected generators can be seen. Below is an example of a preview window when *Preview* is first selected.
+When the *Preview* button is clicked, a preview window is displayed so that the sound sources produced by the selected generators can be seen. Below is an example of a preview window when *Preview* is first selected.
 ![Preview Window](./images/PreviewWindow.png)
 This window has three sections:
 - Header: The application logo, a set of buttons, the application name, version, and file, the left and right volume monitors, and the time line are displayed here. The initial set of buttons are ***Exit*** and ***Start***. Exit will terminate the preview and return to either the main composition panel or the generator dialog, depending on how Preview was invoked. When Start is pressed, it is replaced by a ***Pause*** button. Pressing the Pause button will cause it to be replaced by a ***Resume*** button. Pressing the Resume button will resume the preview and display the Pause button again.
-- Body: Up to three sections may appears in the body - Instruments, Percussions, and AudioFile. each section's scale is derived from the range of values that the notes of the sources can take. The lower left hand corner display the section name and the minimum value on the scale, while the upper left hand corner displays the maximum value of the scale. In teh case of the percussion section, the notes each correspond to a different percussion instrument as per Soundfont2 rules. 
+- Body: Up to three sections may appears in the body - Instruments, Percussions, and AudioFile. Each section's scale is derived from the range of values that the notes of the sources can take. The lower left hand corner display the section name and the minimum value on the scale, while the upper left hand corner displays the maximum value of the scale. In the case of the percussion section, the notes each correspond to a different percussion instrument as per Soundfont2 rules. The instrument and percussion sections also have dashed lines that represent the integer midi numbers. A bolder dashed line indicates a C note.
   
   Within each section the sources are displayed. The vertical location corresponds to its note value, while its horizontal extent is determined by its start time and duration. The color is such that the hue is based on the pan location, the saturation is based on its volume, and its lightness is based on whether or not it is current producing sound. See the figure below for a close up of a preview that has been paused with some sources currently producing sound. 
   
@@ -362,7 +359,7 @@ This window has three sections:
   If a generator is previewed by selection of generator preview option, or generators are selected via the timeline interval, the generators' start times are moved such that the earliest start time is at zero. This avoids waiting until the generator would normal start before it is heard.
 
   When previewing, the current time of the soundtrack is shown by a moving <span style='color:red'>red</span> vertical line on the timeline. This line advances are time progresses. The time line pans right to maintain the current time in the window.
-- Footer: The number of total and active sources and generators are displayed in the footer along with the left and right channel spectra, and the room sound controls.  Any of the room sound controls may be modified during preview in order to hear their effect.
+- Footer: The number of total and active sources and generators are displayed in the footer along with the left and right channel spectra, and the room sound controls. Any of the room sound controls may be modified during preview in order to hear their effect.
 
 ## Reporting
 A report of the composition can be produced using the **Report...** button of the **Generate** menu. This report, in HTML format, provides the specific details of the file, all of its tracks, and all of its generators. The sources produced by each generator is expanded. This detail is provided for each generator, and then for all generators in start time sequence. 

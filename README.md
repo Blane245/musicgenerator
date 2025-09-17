@@ -5,14 +5,14 @@ This work is inspired by the book [Formalized Music: Thought and Mathematics in 
 The music generator will play one or more voices using various algorithms or from an existing audio file. Algorithmic voice controls include
 
 - start and stop times
-- soundfont bank and preset
-- generation algorithms for a voice's note, speed, volume, and pan (Constant, Oscillator, Autoregressive, Markovian, or Wiener)
-- application of Gaussian noise to a voice centered on the generator's current note
+- SoundFont bank and preset
+- generation algorithms for a voice's note, attack, speed, duration, volume, and pan (Constant, Oscillator, Autoregressive, Markovian, or Wiener)
+- application of Gaussian frequency modulation noise to a voice centered on the generator's current note
 - optional reverberation for each generator
 - rhythm selection based on a Euclidean Rhythm algorithm
 - the number of notes used in an octave based on the Euclidean Rhythm algorithm. 
 
-Sound generation can be either previewed thru the computer speakers or recorded to a wave or mp3 file.
+Sound generation can be either previewed thru the computer speakers or recorded to a wav or mp3 file.
 
 Room effects and controls are implemented. They include volume, reverb (both early reflections and diffuse noise), compression, and equalization.
 
@@ -33,36 +33,60 @@ There are three types of sound generators in this version:
 2. An algorithmic (**Algorithmic**) generator, which uses selectable algorithms for the assigned voice's parameter. Each of the voice's parameters may be assigned a different algorithm. The algorithm assigned to the note parameter uses midi numbers to select presets from a soundfont file. Each generator obtains its audio sample from a preset in a soundfont file. Each generator may use a different soundfont and preset.
     * The Constant algorithm sets the parameter at a constant value. 
     * The Oscillator algorithm creates a sequence of values using sine, sawtooth, square, descending triangular, or ascending triangular wave forms. Each waveform have a center, frequency, amplitude, and phase. The waveforms are sampled at each beat and a audio source is generated that starts at that time and ends at the next beat. If the amplitude of the oscillator is zero, the value generated is the center value, equivalent to the Constant algorithm.
-    * The Autoregressive algorithm creates a sequence of values for the assigned voice's parameter. This is a statistical first-order autoregressive sequence of values. There are two parameters:
-        * Alpha - the amount of persistence in the sequence
-        * Dispersion - the standard deviation of the white noise used to determine the next value on the sequence. 
+    * The Autoregressive algorithm creates a sequence of values for the assigned voice's parameter. This is a statistical first-order autoregressive sequence of values given by the equation $$V_{i}=\alpha V_{i-1}+\sigma_i$$
+where
+    $V_{i}$ is the next value in the series,
+    $\alpha$ is the persistence parameters, usually between -1 and +1.
+    $V_{i}$ is the previous value in the series, and
+    $\sigma$ is a uniformly distributed random number between -0.5 and +0.5.
+        
+        Each sequence value is bounded by a lower and upper limit and each move is done with a given step size.
+
     * The Markovian algorithm creates a sequence of values for the assigned voice's parameter. This is a statistical process that has three states with probability transitions between each state. The states are  
         * keep the same value 
         * move the value up 
         * move the value down 
-    If the state transition are such that all transition from the same state to the same state are 1, the value generated is always the starting value.
-    Each sequence is bounded by a lower and upper limit and each move is done with a given step size. When an parameter hits an upper or lower limit, the value is reversed. For example, if pan is already at its upper limit and the suggested value is to move further up, the value is changed to move down. Thus, the containment walls are not 'sticky'.
-    * The Wiener algorithm creates a sequence values for the assigned voice's parameter. This is a statistical process that has an assigned trend and dispersion.
+    
+        If the state transition are such that all transition from the same state to the same state are 1, the value generated is always the starting value. Each sequence value is bounded by a lower and upper limit and each move is done with a given step size. 
+    * The Wiener algorithm creates a sequence values for the assigned voice's parameter. This is a statistical process that has an assigned trend and dispersion. Each sequence value is bounded by a lower and upper limit and each move is done with a given step size. Values are generated using the Wiener Process $$x_t=x_0+\alpha t+N(0,\sigma\sqrt{t})$$
+
+    where $x_t$ is the new attribute value at time $t$, $x_0$ is initial attribute value, $\alpha$ is the trend, $\sigma$ is the dispersion variable, and $\N$ is the Gaussian noise function which generates a random variable with mean $0$ and standard deviation $\sigma\sqrt{t}$.
     * A Euclidean Rhythm algorithm is used to determine a beat pattern and the notes selectable with in octave. 
         * The number of beats in the measure is specified along with the number of 'on beats'. An 'on beat' is one that will produce a sound from the current preset, while an 'off beat' is silent no matter what preset is currently active. If the measure length and on beat count are the same, all notes will be played.
         * The number of notes in an octave determines which presets are available for use by the note parameter. When the note algorithm selects a midi value, the value is modified to the closest selectable midi number. If the number of notes in the octave is set to 12, all notes in teh octave will be heard.
-    * A Gaussian noise algorithm is used to apply noise the note's sample. The noise level determines the size of the noise signal, where 1 is the size of the original signal. The dispersion of the noise is given in midi numbers. If the dispersion if 0, no noise is applied.
-    * Diffuse reverberation may be applied to a generator.
+    * A Gaussian noise algorithm is used to apply noise the note's sample. The noise amplitude determines the gain of the noise signal. The frequency of the noise is given in hertz. If the amplitude or frequency is 0, no noise is applied. The Gaussian noise equation is  $$\varphi(z)=\frac {1}{2\pi\sigma}e^{-\frac {(z-\mu)^2}{2\sigma^2}}$$
+    where $\sigma$ is the noise frequency and $\mu$ is zero. The equation for the signal after adding the noise is $$s(t)=\frac {sin(2\pi(s_i(t)+\varphi(\rho))t)}{(1+\sigma)}$$ where $s(t)$ is the signal with applied noise, $\rho$ is a Gaussian-distributed random number, $t$ is the time and $s(t)_i$ is the instrument's signal at time $t$.
+
+        It should be noted that CMG does not use the gain values of the Gain node in the Web API and set the sample playback rate to one. These has been found to be poorly implemented. SoundFont samples are converted to instrument samples by the getPresetNode.tsx function. This is a rather complex routine and is described in detail in the Sample Generation section.
+    * Diffuse reverberation may be applied to a generator. This uses a Web API Audio Convolution filter with user-specified delay and decay times.
+
     
 3. An Audio File Generator (**AudioFile**). This generator contains the samples from an existing audio file. The start time is controllable, but the stop time is set based on the duration of the audio file. Only the volume can be adjusted as it is assumed that panning is handled in the file itself. 
 
 # Web Audio Routing Graph
 
-A Web Audio graph is virtualized when a user selects preview or play. The connections are not made until the context time comes that it will need to be played. In either case, the graph is the same, only the audio context destination is changed. The graph is constructed using time line interval selector, the muting and solo attributes of the tracks, and the muting attributes of the generators. A single generator may be previewed.
+A Web Audio graph is virtualized when a user selects preview or record. The connections are not made until the context time comes that it will need to be played. In either case, the graph is the same, only the audio context destination is changed. The graph is constructed using time line interval selector, the muting and solo attributes of the tracks, and the muting attributes of the generators. A single generator may be previewed.
 The following figure illustrates the audio graph using an example where their are an arbitrary number of tracks containing an arbitrary number of generators.
 
 The upper figure focuses on overall structure from the generators to the compressor. The lower figure focuses on the multiple sources of a single generator. A generator can create one or more sources depending on its type and the specified interval or speed.
 
 ![Web Audio Routine Graph](AudioRoutingGraph.png)
 
-The upper figure presents those sources, volumes, pans, and reverbs or a generator as a single box. Each generator group is connected to the room concentrator which has a gain of 1. The lower figure illustrates a generator that creates several sources, applies volume and pan to each source.
+The upper figure presents those sources, volumes, pans, and reverbs or a generator as a single box. Each generator group is connected to the room concentrator which has a gain of 1. The lower figure illustrates a generator that creates several sources, applies volume and pan to each source. In all cases the gain for volume is 1, as the attribute has been handled in the construction of the sources signal.
 
-The room concentrator gain output is routed to an volume, equalizer, and compressor, and to the final destination (either computer speakers for preview or a output stream for recording).
+The room concentrator gain output is routed to an reverb, compressor, equalizer, volume controls, and to the final destination (either computer speakers for preview or a output stream for recording). 
+
+The reverb, compressor, and equalizer may be enabled or disabled by the user. The diagrams for each is shown below. First the reverb:
+
+![Reverb audio routing graph](RoomReverb.png)
+
+The compressor:
+ 
+![compressor audio routing graph](RoomCompressor.png)
+
+The equalizer:
+
+![equalizer audio routing graph](RoomEqualizer.png)
 
 # Application Structure
 
@@ -78,7 +102,7 @@ The figure below illustrates the class structure of the application. It is imple
 
 ![CMG Component Diagram](ClassDiagram.png)
 
-The application is designed around the user interface and supported by a context. The three parts of the application are the header, body, and footer. Preview and Generator Dialog functions are implemented at the top level to facilitate interaction between composition maintenance and preview displays
+The application is designed around the user interface and supported by a context. The four parts of the application are the header, body, footer, and previewer. Preview is implemented at the top level to facilitate full screen display of the preview window.
 
 ## Component Structure
 Classes are used to define sound generator objects (Silent, Algorithmic, AudioFile) that are persisted in files while the user interface and sound generation are implemented through React functions. The general structure of the classes are
@@ -116,11 +140,11 @@ The footer includes areas for a status message, reverb, compressor, equalizer, a
 
 ## Preview and Record Generation
 
-This is the business end of this application and most of the user interaction function is disabled when in either of these modes. The only interaction allowed is to stop the preview or record, or adjust the volume, equalizer, and compressor parameters while previewing. 
+This is the business end of this application and most of the user interaction function is disabled when in either of these modes. The only interaction allowed is to pause the preview or stop the recording, or adjust the reverb, volume, equalizer, and compressor parameters while previewing. 
 
 While previewing or recording is being done, filters are applied to determine which sources will be used to build the audio routing graph. These filters take into account the presence of a timeline interval, and track and generator solo and mute settings. An array of sources is constructed that contains all of the information needed to construct the audio routing graph.
 
-Generation involves the building of the audio routing graph for the composition. There could be several thousand sources and related audio nodes in the full composition. Trying to realize the entire graph for preview or record is problematic and the memory required may be excessive. A scheme has been developed to only realize a portion of the graph, discard that portion and realize another portion. This algorithm is different for preview and record.
+Generation involves the building of the audio routing graph for the composition. There could be several thousand sources and related audio nodes in the full composition. Trying to realize the entire graph for preview or record is problematic and the memory required may be excessive. Scheme have been developed to only realize a portion of the graph, discard that portion and realize another portion. These schemes are different for preview and record.
 
 Preview provides a display overlay that contains three areas:
 
@@ -171,6 +195,60 @@ Before recording can begin, the user is asked to identify the file that is to co
 6. When all batches are completed, the total is encoded to the audio file and the timer is stopped.
 7. Another timer is used to update a progress bar than displayed the percentage of buffers completed or the total required. 
 
+# Sample Generation
+
+I have found the gain envelope feature of the Web API audio framework to be problematic. Envelope control does not have a high level of accuracy and does not always perform as desired. I have developed the following scheme to construct the audio samples for each source using information from the SoundFont preset and instruments and the user controls for note, attack, speed, duration, and volume.
+
+The gain envelope, in general has five different regions that may be present. The values for these are derived from the preset and instrument of the selected midi and velocity. There may be one or more instruments associated with the midi/velocity combination. Each of them will have its own gain envelope. The gain regions, and their SoundFont definition parameters are:
+1. **Delay** - the amount of time (*delayEnd*) that the signal is zero before the instrument's sound begins (*delayVolEnv*).
+2. **Attack** - the amount of time (*attackEnd*) that the signal gain changes from 0 to 1 (*attackVolEnv*).
+3. **Hold** - the amount of time (*holdEnd*) that the signal gain remains at 1 (*holdVolEnv*).
+4. **Decay** - the amount of time (*DecayEnd) that the signal gain goes from 1 to a sustained gain level (*decayVolEnv*). The sustain level is defined by *sustainVolEnv* and is converted to *sustainGain*.
+5. **Release** - the amount of time (*ReleaseEnd*) that the signal gain goes from the sustained gain level to 0 (*releaseVolEnv*).
+
+Below is a full gain envelope with all regions present. Not all may be in all cases depending on parameters of the note. 
+
+![Gain Envelop](GainEnvelope.png)
+
+SoundFonts are normally driven by a human gesture, e.g., the press and release of a key. A key may be pressed soft or hard, thus giving it a sound a different attack. In SoundFont terminology, this is called note velocity.
+
+CMG has certain parameters that mimic human gestures. A generator has a start and stop time, similar to pressing and releasing a key. It has a speed which defines how often notes are played during the generator start/stop period. It has a duration with is a percentage of the time between start and stop that mimics early release for staccato effects. It has an attack parameter which is the note velocity. It has a volume mimicking some form of human control, like a turning of a knob or moving of a slider.
+
+As an example, a violin preset (000:040) in the GeneralUser-GS SoundFont file has a number of instruments defined that are keyed by note range and velocity range. By specify these two parameters, either one or two instruments are selected depending on the note and velocity values. For most notes, the higher velocities have an instrument that contains the samples for hard string bowing. Lower velocities do not have this instrument.
+
+The envelope for an instrument is determined by CMG using the following scheme:
+1. The instrument's playback rate is determined from the rootKey, and pitchCorrection. This playback rate and the instrument's sample rate are used to determine the sample rate for the final sample to be constructed (*sampleRate*). 
+2. The instrument's sample looping parameters are read (*loop, startLoop, endLoop*). The generator's *Looping?* is used to override the instrument's loop value.
+3. The time when the note is to end (*noteEnd*) is either the *Duration* or the length of time of the sample, depending on whether the sample is looping. 
+4. If the sample is not looping or the duration is not the full note length, there is no release phase of the envelope and *releaseEnd* is set to *NoteEnd*.
+5. All of the envelope values are read from the preset/instrument combination. 
+6. The envelope is constructed as follows:
+    * If *noteEnd* is less than *delayEnd* there is no sound and the envelope has one point of zero gain.
+    * If *noteEnd* is between *delayEnd* and *attackEnd*, the attack is terminated early at *noteEnd*, the gain at the end of the note is determined by linear interpolation (*noteGainEnd*) and a new point is added to the gain envelope at *noteEnd* with a gain of *noteGainEnd*; otherwise, the envelope has a new point a time of *attackEnd* with a gain of 1 and *noteGainEnd* is 1 in preparation for handling the hold phase.
+    * If *noteEnd* is between *attackEnd* and *holdEnd*, there is no decay phase, a new point is added to the gain envelope at *noteEnd* with a gain of 1 and if there is a release phase, a point is added at *releaseEnd* with a gain of 0; otherwise, a point is added at *holdEnd* with a gain of 1 in preparation for handling the decay phase.
+    * if *noteEnd* is between *holdEnd* and *decayEnd*, there is a early decay termination at *noteEnd*, the gain at the end of the note is determined by linear interpolation (*noteEndGain*) and a new point is added at *noteEnd* with a gain of *noteEndGain*; otherwise, the envelope has a new point at time *decayEnd* with a gain of *sustainGain* and a new point is added at *noteEnd* with a gain of *sustainGain*.
+    * If *noteEnd* is not *releaseEnd*, there is a release phase and a new point is added at *releaseEnd* with a gain of 0.
+    * The *totalTime* is defined as *releaseEnd*.
+    * There is always a point at *totalTime* with a gain of 0.
+
+        Thus a gain envelope may have as few as one point and as many as six.
+    
+
+Once the *sampleRate* and *totalTime* are defined the samples can be determined by resampling the instrument's samples and applying noise, which is defined by *noiseFrequency* and *noiseAmplitude*. During this resampling, the *Volume* gain value for the generator is applied. The resampling scheme is as follows:
+
+1. The *sampleCount* is the product of *sampleRate* and *totalTime*. construct the sample array with this number of elements and initialized to zero.
+1. The time spacing between samples is the reciprocal of *sampleRate*.
+1. The delay time dead period has length of the product of *sampleRate* and *delayEnd*
+1. The spacing between each instrument sample (*deltaIndex*) is the ratio of the instrument's sample rate and the new sample rate. This may not be an integer. Set current index to zero. This points to the instrument's sample to the used. 
+1. Starting at *delayEnd*, loop through sample array, one entry at a time, incrementing the time by the time spacing
+    * if the current index is less than the instrument's last sample, set the sample array to the instrument's sample with noise added (see below); 
+    * otherwise, if looping, adjust the current index to the start opf the loop and set the sample array to this instrument's sample with noise added
+    * otherwise, there are no more instrument samples, set the sample array at this point to zero.
+
+Gaussian frequency modulation noise may be added to the sample if specified by the user. The noise has a dispersion of *noiseFrequency* and an amplitude of *noiseAmplitude*. The added noise is balanced with the original signal assuming that the original signal's gain is 1.
+
+Once the sample array has been constructed by resampling the instrument's signal and applying noise, the gain envelope can be applied to it. This is a relatively simple process of interpolating the gain between envelope points and applying it to the signal. The time spacing of the sample points.
+
 # Thanks
 
 Special thanks to various people and non-people
@@ -180,7 +258,8 @@ Special thanks to various people and non-people
 - WebAudio documentation, particularly the authors of the page [Advanced techniques: Creating and sequencing audio](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Advanced_techniques).
 - Russell Good for his blog [How to Convert an AudioBuffer to an Audio File with JavaScript](https://russellgood.com/how-to-convert-audiobuffer-to-audio-file/).
 - Mathew Willox for his blog [Making Reverb with the Web Audio API](https://blog.gskinner.com/archives/2019/02/reverb-web-audio-api.html). 
-- The Duckduckgo search engine that helped me hack my way through this.
+- The Duckduckgo search engine and Visual Code Chat Engine that helped me hack my way through this.
+- 'The Computer Music Tutorial', by Curtis Roads, 1996. This is an excellent book that gives the history and basic of signal processing as applied to sound. 
 
 # Versions - Changes
 ## 4.0.0 Release Notes
@@ -226,13 +305,17 @@ Special thanks to various people and non-people
 
 # Development and Installation
 
-This application was developed in Visual Code, using a vite/typescript project.
+This application was developed in Visual Code, using a vite/typescript project. 
 
 ## Typescript and Vite build tweaks
 
 While TypeScript goes a long way towards making JavaScript strongly data typed, there is still some work that is needed. I had to have typescript compiler ignore a few lines that it was having trouble with using // @ts-ignore
 
-The base for the build is set to /cmg3.
-I am running a nginx ubuntu server for access to the CMG client. After building the application (npm run build), move the contents of the build folder (dist) to /var/www/lanedb.hopto.org/cmg via scp. The nginx configuration for the path lanedb.hopto.org/cmg3 is root /var/www/lanedb.hopto.org. The assets directory had to have its mode changed via <code>sudo chmod 755 assets</code>.
+The base for the build is set to /cmg4.
+I am running a nginx ubuntu server for access to the CMG client. After building the application (npm run build), move the contents of the build folder (dist) to /var/www/lanedb.hopto.org/cmg4 via scp. The nginx configuration for the path lanedb.hopto.org/cmg4 is root /var/www/lanedb.hopto.org. The assets directory had to have its mode changed via <code>sudo chmod 755 assets</code>.
 
+## Local file server
 
+Web security restrictions prevent file dialogs from obtaining the full path of files read and written on the local machine. This drove me to write a local file server that mimics the file dialogs in Javascript. It is used to access SoundFont files and enabled a 'recent files' capability since the full path is available to me. Since this application is full a local client with no internet dependencies, there is no security problem.
+
+The local file server, located in the [GitHub Repository](https://github.com/Blane245/local_file_server). The README.md file has installation instructions.
