@@ -130,7 +130,7 @@ export const getPresetNote = (
 
     // get the end times for the amplitude envelope
     const sampleTime: number =
-      instrumentSample.length / (sampleRate * playbackRate);
+      instrumentSample.length / instrumentSampleRate;
     const delayEnd: number = precision(tc2s(delayVolEnv), 3);
     const attackEnd: number = delayEnd + precision(tc2s(attackVolEnv), 3);
     const holdEnd: number = attackEnd + precision(tc2s(holdVolEnv), 3);
@@ -195,7 +195,7 @@ export const getPresetNote = (
 
     if (noteEnd != releaseEnd) envelope.push({ t: releaseEnd, g: 0 });
 
-    const sample: Float32Array = buildSampleArray(
+    let sample: Float32Array = buildSampleArray(
       instrumentSample,
       instrumentSampleRate,
       sampleRate, // includes instrumentSampleRate and playbackRate
@@ -212,7 +212,7 @@ export const getPresetNote = (
       gen.rn
     );
 
-    applyEnvelope(sample, sampleRate, envelope);
+    sample = applyEnvelope(sample, sampleRate, envelope);
 
     const aResult: RawSourceData = {
       gen,
@@ -301,11 +301,13 @@ function buildSampleArray(
   // console.log('signal level', signalLevel);
   // handle sampling where the instrument sample rate is to the final sample rate
   const deltaIndex: number = instrumentSampleRate / sampleRate;
+  // console.log('delta index', deltaIndex);
   let currentIndex: number = 0;
-  let iSample = delayCount;
+  // let iSample = delayCount;
   const lastSample: number = looping ? loopEnd : instrumentSampleLength;
   const centerFrequency: number = midiToFrequency(midi);
-  while (iSample < sampleCount) {
+  for (let iSample: number = delayCount; iSample < sampleCount; iSample++) {
+  // while (iSample < sampleCount) {
     let thisIndex: number = Math.round(currentIndex);
 
     if (thisIndex < lastSample) {
@@ -320,7 +322,7 @@ function buildSampleArray(
           rn
         ) * volume * 
         attenuation;
-      iSample++;
+      // iSample++;
       t+=deltaT;
     } else if (looping) {
       // handle looping
@@ -338,12 +340,12 @@ function buildSampleArray(
           rn
         ) * volume *
         attenuation;
-      iSample++;
+      // iSample++;
       t+=deltaT;
     } else {
       // signal is zero if not looping
       result[iSample] = 0;
-      iSample++;
+      // iSample++;
       t+=deltaT;
     }
 
@@ -377,12 +379,13 @@ function applyEnvelope(
   sample: Float32Array,
   sampleRate: number,
   envelope: { t: number; g: number }[],
-) {
+): Float32Array {
+  const newSample: Float32Array = new Float32Array(sample.length);
   const deltaT: number = 1 / sampleRate;
   let ti: number = 0;
   let iEnvelope: number = 0;
   const maxI: number = envelope.length - 1;
-  sample.forEach((s) => {
+  sample.forEach((s,i) => {
     if (ti >= envelope[iEnvelope].t && iEnvelope < maxI) iEnvelope++;
     const g: number = envelope[iEnvelope].g != envelope[iEnvelope - 1].g? linearInterpolate(
       ti,
@@ -391,7 +394,8 @@ function applyEnvelope(
       envelope[iEnvelope - 1].g,
       envelope[iEnvelope].g
     ): envelope[iEnvelope].g;
-    s = s * g;
+    newSample[i] = s * g;
     ti+=deltaT;
   });
+  return newSample;
 }

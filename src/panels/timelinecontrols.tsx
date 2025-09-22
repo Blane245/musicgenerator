@@ -11,11 +11,12 @@ import {
   CiZoomIn,
   CiZoomOut,
 } from "react-icons/ci";
-import { TimelineInterval, TimeLineScales } from "types";
+import { TimelineInterval, TimeLineScales, TIMELINETYPE } from "types";
+import { setDirty } from "utils/cmfiletransactions";
 import updateTimeInterval from "utils/updatetimeinterval";
 // render the timeline and control the timeline interval
 export default function TimeLineControls() {
-  const { setFileContents, timeLine, setTimeLine, timeInterval, setTimeInterval } =
+  const { fileContents, setFileContents, timeLine, setTimeLine, timeInterval, setTimeInterval } =
     useCMGContext();
 
   // when the timeline changes update the timeInterval and set the dirty bit
@@ -34,11 +35,7 @@ export default function TimeLineControls() {
       n.zoomIn();
       return n;
     });
-    setFileContents((prev) => {
-      const n : CMGFile = prev.copy();
-      n.dirty = true;
-      return n;
-    });
+    setDirty (true, fileContents, setFileContents);
   };
   const handleZoomOut = (): void => {
     setTimeLine((c: TimeLine | null) => {
@@ -47,11 +44,7 @@ export default function TimeLineControls() {
       n.zoomOut();
       return n;
     });
-    setFileContents((prev) => {
-      const n : CMGFile = prev.copy();
-      n.dirty = true;
-      return n;
-    });
+    setDirty (true, fileContents, setFileContents);
   };
 
   // shift time line start left 1/2 of the extent of the current zoom level
@@ -63,11 +56,7 @@ export default function TimeLineControls() {
       n.shiftLeft();
       return n;
     });
-    setFileContents((prev) => {
-      const n : CMGFile = prev.copy();
-      n.dirty = true;
-      return n;
-    });
+    setDirty (true, fileContents, setFileContents);
   };
 
   // shift time line start right 1/2 of the extent of the current zoom level
@@ -78,12 +67,29 @@ export default function TimeLineControls() {
       n.shiftRight();
       return n;
     });
-    setFileContents((prev) => {
-      const n : CMGFile = prev.copy();
-      n.dirty = true;
+    
+    setDirty (true, fileContents, setFileContents);
+  };
+
+  const handleModeChange = (): void => {
+    if (timeLine?.mode == TIMELINETYPE.Time && timeLine?.beatsPerMeasure != 0 && timeLine.measureSize != 0) {
+      setTimeLine((c: TimeLine | null) => {
+      if (!c) return null;
+      const n = c.copy();
+      n.mode = TIMELINETYPE.Measure;
       return n;
     });
-  };
+    setDirty (true, fileContents, setFileContents);
+  } else if (timeLine?.mode == TIMELINETYPE.Measure) {
+      setTimeLine((c: TimeLine | null) => {
+      if (!c) return null;
+      const n = c.copy();
+      n.mode = TIMELINETYPE.Time;
+      return n;
+    });
+  }
+
+}
 
   return (
     <>
@@ -113,6 +119,11 @@ export default function TimeLineControls() {
       <button style={{ fontSize: "15px" }} onClick={handleShiftRight}>
         <CiCircleChevRight />
       </button>
+      <br/>
+      <button style={{ fontSize: '15px'}} onClick={handleModeChange}>
+        {timeLine?.mode}
+      </button>
+      {timeLine?.mode == 'Measure'? ' '+timeLine?.measureSize.toFixed(2)+' (sec)':''}
     </>
   );
 }

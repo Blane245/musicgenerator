@@ -47,6 +47,8 @@ import {
   SignalLevelsType,
   TimeLineScales,
   TimeTicks,
+  MINDECIBELS,
+  MAXDECIBELS,
 } from "types";
 import getTickLinesandLabels from "utils/getticklinesandlabels";
 import { linearInterpolate } from "utils/interpolation";
@@ -82,7 +84,7 @@ type SourceToDrawingSectionEntry = {
 // highly integrated
 export default function Preview(params: PreviewProps): JSX.Element {
   const { setMode, appName, appVersion } = params;
-  let { sourceData} = params;
+  let { sourceData } = params;
   const {
     fileContents,
     fileName,
@@ -91,11 +93,15 @@ export default function Preview(params: PreviewProps): JSX.Element {
     displayWidth,
     headerHeight,
     previewHeight,
+    timelineWidth,
     timelineHeight,
     footerHeight,
     timeLine,
   } = useCMGContext();
-  const spectrumWidth: number = 200;
+  const signalWidth: number = 200;
+  const spectrumHeight: number = footerHeight * 0.67;
+  const volumeHeight: number = footerHeight - spectrumHeight;
+  const volumeOffset: number = spectrumHeight;
   const pendingSourceData = useRef<RawSourceData[]>([]);
   const [drawingSections, setDrawingSections] = useState<DrawingSection[]>([]);
   const [sourceToDrawingSectionMap, setSourceToDrawingSectionMap] = useState<
@@ -120,6 +126,8 @@ export default function Preview(params: PreviewProps): JSX.Element {
     leftSpectrum: new Uint8Array(0),
     rightSpectrum: new Uint8Array(0),
   });
+  const [leftVolumes, setLeftVolumes] = useState<string>("");
+  const [rightVolumes, setRightVolumes] = useState<string>("");
 
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
   const [concentrator, setConcentrator] = useState<GainNode | null>(null);
@@ -138,7 +146,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
     scaleExtent: 0,
     labelFormat: "",
   });
-  const [reflectionDelay, setReflectionDelay] = useState<number>(0);
+  // const [reflectionDelay, setReflectionDelay] = useState<number>(0);
   const [analyser, setAnalyser] = useState<SignalLevel | null>(null);
 
   const HUELEFT: number = 225;
@@ -290,7 +298,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
     // generator highlighter running every 1/2 seconds
     playingGenerators();
     // volume level monitor running every 1/2 second
-    volumeMonitor();
+    signalMonitor();
     audioContext.resume();
     scheduler();
   }
@@ -315,7 +323,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
       paused.current = false;
       tick();
       playingGenerators();
-      volumeMonitor();
+      signalMonitor();
       audioContext.resume();
       scheduler();
     } else {
@@ -326,7 +334,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
       scheduler();
       tick();
       playingGenerators();
-      volumeMonitor();
+      signalMonitor();
     }
   }
 
@@ -641,8 +649,8 @@ export default function Preview(params: PreviewProps): JSX.Element {
       drawing.appendChild(newLine);
 
       // label the section with names and lo and hi values
-      const hiScale: number = (Math.floor(section.hiValue/12) + 1) * 12;
-      const loScale: number = (Math.floor(section.loValue/12) - 1) * 12;
+      const hiScale: number = (Math.floor(section.hiValue / 12) + 1) * 12;
+      const loScale: number = (Math.floor(section.loValue / 12) - 1) * 12;
       const hiNote: string = toNote(hiScale);
       const loNote: string = toNote(loScale);
       const sectionNameElement: SVGTextElement = document.createElementNS(
@@ -652,7 +660,10 @@ export default function Preview(params: PreviewProps): JSX.Element {
       sectionNameElement.textContent =
         section.type +
         "s (" +
-        loScale.toFixed(0).toString()  + ": "+loNote+        ")";
+        loScale.toFixed(0).toString() +
+        ": " +
+        loNote +
+        ")";
       sectionNameElement.setAttribute("x", "2");
       sectionNameElement.setAttribute(
         "y",
@@ -666,7 +677,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
         "text"
       );
       sectionHiElement.textContent =
-        "(" + hiScale.toFixed(0).toString() + ": "+hiNote+")";
+        "(" + hiScale.toFixed(0).toString() + ": " + hiNote + ")";
       sectionHiElement.setAttribute("x", "2");
       sectionHiElement.setAttribute(
         "y",
@@ -682,19 +693,28 @@ export default function Preview(params: PreviewProps): JSX.Element {
       const hiMidi = hiScale;
       const loMidi = loScale;
       for (let iMidi = loMidi; iMidi < hiMidi; iMidi++) {
-        const y: number = linearInterpolate(iMidi, loMidi, hiMidi, section.height + section.verticalOffset, 0);
-        const midiLineElement: SVGLineElement = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "line"
+        const y: number = linearInterpolate(
+          iMidi,
+          loMidi,
+          hiMidi,
+          section.height + section.verticalOffset,
+          section.verticalOffset
         );
-        midiLineElement.setAttribute('x1', '0');
-        midiLineElement.setAttribute('x2', displayWidth.toString());
-        midiLineElement.setAttribute('y1', y.toString());
-        midiLineElement.setAttribute('y2', y.toString());
+        const midiLineElement: SVGLineElement = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "line"
+        );
+        midiLineElement.setAttribute("x1", "0");
+        midiLineElement.setAttribute("x2", displayWidth.toString());
+        midiLineElement.setAttribute("y1", y.toString());
+        midiLineElement.setAttribute("y2", y.toString());
 
-      midiLineElement.setAttribute("stroke", iMidi % 12 == 0?'lightcoral':'lightgray');
-      midiLineElement.setAttribute("stroke-width", "1");
-      midiLineElement.setAttribute("stroke-dasharray", "5,5");
+        midiLineElement.setAttribute(
+          "stroke",
+          iMidi % 12 == 0 ? "lightcoral" : "lightgray"
+        );
+        midiLineElement.setAttribute("stroke-width", "1");
+        midiLineElement.setAttribute("stroke-dasharray", "5,5");
         drawing.appendChild(midiLineElement);
       }
     });
@@ -791,9 +811,16 @@ export default function Preview(params: PreviewProps): JSX.Element {
           height,
           verticalOffset
         );
-        const hue = linearInterpolate(s.panner.value, -1, 1, HUELEFT, HUERIGHT) % 360;
-        const saturation: number = Math.min(SATURATIONLO, Math.max(SATURATIONHI,linearInterpolate(s.vol.value, -3, 0, SATURATIONLO, SATURATIONHI)));
-        const lightness: number = !s.source.started? LIGHTNESSLO: LIGHTNESSHI;
+        const hue =
+          linearInterpolate(s.panner.value, -1, 1, HUELEFT, HUERIGHT) % 360;
+        const saturation: number = Math.min(
+          SATURATIONLO,
+          Math.max(
+            SATURATIONHI,
+            linearInterpolate(s.vol.value, -3, 0, SATURATIONLO, SATURATIONHI)
+          )
+        );
+        const lightness: number = !s.source.started ? LIGHTNESSLO : LIGHTNESSHI;
         stroke = "hsl(" + hue + "," + saturation + "%," + lightness + "%";
         const newLine: SVGLineElement = document.createElementNS(
           "http://www.w3.org/2000/svg",
@@ -829,9 +856,16 @@ export default function Preview(params: PreviewProps): JSX.Element {
       console.log("line not found for source", s.index);
       return;
     }
-        const hue = linearInterpolate(s.panner.value, -1, 1, HUELEFT, HUERIGHT) % 360;
-        const saturation: number = Math.min(SATURATIONLO, Math.max(SATURATIONHI,linearInterpolate(s.vol.value, -3, 0, SATURATIONLO, SATURATIONHI)));
-        const lightness: number = !s.source.started? LIGHTNESSLO: LIGHTNESSHI;
+    const hue =
+      linearInterpolate(s.panner.value, -1, 1, HUELEFT, HUERIGHT) % 360;
+    const saturation: number = Math.min(
+      SATURATIONLO,
+      Math.max(
+        SATURATIONHI,
+        linearInterpolate(s.vol.value, -3, 0, SATURATIONLO, SATURATIONHI)
+      )
+    );
+    const lightness: number = !s.source.started ? LIGHTNESSLO : LIGHTNESSHI;
     const stroke = "hsl(" + hue + "," + saturation + "%," + lightness + "%";
     sourceElement.setAttribute("stroke", stroke);
   }
@@ -845,7 +879,8 @@ export default function Preview(params: PreviewProps): JSX.Element {
     }
     if (!audioContext) return;
     // check if done or stopped
-    const done: boolean = audioContext.currentTime > playbackLength + reflectionDelay;
+    // const done: boolean = audioContext.currentTime > playbackLength + reflectionDelay;
+    const done: boolean = audioContext.currentTime > playbackLength;
     if (!done && playing.current) {
       timerID = window.setTimeout(scheduler, LOOKAHEAD);
     } else {
@@ -924,12 +959,13 @@ export default function Preview(params: PreviewProps): JSX.Element {
             );
             return;
           }
-          const stopTime: number =
-            activeSource.stopTime -
-            offsetTime +
-            (reflectionDelay == 0
-              ? 0
-              : reflectionDelay / 1000 + thisSource.source.duration);
+          // const stopTime: number =
+          //   activeSource.stopTime -
+          //   offsetTime +
+          //   (reflectionDelay == 0
+          //     ? 0
+          //     : reflectionDelay / 1000 + thisSource.source.duration);
+          const stopTime: number = activeSource.stopTime - offsetTime;
           // console.log('source stop candidate stoptime, audioContext', stopTime, ctx.currentTime);
           if (audioContext.currentTime > stopTime) {
             if (activeSource.gen.type != GENERATORTYPE.Silent) {
@@ -1068,9 +1104,9 @@ export default function Preview(params: PreviewProps): JSX.Element {
   }
 
   // get the volume and spectra once a second
-  function volumeMonitor() {
+  function signalMonitor() {
     if (paused.current) {
-      console.log("volumeMonitor paused");
+      console.log("signalMonitor paused");
       signalId && clearTimeout(signalId);
       return;
     }
@@ -1087,9 +1123,10 @@ export default function Preview(params: PreviewProps): JSX.Element {
           };
         const { leftVolume, rightVolume, leftSpectrum, rightSpectrum } =
           analyser.getValues();
+        addVolumePoints(leftVolume, rightVolume);
         return { leftVolume, rightVolume, leftSpectrum, rightSpectrum };
       });
-      signalId = window.setTimeout(volumeMonitor, 1000);
+      signalId = window.setTimeout(signalMonitor, 250);
     } else {
       signalId && clearTimeout(signalId);
       setSignalLevels({
@@ -1099,6 +1136,42 @@ export default function Preview(params: PreviewProps): JSX.Element {
         rightSpectrum: new Uint8Array(0),
       });
     }
+    const addVolumePoints = (left: number, right: number) => {
+      setLeftVolumes((prev) => {
+        const x: number = linearInterpolate(
+          audioContext.currentTime,
+          0,
+          playbackLength,
+          0,
+          signalWidth
+        );
+        const y: number = linearInterpolate(
+          Math.min(1, Math.max(0, left)),
+          0,
+          1,
+          volumeHeight + volumeOffset,
+          volumeOffset
+        );
+        return `${prev} ${x.toString()},${y.toString()}`;
+      });
+      setRightVolumes((prev) => {
+        const x: number = linearInterpolate(
+          audioContext.currentTime,
+          0,
+          playbackLength,
+          0,
+          signalWidth
+        );
+        const y: number = linearInterpolate(
+          Math.min(1, Math.max(0, right)),
+          0,
+          1,
+          volumeHeight + volumeOffset,
+          volumeOffset
+        );
+        return `${prev} ${x.toString()},${y.toString()}`;
+      });
+    };
   }
 
   function getOffsetFromTime(
@@ -1176,20 +1249,19 @@ export default function Preview(params: PreviewProps): JSX.Element {
     );
 
     // determine the amount of time that the reverberation causes
-    const theDelay: number = Math.max(
-      0,
-      fileContents.reverb.leftWall.delay,
-      fileContents.reverb.rightWall.delay,
-      fileContents.reverb.ceiling.delay
-    );
-    setReflectionDelay(theDelay);
-    console.log("reflection delay is", theDelay);
+    // const theDelay: number = Math.max(
+    //   0,
+    //   fileContents.reverb.leftWall.delay,
+    //   fileContents.reverb.rightWall.delay,
+    //   fileContents.reverb.ceiling.delay
+    // );
+    // setReflectionDelay(theDelay);
+    // console.log("reflection delay is", theDelay);
     // connect to the signal analyser to the output of the volumes and spectra (assumed to be last)
     setAnalyser(new SignalLevel(ctx, fileContents.volume.effect as GainNode));
     console.log("analyzer connected", fileContents.volume.effect);
   }
   function DrawSpectrum(spectrum: Uint8Array): JSX.Element[] {
-
     if (!spectrum || spectrum.length == 0) return [<></>];
 
     // set vertical scale as log
@@ -1197,12 +1269,18 @@ export default function Preview(params: PreviewProps): JSX.Element {
     const result: JSX.Element[] = [];
     const minFrequency = frequencyForBinIndex(0);
     const maxFrequency = frequencyForBinIndex(spectrum.length - 1);
-    let d: string = `M 0 ${footerHeight * (1.0 - (spectrum[0]) /255)} `;
+    let d: string = `M 0 ${spectrumHeight * (1.0 - spectrum[0] / 255)} `;
     for (let i = 1; i < spectrum.length; i++) {
       const frequency = frequencyForBinIndex(i);
       d += `L 
-       ${linearInterpolate(frequency, minFrequency, maxFrequency, 0, spectrumWidth)}
-       ${footerHeight * (1.0 - (spectrum[i]) / 255)} `;
+       ${linearInterpolate(
+         frequency,
+         minFrequency,
+         maxFrequency,
+         0,
+         signalWidth
+       )}
+       ${spectrumHeight * (1.0 - spectrum[i] / 255)} `;
     }
     result.push(<path d={d} stroke="red" fill="none" />);
     return result;
@@ -1212,11 +1290,21 @@ export default function Preview(params: PreviewProps): JSX.Element {
       return Math.log10(((index + 1) * audioContext.sampleRate) / FFTSIZE / 2);
     }
   }
-  
+
+  // function AddVolumePoint(volume: number, className:string): JSX.Element {
+  //   if (!audioContext) return <></>;
+  //   const point: JSX.Element = <circle className={className}
+  //     cx={linearInterpolate(audioContext.currentTime, 0, playbackLength, 0, signalWidth)}
+  //     cy={volumeOffset + Math.min(1, Math.max(0, linearInterpolate(volume, 0, 1, volumeHeight, 0)))}
+  //     r={'2px'}
+  //     />
+  //   return point;
+  // }
+
   return (
     <div
       className="preview"
-      style={{ height: displayHeight, width: displayWidth }}
+      // style={{ height: displayHeight, width: displayWidth }}
     >
       <div
         className="header"
@@ -1249,7 +1337,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
             fileContents.dirty ? "*" : ""
           }`}
         </div>
-        <div className="left">
+        {/* <div className="left">
           <input
             type="range"
             readOnly
@@ -1266,7 +1354,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
             min={0}
             max={100}
           ></input>
-        </div>
+        </div> */}
       </div>
       <div
         className="timeline"
@@ -1291,7 +1379,11 @@ export default function Preview(params: PreviewProps): JSX.Element {
               stroke="black"
               d={`m 0 ${timelineHeight} H ${displayWidth}`}
             />
-            {getTickLinesandLabels(previewTimeline.current, ticks)}
+            {getTickLinesandLabels(
+              previewTimeline.current,
+              ticks,
+              displayWidth,
+            )}
           </svg>
         ) : null}
       </div>
@@ -1335,39 +1427,55 @@ export default function Preview(params: PreviewProps): JSX.Element {
           <>
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width={spectrumWidth}
+              width={signalWidth}
               height={footerHeight}
-              viewBox={`0 0 ${spectrumWidth} ${footerHeight}`}
-              className="leftspectrum"
+              viewBox={`0 0 ${signalWidth} ${footerHeight}`}
+              className="leftSignal"
             >
               <rect
+                className="leftSpectrum"
                 id="leftspectrum"
                 x={0}
                 y={0}
-                width={spectrumWidth}
-                height={footerHeight}
-                fill="white"
-                stroke="black"
+                width={signalWidth}
+                height={spectrumHeight}
               />
               {DrawSpectrum(signalLevels.leftSpectrum)}
+              <rect
+                className="leftVolume"
+                id="leftvolume"
+                x={0}
+                y={volumeOffset}
+                width={signalWidth}
+                height={volumeHeight}
+              />
+              <polyline className="leftPoint" points={leftVolumes} />
             </svg>
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width={spectrumWidth}
+              width={signalWidth}
               height={footerHeight}
-              viewBox={`0 0 ${spectrumWidth} ${footerHeight}`}
-              className="rightspectrum"
+              viewBox={`0 0 ${signalWidth} ${footerHeight}`}
+              className="rightSignal"
             >
               <rect
                 id="rightspectrum"
-                x={0}
+                className="rightSpectrum"
+                x={signalWidth}
                 y={0}
-                width={spectrumWidth}
-                height={footerHeight}
-                fill="white"
-                stroke="black"
+                width={signalWidth}
+                height={spectrumHeight}
               />
               {DrawSpectrum(signalLevels.rightSpectrum)}
+              <rect
+                id="rightvolume"
+                className="rightVolume"
+                x={0}
+                y={volumeOffset}
+                width={signalWidth}
+                height={volumeHeight}
+              />
+              <polyline className="rightPoint" points={rightVolumes} />
             </svg>
           </>
         ) : null}
@@ -1378,5 +1486,4 @@ export default function Preview(params: PreviewProps): JSX.Element {
       </div>
     </div>
   );
-
 }

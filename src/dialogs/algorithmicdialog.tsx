@@ -17,6 +17,7 @@ import MidiFrequencyDialog from "./midifrequencydialog";
 import OscillatorPropertiesBox from "./oscillatorpropertiesbox";
 import PresetDialog from "./presetdialog";
 import WienerPropertiesBox from "./wienerpropertiesbox";
+import ToolsMenu from "menus/toolsmenu";
 
 // provides the form fields and validators for the algorithmic generator
 
@@ -70,7 +71,7 @@ export default function AlgorithmicDialog(
           })}
         </select>
       </label>
-      <label>
+      <label style={{paddingLeft:'5px'}}>
         &nbsp;Looping?:&nbsp;
         <input
           name="isLooping"
@@ -79,23 +80,17 @@ export default function AlgorithmicDialog(
           onChange={handleChange}
         />
       </label>
-      <span> </span>
       <button
         type="button"
         disabled={!formData.preset}
-        style={{ fontSize: "12px" }}
+        style={{ fontSize: "12px", paddingLeft: '5px' }}
         onClick={() => setViewPreset(true)}
       >
         {"View Preset"}
       </button>
-      <span> </span>
-      <button
-        type="button"
-        style={{ fontSize: "12px" }}
-        onClick={() => setOpen(true)}
-      >
-        {"Frequency<->Midi"}
-      </button>
+    <div style={{height:'21px', width: '100px'}}>
+          <ToolsMenu/>
+</div>
       <br />
       <label>
         Measure Length:&nbsp;

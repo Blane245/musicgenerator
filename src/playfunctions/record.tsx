@@ -109,7 +109,7 @@ export default function Record(params: RecordProps) {
             nBatch = 0;
           }
         });
-
+        console.log('total recording batch count', totalBatchCount.current);
         playing.current = true;
 
         // start dispatching the groups of batches
@@ -218,7 +218,7 @@ export default function Record(params: RecordProps) {
         }
       }
       // there is now a group of batches that need to rendered
-      // console.log("rendering ", group.current.length, " batches");
+      console.log("rendering ", group.current.length, " batches");
       activeContexts.current = [];
       group.current.forEach(
         (g: {
@@ -294,6 +294,7 @@ export default function Record(params: RecordProps) {
 
     // when the number of completed batches is equal to the
     // total number of batches, we are done, so kill the timer.
+    console.log('completed batches', completedBatches.current, 'total batches', totalBatchCount.current);
     if (
       totalBatchCount.current == completedBatches.current ||
       !playing.current

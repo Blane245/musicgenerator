@@ -1,3 +1,14 @@
+// Preferenences that are composition related
+export enum TIMELINETYPE {
+  'Time' = 'Time',
+  'Measure' = 'Measure',
+}
+export type TimeLinePreferences = {
+  TimeSnappingEnabled: boolean;
+  TimeLineSetting: TIMELINETYPE;
+  MeasureSubdivisions: number;
+}
+
 import Track from "classes/track";
 import {
   AutoregressiveValues,
@@ -366,7 +377,7 @@ export type SignalLevelsType = {
   leftSpectrum: Uint8Array;
   rightSpectrum: Uint8Array;
 }
-export const FFTSIZE: number = 2048;
+export const FFTSIZE: number = 4096;
 export const MINDECIBELS: number = -100;
 export const MAXDECIBELS: number = -10;
 

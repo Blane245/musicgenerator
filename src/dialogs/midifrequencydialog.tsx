@@ -1,5 +1,5 @@
 import { ChangeEvent, useState } from "react";
-import { frequencyToMidi, midiToFrequency } from "sfcomponents/util";
+import { frequencyToMidi, midiToFrequency, toNote } from "sfcomponents/util";
 
 export interface MidiFrequencyDialogProps {
   setOpen: Function;
@@ -45,6 +45,7 @@ export default function MidiFrequencyDialog(
               defaultValue={0}
             ></input>
             <text> {frequencyMidi.toFixed(3)}</text>
+            <span>{" "+(toNote(frequencyMidi))}</span>
           </label>
           <br />
           <button onClick={() => setOpen(false)}>Close</button>

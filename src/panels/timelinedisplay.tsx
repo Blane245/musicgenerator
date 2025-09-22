@@ -301,7 +301,7 @@ export default function TimeLineDisplay() {
             stroke="black"
             d={`m 0 ${timeLine.height} H ${timeLine.width}`}
           />
-          {getTickLinesandLabels(timeLine, ticks)}
+          {getTickLinesandLabels(timeLine, ticks, timelineWidth)}
           <DisplayInterval interval={timeInterval} timeLine={timeLine} />
         </svg>
       ) : null}

@@ -29,6 +29,7 @@ export function realizeSource(
   if (rawSourceData.gen.type != GENERATORTYPE.Silent) {
     source.loop = false;
     source.playbackRate.value = rawSourceData.source.playbackRate;
+    // source.playbackRate.value = 1;
     // build gain
     const vol: GainNode = ctx.createGain();
     vol.gain.value = 1.0;

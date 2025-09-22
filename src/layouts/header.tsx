@@ -5,6 +5,7 @@ import EditMenu from "menus/editmenu";
 import FileMenu from "menus/filemenu";
 import HelpMenu from "menus/helpmenu";
 import PlayMenu from "menus/playmenu";
+import ToolsMenu from "menus/toolsmenu";
 import TimeLineControls from "panels/timelinecontrols";
 import TimeLineDisplay from "panels/timelinedisplay";
 import { useEffect, useState } from "react";
@@ -40,6 +41,9 @@ export default function Header(props: HeaderProps) {
           </div>
           <div className="edit">
             <EditMenu />
+          </div>
+          <div className="tools">
+            <ToolsMenu />
           </div>
           <div className="play">
             <PlayMenu />

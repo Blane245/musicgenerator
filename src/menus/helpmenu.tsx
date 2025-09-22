@@ -10,10 +10,6 @@ export default function HelpMenu() {
   const [open, setOpen] = useState<boolean>(false);
   const [about, setAbout] = useState<boolean>(false);
 
-  // handle request to open a file.
-  // if the current one is 'dirty' the user is asked to confirm over-write
-  function handleGuide() {}
-
   function handleConverter() {
     setOpen(true);
   }
@@ -22,9 +18,6 @@ export default function HelpMenu() {
     switch (action) {
       case "about":
         setAbout(true);
-        break;
-      case "guide":
-        handleGuide();
         break;
       case "converter":
         handleConverter();
@@ -46,8 +39,9 @@ export default function HelpMenu() {
             <a className="dItem" onClick={() => handleMenuSelect("about")}>
               About CMG...
             </a>
-            <a className="dItem" onClick={() => handleMenuSelect("guide")}>
-              CMG User's Guide...
+            {/* <a className="dItem" onClick={() => {window.open("CMG User Manual.pdf"); return false;}}> */}
+            <a className="dItem" download={"CMG User Manual.pdf"} href="/src/assets/CMG User Manual.pdf">
+              Download CMG User's Manual...
             </a>
             <a className="dItem" onClick={() => handleMenuSelect("converter")}>
               Midi/Frequency Converter...
@@ -76,8 +70,8 @@ export default function HelpMenu() {
                   <tr>
                     <th>Home Page</th>
                     <td>
-                      <a href={import.meta.env.REPOSITORY.url}>
-                        {import.meta.env.REPOSITORY.url}
+                      <a href={import.meta.env.HOMEPAGE}>
+                        {import.meta.env.HOMEPAGE}
                       </a>
                     </td>
                   </tr>

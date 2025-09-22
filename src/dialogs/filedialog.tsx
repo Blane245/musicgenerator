@@ -131,6 +131,7 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
 
         // push the selected directory in the location queue
         setError(`Directory loaded: '${selectedDirectory}'`);
+        setDirectoryList(response.list);
         if (directoryQueue.indexOf(selectedDirectory) < 0) {
           const newQueue: string[] = [...directoryQueue];
           newQueue.push(selectedDirectory);
@@ -264,7 +265,7 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
         type: entry.type,
       };
     });
-    setDirectoryList(list);
+    // setDirectoryList(list);
     return  Promise.resolve(  {
       error: false,
       status: "",

@@ -77,14 +77,14 @@ export default function RoomReverbDialog() {
         </div>
         <div className="slider">
           <span className="param">LW delay</span>
-          <span className="param">{reverbData.leftWall.delay}</span>
+          <span className="param">{reverbData.leftWall.delay * 1000}</span>
           <input
             name="reverb.leftwall.delay"
             type="range"
             min="0"
             max="1000"
             step="1"
-            value={reverbData.leftWall.delay}
+            value={reverbData.leftWall.delay * 1000}
             onChange={(event) => handleChange(event)}
           />
         </div>
@@ -103,14 +103,14 @@ export default function RoomReverbDialog() {
         </div>
         <div className="slider">
           <span className="param">RW delay</span>
-          <span className="param">{reverbData.rightWall.delay}</span>
+          <span className="param">{reverbData.rightWall.delay * 1000}</span>
           <input
             name="reverb.rightwall.delay"
             type="range"
             min="0"
             max="1000"
             step="1"
-            value={reverbData.rightWall.delay}
+            value={reverbData.rightWall.delay * 1000}
             onChange={(event) => handleChange(event)}
           />
         </div>
@@ -129,14 +129,14 @@ export default function RoomReverbDialog() {
         </div>
         <div className="slider">
           <span className="param">Ceiling delay</span>
-          <span className="param">{reverbData.ceiling.delay}</span>
+          <span className="param">{reverbData.ceiling.delay * 1000}</span>
           <input
             name="reverb.ceiling.delay"
             type="range"
             min="0"
             max="1000"
             step="1"
-            value={reverbData.ceiling.delay}
+            value={reverbData.ceiling.delay * 1000}
             onChange={(event) => handleChange(event)}
           />
         </div>

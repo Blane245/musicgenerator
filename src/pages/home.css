@@ -117,7 +117,7 @@ body {
   left: 0px;
   top: 0px;
   min-width: 160px;
-  background-color: #ddd;
+  background-color: white;
   color: black;
   box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
   z-index:99;
@@ -136,6 +136,7 @@ body {
   display: block;
   text-align: left;
   overflow: visible;
+  width:max-content;
 }
 
 .dropdown-one .dItem:hover,
@@ -232,7 +233,7 @@ ul:after {
     left: 0;
     width: 100%;
     display: grid;
-    grid-template-columns: 50px 250px 1fr 300px;
+    grid-template-columns: 50px 300px 1fr 350px;
     grid-template-areas: "icon menu title .";
     gap: 0;
     .icon {
@@ -241,14 +242,17 @@ ul:after {
     .menu {
       grid-area: menu;
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
       z-index: 2;
-      grid-template-areas: "file edit play help";
+      grid-template-areas: "file edit tools play help";
       .file {
         grid-area: file;
       }
       .edit {
         grid-area: edit;
+      }
+      .tools {
+        grid-area: tools;
       }
       .play {
         grid-area: play;
@@ -972,7 +976,11 @@ div.algorithmic-table {
 }
 
 .preview {
+  padding: 0;
+  margin: 0;
   display: grid;
+  width: 100%;
+  height: 100%;
   grid-template-rows: 40px 40px 1fr 180px;
   grid-template-areas:
     "header"
@@ -1014,21 +1022,58 @@ div.algorithmic-table {
     background-color: white
   }
   .footer {
+    position: fixed;
+    top: auto;
     background-color: lightskyblue;
     grid-area: footer;
     display: grid;
     grid-template-columns: 1fr 200px 200px 300px 300px 300px 40px;
-    grid-template-areas: "status leftSpectrum rightSpectrum reverb compressor equalizer volume";
+    grid-template-areas: "status leftSignal rightSignal reverb compressor equalizer volume";
     .status {
       grid-area: status;
     }
-    .leftSpectrum {
+    .leftSignal {
       background-color: white;
-      grid-area: leftSpectrum;
+      grid-area: leftSignal;
+      display: grid;
+      grid-template-rows: 2fr 1fr;
+      grid-template-areas: 'leftSpectrum' 'leftVolume';
+      .leftSpectrum {
+        grid-area: leftSpectrum;
+        fill:white;
+        stroke: black;
+      }
+      .leftVolume {
+        grid-area: leftVolume;
+        background-color: lightgray;
+        fill:lightgray;
+        stroke: black;
+      }
+        .leftPoint {
+          stroke: red;
+          fill: none;
+        }
     }
-    .rightSpectrum {
+    .rightSignal {
       background-color: white;
-      grid-area: rightSpectrum;
+      grid-area: rightSignal;
+      display: grid;
+      grid-template-rows: 2fr 1fr;
+      grid-template-areas: 'rightSpectrum' 'rightVolume';
+      .rightSpectrum {
+        grid-area: rightSpectrum;
+        fill:white;
+        stroke: black;
+      }
+      .rightVolume {
+        grid-area: rightVolume;
+        fill:lightgray;
+        stroke: black;
+      }
+        .rightPoint {
+          stroke:blue;
+          fill: none;
+        }
     }
     .compressor {
       background-color: white;

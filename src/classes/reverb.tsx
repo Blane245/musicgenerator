@@ -149,7 +149,7 @@ export default class Reverb {
         if (this.#efNode) this.#efNode.buffer = this.#impulseResponse(this.duration, this.decay);
         break;
       case "reverb.leftwall.delay":
-        this.leftWall.delay = parseFloat(value);
+        this.leftWall.delay = parseFloat(value) / 1000;
         if (this.#lwNode) this.#lwNode.delayTime.value = this.leftWall.delay;
         break;
       case "reverb.leftwall.gain":
@@ -157,7 +157,7 @@ export default class Reverb {
         if (this.#lwGain) this.#lwGain.gain.value = this.leftWall.delay;
         break;
       case "reverb.rightwall.delay":
-        this.rightWall.delay = parseFloat(value);
+        this.rightWall.delay = parseFloat(value) / 1000;
         if (this.#rwNode) this.#rwNode.delayTime.value = this.rightWall.delay;
         break;
       case "reverb.rightwall.gain":
@@ -165,7 +165,7 @@ export default class Reverb {
         if (this.#rwGain) this.#rwGain.gain.value = this.rightWall.delay;
         break;
       case "reverb.ceiling.delay":
-        this.ceiling.delay = parseFloat(value);
+        this.ceiling.delay = parseFloat(value) / 1000;
         if (this.#ceNode) this.#ceNode.delayTime.value = this.ceiling.delay;
         break;
       case "reverb.ceiling.gain":
@@ -230,31 +230,31 @@ export default class Reverb {
       }
       this.duration = getAttributeValue(cElem, "duration", "float") as number;
       this.decay = getAttributeValue(cElem, "decay", "float") as number;
-      this.leftWall.delay = getAttributeValue(
+      this.leftWall.delay = (getAttributeValue(
         cElem,
         "leftwalldelay",
         "float"
-      ) as number;
+      ) as number) / 1000;
       this.leftWall.gain = getAttributeValue(
         cElem,
         "leftwallgain",
         "float"
       ) as number;
-      this.rightWall.delay = getAttributeValue(
+      this.rightWall.delay = (getAttributeValue(
         cElem,
         "rightwalldelay",
         "float"
-      ) as number;
+      ) as number) / 1000;
       this.rightWall.gain = getAttributeValue(
         cElem,
         "rightwallgain",
         "float"
       ) as number;
-      this.ceiling.delay = getAttributeValue(
+      this.ceiling.delay = (getAttributeValue(
         cElem,
         "ceilingdelay",
         "float"
-      ) as number;
+      ) as number) / 1000;
       this.ceiling.gain = getAttributeValue(
         cElem,
         "ceilinggain",

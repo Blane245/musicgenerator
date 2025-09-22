@@ -2,11 +2,17 @@
 // saving current ones, and adding tracks to current ones
 // import { Algorithmic } from "classes/generators";
 import { Algorithmic } from "classes/generators";
+import TimeLine from "classes/timeline";
 import Track from "classes/track";
 import { useCMGContext } from "cmgcontext";
-import { FormEvent, useEffect, useState } from "react";
-import { GENERATORTYPE, RECORDFORMAT, SFFILELOCATION } from "types";
-import { addTrack, setFileComment } from "utils/cmfiletransactions";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import {
+  GENERATORTYPE,
+  RECORDFORMAT,
+  SFFILELOCATION,
+  TIMELINETYPE,
+} from "types";
+import { addTrack, setDirty, setFileComment } from "utils/cmfiletransactions";
 import { getDirectoryList } from "utils/getdirectorylist";
 import { getTrackUID } from "utils/gettrackuid";
 
@@ -15,6 +21,10 @@ export default function EditMenu() {
     setSFLocalDirectory,
     fileContents,
     setFileContents,
+    timelineWidth,
+    timelineHeight,
+    timeLine,
+    setTimeLine,
     setStatus,
     setRecordFormat,
     setSFFileList,
@@ -27,8 +37,12 @@ export default function EditMenu() {
   const [commentModal, setCommentModal] = useState<boolean>(false);
   const [preferencesModal, setPreferencesModal] = useState<boolean>(false);
   const [errorMsgs, setErrorMsgs] = useState<string[]>([]);
+  const [formData, setFormData] = useState<TimeLine>(
+    new TimeLine(timelineWidth, timelineHeight)
+  );
 
   useEffect(() => {
+    if (SFFileList.length == 0) return;
     // check if any generators are using a soundfont file that does not
     // exist in the new directory
     const errors: string[] = [];
@@ -76,6 +90,8 @@ export default function EditMenu() {
   }
 
   function handleEditPreferences() {
+    if (!timeLine) return;
+    setFormData(timeLine.copy());
     setPreferencesModal(true);
   }
 
@@ -100,7 +116,7 @@ export default function EditMenu() {
     };
 
     try {
-      location = location.replace(/\\/g,'/');
+      location = location.replace(/\\/g, "/");
       getDirectoryList(location, ["sf2", "SF2"], setSFFileList, setStatus);
     } catch (e) {
       newErrors.push(e as string);
@@ -115,6 +131,8 @@ export default function EditMenu() {
     setSFLocalDirectory(location);
     window.localStorage.setItem(SFFILELOCATION, location);
     setSFFileList(newSFFileList.list);
+    setTimeLine(formData.copy());
+    setDirty(true, fileContents, setFileContents);
     // disable the preferences modal
     setPreferencesModal(false);
   }
@@ -135,6 +153,27 @@ export default function EditMenu() {
     }
   }
 
+  // handle changes to the time line preferences
+  function handleChange(
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ): void {
+    const eventName: string | null = e.target["name"];
+    const eventValue: string = e.target["value"];
+    if (!eventName || !eventValue) return;
+    setFormData((prev: TimeLine) => {
+      const nf: TimeLine = prev.copy();
+      nf.setAttribute(eventName, eventValue);
+      return nf;
+    });
+  }
+
+  function handleSnapChange(): void {
+    setFormData((prev: TimeLine) => {
+      const nf: TimeLine = prev.copy();
+      nf.setAttribute("snap", formData.snap ? "false" : "true");
+      return nf;
+    });
+  }
   return (
     <>
       <div className="navbar">
@@ -205,13 +244,85 @@ export default function EditMenu() {
                 <select
                   id="recordFormat"
                   name="recordFormat"
-                  value={recordFormat}
+                  defaultValue={recordFormat}
                 >
                   <option value="mp3">mp3</option>
                   <option value="wav">wav</option>
                 </select>
               </label>
+              <hr />
+              <label>
+                Time Line Mode:&nbsp;
+                <select
+                  id="mode"
+                  name="mode"
+                  value={formData.mode}
+                  onChange={handleChange}
+                >
+                  <option value="Time">Time</option>
+                  <option value="Measure">Measure</option>
+                </select>
+              </label>
               <br />
+              <label>
+                Measure Length:&nbsp;
+                <input
+                  type="number"
+                  size={50}
+                  min={0.01}
+                  step={0.01}
+                  name="measureSize"
+                  value={formData.measureSize}
+                  onChange={handleChange}
+                  style={{ marginBottom: "2px" }}
+                />
+                <span> (sec)</span>
+              </label>
+              <br />
+              <label>
+                Beats per Measure:&nbsp;
+                <input
+                  type="number"
+                  size={50}
+                  min={1}
+                  name="beatsPerMeasure"
+                  value={formData.beatsPerMeasure}
+                  onChange={handleChange}
+                  style={{ marginBottom: "2px" }}
+                />
+                <span> (sec)</span>
+              </label>
+              <br />
+              <label>
+                Snap Mode:&nbsp;
+                <input
+                  type="checkbox"
+                  size={50}
+                  defaultChecked={formData.snap}
+                  name="snap"
+                  onClick={handleSnapChange}
+                  style={{ marginBottom: "2px" }}
+                />
+              </label>
+              <br />
+              <label>
+                Snap Increment:&nbsp;
+                <input
+                  type="number"
+                  size={50}
+                  min={0.01}
+                  step={0.01}
+                  name="snapIncrement"
+                  value={formData.snapIncrement}
+                  onChange={handleChange}
+                  style={{ marginBottom: "2px" }}
+                />
+                <span>
+                  {" "}
+                  {formData.mode == TIMELINETYPE.Time ? " (sec)" : " (beat)"}
+                </span>
+              </label>
+              <hr />
               <input type="submit" value="Save" />
               <button
                 onClick={() => setPreferencesModal(false)}
