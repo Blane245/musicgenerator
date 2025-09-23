@@ -111,6 +111,15 @@ export function renameTrack(
   });
 }
 
+export function modifyTrackGenerators (index: number, gens: GeneratorType[], setFileContents) {
+  setFileContents((c: CMGFile) => {
+    const nc: CMGFile = c.copy();
+    nc.tracks[index].generators = [...gens];
+    nc.dirty = true;
+    return nc;
+  })  
+}
+
 export function flipTrackAttribute(
   index: number,
   attribute: string,
@@ -122,9 +131,18 @@ export function flipTrackAttribute(
       newC.tracks[index].mute = !newC.tracks[index].mute;
     } else if (attribute == "solo") {
       newC.tracks[index].solo = !newC.tracks[index].solo;
-    } else return newC;
+    } else return c;
     newC.dirty = true;
     return newC;
+  });
+}
+
+export function modifyTrack(index: number, track: Track, setFileContents: Function) {  
+  setFileContents((c:CMGFile)=> {
+    const newC: CMGFile = c.copy();
+    newC.tracks[index] = track;
+    newC.dirty = true;
+    return newC
   });
 }
 

@@ -577,6 +577,7 @@ ul:after {
 .modal-header {
   padding: 2px 16px;
   background-color: #5cb85c;
+  text-align: left;
   color: white;
   cursor: inherit;
 }
@@ -585,6 +586,7 @@ ul:after {
 .modal-body {
   padding: 2px 16px;
   cursor: inherit;
+  text-align: left;
 }
 
 /* Modal Footer */
@@ -890,9 +892,20 @@ div.algorithmic-table {
   }
 }
 .track-control {
-  display: block;
+  display: grid;
+  grid-template-columns: auto auto auto;
+  gap: 0px;
+  padding: 0px;
   grid-column: span 1;
   border: 1px black solid;
+}
+.track-control > div {
+  background-color: white;
+  border: none;
+  padding: none;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
 }
 .track-display {
   display: block;

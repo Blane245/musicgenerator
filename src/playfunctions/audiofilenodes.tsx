@@ -4,8 +4,12 @@
 import { dBToGain } from "sfcomponents/util";
 import { AudioFile } from "../classes/generators";
 import { RawSourceData } from "../types";
+import CMGFile from "classes/cmgfile";
+import findGeneratorParent from "utils/findgeneratorparent";
+import Track from "classes/track";
 
 export function getBufferSourceNodesFromAudioFile(
+  fileContents: CMGFile,
   gen: AudioFile,
   sourceCount: number
 ): RawSourceData[] {
@@ -15,7 +19,9 @@ export function getBufferSourceNodesFromAudioFile(
   const holdInterval = duration;
 
   // apply the volume to all channels of the audiofile sample
-  const volumeGain: number = dBToGain(volume);
+  const track: Track | null = findGeneratorParent(gen.name, fileContents);
+
+  const volumeGain: number = track? dBToGain(volume + track.volume): dBToGain(volume);
   const theseSamples: Float32Array[] = [];
   samples.forEach((c: Float32Array) => {
     const thisSample: Float32Array = new Float32Array(c);

@@ -1,7 +1,6 @@
 // display the time line based on the current start time and
 // zoom level
 // handle time line interval editing
-import CMGFile from "classes/cmgfile";
 import TimeLine from "classes/timeline";
 import { useCMGContext } from "cmgcontext";
 import { useEffect } from "react";

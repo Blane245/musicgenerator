@@ -5,14 +5,17 @@ import { getBufferSourceNodesFromAudioFile } from "./audiofilenodes";
 import { getBufferSourceNodesFromAlgorithmic } from "./algorithmicnodes";
 import { Algorithmic, Silent, AudioFile } from "../classes/generators";
 import { getBufferSourceNodesFromSilent } from "./cmgnodes";
+import CMGFile from "classes/cmgfile";
 
 export interface buildSourcesProps {
+  fileContents: CMGFile;
   AlgorithmicGenerators: Algorithmic[];
   AudioFileGenerators: AudioFile[];
   SilentGenerators: Silent[];
 }
 export function buildSources(params: buildSourcesProps): {sources: RawSourceData[], error: string} {
   const {
+    fileContents,
     AlgorithmicGenerators,
     AudioFileGenerators,
     SilentGenerators,
@@ -22,13 +25,13 @@ export function buildSources(params: buildSourcesProps): {sources: RawSourceData
   const sourceData: RawSourceData[] = [];
   try {
   AlgorithmicGenerators.forEach((g) => {
-    const AlgorithmicData: RawSourceData[] = getBufferSourceNodesFromAlgorithmic(g, sourceCount);
+    const AlgorithmicData: RawSourceData[] = getBufferSourceNodesFromAlgorithmic(fileContents, g, sourceCount);
     sourceData.push(...AlgorithmicData);
     sourceCount= sourceData.length;
   });
 
   AudioFileGenerators.forEach((g) => {
-    const AudioFileData: RawSourceData[] = getBufferSourceNodesFromAudioFile(g, sourceCount);
+    const AudioFileData: RawSourceData[] = getBufferSourceNodesFromAudioFile(fileContents, g, sourceCount);
     sourceData.push(...AudioFileData);
     sourceCount = sourceData.length;
   });

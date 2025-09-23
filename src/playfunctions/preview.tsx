@@ -47,8 +47,6 @@ import {
   SignalLevelsType,
   TimeLineScales,
   TimeTicks,
-  MINDECIBELS,
-  MAXDECIBELS,
 } from "types";
 import getTickLinesandLabels from "utils/getticklinesandlabels";
 import { linearInterpolate } from "utils/interpolation";
@@ -93,7 +91,6 @@ export default function Preview(params: PreviewProps): JSX.Element {
     displayWidth,
     headerHeight,
     previewHeight,
-    timelineWidth,
     timelineHeight,
     footerHeight,
     timeLine,

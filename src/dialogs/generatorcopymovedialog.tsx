@@ -67,7 +67,7 @@ export default function GeneratorCopyMoveDialog(props: GeneratorCopyMoveProps) {
   return (
     <div className="modal-content">
       <div className="modal-header">
-        <span className="close" onClick={onCancel}>
+        <span className="close" onClick={()=>onCancel()}>
           &times;
         </span>
         <h2>

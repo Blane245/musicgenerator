@@ -260,6 +260,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     setStatus(error);
     if (error != "") return;
     const { sources: builtSourceData, error: buildError } = buildSources({
+      fileContents,
       AlgorithmicGenerators,
       AudioFileGenerators,
       SilentGenerators,

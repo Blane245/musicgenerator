@@ -7,6 +7,9 @@ import { samplePool } from "sfcomponents/samplepool";
 import { InstrumentZone, Preset, PresetZone } from "sfcomponents/types";
 import { attenuate, dBToGain, midiToFrequency, precision, tc2s } from "sfcomponents/util";
 import { linearInterpolate } from "utils/interpolation";
+import Track from "classes/track";
+import findGeneratorParent from "utils/findgeneratorparent";
+import CMGFile from "classes/cmgfile";
 
 // select mid range velocity Range
 const isActiveZone = (
@@ -45,6 +48,7 @@ const getActiveZones = (preset: Preset, midi: number, velocity: number) => {
 };
 
 export const getPresetNote = (
+  fileContents: CMGFile,
   gen: Algorithmic,
   preset: Preset,
   noiseFrequency: number,
@@ -53,7 +57,7 @@ export const getPresetNote = (
   duration: number, // the note's duration with that interval
   pitchValue: number, // midi
   attack: number,
-  volumeValue: number,
+  generatorVolume: number,
   panValue: number,
   time: number,
   nextSource: number
@@ -143,12 +147,13 @@ export const getPresetNote = (
         ? noteEnd + precision(tc2s(releaseVolEnv), 3)
         : noteEnd;
     const totalTime: number = releaseEnd;
-
+    const track: Track| null = findGeneratorParent(gen.name, fileContents);
+    const volumeValue: number = track? generatorVolume + track.volume: generatorVolume
     const volumeGain: number = dBToGain(volumeValue);
     let attenuationdB: number = initialAttenuation / 10;
     // const attenuation: number = attenuate(1.0, attenuationdB);
     const attenuation: number = 1;
-    const sustainGain: number = attenuate(volumeGain, sustainVolEnv / 10);
+    const sustainGain: number = attenuate(volumeGain, sustainVolEnv / 100);
 
     // get the envelope curve
     let noteEndGain: number = 0;
@@ -193,7 +198,7 @@ export const getPresetNote = (
       noteEndGain = sustainGain;
     }
 
-    if (noteEnd != releaseEnd) envelope.push({ t: releaseEnd, g: 0 });
+    envelope.push({ t: releaseEnd, g: 0 });
 
     let sample: Float32Array = buildSampleArray(
       instrumentSample,

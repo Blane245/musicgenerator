@@ -3,8 +3,10 @@ import { Algorithmic } from "classes/generators";
 import { getPresetNote } from "playfunctions/getpresetnote";
 import { AlgorithmValues } from "classes/algorithmvalues";
 import RandomNumber from "../classes/randomnumber";
+import CMGFile from "classes/cmgfile";
 
 export function getBufferSourceNodesFromAlgorithmic(
+  fileContents: CMGFile,
   gen: Algorithmic,
   sourceCount: number
 ): RawSourceData[] {
@@ -47,6 +49,7 @@ export function getBufferSourceNodesFromAlgorithmic(
     const duration = noteDuration == 100? interval: interval * noteDuration / 100;
     if (beat) {
       const connections: RawSourceData[] = getPresetNote(
+        fileContents,
         gen,
         preset,
         noiseFrequency,

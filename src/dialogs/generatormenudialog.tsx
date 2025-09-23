@@ -2,7 +2,7 @@ import Track from "classes/track";
 import { useCMGContext } from "cmgcontext";
 import { buildSources } from "playfunctions/buildsources";
 import Play from "playfunctions/play";
-import ReadyGenerate from "playfunctions/readyplay";
+import ReadyPlay from "playfunctions/readyplay";
 import { useState } from "react";
 import { GeneratorType, PLAYMODE } from "types";
 import { flipGeneratorMute } from "utils/cmfiletransactions";
@@ -99,7 +99,7 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
       AudioFileGenerators,
       SilentGenerators,
       error,
-    } = ReadyGenerate({
+    } = ReadyPlay({
       mode: PLAYMODE.solo,
       generator: generator,
       fileContents,
@@ -108,6 +108,7 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
     setStatus(error);
     if (error != "") return;
     const { sources: builtSourceData, error: buildError } = buildSources({
+      fileContents,
       AlgorithmicGenerators,
       AudioFileGenerators,
       SilentGenerators,

@@ -10,7 +10,7 @@ import {
   SAMPLERATE,
 } from "types";
 import { buildSources } from "./buildsources";
-import ReadyGenerate from "./readyplay";
+import ReadyPlay from "./readyplay";
 import Record from "./record";
 
 export interface PlayProps {
@@ -38,7 +38,7 @@ export default function Play(props: PlayProps) {
       AudioFileGenerators,
       SilentGenerators,
       error,
-    } = ReadyGenerate({
+    } = ReadyPlay({
       mode,
       generator,
       fileContents,
@@ -51,6 +51,7 @@ export default function Play(props: PlayProps) {
 
     // build the generator sources
     const { sources: builtSourceData, error: buildError } = buildSources({
+      fileContents,
       AlgorithmicGenerators,
       AudioFileGenerators,
       SilentGenerators,

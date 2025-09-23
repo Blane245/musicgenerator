@@ -2,7 +2,7 @@
 // saving current ones, and adding tracks to current ones
 import { useCMGContext } from "cmgcontext";
 import { buildSources } from "playfunctions/buildsources";
-import ReadyGenerate from "playfunctions/readyplay";
+import ReadyPlay from "playfunctions/readyplay";
 import Record from "playfunctions/record";
 import Report from "playfunctions/reportwriter/report";
 import { useState } from "react";
@@ -83,7 +83,7 @@ export default function PlayMenu() {
       AudioFileGenerators,
       SilentGenerators,
       error,
-    } = ReadyGenerate({
+    } = ReadyPlay({
       mode: playMode,
       generator: null,
       fileContents,
@@ -98,6 +98,7 @@ export default function PlayMenu() {
 
     // build the generator sources
     const { sources: builtSourceData, error: buildError } = buildSources({
+      fileContents,
       AlgorithmicGenerators,
       AudioFileGenerators,
       SilentGenerators,

@@ -16,3 +16,6 @@
 - file open/saveas dialogs only display recent directory contents the first time.
 - corrected timing unit problem in room reverb
 - improved menu layout
+- added tools menu
+- implemented timeline measure display and timeline preferences
+- change preview volumes to line graphs below spectrum

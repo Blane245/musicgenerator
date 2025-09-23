@@ -13,6 +13,7 @@ import {
 } from "react-icons/ai";
 import { CgRename } from "react-icons/cg";
 import { IoPerson, IoPersonOutline } from "react-icons/io5";
+import { FaTools } from "react-icons/fa";
 import { RiAiGenerate } from "react-icons/ri";
 import { GENERATORTYPE } from "types";
 import {
@@ -21,6 +22,7 @@ import {
   moveTrack,
   renameTrack,
 } from "utils/cmfiletransactions";
+import { TrackDuplicateDialog, TrackShiftDialog, TrackVolumeDialog } from "dialogs/tracktooldialogs";
 
 export interface TrackControlsProps {
   tracks: Track[];
@@ -30,8 +32,10 @@ export interface TrackControlsProps {
 export default function TrackControls(props: TrackControlsProps) {
   const { track, trackIndex, tracks } = props;
   const {
+    controlWidth,
     fileContents,
     setFileContents,
+    timeLine,
     playing,
     setStatus,
     setTrackIndex,
@@ -43,8 +47,12 @@ export default function TrackControls(props: TrackControlsProps) {
   const [renameModal, setRenameModal] = useState<boolean>(false);
   const [message, setMessage] = useState<string>("");
   const [menuEnabled, setMenuEnabled] = useState<boolean>(false);
-  const [menuX, setMenuX] = useState<number>(0);
-  const [menuY, setMenuY] = useState<number>(0);
+  const [toolsEnabled, setToolsEnabled] = useState<boolean>(false);
+  const [menu, setMenu] = useState<{x:number, y:number}>({x:0, y:0});
+  const [tool, setTool] = useState<{x:number, y:number}>({x:0, y:0});
+  const [duplicateEnabled, setDuplicateEnabled] = useState<boolean> (false);
+  const [volumeEnabled, setVolumeEnabled] = useState<boolean> (false);
+  const [shiftEnabled, setShiftEnabled] = useState<boolean> (false);
 
   function handleDeleteTrack(): void {
     setDeleteModal(true);
@@ -131,9 +139,16 @@ export default function TrackControls(props: TrackControlsProps) {
     if (playing.current) return;
     event.preventDefault();
     event.stopPropagation();
-    setMenuX(0);
-    setMenuY(30 + trackIndex * 100);
+    setMenu({x:controlWidth / 2, y: 100 / 2 + trackIndex * 100});
     setMenuEnabled(true);
+  }
+
+  function handleTools(event: MouseEvent<Element>, trackIndex: number) {
+    if (playing.current) return;
+    event.preventDefault();
+    event.stopPropagation();
+    setTool({x:controlWidth / 2, y: 100 * 2 / 3 + trackIndex * 100});
+    setToolsEnabled(true);
   }
 
   // switch places the the track immediately above the one selected
@@ -156,77 +171,116 @@ export default function TrackControls(props: TrackControlsProps) {
     setMenuEnabled(false);
     setGeneratorDialogVisible(true);
   }
+  function handleToolSelect(event: MouseEvent, type: string) {
+    if (playing.current) return;
+    setToolsEnabled(false);
+    event.stopPropagation();
+    event.preventDefault();
+    const trackIndex: number = tracks.findIndex((t) => t.name == track.name);
+    setTrackIndex(trackIndex);
+    if (trackIndex < 0) return;
+    switch (type) {
+      case 'Duplicate':
+        setDuplicateEnabled(true);
+        break;
+      case 'Shift':
+        setShiftEnabled(true);
+        break;
+      case 'Volume':
+        setVolumeEnabled(true);
+        break;
+      default:
+        break;
+    }
+  }
 
   return (
     <>
-      <button
-        className="track-button"
-        id={"track-delete:" + track.name}
-        key={"track-delete:" + track.name}
-        onClick={handleDeleteTrack}
-      >
-        <AiOutlineClose size={10} />
-      </button>
-      {track.name}
-      <button
-        style={{ float: "right" }}
-        className="track-button"
-        id={"track-rename:" + track.name}
-        key={"track-rename:" + track.name}
-        onClick={handleRenameTrack}
-      >
-        <CgRename />
-      </button>
-      <br />
-      <button
-        className="track-button"
-        style={{ float: "left" }}
-        id={"track-mute:" + track.name}
-        key={"track-mute:" + track.name}
-        onClick={handleMuteTrack}
-      >
-        {track.mute ? <AiFillMuted /> : <AiOutlineMuted />}
-      </button>
-
-      <button
-        className="track-button"
-        style={{ float: "none", marginLeft: "7px" }}
-        id={`track-gen:${track.name}`}
-        key={`track-gen:${track.name}`}
-        onClick={(event) => handleAddGenerator(event, trackIndex)}
-      >
-        <RiAiGenerate />
-      </button>
-      <button
-        style={{ float: "right" }}
-        className="track-button"
-        id={"track-solo:" + track.name}
-        key={"track-solo:" + track.name}
-        onClick={handleSoloTrack}
-      >
-        {track.solo ? <IoPerson /> : <IoPersonOutline />}
-      </button>
-      <br />
-      <button
-        style={{ float: "left" }}
-        disabled={trackIndex == 0}
-        className="track-button"
-        id={"track-up:" + track.name}
-        key={"track-up:" + track.name}
-        onClick={() => handleTrackUpDown("up")}
-      >
-        <AiFillCaretUp />
-      </button>
-      <button
-        style={{ float: "right" }}
-        disabled={trackIndex == tracks.length - 1}
-        className="track-button"
-        id={"track-down:" + track.name}
-        key={"track-down:" + track.name}
-        onClick={() => handleTrackUpDown("down")}
-      >
-        <AiFillCaretDown />
-      </button>
+      <div>
+        <button
+          className="track-button"
+          id={"track-delete:" + track.name}
+          key={"track-delete:" + track.name}
+          onClick={handleDeleteTrack}
+        >
+          <AiOutlineClose size={10} />
+        </button>
+      </div>
+      <div>{track.name}</div>
+      <div>
+        <button
+          className="track-button"
+          id={"track-rename:" + track.name}
+          key={"track-rename:" + track.name}
+          onClick={handleRenameTrack}
+        >
+          <CgRename />
+        </button>
+      </div>
+      <div>
+        <button
+          className="track-button"
+          style={{ float: "left" }}
+          id={"track-mute:" + track.name}
+          key={"track-mute:" + track.name}
+          onClick={handleMuteTrack}
+        >
+          {track.mute ? <AiFillMuted /> : <AiOutlineMuted />}
+        </button>
+      </div>
+      <div>
+        <button
+          className="track-button"
+          style={{ float: "none", marginLeft: "7px" }}
+          id={`track-gen:${track.name}`}
+          key={`track-gen:${track.name}`}
+          onClick={(event) => handleAddGenerator(event, trackIndex)}
+        >
+          <RiAiGenerate />
+        </button>
+      </div>
+      <div>
+        <button
+          className="track-button"
+          id={"track-solo:" + track.name}
+          key={"track-solo:" + track.name}
+          onClick={handleSoloTrack}
+        >
+          {track.solo ? <IoPerson /> : <IoPersonOutline />}
+        </button>
+      </div>
+      <div>
+        <button
+          disabled={trackIndex == 0}
+          className="track-button"
+          id={"track-up:" + track.name}
+          key={"track-up:" + track.name}
+          onClick={() => handleTrackUpDown("up")}
+        >
+          <AiFillCaretUp />
+        </button>
+      </div>
+      <div>
+        <button
+          className="track-button"
+          id={`track-gen:${track.name}`}
+          key={`track-gen:${track.name}`}
+          onClick={(event) => handleTools(event, trackIndex)}
+        >
+          <FaTools />
+        </button>
+        </div>
+      <div>
+        <button
+          disabled={trackIndex == tracks.length - 1}
+          className="track-button"
+          id={"track-down:" + track.name}
+          key={"track-down:" + track.name}
+          onClick={() => handleTrackUpDown("down")}
+        >
+          <AiFillCaretDown />
+        </button>
+      </div>
       {deleteModal ? (
         <div className="modal-content">
           <div className="modal-header">
@@ -286,8 +340,8 @@ export default function TrackControls(props: TrackControlsProps) {
           key={"addgenmenu"}
           style={{
             position: "absolute",
-            top: menuY.toString() + "px",
-            left: menuX.toString() + "px",
+            top: menu.y.toString() + "px",
+            left: menu.x.toString() + "px",
             width: "180px",
             height: "20px",
             zIndex: 99,
@@ -307,7 +361,7 @@ export default function TrackControls(props: TrackControlsProps) {
                 visibility: "visible",
               }}
             >
-              <div className="dropbtn" style={{ width: 180 }}>
+              <div className="dropbtn" >
                 Select Generator Type
                 <i className="fa fa-caret-down" />
               </div>
@@ -344,6 +398,95 @@ export default function TrackControls(props: TrackControlsProps) {
           </div>
         </div>
       ) : null}
+      {toolsEnabled ? (
+        <div
+          className="modal-menu"
+          id={"toolsmenu"}
+          key={"toolsmenu"}
+          style={{
+            position: "absolute",
+            top: tool.y.toString() + "px",
+            left: tool.x.toString() + "px",
+            width: "80px",
+            height: "20px",
+            zIndex: 99,
+          }}
+        >
+          <div
+            className="navbar"
+            style={{
+              position: "relative",
+              top: "0px",
+              visibility: "hidden",
+            }}
+          >
+            <div
+              className="dropdown"
+              style={{
+                visibility: "visible",
+              }}
+            >
+              <div className="dropbtn">
+                Tools
+                <i className="fa fa-caret-down" />
+              </div>
+              <div className="dropdown-one">
+                <div
+                  className="dItem"
+                  onClick={(e) =>
+                    handleToolSelect(e, 'Duplicate')
+                  }
+                >
+                  Duplicate
+                </div>
+                <div
+                  className="dItem"
+                  onClick={(e) =>
+                    handleToolSelect(e, 'Shift')
+                  }
+                >
+                  Shift
+                </div>
+                <div
+                  className="dItem"
+                  onClick={(e) =>
+                    handleToolSelect(e, 'Volume')
+                  }
+                >
+                  Volume
+                </div>
+                <div className="dItem" onClick={() => setToolsEnabled(false)}>
+                  Exit
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      {duplicateEnabled? (
+        <TrackDuplicateDialog 
+        fileContents={fileContents} 
+        setFileContents={setFileContents} 
+        timeLine={timeLine}
+        track={track} 
+        enabled={setDuplicateEnabled}/>
+      ): null}
+      {shiftEnabled? (
+        <TrackShiftDialog         
+        fileContents={fileContents} 
+        setFileContents={setFileContents} 
+        timeLine={timeLine}
+        track={track} 
+        enabled={setShiftEnabled}/>
+      ): null}
+      {volumeEnabled? (
+        <TrackVolumeDialog         
+        fileContents={fileContents} 
+        setFileContents={setFileContents} 
+        timeLine={timeLine}
+        track={track} 
+        enabled={setVolumeEnabled}/>
+      ): null}
     </>
   );
 }

@@ -30,6 +30,7 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
     else if (generator.type == GENERATORTYPE.AudioFile)
       AudioFileGenerators.push(generator as AudioFile);
     const result = buildSources({
+      fileContents,
       AlgorithmicGenerators,
       AudioFileGenerators,
       SilentGenerators,
@@ -45,6 +46,7 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
         timeInterval: { startOffset: 0, endOffset: 0 },
       });
     const result = buildSources({
+      fileContents,
       AlgorithmicGenerators,
       AudioFileGenerators,
       SilentGenerators,

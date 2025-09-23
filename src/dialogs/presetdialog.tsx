@@ -9,12 +9,15 @@ import {
 } from "sfcomponents/util";
 import { SoundFont2 } from "soundfont2";
 import { RawSourceData } from "types";
+import CMGFile from "classes/cmgfile";
+import { useCMGContext } from "cmgcontext";
 export interface PresetDialogProps {
   generator: Algorithmic;
   setViewPreset: Function;
 }
 export default function PresetDialog(props: PresetDialogProps): JSX.Element {
   const { generator, setViewPreset } = props;
+  const {fileContents} = useCMGContext();
   const [SFFile] = useState<SoundFont2 | undefined>(generator.soundFont);
   const [presetName, setPresetName] = useState<string>(generator.presetName);
   const [preset, setPreset] = useState<Preset | undefined>(generator.preset);
@@ -52,11 +55,12 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
     setPresetAttack(attack);
 
     if (preset)
-      getPresetData(preset, interval, duration, midi, attack, volume);
+      getPresetData(fileContents, preset, interval, duration, midi, attack, volume);
   }, []);
 
   // given a preset, midi, and velocity, get the envelope data
   function getPresetData(
+    fileContents: CMGFile,
     preset: Preset,
     interval: number,
     duration: number,
@@ -65,6 +69,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
     vol: number
   ) {
     const result: RawSourceData[] = getPresetNote(
+      fileContents,
       generator,
       preset,
       0,
@@ -93,6 +98,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
         setPresetName(presetName);
         setPreset(preset);
         getPresetData(
+          fileContents,
           preset,
           presetInterval,
           presetDuration,
@@ -109,6 +115,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
     setPresetMidi(midi);
     if (preset)
       getPresetData(
+    fileContents,
         preset,
         presetInterval,
         presetDuration,
@@ -123,7 +130,8 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
     setPresetAttack(attack);
     if (preset)
       getPresetData(
-        preset,
+    fileContents,
+            preset,
         presetInterval,
         presetDuration,
         presetMidi,
@@ -137,6 +145,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
     setPresetDuration(duration);
     if (preset)
       getPresetData(
+        fileContents,
         preset,
         presetInterval,
         duration,
@@ -151,6 +160,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
     setPresetInterval(interval);
     if (preset)
       getPresetData(
+    fileContents,
         preset,
         interval,
         presetDuration,
@@ -165,6 +175,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
     setPresetVolume(volume);
     if (preset)
       getPresetData(
+        fileContents,
         preset,
         presetInterval,
         presetDuration,

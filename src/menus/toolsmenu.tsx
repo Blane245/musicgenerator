@@ -42,6 +42,15 @@ export default function ToolsMenu() {
             <a className="dItem" onClick={() => handleMenuSelect("osc")}>
               Oscillator Frequency Calculator...
             </a>
+            <a className="dItem" onClick={() => handleMenuSelect("genequal")}>
+              Set Generators Duration Equal...
+            </a>
+            <a className="dItem" onClick={() => handleMenuSelect("genstagger")}>
+              Stagger Generators Start Time...
+            </a>
+            <a className="dItem" onClick={() => handleMenuSelect("genalign")}>
+              Align Generators...
+            </a>
           </div>
         </div>
       </div>

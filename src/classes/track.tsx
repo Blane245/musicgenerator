@@ -5,11 +5,13 @@ export default class Track {
   name: string;
   mute: boolean;
   solo: boolean;
+  volume: number;
   generators: GeneratorType[];
   constructor(nextTrack: number) {
     this.name = "T".concat(nextTrack.toString());
     this.mute = false;
     this.solo = false;
+    this.volume = 0;
     this.generators = [];
   }
 
@@ -18,6 +20,7 @@ export default class Track {
     t.name = this.name;
     t.mute = this.mute;
     t.solo = this.solo;
+    t.volume = this.volume;
     t.generators = [];
     this.generators.forEach((g) => {
       const ng = g.copy();
@@ -48,6 +51,7 @@ export default class Track {
       trackElem.setAttribute("name", this.name);
       trackElem.setAttribute("mute", this.mute.toString());
       trackElem.setAttribute("solo", this.solo.toString());
+      trackElem.setAttribute("volume", this.volume.toString());
       if (generatorPromises.length > 0) {
         const generatorXML: Element[] = await Promise.all(generatorPromises);
         generatorXML.forEach((gElem: Element) => {
@@ -71,6 +75,11 @@ export default class Track {
       this.name = getAttributeValue(elem, "name", "string") as string;
       this.mute = getAttributeValue(elem, "mute", "string") == "true";
       this.solo = getAttributeValue(elem, "solo", "string") == "true";
+      try {
+        this.volume = getAttributeValue(elem,'volume','float') as number;
+      } catch (e) {
+        this.volume = 0;
+      }
 
       // load the generators for this track
       const generatorsElem: Element = getElementElement(elem, "generators");
