@@ -10,10 +10,11 @@ import { SFPool } from "sfcomponents/sfpool";
 import { Preset } from "sfcomponents/types";
 import { bankPresettoName, precision } from "sfcomponents/util";
 import { SoundFont2 } from "soundfont2";
-import { PLAYMODE, GeneratorType, GENERATORTYPE } from "types";
+import { PLAYMODE, GeneratorType, GENERATORTYPE, TIMELINETYPE } from "types";
 import { addGenerator, modifyGenerator } from "utils/cmfiletransactions";
 import { getGeneratorUID } from "utils/getgeneratoruid";
 import GeneratorTypeForm from "./generatortypeform";
+import { PiCarSimpleThin } from "react-icons/pi";
 
 // The icon starts at the generator's start time and ends at the generators endtime
 export interface GeneratorDialogProps {
@@ -36,6 +37,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     fileContents,
     setFileContents,
     setStatus,
+    timeLine,
     timeInterval,
     playing,
     setMode,
@@ -131,15 +133,65 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
   function handleChange(
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ): void {
+    if (!timeLine) return;
     // update the form with the new attribute value
     setFormData((prev: GeneratorType) => {
-      const eventName: string | null = event.target["name"];
-      const eventValue: string =
+      let eventName: string | null = event.target["name"];
+      let eventValue: string =
         event.target["type"] != "checkbox"
           ? event.target["value"]
           : event.target.checked.toString();
 
       if (!eventName || !eventValue) return prev;
+
+      function measureBeatToTime (measure: number, beat: number, measureLength: number, beatsPerMeasure: number): number {
+        return (measure - 1 + (beat - 1) / beatsPerMeasure) * measureLength;
+      }
+
+      // handle the measure and beat items, changing them to 
+      // start and stop time changes
+      switch (eventName) {
+        case 'startMeasure': {
+          eventName = 'startTime'
+          const startBeatValue:number = parseInt((document.getElementById('startBeat') as HTMLInputElement).value);
+          eventValue = measureBeatToTime(
+            parseInt(eventValue),
+            startBeatValue,
+            timeLine.measureSize,
+            timeLine.beatsPerMeasure).toString();
+          }
+          break;
+        case 'startBeat': {
+          eventName = 'startTime'
+          const startMeasureValue:number = parseInt((document.getElementById('startMeasure') as HTMLInputElement).value);
+          eventValue = measureBeatToTime(
+            startMeasureValue,
+            parseInt(eventValue),
+            timeLine.measureSize,
+            timeLine.beatsPerMeasure).toString();
+          }
+          break;
+        case 'stopMeasure': {
+          eventName = 'stopTime'
+          const stopBeatValue:number = parseInt((document.getElementById('stopBeat') as HTMLInputElement).value);
+          eventValue = measureBeatToTime(
+            parseInt(eventValue),
+            stopBeatValue,
+            timeLine.measureSize,
+            timeLine.beatsPerMeasure).toString();
+          }
+          break;
+        case 'stopBeat': {
+          eventName = 'stopTime'
+          const stopMeasureValue:number = parseInt((document.getElementById('stopMeasure') as HTMLInputElement).value);
+          eventValue = measureBeatToTime(
+            stopMeasureValue,
+            parseInt(eventValue),
+            timeLine.measureSize,
+            timeLine.beatsPerMeasure).toString();
+          }
+          break;
+      }
 
       // select the proper generator type
       switch (formData.type) {
@@ -244,7 +296,10 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
 
   function handlePreview() {
     const msgs: string[] = validate();
-    if (formData.name != oldName) msgs.push('Cannot preview after renaming the generator. Modify or add first and then preview.')
+    if (formData.name != oldName)
+      msgs.push(
+        "Cannot preview after renaming the generator. Modify or add first and then preview."
+      );
     if (msgs.length != 0) return;
     const {
       AlgorithmicGenerators,
@@ -295,6 +350,48 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     setStatus("");
   }
 
+  function loadSoundFontandUpdate(fileName: string) {
+    try {
+      setLocked(true);
+      LoadFile(fileName);
+      // load the soundfont file and set the presets
+      async function LoadFile(fileName: string) {
+        const { soundFont } = await SFPool(fileName);
+        setSoundFontData(() => {
+          const presets: Preset[] = (soundFont.presets as Preset[]).sort(
+            (a, b) => {
+              if (a.header.bank < b.header.bank) return -1;
+              if (a.header.bank > b.header.bank) return 1;
+              return a.header.preset - b.header.preset;
+            }
+          );
+          const preset: Preset = presets[0] as Preset;
+          const presetName: string = bankPresettoName(preset);
+          const newSoundFontData: SFDataType = {
+            soundFont: soundFont,
+            presets: presets,
+            preset: preset,
+            presetName: presetName,
+          };
+          return newSoundFontData;
+        });
+      }
+    } catch (e: any) {
+      setStatus(e);
+    }
+  }
+
+  function timeToBeat (time: number): number {
+    if (!timeLine) return 1;
+    const beat: number = Math.trunc((time % timeLine.measureSize) * timeLine.beatsPerMeasure) + 1;
+        return beat;
+  }
+  function timeToMeasure (time: number) : number {
+    if (!timeLine) return 1;
+    const measure: number = Math.trunc(time / timeLine.measureSize) + 1;
+    return measure;
+  }
+
   return (
     <fieldset disabled={locked}>
       <div
@@ -327,30 +424,90 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                 value={formData.name}
               />
             </label>
-            <label>
-              &nbsp;Start Time:&nbsp;
-              <input
-                name="startTime"
-                type="number"
-                min={0}
-                step={0.01}
+            {timeLine?.mode == TIMELINETYPE.Time ? (
+              <>
+                <label>
+                  &nbsp;Start Time:&nbsp;
+                  <input
+                    name="startTime"
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    onChange={handleChange}
+                    value={precision(formData.startTime, 2)}
+                  />
+                  <span> (sec) </span>
+                </label>
+                <label>
+                  &nbsp;Stop Time:&nbsp;
+                  <input
+                    name="stopTime"
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    onChange={handleChange}
+                    value={precision(formData.stopTime, 2)}
+                  />
+                  <span> (sec) </span>
+                </label>
+              </>
+            ) : null}
+            {timeLine?.mode == TIMELINETYPE.Measure? (
+              <>
+              <label>
+                &nbsp;Start Measure:&nbsp;
+                <input 
+                name='startMeasure'
+                id='startMeasure'
+                type='number'
+                min={1}
+                step={1}
                 onChange={handleChange}
-                value={precision(formData.startTime, 2)}
-              />
-              <span> (sec) </span>
-            </label>
-            <label>
-              &nbsp;Stop Time:&nbsp;
-              <input
-                name="stopTime"
-                type="number"
-                min={0}
-                step={0.01}
+                value={timeToMeasure(formData.startTime)}
+                />
+              </label>
+              <label>
+                &nbsp;Start Beat:&nbsp;
+                <input 
+                name='startBeat'
+                id='startBeat'
+                type='number'
+                min={1}
+                step={1}
+                max={timeLine.beatsPerMeasure}
                 onChange={handleChange}
-                value={precision(formData.stopTime, 2)}
-              />
-              <span> (sec) </span>
-            </label>
+                value={timeToBeat(formData.startTime)}
+                />
+                <span>&nbsp;of {timeLine.beatsPerMeasure}</span>
+              </label>
+              <label>
+                &nbsp;Stop Measure:&nbsp;
+                <input 
+                name='stopMeasure'
+                id='stopMeasure'
+                type='number'
+                min={1}
+                step={1}
+                onChange={handleChange}
+                value={timeToMeasure(formData.stopTime)}
+                />
+              </label>
+              <label>
+                &nbsp;Stop Beat:&nbsp;
+                <input 
+                name='stopBeat'
+                id='stopBeat'
+                type='number'
+                min={1}
+                step={1}
+                max={timeLine.beatsPerMeasure}
+                onChange={handleChange}
+                value={timeToBeat(formData.stopTime)}
+                />
+                <span>&nbsp;of {timeLine.beatsPerMeasure}</span>
+              </label>
+              </>
+            ):null}
             <br />
             <GeneratorTypeForm
               formData={formData}
@@ -384,35 +541,4 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
       {previewVisible ? <Play generator={formData} /> : null}
     </fieldset>
   );
-
-  function loadSoundFontandUpdate(fileName: string) {
-    try {
-      setLocked(true);
-      LoadFile(fileName);
-      // load the soundfont file and set the presets
-      async function LoadFile(fileName: string) {
-        const { soundFont } = await SFPool(fileName);
-        setSoundFontData(() => {
-          const presets: Preset[] = (soundFont.presets as Preset[]).sort(
-            (a, b) => {
-              if (a.header.bank < b.header.bank) return -1;
-              if (a.header.bank > b.header.bank) return 1;
-              return a.header.preset - b.header.preset;
-            }
-          );
-          const preset: Preset = presets[0] as Preset;
-          const presetName: string = bankPresettoName(preset);
-          const newSoundFontData: SFDataType = {
-            soundFont: soundFont,
-            presets: presets,
-            preset: preset,
-            presetName: presetName,
-          };
-          return newSoundFontData;
-        });
-      }
-    } catch (e: any) {
-      setStatus(e);
-    }
-  }
 }

@@ -1,5 +1,9 @@
 // converted from https://github.com/dbkaplun/euclidean-rhythm.git
-export function euclideanRhythm(onNotes: number, totalNotes: number): number[] {
+export function euclideanRhythm(
+  onNotes: number,
+  totalNotes: number,
+  offset: number
+): number[] {
   let groups: number[][] = [];
   for (let i = 0; i < totalNotes; i++) groups.push([i < onNotes ? 1 : 0]);
 
@@ -15,13 +19,18 @@ export function euclideanRhythm(onNotes: number, totalNotes: number): number[] {
     while (end > 0 && compareArrays(last, groups[end])) end--;
     if (end === 0) break;
 
-    const count:number = Math.min(start, l - end);
+    const count: number = Math.min(start, l - end);
     groups = groups
       .slice(0, count)
       .map((group: number[], i: number) => group.concat(groups[l - i]))
       .concat(groups.slice(count, -count));
   }
-  return groups.flat(1);
+  // shift the sequence to the left by offset beats (thanx to Nisha)
+  const rotateArray = (arr: number[], num: number) => {
+    return arr.splice(-num).concat(arr);
+  };
+  const sequence: number[] = rotateArray(groups.flat(1), offset);
+  return sequence;
 }
 
 function compareArrays(a: number[], b: number[]): boolean {

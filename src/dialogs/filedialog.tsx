@@ -138,7 +138,7 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
           setDirectoryQueue(newQueue);
           setQueueLocation(newQueue.length - 1);
           setNavigationButtons(newQueue.length - 1, newQueue);
-          console.log("new location queue", newQueue);
+          // console.log("new location queue", newQueue);
         }
       });
     } catch (error: any) {

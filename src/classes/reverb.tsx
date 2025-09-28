@@ -13,6 +13,8 @@ export default class Reverb {
   effectOut: GainNode | null;
   #context: AudioContext | OfflineAudioContext | null;
   #reverbHead: AudioNode | null;
+  #halfGain1: GainNode | null;
+  #halfGain2: GainNode | null;
   #efNode: ConvolverNode | null;
   #lwNode: DelayNode | null;
   #rwNode: DelayNode | null;
@@ -32,6 +34,8 @@ export default class Reverb {
     this.effectOut = null;
     this.#context = null;
     this.#reverbHead = null;
+    this.#halfGain1 = null;
+    this.#halfGain2 = null;
     this.#efNode = null;
     this.#rwNode = null;
     this.#lwNode = null;
@@ -46,6 +50,10 @@ export default class Reverb {
     this.effectIn = context.createGain();
     this.effectOut = context.createGain();
     this.#reverbHead = context.createGain();
+    this.#halfGain1 = context.createGain();
+    this.#halfGain1.gain.value = 0.5;
+    this.#halfGain2 = context.createGain();
+    this.#halfGain2.gain.value = 0.5;
 
     // set up the diffuse reverberation
     const impulse: AudioBuffer | null = this.#impulseResponse(
@@ -56,8 +64,10 @@ export default class Reverb {
       this.#efNode = context.createConvolver();
       this.#efNode.buffer = impulse;
       this.#reverbHead.connect(this.#efNode);
-      this.#efNode.connect(this.effectOut);
-      this.#reverbHead.connect(this.effectOut);
+      this.#efNode.connect(this.#halfGain2);
+      this.#halfGain2.connect(this.effectOut);
+      this.#reverbHead.connect(this.#halfGain1);
+      this.#halfGain1.connect(this.effectOut);
     }
 
     // set the wall and ceiling reverbs
@@ -70,7 +80,6 @@ export default class Reverb {
     this.#reverbHead.connect(this.#lwNode);
     this.#reverbHead.connect(this.#rwNode);
     this.#reverbHead.connect(this.#ceNode);
-    this.#reverbHead.connect(this.effectOut);
     this.#lwNode.connect(this.#lwGain);
     this.#rwNode.connect(this.#rwGain);
     this.#ceNode.connect(this.#ceGain);

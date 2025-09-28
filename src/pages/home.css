@@ -634,10 +634,6 @@ ul:after {
   fill: rgba(255, 169, 203, 0.418);
 }
 
-.generator-playing {
-  fill: rgba(255, 169, 203, 0.999);
-}
-
 .generator-normal {
   fill: white;
 }

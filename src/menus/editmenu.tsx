@@ -268,9 +268,9 @@ export default function EditMenu() {
                 Measure Length:&nbsp;
                 <input
                   type="number"
-                  size={50}
                   min={0.01}
                   step={0.01}
+                  max={1000}
                   name="measureSize"
                   value={formData.measureSize}
                   onChange={handleChange}
@@ -283,14 +283,13 @@ export default function EditMenu() {
                 Beats per Measure:&nbsp;
                 <input
                   type="number"
-                  size={50}
                   min={1}
+                  max={1000}
                   name="beatsPerMeasure"
                   value={formData.beatsPerMeasure}
                   onChange={handleChange}
                   style={{ marginBottom: "2px" }}
                 />
-                <span> (sec)</span>
               </label>
               <br />
               <label>
@@ -305,36 +304,34 @@ export default function EditMenu() {
                 />
               </label>
               <br />
-              <label>
-                Snap Increment:&nbsp;
-                <input
-                  type="number"
-                  size={50}
-                  min={0.01}
-                  step={0.01}
-                  name="snapIncrement"
-                  value={formData.snapIncrement}
-                  onChange={handleChange}
-                  style={{ marginBottom: "2px" }}
-                />
-                <span>
-                  {" "}
-                  {formData.mode == TIMELINETYPE.Time ? " (sec)" : " (beat)"}
-                </span>
-              </label>
+              {formData.mode == TIMELINETYPE.Time ? (
+                <label>
+                  Snap Increment:&nbsp;
+                  <input
+                    type="number"
+                    size={50}
+                    min={0.01}
+                    step={0.01}
+                    name="snapIncrement"
+                    value={formData.snapIncrement}
+                    onChange={handleChange}
+                    style={{ marginBottom: "2px" }}
+                  />
+                  <span>&nbsp;(sec)</span>
+                </label>
+              ) : null}
               <hr />
               <input type="submit" value="Save" />
               <button
                 onClick={() => setPreferencesModal(false)}
-                style={{
-                  color: "ButtonText",
-                  backgroundColor: "ButtonFace",
-                  fontSize: "12px",
-                  paddingLeft: "6px",
-                  paddingTop: "1px",
-                  paddingRight: "6px",
-                  paddingBottom: "1px",
-                  border: "3.333",
+                style={{ paddingLeft: "6px", color: "ButtonText"
+                //   backgroundColor: "ButtonFace",
+                //   fontSize: "12px",
+                //   paddingLeft: "6px",
+                //   paddingTop: "1px",
+                //   paddingRight: "6px",
+                //   paddingBottom: "1px",
+                //   border: "3.333",
                 }}
               >
                 Cancel

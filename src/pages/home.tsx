@@ -86,27 +86,27 @@ export default function Home() {
       const previewHeight: number =
         displayHeight - headerHeight - timelineHeight - footerHeight;
       const bodyHeight: number = previewHeight;
-      console.log(
-        "sizes",
-        "screenHeight",
-        screenHeight,
-        "screenWidth",
-        screenWidth,
-        "displayHeight",
-        displayHeight,
-        "headerHeight",
-        headerHeight,
-        "timelineHeight",
-        timelineHeight,
-        "timelineWidth",
-        timelineWidth,
-        "previewHeight",
-        previewHeight,
-        "previewWidth",
-        previewWidth,
-        "bodyHeight",
-        bodyHeight
-      );
+      // console.log(
+      //   "sizes",
+      //   "screenHeight",
+      //   screenHeight,
+      //   "screenWidth",
+      //   screenWidth,
+      //   "displayHeight",
+      //   displayHeight,
+      //   "headerHeight",
+      //   headerHeight,
+      //   "timelineHeight",
+      //   timelineHeight,
+      //   "timelineWidth",
+      //   timelineWidth,
+      //   "previewHeight",
+      //   previewHeight,
+      //   "previewWidth",
+      //   previewWidth,
+      //   "bodyHeight",
+      //   bodyHeight
+      // );
       setScreenHeight(screenHeight);
       setScreenWidth(screenWidth);
       setDisplayHeight(displayHeight);
@@ -251,7 +251,7 @@ export default function Home() {
       dX: 0,
       dY: 0,
     };
-    // console.log("mouse down at", movement.current);
+    // console.log("mouse down at", movement.current); 
     collectMouseMovements();
     e.stopPropagation();
     e.preventDefault();

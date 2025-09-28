@@ -187,7 +187,7 @@ export function TrackVolumeDialog(props: ToolsProps): JSX.Element {
     const n: Track = track.copy();
     n.volume = amount;
     modifyTrack(
-      fileContents.tracks.findIndex((t) => (t.name = track.name)),
+      fileContents.tracks.findIndex((t) => (t.name == track.name)),
       n,
       setFileContents
     );

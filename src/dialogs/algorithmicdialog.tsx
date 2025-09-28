@@ -117,6 +117,18 @@ export default function AlgorithmicDialog(
         />
       </label>
       <label>
+        &nbsp;Beat Shift Amount:&nbsp;
+        <input
+          name="offsetSequence"
+          type="number"
+          min={0}
+          max={formData.measureLength - 1}
+          step={1}
+          onChange={handleChange}
+          value={formData.offsetSequence}
+        />
+      </label>
+      <label>
         &nbsp;Notes in Octave:&nbsp;
         <input
           name="noteCount"
@@ -126,6 +138,18 @@ export default function AlgorithmicDialog(
           step={1}
           onChange={handleChange}
           value={formData.noteCount}
+        />
+      </label>
+      <label>
+        &nbsp;Note Shift Amount:&nbsp;
+        <input
+          name="offsetNotes"
+          type="number"
+          min={0}
+          max={11}
+          step={1}
+          onChange={handleChange}
+          value={formData.offsetNotes}
         />
       </label>
       <br />

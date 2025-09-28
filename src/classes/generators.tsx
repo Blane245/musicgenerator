@@ -150,7 +150,9 @@ export class Algorithmic extends Silent {
   isLooping: boolean; // should the sample loop?
   measureLength: number; // the number of beats in a measure
   beatCount: number; // the number of strokes in a measure
+  offsetSequence: number; // amount to shift the rhythm sequence
   noteCount: number; // the number of active notes in an active
+  offsetNotes: number; // amount to shift the note sequence in the octave
   #activeNotes: number[]; // the active notes of the octave
   noiseSeed: string;
   rn: RandomNumber;
@@ -178,8 +180,10 @@ export class Algorithmic extends Silent {
     this.isLooping = true;
     this.measureLength = 4;
     this.beatCount = 4;
+    this.offsetSequence = 0;
     this.noteCount = 12;
-    this.#activeNotes = euclideanRhythm(this.noteCount, 12);
+    this.offsetNotes = 0;
+    this.#activeNotes = euclideanRhythm(this.noteCount, 12, this.offsetNotes);
     this.noiseSeed = "seed";
     this.rn = new RandomNumber(this.noiseSeed);
     this.noiseFrequency = 0;
@@ -253,7 +257,9 @@ export class Algorithmic extends Silent {
     n.isLooping = this.isLooping;
     n.measureLength = this.measureLength;
     n.beatCount = this.beatCount;
+    n.offsetSequence = this.offsetSequence;
     n.noteCount = this.noteCount;
+    n.offsetNotes = this.offsetNotes;
     n.#activeNotes = this.#activeNotes;
     n.noiseSeed = this.noiseSeed;
     n.rn = this.rn;
@@ -298,9 +304,16 @@ export class Algorithmic extends Silent {
       case "beatCount":
         this.beatCount = parseInt(value);
         return;
+      case "offsetSequence":
+        this.offsetSequence = parseInt(value);
+        return;
       case "noteCount":
         this.noteCount = parseInt(value);
-        this.#activeNotes = euclideanRhythm(this.noteCount, 12);
+        this.#activeNotes = euclideanRhythm(this.noteCount, 12, this.offsetNotes);
+        return;
+      case "offsetNotes":
+        this.offsetNotes = parseInt(value);
+        this.#activeNotes = euclideanRhythm(this.noteCount, 12, this.offsetNotes);
         return;
       case "noiseSeed":
         this.noiseSeed = value;
@@ -464,7 +477,7 @@ export class Algorithmic extends Silent {
   #beatSequence: number[] = [];
   #currentRhythmEntry: number = 0;
   initialSequence() {
-    this.#beatSequence = euclideanRhythm(this.beatCount, this.measureLength);
+    this.#beatSequence = euclideanRhythm(this.beatCount, this.measureLength, this.offsetSequence);
     this.#currentRhythmEntry = 0;
   }
 
@@ -514,7 +527,7 @@ export class Algorithmic extends Silent {
     let midi = Math.round(note);
     const midiFraction = note - midi;
 
-    // get the octave values
+    // get the octave and offset values
     const midiOffset = midi % 12;
     const normalizedMidiOffset = (midiOffset + 12) % 12;
     const octave: number = Math.trunc(midi / 12);
@@ -529,7 +542,7 @@ export class Algorithmic extends Silent {
     // this assumes that the first note in the sequence is selected
     let first: number = normalizedMidiOffset;
     let last: number = normalizedMidiOffset;
-    while (first > 0 && this.#activeNotes[first] == 0) first--;
+    while (first >= 0 && this.#activeNotes[first] == 0) first--;
     while (last < 12 && this.#activeNotes[last] == 0) last++;
     const firstOffset: number = normalizedMidiOffset - first;
     const lastOffset: number = last - normalizedMidiOffset;
@@ -559,7 +572,9 @@ export class Algorithmic extends Silent {
       returnElem.setAttribute("isLooping", this.isLooping ? "true" : "false");
       returnElem.setAttribute("measureLength", this.measureLength.toString());
       returnElem.setAttribute("beatCount", this.beatCount.toString());
+      returnElem.setAttribute("offsetSequence", this.offsetSequence.toString());
       returnElem.setAttribute("noteCount", this.noteCount.toString());
+      returnElem.setAttribute("offsetNotes", this.offsetNotes.toString());
       returnElem.setAttribute("noiseSeed", this.noiseSeed);
       returnElem.setAttribute("noteCount", this.noteCount.toString());
       returnElem.setAttribute("noiseAmplitude", this.noiseAmplitude.toString());
@@ -632,10 +647,19 @@ export class Algorithmic extends Silent {
         "int"
       ) as number;
       g.beatCount = getAttributeValue(elem, "beatCount", "int") as number;
-      g.noteCount = getAttributeValue(elem, "noteCount", "int") as number;
+      try {
+        g.offsetSequence = getAttributeValue(elem, "offsetSequence", "int") as number;
+      } catch(e) {
+        g.offsetSequence = 0;
+      }
       g.initialSequence();
       g.noteCount = getAttributeValue(elem, "noteCount", "int") as number;
-      g.#activeNotes = euclideanRhythm(g.noteCount, 12);
+      try {
+        g.offsetNotes = getAttributeValue(elem, "offsetNotes", "int") as number;
+      } catch(e) {
+        g.offsetNotes = 0;
+      }
+      g.#activeNotes = euclideanRhythm(g.noteCount, 12, g.offsetNotes);
       g.noiseSeed = getAttributeValue(elem, "noiseSeed", "string") as string;
       g.noiseAmplitude = getAttributeValue(
         elem,
@@ -851,6 +875,10 @@ export class Algorithmic extends Silent {
     if (values.beatCount > values.measureLength)
       result.push(
         "The number of beats in a measure must not exceed the measurement length"
+      );
+    if (values.offsetSequence >= values.measureLength)
+      result.push(
+        "Beat shift amount must be less than the measurement length"
       );
     if (values.noiseSeed == "") result.push("Seed must not be blank");
     if (values.noteP) {

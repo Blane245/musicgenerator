@@ -1,5 +1,7 @@
 // various use tools
 
+import { useCMGContext } from "cmgcontext";
+import { GenAlignDialog, GenEqualDialog, GenStaggerDialog } from "dialogs/generatortooldialogs";
 import { ChangeEvent, useState } from "react";
 import { frequencyToMidi, midiToFrequency, toNote } from "sfcomponents/util";
 
@@ -7,6 +9,10 @@ export default function ToolsMenu() {
   const [freqTool, setFreqTool] = useState<boolean>(false);
   const [measureTool, setMeasureTool] = useState<boolean>(false);
   const [oscTool, setOscTool] = useState<boolean>(false);
+  const [genEqualTool, setGenEqualTool] = useState<boolean>(false);
+  const [genStaggerTool, setGenStaggerTool] = useState<boolean>(false);
+  const [genAlignTool, setGenAlignTool] = useState<boolean>(false);
+  const {fileContents, setFileContents, timeLine} = useCMGContext();
 
   function handleMenuSelect(action: string) {
     switch (action) {
@@ -18,6 +24,15 @@ export default function ToolsMenu() {
         break;
       case "osc":
         setOscTool(true);
+        break;
+      case "genequal":
+        setGenEqualTool(true);
+        break;
+      case "genstagger":
+        setGenStaggerTool(true);
+        break;
+      case "genalign":
+        setGenAlignTool(true);
         break;
       default:
         break;
@@ -57,6 +72,22 @@ export default function ToolsMenu() {
       {freqTool ? <MidiFrequencyDialog setOpen={setFreqTool} /> : null}
       {measureTool ? <MeasureDurationDialog setOpen={setMeasureTool} /> : null}
       {oscTool ? <OscillatorFrequencyDialog setOpen={setOscTool} /> : null}
+      {genEqualTool ? <GenEqualDialog 
+      fileContents={fileContents}
+      setFileContents={setFileContents}
+      enabled={setGenEqualTool} 
+      /> : null}
+      {genStaggerTool ? <GenStaggerDialog 
+      fileContents={fileContents}
+      timeLine={timeLine}
+      setFileContents={setFileContents}
+      enabled={setGenStaggerTool} 
+      /> : null}
+      {genAlignTool ? <GenAlignDialog 
+      fileContents={fileContents}
+      setFileContents={setFileContents}
+      enabled={setGenAlignTool} 
+      /> : null}
     </>
   );
 }

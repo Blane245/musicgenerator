@@ -309,6 +309,7 @@ export function moveGeneratorTime(
   track: Track,
   index: number,
   newValue: number,
+  edge: string,
   setFileContents: Function
 ) {
   setFileContents((prev: CMGFile) => {
@@ -319,8 +320,13 @@ export function moveGeneratorTime(
     if (!thisTrack) return prev;
     const newG: GeneratorType = thisTrack.generators[index];
     const dT: number = newG.stopTime - newG.startTime;
+    if (edge == 'start') {
     newG.startTime = newValue;
     newG.stopTime = newValue + dT;
+    } else {
+      newG.stopTime = newValue;
+      newG.startTime = newValue - dT;
+    }
     newF.dirty = true;
     return newF;
   });

@@ -14,7 +14,7 @@ export async function getDirectoryList(
   }
   const fetchUri = `/directory/list?name=${directory}`;
   const response: ServerResponse = await fetchData(fetchUri, "GET");
-  console.log("getdirectory response", response);
+  // console.log("getdirectory response", response);
   if (!response) {
     return;
   }
@@ -23,7 +23,7 @@ export async function getDirectoryList(
     return;
   }
   if (response.list) {
-    console.log("getdirectory list", response.list);
+    // console.log("getdirectory list", response.list);
     const list = response.list.map((item: { name: string; path: string }) => {
       if (typeFilter.length == 0) return item.name;
       const nameParts: string[] = item.name.split(".");

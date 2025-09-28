@@ -163,11 +163,11 @@ export default function Preview(params: PreviewProps): JSX.Element {
 
   // initialize the preview timeline and the ticks when the display layout changes
   useEffect(() => {
-    console.log(
-      "initializing the preview timeline and ticks with displaywidth and offsettime",
-      displayWidth,
-      offsetTime
-    );
+    // console.log(
+    //   "initializing the preview timeline and ticks with displaywidth and offsettime",
+    //   displayWidth,
+    //   offsetTime
+    // );
     if (timeLine) {
       const nP: TimeLine = timeLine.copy();
       nP.width = displayWidth;
@@ -198,14 +198,14 @@ export default function Preview(params: PreviewProps): JSX.Element {
     setPlaybackLength(newLength - newOffset);
     setOffsetTime(newOffset);
 
-    console.log(
-      "initializing preview layout with new source data",
-      sourceData.length,
-      "offsetTime",
-      newOffset,
-      "playbackLength",
-      newLength
-    );
+    // console.log(
+    //   "initializing preview layout with new source data",
+    //   sourceData.length,
+    //   "offsetTime",
+    //   newOffset,
+    //   "playbackLength",
+    //   newLength
+    // );
 
     // initialize the timeprogress value
     setTimeProgress(newOffset);
@@ -219,7 +219,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
       if (nList.find((g) => g.name == s.gen.name) == undefined)
         nList.push(s.gen);
     });
-    console.log("preview generator list", nList);
+    // console.log("preview generator list", nList);
     setSelectedGenerators(nList);
 
     // map sources to drawing sections
@@ -243,7 +243,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
   // draw the sources when a new previewtimeline and a drawing exists
   useEffect(() => {
     if (previewTimeline.current && drawing) {
-      console.log("previewtimeline or drawing update ");
+      // console.log("previewtimeline or drawing update ");
       DrawSources(
         pendingSourceData.current,
         drawing,
@@ -283,11 +283,11 @@ export default function Preview(params: PreviewProps): JSX.Element {
     }
 
     if (!audioContext) {
-      console.log("starting preview without an audiocontext");
+      // console.log("starting preview without an audiocontext");
       return;
     }
     setRunning(true);
-    console.log("previewing new sourcedata at time", audioContext.currentTime);
+    // console.log("previewing new sourcedata at time", audioContext.currentTime);
 
     // the real time scheduler
     // time progress updated every second
@@ -304,18 +304,18 @@ export default function Preview(params: PreviewProps): JSX.Element {
   // on resume, this restarts them
   function onPauseResume() {
     if (!audioContext) {
-      console.log("no audio context on pause request");
+      // console.log("no audio context on pause request");
       return;
     }
     if (isPaused) {
-      console.log(
-        "exit from pause at",
-        audioContext.currentTime,
-        "activeSource count",
-        activeSources.current.length,
-        "pendingSourceData count",
-        pendingSourceData.current.length
-      );
+      // console.log(
+      //   "exit from pause at",
+      //   audioContext.currentTime,
+      //   "activeSource count",
+      //   activeSources.current.length,
+      //   "pendingSourceData count",
+      //   pendingSourceData.current.length
+      // );
       setIsPaused(false);
       paused.current = false;
       tick();
@@ -324,7 +324,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
       audioContext.resume();
       scheduler();
     } else {
-      console.log("enter pause at", audioContext.currentTime);
+      // console.log("enter pause at", audioContext.currentTime);
       setIsPaused(true);
       paused.current = true;
       audioContext.suspend();
@@ -451,11 +451,11 @@ export default function Preview(params: PreviewProps): JSX.Element {
         case SectionType.None:
           break;
         default: {
-          console.log(
-            "source has no section for generator",
-            s.gen.name,
-            s.gen.type
-          );
+          // console.log(
+          //   "source has no section for generator",
+          //   s.gen.name,
+          //   s.gen.type
+          // );
           break;
         }
       }
@@ -479,7 +479,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
   ) {
     // abnormal case - no sections
     if (drawingSections.length == 0) {
-      console.log("no drawing sections defined");
+      // console.log("no drawing sections defined");
       return;
     }
 
@@ -489,13 +489,13 @@ export default function Preview(params: PreviewProps): JSX.Element {
       (nInstrument == -1 && nPercussion != -1 && nAudioFiles == 0) ||
       (nInstrument == -1 && nPercussion == -1 && nAudioFiles == 1)
     ) {
-      console.log("one drawing section");
+      // console.log("one drawing section");
       drawingSections[0].height = height;
       drawingSections[0].verticalOffset = 0;
     }
     // only n audiofiles
     else if (nInstrument == -1 && nPercussion == -1) {
-      console.log(nAudioFiles, "audiofile sections");
+      // console.log(nAudioFiles, "audiofile sections");
       const sectionSize: number = height / nAudioFiles;
       let offset: number = 0;
       drawingSections.forEach((section) => {
@@ -506,7 +506,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
     }
     // instrument + percussion, no audiofiles
     else if (nInstrument > -1 && nPercussion > -1 && nAudioFiles == 0) {
-      console.log("instrument and percussion sections");
+      // console.log("instrument and percussion sections");
       // there are two sections. first wil be instrument at 75%, then percussion at 25%
       const sectionSize: number = height * 0.75;
       drawingSections[nInstrument].height = sectionSize;
@@ -521,11 +521,11 @@ export default function Preview(params: PreviewProps): JSX.Element {
       (nInstrument > -1 && nPercussion == -1 && nAudioFiles > 0) ||
       (nInstrument == -1 && nPercussion > -1 && nAudioFiles > 0)
     ) {
-      console.log(
-        "either 1 instrument or percussion, and",
-        nAudioFiles,
-        "audiofiles"
-      );
+      // console.log(
+      //   "either 1 instrument or percussion, and",
+      //   nAudioFiles,
+      //   "audiofiles"
+      // );
       const section1: number = height * 0.7;
       const section2: number = height * 0.3;
       if (nInstrument > -1) {
@@ -546,11 +546,11 @@ export default function Preview(params: PreviewProps): JSX.Element {
     }
     // instrument + percussion + n audioFiles
     else if (nInstrument > -1 && nPercussion > -1 && nAudioFiles > 0) {
-      console.log(
-        "1 instrument and percussion, and",
-        nAudioFiles,
-        "audiofiles"
-      );
+      // console.log(
+      //   "1 instrument and percussion, and",
+      //   nAudioFiles,
+      //   "audiofiles"
+      // );
       const section1: number = height * 0.7;
       const section2: number = height * 0.2;
       const section3: number = height * 0.1;
@@ -586,11 +586,11 @@ export default function Preview(params: PreviewProps): JSX.Element {
         (s) => s.index == m.sourceIndex
       );
       if (source == undefined) {
-        console.log(
-          "source not found with index",
-          m.sourceIndex,
-          "during lo hi search"
-        );
+        // console.log(
+        //   "source not found with index",
+        //   m.sourceIndex,
+        //   "during lo hi search"
+        // );
         return;
       }
       if (section.type != SectionType.AudioFile) {
@@ -610,9 +610,9 @@ export default function Preview(params: PreviewProps): JSX.Element {
     sections: DrawingSection[],
     sourceMap: SourceToDrawingSectionEntry[]
   ) {
-    console.log("drawing lines for ", sources.length, "sources");
+    // console.log("drawing lines for ", sources.length, "sources");
     if (!drawing || !timeline) {
-      console.log("either drawing or timeline is null");
+      // console.log("either drawing or timeline is null");
       return;
     }
 
@@ -647,7 +647,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
 
       // label the section with names and lo and hi values
       const hiScale: number = (Math.floor(section.hiValue / 12) + 1) * 12;
-      const loScale: number = (Math.floor(section.loValue / 12) - 1) * 12;
+      const loScale: number = (Math.floor(section.loValue / 12)) * 12;
       const hiNote: string = toNote(hiScale);
       const loNote: string = toNote(loScale);
       const sectionNameElement: SVGTextElement = document.createElementNS(
@@ -722,12 +722,12 @@ export default function Preview(params: PreviewProps): JSX.Element {
     const timelineStart: number = timeline.startTime;
     const timelineEnd: number =
       timelineStart + TimeLineScales[timeline.currentZoomLevel].extent;
-    console.log(
-      "time progress and time line start and end",
-      timeProgress,
-      timelineStart,
-      timelineEnd
-    );
+    // console.log(
+    //   "time progress and time line start and end",
+    //   timeProgress,
+    //   timelineStart,
+    //   timelineEnd
+    // );
     // draw the timeprogress line
     const progressLine: SVGLineElement = document.createElementNS(
       "http://www.w3.org/2000/svg",
@@ -773,7 +773,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
         (map) => map.sourceIndex == s.index
       );
       if (entry == undefined) {
-        console.log("section not found for source generator", s.gen.name);
+        // console.log("section not found for source generator", s.gen.name);
         return;
       }
       const sectionIndex = entry.sectionIndex;
@@ -835,7 +835,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
         );
         drawing.appendChild(newLine);
       } else {
-        console.log("bad section type", type);
+        // console.log("bad section type", type);
       }
       // TODO for audiofiles, draw the portion of the sample that fits in the timeline
     });
@@ -850,7 +850,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
       "line-" + s.index.toString()
     );
     if (!sourceElement) {
-      console.log("line not found for source", s.index);
+      // console.log("line not found for source", s.index);
       return;
     }
     const hue =
@@ -870,7 +870,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
   function scheduler(): void {
     // if (paused.current) {
     if (paused.current) {
-      console.log("scheduler paused");
+      // console.log("scheduler paused");
       timerID && clearTimeout(timerID);
       return;
     }
@@ -887,7 +887,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
         audioContext.suspend();
         audioContext.close();
       }
-      console.log("completed preview at ", endTime);
+      // console.log("completed preview at ", endTime);
       onExit();
       return;
     }
@@ -950,10 +950,10 @@ export default function Preview(params: PreviewProps): JSX.Element {
               (s) => s.index == activeSource.sourceIndex
             );
           if (thisSource == undefined) {
-            console.log(
-              "could not find active source with index",
-              activeSource.sourceIndex
-            );
+            // console.log(
+            //   "could not find active source with index",
+            //   activeSource.sourceIndex
+            // );
             return;
           }
           // const stopTime: number =
@@ -1003,12 +1003,12 @@ export default function Preview(params: PreviewProps): JSX.Element {
   // time progress clicker for updating the time progress widget
   function tick(): void {
     if (paused.current) {
-      console.log("tick paused");
+      // console.log("tick paused");
       tickId && clearTimeout(tickId);
       return;
     }
     if (!audioContext) {
-      console.log("no audio context for tick");
+      // console.log("no audio context for tick");
       return;
     }
     if (playing.current && audioContext.currentTime <= playbackLength) {
@@ -1059,7 +1059,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
   // determine which generators are currently playing
   function playingGenerators() {
     if (paused.current) {
-      console.log("playingGenerators paused");
+      // console.log("playingGenerators paused");
       playingId && clearTimeout(playingId);
       return;
     }
@@ -1103,7 +1103,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
   // get the volume and spectra once a second
   function signalMonitor() {
     if (paused.current) {
-      console.log("signalMonitor paused");
+      // console.log("signalMonitor paused");
       signalId && clearTimeout(signalId);
       return;
     }
@@ -1197,7 +1197,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
   // move the timeline ahead 1/2 of its current extent
   function updateTimeline(timeProgress: number): TimeLine | null {
     if (!previewTimeline.current) {
-      console.log("in updatetimeline, previewtimeline is null");
+      // console.log("in updatetimeline, previewtimeline is null");
       return null;
     }
     let result: TimeLine = previewTimeline.current;
@@ -1207,7 +1207,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
     if (timeProgress >= newStart + extent) {
       newStart = previewTimeline.current.startTime + extent / 2.0;
       while (newStart + extent <= timeProgress) newStart += extent / 2.0;
-      console.log("new timeline start", newStart);
+      // console.log("new timeline start", newStart);
       const newPreviewTimeline: TimeLine = previewTimeline.current.copy();
       newPreviewTimeline.startTime = newStart;
       result = newPreviewTimeline;
@@ -1256,7 +1256,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
     // console.log("reflection delay is", theDelay);
     // connect to the signal analyser to the output of the volumes and spectra (assumed to be last)
     setAnalyser(new SignalLevel(ctx, fileContents.volume.effect as GainNode));
-    console.log("analyzer connected", fileContents.volume.effect);
+    // console.log("analyzer connected", fileContents.volume.effect);
   }
   function DrawSpectrum(spectrum: Uint8Array): JSX.Element[] {
     if (!spectrum || spectrum.length == 0) return [<></>];
@@ -1379,7 +1379,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
             {getTickLinesandLabels(
               previewTimeline.current,
               ticks,
-              displayWidth,
+              displayWidth
             )}
           </svg>
         ) : null}
