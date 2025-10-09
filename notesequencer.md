@@ -7,3 +7,23 @@ Premanent storage is needed to store various note sequences and that be strung t
 Each generator has attrtibutes assignable to each note in the sequence. Attibute values depend on the generator type (Constant, Osciallator, etc.) with the addition of a new type that uses the number of the note in the sequence. The attribute value is taken from an array arranged by seqeunce number.
 
 It would be nice to implement slurs, cresendo(during note), and glissandi (sample rate changes during note).
+
+DB structure
+    -sequence table
+        - name (UID)
+        - sequence (Music XML (compressed?) string)
+    - tags table
+        - name (UID)
+    - seqeuncetags table
+        - sequencename (FK)
+        - tagname (FK)
+CRUD for DB
+    - CRUD for tags
+
+
+
+see https://medium.com/@diyaraabdusalam/how-to-connect-react-with-mysql-database-using-node-js-express-js-1756423267d9 for mysql frontend and backend installation
+    - had to install commuinity version fo mysql server to have a one on this machine independent of the web.
+        - using TCP/IP  (port 3306)
+        - using legacy authentication method
+        - database password and DBAdmin user in my KeePass
