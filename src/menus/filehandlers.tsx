@@ -26,13 +26,13 @@ import { SFPool } from "../sfcomponents/sfpool";
 import { Preset } from "../sfcomponents/types";
 import { presetNameToPreset } from "../sfcomponents/util";
 import {
-  ServerResponse,
+  FSResponse,
   SFPromiseType,
   SoundFontGenerators,
   SoundFontGeneratorsType,
 } from "../types";
 import { getDocElement, getElementElement } from "../utils/xmlfunctions";
-import fetchData from "utils/fetchdata";
+import {fetchFSData} from "utils/fetchdata";
 import { Buffer } from "buffer";
 import TimeLine from "classes/timeline";
 
@@ -83,7 +83,7 @@ export async function writeCMGFile(
     const uri: string = `/file/write?name=${fileName}&overwrite=${overWrite}`;
 
     const docString: string = new XMLSerializer().serializeToString(cmgElem);
-    const response: ServerResponse = await fetchData(uri, "POST", docString);
+    const response: FSResponse = await fetchFSData(uri, "POST", docString);
     if (response)
       if (response.error) return response.status;
       else return "";
@@ -102,7 +102,7 @@ export async function readCMGFile(
 ): Promise<{ fileContents: CMGFile | null; timeLine: TimeLine | null }> {
   try {
     const uri: string = `/file/read?name=${fileName}`;
-    const response: ServerResponse = await fetchData(uri, "GET");
+    const response: FSResponse = await fetchFSData(uri, "GET");
     if (!response || !response.file || response.error) {
       return Promise.reject(response?.error);
     }

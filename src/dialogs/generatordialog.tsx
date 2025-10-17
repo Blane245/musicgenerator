@@ -10,11 +10,10 @@ import { SFPool } from "sfcomponents/sfpool";
 import { Preset } from "sfcomponents/types";
 import { bankPresettoName, precision } from "sfcomponents/util";
 import { SoundFont2 } from "soundfont2";
-import { PLAYMODE, GeneratorType, GENERATORTYPE, TIMELINETYPE } from "types";
+import { GeneratorType, GENERATORTYPE, PLAYMODE, TIMELINETYPE } from "types";
 import { addGenerator, modifyGenerator } from "utils/cmfiletransactions";
 import { getGeneratorUID } from "utils/getgeneratoruid";
 import GeneratorTypeForm from "./generatortypeform";
-import { PiCarSimpleThin } from "react-icons/pi";
 
 // The icon starts at the generator's start time and ends at the generators endtime
 export interface GeneratorDialogProps {

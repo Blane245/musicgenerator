@@ -9,12 +9,15 @@ export type TimeLinePreferences = {
   MeasureSubdivisions: number;
 }
 
+import { Buffer } from "buffer";
 import Track from "classes/track";
 import {
+  AlgorithmValues,
   AutoregressiveValues,
   ConstantValues,
   MarkovianValues,
   OscillatorValues,
+  SequenceValues,
   WienerValues,
 } from "../classes/algorithmvalues";
 import { Algorithmic, AudioFile, Silent } from "../classes/generators";
@@ -27,7 +30,7 @@ import {
   triangleModulator,
 } from "../modulators";
 import { SoundFont2 } from "../soundfont2";
-import { Buffer } from "buffer";
+import { AttackItem, DurationItem, NoteItem, PanItem, SequenceItem, SpeedItem, VolumeItem } from "classes/sequenceitems";
 
 export const SAMPLERATE: number = 44100;
 
@@ -62,21 +65,22 @@ export enum GENERATORTYPE {
   "Algorithmic" = "Algorithmic",
   "AudioFile" = "AudioFile",
 }
-export type AlgorithmType =
-  | ConstantType
-  | AutoregressiveType
-  | OscillatorType
-  | MarkovianType
-  | WienerType;
+// export type AlgorithmTypes =
+//   | AlgorithmType
+//   | ConstantType
+//   | AutoregressiveType
+//   | OscillatorType
+//   | MarkovianType
+//   | WienerType
+//   | SequenceType;
 
 export type Algorithm =
-  | undefined
   | ConstantValues
   | AutoregressiveValues
-  // | AlgorithmValues
   | OscillatorValues
   | MarkovianValues
-  | WienerValues;
+  | WienerValues
+  | SequenceValues;
 
 export enum ALGORITHMTYPE {
   "None" = "None",
@@ -85,11 +89,12 @@ export enum ALGORITHMTYPE {
   "Oscillator" = "Oscillator",
   "Markovian" = "Markovian",
   "Wiener" = "Wiener",
+  "Sequence" = "Sequence",
 }
 
+export type AlgorithmType = {
+}
 export type ConstantType = {
-  seed: string;
-  rn: RandomNumber;
   value: number; // the constant value
 };
 export type AutoregressiveType = {
@@ -103,8 +108,6 @@ export type AutoregressiveType = {
   currentValue: number;
 };
 export type OscillatorType = {
-  seed: string;
-  rn: RandomNumber;
   type: MODULATOR;
   center: number;
   frequency: number;
@@ -151,6 +154,68 @@ export type WienerType = {
   lo: number;
   hi: number;
 };
+
+export enum SEQUENCEATTRIBUTE {
+  "none" = "none",
+  "note" = "note",
+  "speed" = "speed",
+  "attack" = "attack",
+  "duration" = "duration",
+  "volume" = "volume",
+  "pan" = "pan",
+}
+export const Attributes: SEQUENCEATTRIBUTE[] = [
+  SEQUENCEATTRIBUTE.none,
+  SEQUENCEATTRIBUTE.note,
+  SEQUENCEATTRIBUTE.speed,
+  SEQUENCEATTRIBUTE.attack,
+  SEQUENCEATTRIBUTE.duration,
+  SEQUENCEATTRIBUTE.volume,
+  SEQUENCEATTRIBUTE.pan,
+];
+
+
+export type SequenceType = {
+  name: string;
+  sequenceType: SEQUENCEATTRIBUTE;
+  items:SequenceItem[];
+}
+
+export type NoteType = {
+  name: string;
+  sequenceType: SEQUENCEATTRIBUTE;
+  items:NoteItem[]
+  transpose:number;
+}
+
+export type SpeedType = {
+  name: string;
+  sequenceType: SEQUENCEATTRIBUTE;
+  items:SpeedItem[]
+}
+
+export type AttackType = {
+  name: string;
+  sequenceType: SEQUENCEATTRIBUTE;
+  items:AttackItem[]
+}
+export type DurationType = {
+  name: string;
+  sequenceType: SEQUENCEATTRIBUTE;
+  items:DurationItem[]
+}
+
+export type VolumeType = {
+  name: string;
+  sequenceType: SEQUENCEATTRIBUTE;
+  items:VolumeItem[]
+}
+
+export type PanType = {
+  name: string;
+  sequenceType: SEQUENCEATTRIBUTE;
+  items:PanItem[]
+}
 
 export enum NOISETYPE {
   white = "white",
@@ -397,7 +462,7 @@ export type DirectoryEntry = {
   type: ENTRYTYPE;
 }
 export type FileEntry = { data: Buffer, type: string};
-export type ServerResponse = {
+export type FSResponse = {
   error: boolean;
   status?: string;
   list?: DirectoryEntry[];
@@ -409,4 +474,49 @@ export type FSEntry = {
   list: string[];
 }
 export type FSList = FSEntry[];
+export enum DBRESPONSETYPE {
+  "error" = "error",
+  "info" = "info",
+  "notesequencevalidnamelist" = "notesequencevalidnamelist",
+  "speedsequencevalidnamelist" = "speedsequencenvalidamelist",
+  "attacksequencevalidnamelist" = "attacksequencevalidnamelist",
+  "durationsequencevalidnamelist" = "durationsequencevalidnamelist",
+  "volumesequencevalidnamelist" = "volumesequencevalidnamelist",
+  "pansequencevalidnamelist" = "pansequencevalidnamelist",
+  "notesequencevalue" = "notesequencevalue",
+  "speedsequencevalue" = "speedsequencevalue",
+  "attacksequencevalue" = "attacksequencevalue",
+  "durationequencevalue" = "durationequencevalue",
+  "volumesequencevalue" = "volumesequencevalue",
+  "pansequencevalue" = "pansequencevalue",
+}
+export type SequenceName = {
+  name: string;
+};
+
+export type DbErrorType = {
+  type: DBRESPONSETYPE;
+  message: string;
+};
+export type DbSequenceValidNamesType = {
+  type: DBRESPONSETYPE;
+  value: SequenceName[];
+};
+export type DbSequenceItem = {
+  name: string;
+  value: string;
+  tags: string;
+};
+export type DbSequenceType = {
+  type: DBRESPONSETYPE;
+  value: DbSequenceItem;
+};
+
+export type DbResponseType =
+  | DbErrorType
+  | DbSequenceValidNamesType
+  | DbSequenceType
+;
+
+
 

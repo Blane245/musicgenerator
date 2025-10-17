@@ -2,14 +2,16 @@ import {
   AutoregressiveValues,
   ConstantValues,
   MarkovianValues,
+  NoteSequence,
   OscillatorValues,
+  SequenceValues,
   WienerValues,
 } from "classes/algorithmvalues";
 import { Algorithmic } from "classes/generators";
 import { useCMGContext } from "cmgcontext";
 import { ChangeEvent, useState } from "react";
 import { bankPresettoName, toNote } from "sfcomponents/util";
-import { ALGORITHMTYPE } from "types";
+import { ALGORITHMTYPE, SEQUENCEATTRIBUTE } from "types";
 import AutoregressivePropertiesBox from "./autoregresivepropertiesbox";
 import ConstantPropertiesBox from "./constantpropertiesbox";
 import MarkovianPropertiesBox from "./markovianpropertiesbox";
@@ -18,6 +20,7 @@ import OscillatorPropertiesBox from "./oscillatorpropertiesbox";
 import PresetDialog from "./presetdialog";
 import WienerPropertiesBox from "./wienerpropertiesbox";
 import ToolsMenu from "menus/toolsmenu";
+import SequencerPropertiesBox from "./sequencerpropertiesbox";
 
 // provides the form fields and validators for the algorithmic generator
 
@@ -333,6 +336,15 @@ export default function AlgorithmicDialog(
               valueSuffix={(value: number) => toNote(value)}
             />
           ) : null}
+          {formData.noteP &&
+          formData.noteP.algorithmType == ALGORITHMTYPE.Sequence ? (
+            <SequencerPropertiesBox
+              sequenceType={SEQUENCEATTRIBUTE.note}
+              name="noteP.sequence.values"
+              values={(formData.noteP as SequenceValues).values}
+              handleChange={handleChange}
+            />
+          ) : null}
         </div>
       </div>
       <hr />
@@ -454,6 +466,15 @@ export default function AlgorithmicDialog(
               valueSuffix={() => "(0-127)"}
             />
           ) : null}
+          {formData.attackP &&
+          formData.attackP.algorithmType == ALGORITHMTYPE.Sequence ? (
+            <SequencerPropertiesBox
+              sequenceType={SEQUENCEATTRIBUTE.attack}
+              name="attackP.sequence.values"
+              values={(formData.attackP as SequenceValues).values}
+              handleChange={handleChange}
+            />
+          ) : null}
         </div>
       </div>
       <hr />
@@ -569,6 +590,15 @@ export default function AlgorithmicDialog(
               max={1000}
               step={0.001}
               valueSuffix={() => "BPM"}
+            />
+          ) : null}
+          {formData.speedP &&
+          formData.speedP.algorithmType == ALGORITHMTYPE.Sequence ? (
+            <SequencerPropertiesBox
+              sequenceType={SEQUENCEATTRIBUTE.speed}
+              name="speedP.sequence.values"
+              values={(formData.speedP as SequenceValues).values}
+              handleChange={handleChange}
             />
           ) : null}
         </div>
@@ -687,6 +717,15 @@ export default function AlgorithmicDialog(
               valueSuffix={() => "%"}
             />
           ) : null}
+          {formData.durationP &&
+          formData.durationP.algorithmType == ALGORITHMTYPE.Sequence ? (
+            <SequencerPropertiesBox
+              sequenceType={SEQUENCEATTRIBUTE.duration}
+              name="durationP.sequence.values"
+              values={(formData.durationP as SequenceValues).values}
+              handleChange={handleChange}
+            />
+          ) : null}
         </div>
       </div>
       <hr />
@@ -803,6 +842,15 @@ export default function AlgorithmicDialog(
               valueSuffix={() => "dB"}
             />
           ) : null}
+          {formData.volumeP &&
+          formData.volumeP.algorithmType == ALGORITHMTYPE.Sequence ? (
+            <SequencerPropertiesBox
+              sequenceType={SEQUENCEATTRIBUTE.volume}
+              name="volumeP.sequence.values"
+              values={(formData.volumeP as SequenceValues).values}
+              handleChange={handleChange}
+            />
+          ) : null}
         </div>
       </div>
       <hr />
@@ -915,6 +963,15 @@ export default function AlgorithmicDialog(
               max={1}
               step={0.1}
               valueSuffix={() => "[-1,+1]"}
+            />
+          ) : null}
+          {formData.panP &&
+          formData.panP.algorithmType == ALGORITHMTYPE.Sequence ? (
+            <SequencerPropertiesBox
+              sequenceType={SEQUENCEATTRIBUTE.pan}
+              name="panP.sequence.values"
+              values={(formData.panP as SequenceValues).values}
+              handleChange={handleChange}
             />
           ) : null}
         </div>

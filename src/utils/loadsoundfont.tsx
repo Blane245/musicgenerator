@@ -1,14 +1,14 @@
 // load a soundfont file from the server and
 // place it in a SoundFont2 object
 import { Buffer } from "buffer";
-import { ServerResponse, SFFILELOCATION } from "types";
+import { FSResponse, SFFILELOCATION } from "types";
 import { SoundFont2 } from "../soundfont2";
-import fetchData from "./fetchdata";
+import {fetchFSData} from "./fetchdata";
 
 export async function loadSoundFont(fileName: string): Promise<SoundFont2> {
   const fullName: string = window.localStorage.getItem(SFFILELOCATION)+'/'+fileName;
   const uri: string = `/file/read?name=${fullName}`;
-  const response: ServerResponse = await fetchData(uri, "GET");
+  const response: FSResponse = await fetchFSData(uri, "GET");
   if (response && response.file && !response.error) {
     const data: Buffer = response.file.data;
     const array: Uint8Array = Uint8Array.from(data);

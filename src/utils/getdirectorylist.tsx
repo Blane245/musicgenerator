@@ -1,6 +1,6 @@
 // get the list of soundfont files either from local storage or from the server
-import { type ServerResponse } from "../types";
-import fetchData from "./fetchdata";
+import { type FSResponse } from "../types";
+import {fetchFSData} from "./fetchdata";
 
 export async function getDirectoryList(
   directory: string,
@@ -13,7 +13,7 @@ export async function getDirectoryList(
     return;
   }
   const fetchUri = `/directory/list?name=${directory}`;
-  const response: ServerResponse = await fetchData(fetchUri, "GET");
+  const response: FSResponse = await fetchFSData(fetchUri, "GET");
   // console.log("getdirectory response", response);
   if (!response) {
     return;

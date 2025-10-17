@@ -19,6 +19,7 @@ import {
   ConstantValues,
   MarkovianValues,
   OscillatorValues,
+  SequenceValues,
   WienerValues,
 } from "./algorithmvalues";
 import CMGFile from "./cmgfile";
@@ -269,12 +270,12 @@ export class Algorithmic extends Silent {
     n.context = this.context;
     n.reverbDuration = this.reverbDuration;
     n.reverbDecay = this.reverbDecay;
-    n.noteP = this.noteP ? this.noteP.copy() : undefined;
-    n.attackP = this.attackP ? this.attackP.copy() : undefined;
-    n.speedP = this.speedP ? this.speedP.copy() : undefined;
-    n.durationP = this.durationP ? this.durationP.copy() : undefined;
-    n.volumeP = this.volumeP ? this.volumeP.copy() : undefined;
-    n.panP = this.panP ? this.panP.copy() : undefined;
+    n.noteP = this.noteP.copy();
+    n.attackP = this.attackP.copy();
+    n.speedP = this.speedP.copy();
+    n.durationP = this.durationP.copy();
+    n.volumeP = this.volumeP.copy();
+    n.panP = this.panP.copy();
     return n;
   }
 
@@ -309,11 +310,19 @@ export class Algorithmic extends Silent {
         return;
       case "noteCount":
         this.noteCount = parseInt(value);
-        this.#activeNotes = euclideanRhythm(this.noteCount, 12, this.offsetNotes);
+        this.#activeNotes = euclideanRhythm(
+          this.noteCount,
+          12,
+          this.offsetNotes
+        );
         return;
       case "offsetNotes":
         this.offsetNotes = parseInt(value);
-        this.#activeNotes = euclideanRhythm(this.noteCount, 12, this.offsetNotes);
+        this.#activeNotes = euclideanRhythm(
+          this.noteCount,
+          12,
+          this.offsetNotes
+        );
         return;
       case "noiseSeed":
         this.noiseSeed = value;
@@ -348,6 +357,9 @@ export class Algorithmic extends Silent {
           case "Wiener":
             this.noteP = new WienerValues();
             return;
+          case "Sequence":
+            this.noteP = new SequenceValues();
+            return;
         }
         break;
       case "attackP.algorithmType":
@@ -366,6 +378,9 @@ export class Algorithmic extends Silent {
             return;
           case "Wiener":
             this.attackP = new WienerValues();
+            return;
+          case "Sequence":
+            this.attackP = new SequenceValues();
             return;
         }
         break;
@@ -386,6 +401,9 @@ export class Algorithmic extends Silent {
           case "Wiener":
             this.speedP = new WienerValues();
             return;
+          case "Sequence":
+            this.speedP = new SequenceValues();
+            return;
         }
         break;
       case "durationP.algorithmType":
@@ -404,6 +422,9 @@ export class Algorithmic extends Silent {
             return;
           case "Wiener":
             this.durationP = new WienerValues();
+            return;
+          case "Sequence":
+            this.durationP = new SequenceValues();
             return;
         }
         break;
@@ -424,6 +445,9 @@ export class Algorithmic extends Silent {
           case "Wiener":
             this.volumeP = new WienerValues();
             return;
+          case "Sequence":
+            this.volumeP = new SequenceValues();
+            return;
         }
         break;
       case "panP.algorithmType":
@@ -442,6 +466,9 @@ export class Algorithmic extends Silent {
             return;
           case "Wiener":
             this.panP = new WienerValues();
+            return;
+          case "Sequence":
+            this.panP = new SequenceValues();
             return;
         }
         break;
@@ -477,11 +504,15 @@ export class Algorithmic extends Silent {
   #beatSequence: number[] = [];
   #currentRhythmEntry: number = 0;
   initialSequence() {
-    this.#beatSequence = euclideanRhythm(this.beatCount, this.measureLength, this.offsetSequence);
+    this.#beatSequence = euclideanRhythm(
+      this.beatCount,
+      this.measureLength,
+      this.offsetSequence
+    );
     this.#currentRhythmEntry = 0;
   }
 
-  getCurrentValues(time: number): {
+  getCurrentValues(time: number, measureLength:number, beatCount: number): {
     beat: boolean;
     attack: number;
     note: number;
@@ -495,26 +526,22 @@ export class Algorithmic extends Silent {
       (this.#currentRhythmEntry + 1) % this.measureLength;
     const beat: boolean = this.#beatSequence[entry] != 0;
 
-    let note: number = this.noteP ? this.noteP.getCurrentValue(time) : 0;
+    let note: number = this.noteP.getCurrentValue(time, measureLength, beatCount);
     note = Math.min(127, Math.max(0, note));
 
-    let attack: number = this.attackP
-      ? this.attackP.getCurrentValue(time)
-      : 0;
+    let attack: number = this.attackP.getCurrentValue(time, measureLength, beatCount);
     attack = Math.min(127, Math.max(0, attack));
 
-    let speed: number = this.speedP ? this.speedP.getCurrentValue(time) : 0;
+    let speed: number = this.speedP.getCurrentValue(time, measureLength, beatCount);
     speed = Math.min(10000, Math.max(0.001, speed));
 
-    let duration: number = this.durationP
-      ? this.durationP.getCurrentValue(time)
-      : 0;
+    let duration: number = this.durationP.getCurrentValue(time, measureLength, beatCount);
     duration = Math.min(100, Math.max(0, duration));
 
-    let volume: number = this.volumeP ? this.volumeP.getCurrentValue(time) : 0;
+    let volume: number = this.volumeP.getCurrentValue(time, measureLength, beatCount);
     volume = Math.min(10, Math.max(-10, volume));
 
-    let pan: number = this.panP ? this.panP.getCurrentValue(time) : 0;
+    let pan: number = this.panP.getCurrentValue(time, measureLength, beatCount);
     pan = Math.min(1, Math.max(-1, pan));
 
     // modify the note based on those selectable in the octave
@@ -648,15 +675,19 @@ export class Algorithmic extends Silent {
       ) as number;
       g.beatCount = getAttributeValue(elem, "beatCount", "int") as number;
       try {
-        g.offsetSequence = getAttributeValue(elem, "offsetSequence", "int") as number;
-      } catch(e) {
+        g.offsetSequence = getAttributeValue(
+          elem,
+          "offsetSequence",
+          "int"
+        ) as number;
+      } catch (e) {
         g.offsetSequence = 0;
       }
       g.initialSequence();
       g.noteCount = getAttributeValue(elem, "noteCount", "int") as number;
       try {
         g.offsetNotes = getAttributeValue(elem, "offsetNotes", "int") as number;
-      } catch(e) {
+      } catch (e) {
         g.offsetNotes = 0;
       }
       g.#activeNotes = euclideanRhythm(g.noteCount, 12, g.offsetNotes);
@@ -667,7 +698,11 @@ export class Algorithmic extends Silent {
         "float"
       ) as number;
       try {
-        g.noiseFrequency = getAttributeValue(elem, 'noiseFrequency', 'float') as number;
+        g.noiseFrequency = getAttributeValue(
+          elem,
+          "noiseFrequency",
+          "float"
+        ) as number;
       } catch (e) {
         g.noiseFrequency = 0;
       }
@@ -709,6 +744,9 @@ export class Algorithmic extends Silent {
         case ALGORITHMTYPE.Wiener:
           g.noteP = await WienerValues.getXML(notePElem, version);
           break;
+        case ALGORITHMTYPE.Sequence:
+          g.noteP = await SequenceValues.getXML(notePElem, version);
+          break;
       }
 
       let attackPElem: Element | null = null;
@@ -719,7 +757,7 @@ export class Algorithmic extends Silent {
       }
       let attackPType: ALGORITHMTYPE = ALGORITHMTYPE.Constant;
       if (attackPElem)
-           attackPType = getAttributeValue(
+        attackPType = getAttributeValue(
           attackPElem,
           "algorithmType",
           "string"
@@ -733,10 +771,7 @@ export class Algorithmic extends Silent {
             g.attackP = await ConstantValues.getXML(attackPElem, version);
             break;
           case ALGORITHMTYPE.Autoregressive:
-            g.attackP = await AutoregressiveValues.getXML(
-              attackPElem,
-              version
-            );
+            g.attackP = await AutoregressiveValues.getXML(attackPElem, version);
             break;
           case ALGORITHMTYPE.Oscillator:
             g.attackP = await OscillatorValues.getXML(attackPElem, version);
@@ -747,9 +782,12 @@ export class Algorithmic extends Silent {
           case ALGORITHMTYPE.Wiener:
             g.attackP = await WienerValues.getXML(attackPElem, version);
             break;
+          case ALGORITHMTYPE.Sequence:
+            g.attackP = await SequenceValues.getXML(attackPElem, version);
+            break;
         }
       }
-      
+
       const speedPElem: Element = getElementElement(elem, "speedP");
       const speedPType: ALGORITHMTYPE = getAttributeValue(
         speedPElem,
@@ -771,6 +809,9 @@ export class Algorithmic extends Silent {
           break;
         case ALGORITHMTYPE.Wiener:
           g.speedP = await WienerValues.getXML(speedPElem, version);
+          break;
+        case ALGORITHMTYPE.Sequence:
+          g.speedP = await SequenceValues.getXML(speedPElem, version);
           break;
       }
 
@@ -809,6 +850,9 @@ export class Algorithmic extends Silent {
           case ALGORITHMTYPE.Wiener:
             g.durationP = await WienerValues.getXML(durationPElem, version);
             break;
+          case ALGORITHMTYPE.Sequence:
+            g.durationP = await SequenceValues.getXML(durationPElem, version);
+            break;
         }
       }
 
@@ -818,7 +862,7 @@ export class Algorithmic extends Silent {
         "algorithmType",
         "string"
       ) as ALGORITHMTYPE;
-            switch (volumePType) {
+      switch (volumePType) {
         case ALGORITHMTYPE.Constant:
           g.volumeP = await ConstantValues.getXML(volumePElem, version);
           break;
@@ -833,6 +877,9 @@ export class Algorithmic extends Silent {
           break;
         case ALGORITHMTYPE.Wiener:
           g.volumeP = await WienerValues.getXML(volumePElem, version);
+          break;
+        case ALGORITHMTYPE.Sequence:
+          g.volumeP = await SequenceValues.getXML(volumePElem, version);
           break;
       }
 
@@ -858,6 +905,9 @@ export class Algorithmic extends Silent {
         case ALGORITHMTYPE.Wiener:
           g.panP = await WienerValues.getXML(panPElem, version);
           break;
+        case ALGORITHMTYPE.Sequence:
+          g.panP = await SequenceValues.getXML(panPElem, version);
+          break;
       }
 
       return Promise.resolve(g);
@@ -877,9 +927,7 @@ export class Algorithmic extends Silent {
         "The number of beats in a measure must not exceed the measurement length"
       );
     if (values.offsetSequence >= values.measureLength)
-      result.push(
-        "Beat shift amount must be less than the measurement length"
-      );
+      result.push("Beat shift amount must be less than the measurement length");
     if (values.noiseSeed == "") result.push("Seed must not be blank");
     if (values.noteP) {
       const notePType: ALGORITHMTYPE = values.noteP.algorithmType;
@@ -908,6 +956,9 @@ export class Algorithmic extends Silent {
           break;
         case ALGORITHMTYPE.Wiener:
           result.push(...WienerValues.validate(values.noteP as WienerValues));
+          break;
+        case ALGORITHMTYPE.Sequence:
+          result.push(...SequenceValues.validate(values.noteP as SequenceValues));
           break;
       }
     }
@@ -939,6 +990,11 @@ export class Algorithmic extends Silent {
         case ALGORITHMTYPE.Wiener:
           result.push(...WienerValues.validate(values.attackP as WienerValues));
           break;
+        case ALGORITHMTYPE.Sequence:
+          result.push(
+            ...SequenceValues.validate(values.attackP as SequenceValues)
+          );
+          break;
       }
     }
     if (values.speedP) {
@@ -968,6 +1024,11 @@ export class Algorithmic extends Silent {
           break;
         case ALGORITHMTYPE.Wiener:
           result.push(...WienerValues.validate(values.speedP as WienerValues));
+          break;
+        case ALGORITHMTYPE.Sequence:
+          result.push(
+            ...SequenceValues.validate(values.speedP as SequenceValues)
+          );
           break;
       }
     }
@@ -1001,6 +1062,11 @@ export class Algorithmic extends Silent {
             ...WienerValues.validate(values.durationP as WienerValues)
           );
           break;
+        case ALGORITHMTYPE.Sequence:
+          result.push(
+            ...SequenceValues.validate(values.durationP as SequenceValues)
+          );
+          break;
       }
     }
     if (values.volumeP) {
@@ -1031,6 +1097,11 @@ export class Algorithmic extends Silent {
         case ALGORITHMTYPE.Wiener:
           result.push(...WienerValues.validate(values.volumeP as WienerValues));
           break;
+        case ALGORITHMTYPE.Sequence:
+          result.push(
+            ...SequenceValues.validate(values.volumeP as SequenceValues)
+          );
+          break;
       }
     }
     if (values.panP) {
@@ -1060,6 +1131,9 @@ export class Algorithmic extends Silent {
           break;
         case ALGORITHMTYPE.Wiener:
           result.push(...WienerValues.validate(values.panP as WienerValues));
+          break;
+        case ALGORITHMTYPE.Sequence:
+          result.push(...SequenceValues.validate(values.panP as SequenceValues));
           break;
       }
     }

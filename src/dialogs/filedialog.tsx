@@ -1,13 +1,13 @@
 import CMG2 from "assets/CGM2.svg";
 import { useEffect, useState, type JSX } from "react";
 import { GoArrowLeft, GoArrowRight, GoArrowUp } from "react-icons/go";
-import fetchData from "utils/fetchdata";
+import {fetchFSData} from "utils/fetchdata";
 import {
   DirectoryEntry,
   ENTRYTYPE,
   FSEntry,
   FSList,
-  ServerResponse,
+  FSResponse,
 } from "../types";
 
 type FileDialogProps = {
@@ -65,7 +65,7 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
       // }
       let newFSDirectory: { mountPoint: string; list: string[] }[] = [];
       mountPoints.forEach((mountPoint: string) => {
-        getDirectoryList(mountPoint).then((response: ServerResponse) => {
+        getDirectoryList(mountPoint).then((response: FSResponse) => {
           if (!response) {
             setError(`Error reading directory '${mountPoint}'`);
             setFilesystemDirectory([]);
@@ -114,7 +114,7 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
         setDirectoryList([]);
         return;
       }
-      getDirectoryList(selectedDirectory).then((response: ServerResponse) => {
+      getDirectoryList(selectedDirectory).then((response: FSResponse) => {
         if (response.error) {
           setError(
             response.status
@@ -191,9 +191,9 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
   }
 
   // retrive the filtered directory list from the local server
-  async function getDirectoryList(directory: string): Promise<ServerResponse> {
+  async function getDirectoryList(directory: string): Promise<FSResponse> {
     const uri: string = `/directory/list?name=${directory}`;
-    const response: ServerResponse = await fetchData(uri, "GET");
+    const response: FSResponse = await fetchFSData(uri, "GET");
     if (!response)
       return Promise.resolve({ error: true, status: "Local server not responding", list: [] });
     if (response.error)

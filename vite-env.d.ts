@@ -4,7 +4,8 @@ interface ImportMetaEnv {
     readonly REPOSITORY:{type: string, url: string};
     readonly HOMEPAGE:string;
     readonly BUILD_DATE:string;
-    readonly SERVERPORT:string;
+    readonly FSPORT:string;
+    readonly DBPORT:string;
     readonly PORT:string;
 }
 

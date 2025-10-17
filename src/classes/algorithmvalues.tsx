@@ -3,35 +3,41 @@
 
 import {
   ALGORITHMTYPE,
+  AlgorithmType,
+  AttackType,
   AutoregressiveType,
   ConstantType,
+  DurationType,
   EPS,
   MarkovianType,
   MARKOVSTATE,
   MODULATOR,
   ModulatorMap,
+  NoteType,
   OscillatorType,
-  WienerType,
+  PanType,
+  SEQUENCEATTRIBUTE,
+  SequenceType,
+  SpeedType,
+  VolumeType,
+  WienerType
 } from "types";
 import { gaussianRandom } from "utils/gaussianrandom";
+import { loadSequenceItems } from "utils/loadsequenceitems";
 import { getAttributeValue } from "utils/xmlfunctions";
 import RandomNumber from "./randomnumber";
+import { AttackItem, DurationItem, NoteItem, PanItem, SpeedItem, VolumeItem } from "./sequenceitems";
 
 // the parent class for this collection holds the properties that are required
 // for some of the generators.
 // The user interface should take care to check that these have been specified
 export class AlgorithmValues {
   algorithmType: ALGORITHMTYPE = ALGORITHMTYPE.None; // the type of algorithm
-  // most algorithms require random numbers.
-  // make it universal
-  values: {seed: string, rn: RandomNumber};
+  values: AlgorithmType;
 
   constructor(algorithmType: ALGORITHMTYPE) {
     this.algorithmType = algorithmType;
-    this.values = {
-      seed: "seed",
-      rn: new RandomNumber("seed"),
-    };
+    this.values = {value: 0};
   }
 
   copy(): AlgorithmValues {
@@ -47,7 +53,7 @@ export class AlgorithmValues {
         break;
     }
   }
-  getCurrentValue(_time: number): number {
+  getCurrentValue(_time: number, _measureLength?: number, _beatCount?: number): number {
     return 0;
   }
   async appendXML(_doc: XMLDocument, elem: Element): Promise<Element> {
@@ -74,21 +80,18 @@ export class ConstantValues extends AlgorithmValues {
   constructor(initialValue?: number) {
     super(ALGORITHMTYPE.Constant);
     this.values = {
-      seed: "seed", 
-      rn: new RandomNumber("seed"), 
-      value: initialValue? initialValue: 0,
+      value: initialValue ? initialValue : 0,
     };
   }
   override copy(): ConstantValues {
-    const n = new ConstantValues();
-    n.values = { ...this.values };
+    const n = new ConstantValues(this.values.value);
     return n;
   }
   override setAttribute(name: string, value: string): void {
     super.setAttribute(name, value);
     if (name == "value") this.values.value = parseFloat(value);
   }
-  override getCurrentValue(_time: number): number {
+  override getCurrentValue(_time: number, _measureLength?:number, _beatCount?: number): number {
     return this.values.value;
   }
   override async appendXML(_doc: XMLDocument, elem: Element): Promise<Element> {
@@ -125,8 +128,6 @@ export class OscillatorValues extends AlgorithmValues {
   override values: OscillatorType;
   constructor(
     values: OscillatorType = {
-      seed: "",
-      rn: new RandomNumber(""),
       type: MODULATOR.SINE,
       center: 0,
       frequency: 0,
@@ -139,8 +140,7 @@ export class OscillatorValues extends AlgorithmValues {
   }
 
   override copy(): OscillatorValues {
-    const n = new OscillatorValues();
-    n.values = { ...this.values };
+    const n = new OscillatorValues(this.values);
     return n;
   }
 
@@ -167,7 +167,7 @@ export class OscillatorValues extends AlgorithmValues {
     }
   }
 
-  override getCurrentValue(time: number): number {
+  override getCurrentValue(time: number, _measureLength?: number, _beatCount?: number): number {
     let value: number = this.values.center;
     const valueFunction = ModulatorMap.get(this.values.type);
     if (!valueFunction) return value;
@@ -199,15 +199,7 @@ export class OscillatorValues extends AlgorithmValues {
     _version: string
   ): Promise<OscillatorValues> {
     try {
-      const g: OscillatorValues = new OscillatorValues({
-        seed: "",
-        rn: new RandomNumber(""),
-        type: MODULATOR.SINE,
-        center: 0,
-        frequency: 0,
-        amplitude: 0,
-        phase: 0,
-      });
+      const g: OscillatorValues = new OscillatorValues();
       g.values.type = getAttributeValue(elem, "type", "string") as MODULATOR;
       g.values.center = getAttributeValue(elem, "center", "float") as number;
       g.values.frequency = getAttributeValue(
@@ -239,11 +231,11 @@ export class AutoregressiveValues extends AlgorithmValues {
     values: AutoregressiveType = {
       initialValue: 0,
       seed: "seed",
+      rn: new RandomNumber("seed"),
       alpha: 0,
       sigma: 0,
       lo: 0,
       hi: 0,
-      rn: new RandomNumber("seed"),
       currentValue: 0,
     }
   ) {
@@ -283,20 +275,22 @@ export class AutoregressiveValues extends AlgorithmValues {
         return;
     }
   }
-  override getCurrentValue(time: number): number {
+  override getCurrentValue(time: number, _measureLength?: number, _beatCount?: number): number {
     let epsilon: number = 0;
     if (time == 0) {
       this.values.currentValue = this.values.initialValue;
       return this.values.initialValue;
-    } else 
-      epsilon = (this.values.rn.rand() - 0.5) * this.values.sigma;
-    let newValue: number = Math.min(Math.max(
-      (this.values.currentValue - this.values.initialValue) * this.values.alpha + epsilon + this.values.initialValue, 
-      this.values.lo), this.values.hi);
-    // if (newValue > this.values.hi ||
-    //   newValue < this.values.lo)
-    //   newValue = (this.values.currentValue - this.values.initialValue) * this.values.alpha - epsilon + this.values.initialValue;
-    // newValue = Math.max(Math.min(newValue, this.values.hi), this.values.lo);
+    } else epsilon = (this.values.rn.rand() - 0.5) * this.values.sigma;
+    let newValue: number = Math.min(
+      Math.max(
+        (this.values.currentValue - this.values.initialValue) *
+          this.values.alpha +
+          epsilon +
+          this.values.initialValue,
+        this.values.lo
+      ),
+      this.values.hi
+    );
     this.values.currentValue = newValue;
     return newValue;
   }
@@ -349,7 +343,7 @@ export class AutoregressiveValues extends AlgorithmValues {
     if (algorithm.values.lo > algorithm.values.hi)
       errors.push("Hi must be greter than Lo.");
     if (Math.abs(algorithm.values.alpha) > 1)
-      errors.push("Alpha value must be tween -1 and 1.")
+      errors.push("Alpha value must be tween -1 and 1.");
     return errors;
   }
 }
@@ -379,13 +373,8 @@ export class MarkovianValues extends AlgorithmValues {
   }
 
   override copy(): MarkovianValues {
-    const n: MarkovianValues = new MarkovianValues();
-    n.values = { ...this.values };
+    const n: MarkovianValues = new MarkovianValues(this.values);
     n.values.rn = new RandomNumber(this.values.seed);
-    n.values.same = { ...this.values.same };
-    n.values.up = { ...this.values.up };
-    n.values.down = { ...this.values.down };
-    n.values.range = { ...this.values.range };
     return n;
   }
 
@@ -441,12 +430,12 @@ export class MarkovianValues extends AlgorithmValues {
     }
   }
 
-  override getCurrentValue(time: number): number {
+  override getCurrentValue(time: number, _measureLength?: number, _beatCount?: number): number {
     if (time == 0) {
       this.values.currentState = MARKOVSTATE.same;
       this.values.currentValue = this.values.startValue;
       return this.values.startValue;
-    } 
+    }
     const x: number = this.values.rn.rand();
     let newState: MARKOVSTATE = MARKOVSTATE.same;
     switch (this.values.currentState) {
@@ -637,8 +626,7 @@ export class WienerValues extends AlgorithmValues {
   }
 
   override copy(): WienerValues {
-    const n: WienerValues = new WienerValues();
-    n.values = { ...this.values };
+    const n: WienerValues = new WienerValues(this.values);
     n.values.rn = new RandomNumber(this.values.seed);
     return n;
   }
@@ -668,21 +656,21 @@ export class WienerValues extends AlgorithmValues {
     }
   }
 
-  override getCurrentValue(time: number): number {
+  override getCurrentValue(time: number, _measureLength?: number, _beatCount?: number): number {
     // determine the next Wiener series value and bound it between lo and hi
     // reverse the trend if the value goes too high or too low
-    if (time == 0 || (this.values.sigma == 0 && this.values.alpha)) return this.values.initialValue;
+    if (time == 0 || (this.values.sigma == 0 && this.values.alpha))
+      return this.values.initialValue;
 
-    const random: number = (this.values.sigma == 0? 0: gaussianRandom(
-      0,
-      this.values.sigma * Math.sqrt(time),
-      this.values.rn
-    ));
-    const result =
-      this.values.initialValue +
-      this.values.alpha * (time) +
-      random;
-    // TODO havn't figured out how to bounce off of the limits
+    const random: number =
+      this.values.sigma == 0
+        ? 0
+        : gaussianRandom(
+            0,
+            this.values.sigma * Math.sqrt(time),
+            this.values.rn
+          );
+    const result = this.values.initialValue + this.values.alpha * time + random;
     return Math.min(this.values.hi, Math.max(this.values.lo, result));
   }
 
@@ -736,5 +724,394 @@ export class WienerValues extends AlgorithmValues {
     if (values.lo < -10 || values.hi <= values.lo)
       errors.push("Lo greater than -10 and hi must be greater than lo");
     return errors;
+  }
+}
+export class SequenceValues extends AlgorithmValues {
+  override values: SequenceType;
+  constructor(
+    values: SequenceType = {
+      name: "",
+      sequenceType: SEQUENCEATTRIBUTE.none,
+      items: [],
+    }
+  ) {
+    super(ALGORITHMTYPE.Sequence);
+    this.values = { ...values };
+  }
+  override copy(): SequenceValues {
+    return new SequenceValues(this.values);
+  }
+  override setAttribute(name: string, value: string) {
+    switch (name) {
+      case "algorithmType":
+        this.algorithmType = ALGORITHMTYPE[value];
+        break;
+      case "sequenceType":
+        this.values.sequenceType = SEQUENCEATTRIBUTE[value];
+        break;
+      default:
+        break;
+    }
+    return;
+  }
+  override getCurrentValue(_time: number, _measureLength?: number, _beatCount?: number): number {
+    return 0;
+  }
+  override async appendXML(_doc: XMLDocument, elem: Element): Promise<Element> {
+    try {
+      const returnElem: Element = elem;
+      returnElem.setAttribute("algorithmType", ALGORITHMTYPE.Sequence);
+      returnElem.setAttribute("name", this.values.name);
+      returnElem.setAttribute("sequencetype", SEQUENCEATTRIBUTE[this.values.sequenceType]);
+
+      return Promise.resolve(returnElem);
+    } catch (e: any) {
+      return Promise.reject(e);
+    }
+  }
+  static override async getXML(
+    elem: Element,
+    version: string
+  ): Promise<SequenceValues> {
+    const g: SequenceValues = new SequenceValues();
+    g.values.sequenceType = getAttributeValue(
+      elem,
+      "sequencetype",
+      "string"
+    ) as SEQUENCEATTRIBUTE;
+    switch (g.values.sequenceType) {
+      case SEQUENCEATTRIBUTE.note:
+        NoteSequence.getXML(elem, version);
+        break;
+      case SEQUENCEATTRIBUTE.speed:
+        SpeedSequence.getXML(elem, version);
+        break;
+      case SEQUENCEATTRIBUTE.attack:
+        AttackSequence.getXML(elem, version);
+        break;
+      case SEQUENCEATTRIBUTE.duration:
+        DurationSequence.getXML(elem, version);
+        break;
+      case SEQUENCEATTRIBUTE.volume:
+        VolumeSequence.getXML(elem, version);
+        break;
+      case SEQUENCEATTRIBUTE.pan:
+        PanSequence.getXML(elem, version);
+        break;
+    }
+    return Promise.resolve(new SequenceValues());
+  }
+
+  // this class and its derived class objects need to validation
+  static override validate(_algorithm: SequenceValues) : string[] {
+    return [];
+  }
+}
+
+export class NoteSequence extends SequenceValues {
+  override values: NoteType;
+
+  constructor(
+    values: NoteType = {
+      name: "",
+      sequenceType: SEQUENCEATTRIBUTE.note,
+      items: [],
+      transpose: 0,
+    }
+  ) {
+    super();
+    this.values = { ...values };
+  }
+  override copy(): NoteSequence {
+    return new NoteSequence(this.values);
+  }
+  override async setAttribute(name: string, value: string) {
+    switch (name) {
+      case "name":
+        this.values.name = value;
+        this.values.items = (await loadSequenceItems(this.values.sequenceType, this.values.name)) as NoteItem[];
+        break;
+      case "transpose":
+        this.values.transpose = parseFloat(value);
+        break;
+    }
+    return;
+  }
+
+  override getCurrentValue(time: number, measureLength: number, beatCount:number ): number {
+    const beat: number = measureLength != 0?beatCount * time / measureLength:0;
+    let itemIndex: number = -1;
+    const items: NoteItem[] = this.values.items;
+    if (items.length == 0) return 0;
+    let beatSum: number = 0;
+    for (let i = 0; i < items.length && itemIndex < 0; i++) {
+      if (items[i].beats + beatSum > beat) itemIndex = i;
+      beatSum+=items[i].beats;
+      if (i == items.length - 1) itemIndex = items.length - 1;
+    }
+    return itemIndex < 0? 0: noteToMidi(items[itemIndex].note);
+  }
+
+  override async appendXML(_doc: XMLDocument, elem: Element): Promise<Element> {
+    try {
+      const returnElem: Element = elem;
+      returnElem.setAttribute("algorithmType", ALGORITHMTYPE.Sequence);
+      returnElem.setAttribute("name", this.values.name);
+      returnElem.setAttribute("sequencetype", SEQUENCEATTRIBUTE[this.values.sequenceType]);
+      returnElem.setAttribute("transpose", this.values.transpose.toString());
+
+      return Promise.resolve(returnElem);
+    } catch (e: any) {
+      return Promise.reject(e);
+    }
+  }
+  static override async getXML(
+    elem: Element,
+    _version: string
+  ): Promise<NoteSequence> {
+    const g: NoteSequence = new NoteSequence();
+    g.values.name = getAttributeValue(elem, "name", "string") as string;
+        g.values.items = (await loadSequenceItems(g.values.sequenceType, g.values.name)) as NoteItem[];
+    g.values.transpose = getAttributeValue(
+      elem,
+      "transpose",
+      "float"
+    ) as number;
+    return Promise.resolve(new NoteSequence());
+  }
+}
+export class SpeedSequence extends SequenceValues {
+  override values: SpeedType;
+  constructor(
+    values: SpeedType = {
+      name: "",
+      sequenceType: SEQUENCEATTRIBUTE.note,
+      items: [],
+    }
+  ) {
+    super();
+    this.values = { ...values };
+  }
+  override copy(): SpeedSequence {
+    return new SpeedSequence(this.values);
+  }
+  override async setAttribute(name: string, value: string) {
+    switch (name) {
+      case "name":
+        this.values.name = value;
+        this.values.items = (await loadSequenceItems(this.values.sequenceType, this.values.name)) as SpeedItem[];
+        break;
+    }
+    return;
+  }
+
+  override async appendXML(_doc: XMLDocument, elem: Element): Promise<Element> {
+    try {
+      const returnElem: Element = elem;
+      returnElem.setAttribute("algorithmType", ALGORITHMTYPE.Sequence);
+      returnElem.setAttribute("name", this.values.name);
+      returnElem.setAttribute("sequencetype", SEQUENCEATTRIBUTE[this.values.sequenceType]);
+
+      return Promise.resolve(returnElem);
+    } catch (e: any) {
+      return Promise.reject(e);
+    }
+  }
+  static override async getXML(
+    elem: Element,
+    _version: string
+  ): Promise<SpeedSequence> {
+    const g: SpeedSequence = new SpeedSequence();
+    g.values.name = getAttributeValue(elem, "name", "string") as string;
+        g.values.items = (await loadSequenceItems(g.values.sequenceType, g.values.name)) as SpeedItem[];
+    return Promise.resolve(new SpeedSequence());
+  }
+}
+export class AttackSequence extends SequenceValues {
+  override values: AttackType;
+  constructor(
+    values: AttackType = {
+      name: "",
+      sequenceType: SEQUENCEATTRIBUTE.attack,
+      items: [],
+    }
+  ) {
+    super();
+    this.values = { ...values };
+  }
+  override copy(): AttackSequence {
+    return new AttackSequence(this.values);
+  }
+  override async setAttribute(name: string, value: string) {
+    switch (name) {
+      case "name":
+        this.values.name = value;
+        this.values.items = (await loadSequenceItems(this.values.sequenceType, this.values.name)) as AttackItem[];
+        break;
+    }
+    return;
+  }
+
+  override appendXML(_doc: XMLDocument, elem: Element): Promise<Element> {
+    try {
+      const returnElem: Element = elem;
+      returnElem.setAttribute("algorithmType", ALGORITHMTYPE.Sequence);
+      returnElem.setAttribute("name", this.values.name);
+      returnElem.setAttribute("sequencetype", SEQUENCEATTRIBUTE[this.values.sequenceType]);
+
+      return Promise.resolve(returnElem);
+    } catch (e: any) {
+      return Promise.reject(e);
+    }
+  }
+  static override async getXML(
+    elem: Element,
+    _version: string
+  ): Promise<AttackSequence> {
+    const g: AttackSequence = new AttackSequence();
+    g.values.name = getAttributeValue(elem, "name", "string") as string;
+        g.values.items = (await loadSequenceItems(g.values.sequenceType, g.values.name)) as AttackItem[];
+    return Promise.resolve(new AttackSequence());
+  }
+}
+export class DurationSequence extends SequenceValues {
+  override values: DurationType;
+  constructor(
+    values: DurationType = {
+      name: "",
+      sequenceType: SEQUENCEATTRIBUTE.duration,
+      items: [],
+    }
+  ) {
+    super();
+    this.values = { ...values };
+  }
+  override copy(): DurationSequence {
+    return new DurationSequence(this.values);
+  }
+  override async setAttribute(name: string, value: string) {
+    switch (name) {
+      case "name":
+        this.values.name = value;
+        this.values.items = (await loadSequenceItems(this.values.sequenceType, this.values.name)) as DurationItem[];
+        break;
+    }
+    return;
+  }
+
+  override appendXML(_doc: XMLDocument, elem: Element): Promise<Element> {
+    try {
+      const returnElem: Element = elem;
+      returnElem.setAttribute("algorithmType", ALGORITHMTYPE.Sequence);
+      returnElem.setAttribute("name", this.values.name);
+      returnElem.setAttribute("sequencetype", SEQUENCEATTRIBUTE[this.values.sequenceType]);
+
+      return Promise.resolve(returnElem);
+    } catch (e: any) {
+      return Promise.reject(e);
+    }
+  }
+  static override async getXML(
+    elem: Element,
+    _version: string
+  ): Promise<DurationSequence> {
+    const g: DurationSequence = new DurationSequence();
+    g.values.name = getAttributeValue(elem, "name", "string") as string;
+        g.values.items = (await loadSequenceItems(g.values.sequenceType, g.values.name)) as DurationItem[];
+    return Promise.resolve(new DurationSequence());
+  }
+}
+export class VolumeSequence extends SequenceValues {
+  override values: VolumeType;
+  constructor(
+    values: VolumeType = {
+      name: "",
+      sequenceType: SEQUENCEATTRIBUTE.volume,
+      items: [],
+    }
+  ) {
+    super();
+    this.values = { ...values };
+  }
+  override copy(): VolumeSequence {
+    return new VolumeSequence({ ...this.values });
+  }
+  override async setAttribute(name: string, value: string) {
+    switch (name) {
+      case "name":
+        this.values.name = value;
+        this.values.items = (await loadSequenceItems(this.values.sequenceType, this.values.name)) as VolumeItem[];
+        break;
+    }
+    return;
+  }
+
+  override appendXML(_doc: XMLDocument, elem: Element): Promise<Element> {
+    try {
+      const returnElem: Element = elem;
+      returnElem.setAttribute("algorithmType", ALGORITHMTYPE.Sequence);
+      returnElem.setAttribute("name", this.values.name);
+      returnElem.setAttribute("sequencetype", SEQUENCEATTRIBUTE[this.values.sequenceType]);
+
+      return Promise.resolve(returnElem);
+    } catch (e: any) {
+      return Promise.reject(e);
+    }
+  }
+  static override async getXML(
+    elem: Element,
+    _version: string
+  ): Promise<VolumeSequence> {
+    const g: VolumeSequence = new VolumeSequence();
+    g.values.name = getAttributeValue(elem, "name", "string") as string;
+            g.values.items = (await loadSequenceItems(g.values.sequenceType, g.values.name)) as VolumeItem[];
+    return Promise.resolve(new VolumeSequence());
+  }
+}
+export class PanSequence extends SequenceValues {
+  override values: PanType;
+  constructor(
+    values: PanType = {
+      name: "",
+      sequenceType: SEQUENCEATTRIBUTE.pan,
+      items: [],
+    }
+  ) {
+    super();
+    this.values = { ...values };
+  }
+  override copy(): PanSequence {
+    return new PanSequence({ ...this.values });
+  }
+  override async setAttribute(name: string, value: string) {
+    switch (name) {
+      case "name":
+        this.values.name = value;
+        this.values.items = (await loadSequenceItems(this.values.sequenceType, this.values.name)) as PanItem[];
+        break;
+    }
+    return;
+  }
+
+  override async appendXML(_doc: XMLDocument, elem: Element): Promise<Element> {
+    try {
+      const returnElem: Element = elem;
+      returnElem.setAttribute("algorithmType", ALGORITHMTYPE.Sequence);
+      returnElem.setAttribute("name", this.values.name);
+      returnElem.setAttribute("sequencetype", SEQUENCEATTRIBUTE[this.values.sequenceType]);
+      return Promise.resolve(returnElem);
+    } catch (e: any) {
+      return Promise.reject(e);
+    }
+  }
+  static override async getXML(
+    elem: Element,
+    _version: string
+  ):  Promise<PanSequence> {
+    const g: PanSequence = new PanSequence();
+    g.values.name = getAttributeValue(elem, "name", "string") as string;
+            g.values.items = (await loadSequenceItems(g.values.sequenceType, g.values.name)) as PanItem[];
+
+    return Promise.resolve(g);
   }
 }

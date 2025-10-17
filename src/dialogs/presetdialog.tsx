@@ -30,27 +30,27 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
 
   useEffect(() => {
     let midi: number = 60;
-    if (generator.noteP) midi = generator.noteP.getCurrentValue(0);
+    if (generator.noteP) midi = generator.noteP.getCurrentValue(0, 0, 0);
 
     setPresetMidi(midi);
     let interval: number = 1;
     if (generator.speedP) {
-      const value = generator.speedP.getCurrentValue(0);
+      const value = generator.speedP.getCurrentValue(0,0,0);
       interval = value == 0 ? 1 : 60.0 / value;
     }
 
     setPresetInterval(interval);
     let duration: number = 100;
-    if (generator.durationP) duration = generator.durationP.getCurrentValue(0);
+    if (generator.durationP) duration = generator.durationP.getCurrentValue(0,0,0);
 
     setPresetDuration(duration);
     let volume: number = 0;
-    if (generator.volumeP) volume = generator.volumeP.getCurrentValue(0);
+    if (generator.volumeP) volume = generator.volumeP.getCurrentValue(0,0,0);
 
     setPresetVolume(volume);
 
     let attack: number = 63;
-    if (generator.attackP) attack = generator.attackP.getCurrentValue(0);
+    if (generator.attackP) attack = generator.attackP.getCurrentValue(0,0,0);
 
     setPresetAttack(attack);
 

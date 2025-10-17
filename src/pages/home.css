@@ -887,6 +887,39 @@ div.algorithmic-table {
     }
   }
 }
+div.sequencer {
+  display: grid;
+        grid-template-columns: repeat(3, 1fr);
+      grid-template-areas:
+        "nametitle listtitle transposetitle"
+        "name list transpose";
+      gap: 2px;
+      .nametitle {
+        grid-area: nametitle;
+        size: 10em;
+      }
+      .listtitle {
+        grid-area: listtitle;
+        size: 10em;
+      }
+      .transposetitle {
+        grid-area: transposetitle;
+        size: 10em;
+      }
+      .name {
+        grid-area: name;
+      }
+      .list {
+        grid-area: list;
+      }
+      .transpose {
+        grid-area: transpose;
+      }
+
+}
+table, th, td {
+  border: 1px solid black;
+}
 .track-control {
   display: grid;
   grid-template-columns: auto auto auto;

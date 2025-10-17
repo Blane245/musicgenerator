@@ -15,7 +15,8 @@ export default defineConfig(({ mode }) => {
       "import.meta.env.REPOSITORY": JSON.stringify(packageJson.repository),
       "import.meta.env.HOMEPAGE": JSON.stringify(packageJson.homepage),
       "import.meta.env.BUILD_DATE": JSON.stringify(new Date().toISOString()),
-      "import.meta.env.SERVERPORT": JSON.stringify(6001),
+      "import.meta.env.FSPORT": JSON.stringify(6001),
+      "import.meta.env.DBPORT": JSON.stringify(8081),
       "import.meta.env.PORT": JSON.stringify(3006),
     },
     build: {
