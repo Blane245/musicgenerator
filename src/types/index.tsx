@@ -30,7 +30,8 @@ import {
   triangleModulator,
 } from "../modulators";
 import { SoundFont2 } from "../soundfont2";
-import { AttackItem, DurationItem, NoteItem, PanItem, SequenceItem, SpeedItem, VolumeItem } from "classes/sequenceitems";
+import { SequenceItem } from "classes/sequenceitems";
+// import { AttackItem, DurationItem, NoteItem, PanItem, SequenceItem, SpeedItem, VolumeItem } from "classes/sequenceitems";
 
 export const SAMPLERATE: number = 44100;
 
@@ -177,45 +178,46 @@ export const Attributes: SEQUENCEATTRIBUTE[] = [
 
 export type SequenceType = {
   name: string;
-  sequenceType: SEQUENCEATTRIBUTE;
+  sequenceAttribute: SEQUENCEATTRIBUTE;
+  transpose?: number;
   items:SequenceItem[];
 }
 
-export type NoteType = {
-  name: string;
-  sequenceType: SEQUENCEATTRIBUTE;
-  items:NoteItem[]
-  transpose:number;
-}
+// export type NoteType = {
+//   name: string;
+//   sequenceType: SEQUENCEATTRIBUTE;
+//   items:NoteItem[]
+//   transpose:number;
+// }
 
-export type SpeedType = {
-  name: string;
-  sequenceType: SEQUENCEATTRIBUTE;
-  items:SpeedItem[]
-}
+// export type SpeedType = {
+//   name: string;
+//   sequenceType: SEQUENCEATTRIBUTE;
+//   items:SpeedItem[]
+// }
 
-export type AttackType = {
-  name: string;
-  sequenceType: SEQUENCEATTRIBUTE;
-  items:AttackItem[]
-}
-export type DurationType = {
-  name: string;
-  sequenceType: SEQUENCEATTRIBUTE;
-  items:DurationItem[]
-}
+// export type AttackType = {
+//   name: string;
+//   sequenceType: SEQUENCEATTRIBUTE;
+//   items:AttackItem[]
+// }
+// export type DurationType = {
+//   name: string;
+//   sequenceType: SEQUENCEATTRIBUTE;
+//   items:DurationItem[]
+// }
 
-export type VolumeType = {
-  name: string;
-  sequenceType: SEQUENCEATTRIBUTE;
-  items:VolumeItem[]
-}
+// export type VolumeType = {
+//   name: string;
+//   sequenceType: SEQUENCEATTRIBUTE;
+//   items:VolumeItem[]
+// }
 
-export type PanType = {
-  name: string;
-  sequenceType: SEQUENCEATTRIBUTE;
-  items:PanItem[]
-}
+// export type PanType = {
+//   name: string;
+//   sequenceType: SEQUENCEATTRIBUTE;
+//   items:PanItem[]
+// }
 
 export enum NOISETYPE {
   white = "white",
@@ -504,7 +506,7 @@ export type DbSequenceValidNamesType = {
 };
 export type DbSequenceItem = {
   name: string;
-  value: string;
+  items: string;
   tags: string;
 };
 export type DbSequenceType = {

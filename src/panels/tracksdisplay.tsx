@@ -5,6 +5,7 @@ import { useCMGContext } from "cmgcontext";
 import { useEffect, useState } from "react";
 import GeneratorIcons from "./generatoricons";
 import TrackControls from "./trackcontrols";
+import React from "react";
 
 export default function TracksDisplay() {
   const { fileContents, timelineWidth, controlWidth, setTrackIndex } =
@@ -20,23 +21,21 @@ export default function TracksDisplay() {
     <>
       {tracks.map((t, i) => {
         return (
-          <>
+          <React.Fragment key={`track-${t.name}`}>
             <div
               className="track-control"
-              key={`track-control:${t.name}`}
               style={{ width: controlWidth }}
             >
               <TrackControls tracks={tracks} track={t} trackIndex={i}/>
             </div>
             <div
               className="track-display"
-              key={`track-display:${t.name}`}
               id={`track-display:${t.name}`}
               style={{ width: timelineWidth }}
             >
               <GeneratorIcons track={t}/>
             </div>
-          </>
+          </React.Fragment>
         );
       })}
     </>

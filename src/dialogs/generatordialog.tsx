@@ -477,7 +477,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                 onChange={handleChange}
                 value={timeToBeat(formData.startTime)}
                 />
-                <span>&nbsp;of {timeLine.beatsPerMeasure}</span>
+                <span>&nbsp;of Measure {timeLine.beatsPerMeasure};</span>
               </label>
               <label>
                 &nbsp;Stop Measure:&nbsp;
@@ -503,7 +503,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                 onChange={handleChange}
                 value={timeToBeat(formData.stopTime)}
                 />
-                <span>&nbsp;of {timeLine.beatsPerMeasure}</span>
+                <span>&nbsp;of Measure {timeLine.beatsPerMeasure}</span>
               </label>
               </>
             ):null}

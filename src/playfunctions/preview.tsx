@@ -624,12 +624,13 @@ export default function Preview(params: PreviewProps): JSX.Element {
     // draw a horizontal line at the bottom of each drawing section
     // and write its name along the left side
     let stroke: string = "black";
-    drawingSections.forEach((section: DrawingSection) => {
+    drawingSections.forEach((section: DrawingSection,i) => {
       const newLine: SVGLineElement = document.createElementNS(
         "http://www.w3.org/2000/svg",
         "line"
       );
       // draw line between sections
+      newLine.setAttribute("key", `preview-sectionline-${i}`);
       newLine.setAttribute("x1", "0");
       newLine.setAttribute("x2", displayWidth.toString());
       newLine.setAttribute(
@@ -661,6 +662,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
         ": " +
         loNote +
         ")";
+      sectionNameElement.setAttribute("key", `preview-sectionname-${i}`);
       sectionNameElement.setAttribute("x", "2");
       sectionNameElement.setAttribute(
         "y",
@@ -675,13 +677,14 @@ export default function Preview(params: PreviewProps): JSX.Element {
       );
       sectionHiElement.textContent =
         "(" + hiScale.toFixed(0).toString() + ": " + hiNote + ")";
+      sectionHiElement.setAttribute("key", `preview-sectionhi-${i}`);
       sectionHiElement.setAttribute("x", "2");
       sectionHiElement.setAttribute(
         "y",
         (section.verticalOffset + 15).toString()
       );
-      sectionNameElement.setAttribute("font-size", "12pt");
-      sectionNameElement.setAttribute("fill", "black");
+      sectionHiElement.setAttribute("font-size", "12pt");
+      sectionHiElement.setAttribute("fill", "black");
       drawing.appendChild(sectionHiElement);
 
       // draw a dotted line at each midi
@@ -712,6 +715,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
         );
         midiLineElement.setAttribute("stroke-width", "1");
         midiLineElement.setAttribute("stroke-dasharray", "5,5");
+      midiLineElement.setAttribute("key", `preview-sectionmidi-(${i},${iMidi})`);
         drawing.appendChild(midiLineElement);
       }
     });
@@ -745,13 +749,14 @@ export default function Preview(params: PreviewProps): JSX.Element {
       progressLine.setAttribute("y1", "0");
       progressLine.setAttribute("y2", displayHeight.toString());
       progressLine.setAttribute("stroke", "red");
+      progressLine.setAttribute("key", `preview-progress`);
       progressLine.id = "timeprogress";
       drawing.appendChild(progressLine);
     }
 
     // loop through the source data and find each that appears on the current
     // time line
-    sources.forEach((s: RawSourceData) => {
+    sources.forEach((s: RawSourceData, i) => {
       const { startTime, duration, note } = s.source;
       // const soundStopTime: number = loop?stopTime + offsetTime: startTime + sample.length / sampleRate;
 
@@ -833,6 +838,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
           "stroke-width",
           type == SectionType.Instrument ? "3" : "3"
         );
+      newLine.setAttribute("key", `preview-source-${i}`);
         drawing.appendChild(newLine);
       } else {
         // console.log("bad section type", type);

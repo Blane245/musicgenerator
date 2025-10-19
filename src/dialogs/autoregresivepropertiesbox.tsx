@@ -1,9 +1,9 @@
 import { ChangeEvent } from "react";
-import { WienerType } from "types";
+import { AutoregressiveType } from "types";
 
 export interface AutoregressivePropertiesBoxProps {
   name: string;
-  values: WienerType;
+  values: AutoregressiveType;
   min: number;
   max: number;
   step: number;

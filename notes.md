@@ -11,19 +11,9 @@
 - implement soundfont modulators - this is very complicated and adds alot of controls to each instrument. It would give me better control over attenuation, which is currently problematic. 
 - give user control of spectrum parameters and implement sonogram
 
-# 4.2.1 Updates
-- provided download for the user manual
-- file open/saveas dialogs only display recent directory contents the first time.
-- corrected timing unit problem in room reverb
-- improved menu layout
-- added tools menu with some useful calcultors and generator mods for time aligning, setting durations equal, and time staggering
-- implemented track duplicate and shift tools and volume setting
-- implemented timeline measure/beat mode of display
-- implemented generator move snapping in both time and measure mode
-- changed preview volume graphic from sliders to a time plot
-- added offset to euclidean rhythm https://blog.landr.com/euclidean-rhythms/
-- added a duplicate track function
+# 5.0.0 Updates
 
+- implemented sequencing
 
 A plan for a generator type that is based on note sequences.
 - sequencing is like any other algorithm: it returns an attibute value at a certian time

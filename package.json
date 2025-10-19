@@ -1,7 +1,7 @@
 {
   "name": "musicgenerator",
   "private": true,
-  "version": "4.2.1",
+  "version": "5.0.0",
   "type": "module",
   "homepage": "https://lanedb.hopto.org/cmg4/",
   "author": {

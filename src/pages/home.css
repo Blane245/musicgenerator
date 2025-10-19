@@ -120,7 +120,7 @@ body {
   background-color: white;
   color: black;
   box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-  z-index:99;
+  z-index: 99;
   overflow: visible;
 }
 
@@ -136,7 +136,7 @@ body {
   display: block;
   text-align: left;
   overflow: visible;
-  width:max-content;
+  width: max-content;
 }
 
 .dropdown-one .dItem:hover,
@@ -174,7 +174,7 @@ ul li a:hover {
   background: #2c3e50;
 }
 
-li:hover>ul {
+li:hover > ul {
   display: block;
   position: absolute;
 }
@@ -317,7 +317,7 @@ ul:after {
       margin-left: 5px;
       font-size: 20pt;
       font-weight: bold;
-      color:hsl(32, 100%, 21%)
+      color: hsl(32, 100%, 21%);
     }
     .compressor {
       background-color: white;
@@ -603,7 +603,7 @@ ul:after {
   z-index: 10;
   top: 160px;
   left: 200px;
-  width:50em;
+  width: 50em;
   background-color: #fefefe;
   margin: 0;
   padding: 0;
@@ -889,35 +889,37 @@ div.algorithmic-table {
 }
 div.sequencer {
   display: grid;
-        grid-template-columns: repeat(3, 1fr);
-      grid-template-areas:
-        "nametitle listtitle transposetitle"
-        "name list transpose";
-      gap: 2px;
-      .nametitle {
-        grid-area: nametitle;
-        size: 10em;
-      }
-      .listtitle {
-        grid-area: listtitle;
-        size: 10em;
-      }
-      .transposetitle {
-        grid-area: transposetitle;
-        size: 10em;
-      }
-      .name {
-        grid-area: name;
-      }
-      .list {
-        grid-area: list;
-      }
-      .transpose {
-        grid-area: transpose;
-      }
-
+  grid-template-columns: 1fr 1fr 1fr 3fr;
+  grid-template-areas:
+    "nametitle transposetitle listbuttontitle  ."
+    "name transpose listbutton  .";
+  gap: 2px;
+  .nametitle {
+    grid-area: nametitle;
+    size: 10em;
+  }
+  .listbuttontitle {
+    grid-area: listbuttontitle;
+    size: 10em;
+  }
+  .transposetitle {
+    grid-area: transposetitle;
+    size: 10em;
+  }
+  .name {
+    grid-area: name;
+  }
+  .listbutton {
+    grid-area: listbutton;
+    z-index: 99;
+  }
+  .transpose {
+    grid-area: transpose;
+  }
 }
-table, th, td {
+table,
+th,
+td {
   border: 1px solid black;
 }
 .track-control {
@@ -1061,7 +1063,7 @@ table, th, td {
   }
   .drawing {
     grid-area: drawing;
-    background-color: white
+    background-color: white;
   }
   .footer {
     position: fixed;
@@ -1079,43 +1081,43 @@ table, th, td {
       grid-area: leftSignal;
       display: grid;
       grid-template-rows: 2fr 1fr;
-      grid-template-areas: 'leftSpectrum' 'leftVolume';
+      grid-template-areas: "leftSpectrum" "leftVolume";
       .leftSpectrum {
         grid-area: leftSpectrum;
-        fill:white;
+        fill: white;
         stroke: black;
       }
       .leftVolume {
         grid-area: leftVolume;
         background-color: lightgray;
-        fill:lightgray;
+        fill: lightgray;
         stroke: black;
       }
-        .leftPoint {
-          stroke: red;
-          fill: none;
-        }
+      .leftPoint {
+        stroke: red;
+        fill: none;
+      }
     }
     .rightSignal {
       background-color: white;
       grid-area: rightSignal;
       display: grid;
       grid-template-rows: 2fr 1fr;
-      grid-template-areas: 'rightSpectrum' 'rightVolume';
+      grid-template-areas: "rightSpectrum" "rightVolume";
       .rightSpectrum {
         grid-area: rightSpectrum;
-        fill:white;
+        fill: white;
         stroke: black;
       }
       .rightVolume {
         grid-area: rightVolume;
-        fill:lightgray;
+        fill: lightgray;
         stroke: black;
       }
-        .rightPoint {
-          stroke:blue;
-          fill: none;
-        }
+      .rightPoint {
+        stroke: blue;
+        fill: none;
+      }
     }
     .compressor {
       background-color: white;
@@ -1397,7 +1399,7 @@ table, th, td {
     display: grid;
     grid-template-rows: 320px;
     grid-template-areas: "searchtable";
-    background-color: white;;
+    background-color: white;
     gap: 0;
     .searchtable {
       grid-area: searchtable;
@@ -1415,7 +1417,7 @@ table, th, td {
       }
       .directorylist {
         resize: horizontal;
-        display:block;
+        display: block;
         align-self: normal;
         grid-area: directorylist;
         overflow: scroll;
@@ -1428,16 +1430,16 @@ table, th, td {
   .filedialogfooter {
     background-color: lightgray;
     position: fixed;
-    top:auto;
-    bottom:inherit;
-    width:inherit;
+    top: auto;
+    bottom: inherit;
+    width: inherit;
     grid-area: footer;
     display: grid;
     grid-template-rows: 50px 50px;
     grid-template-areas: "filerow" "status";
     .filerow {
-      display:grid;
-      grid-template-areas: "filename" 'filetypes';
+      display: grid;
+      grid-template-areas: "filename" "filetypes";
       grid-template-rows: 1fr 1fr;
       grid-area: filerow;
       .filename {

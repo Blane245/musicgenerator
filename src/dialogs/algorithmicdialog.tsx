@@ -2,13 +2,13 @@ import {
   AutoregressiveValues,
   ConstantValues,
   MarkovianValues,
-  NoteSequence,
   OscillatorValues,
   SequenceValues,
-  WienerValues,
+  WienerValues
 } from "classes/algorithmvalues";
 import { Algorithmic } from "classes/generators";
 import { useCMGContext } from "cmgcontext";
+import ToolsMenu from "menus/toolsmenu";
 import { ChangeEvent, useState } from "react";
 import { bankPresettoName, toNote } from "sfcomponents/util";
 import { ALGORITHMTYPE, SEQUENCEATTRIBUTE } from "types";
@@ -18,9 +18,8 @@ import MarkovianPropertiesBox from "./markovianpropertiesbox";
 import MidiFrequencyDialog from "./midifrequencydialog";
 import OscillatorPropertiesBox from "./oscillatorpropertiesbox";
 import PresetDialog from "./presetdialog";
-import WienerPropertiesBox from "./wienerpropertiesbox";
-import ToolsMenu from "menus/toolsmenu";
 import SequencerPropertiesBox from "./sequencerpropertiesbox";
+import WienerPropertiesBox from "./wienerpropertiesbox";
 
 // provides the form fields and validators for the algorithmic generator
 
@@ -243,7 +242,7 @@ export default function AlgorithmicDialog(
           </label>
         </div>
         <div className="parameters">
-          {/* build constant, autoregressive, oscillator, markovian, wiener, or euclidean box */}
+          {/* build constant, autoregressive, oscillator, markovian, wiener, or sequence box */}
           {formData.noteP &&
           formData.noteP.algorithmType == ALGORITHMTYPE.Oscillator ? (
             <OscillatorPropertiesBox
@@ -339,7 +338,7 @@ export default function AlgorithmicDialog(
           {formData.noteP &&
           formData.noteP.algorithmType == ALGORITHMTYPE.Sequence ? (
             <SequencerPropertiesBox
-              sequenceType={SEQUENCEATTRIBUTE.note}
+              attributeType={SEQUENCEATTRIBUTE.note}
               name="noteP.sequence.values"
               values={(formData.noteP as SequenceValues).values}
               handleChange={handleChange}
@@ -469,7 +468,7 @@ export default function AlgorithmicDialog(
           {formData.attackP &&
           formData.attackP.algorithmType == ALGORITHMTYPE.Sequence ? (
             <SequencerPropertiesBox
-              sequenceType={SEQUENCEATTRIBUTE.attack}
+              attributeType={SEQUENCEATTRIBUTE.attack}
               name="attackP.sequence.values"
               values={(formData.attackP as SequenceValues).values}
               handleChange={handleChange}
@@ -595,7 +594,7 @@ export default function AlgorithmicDialog(
           {formData.speedP &&
           formData.speedP.algorithmType == ALGORITHMTYPE.Sequence ? (
             <SequencerPropertiesBox
-              sequenceType={SEQUENCEATTRIBUTE.speed}
+              attributeType={SEQUENCEATTRIBUTE.speed}
               name="speedP.sequence.values"
               values={(formData.speedP as SequenceValues).values}
               handleChange={handleChange}
@@ -720,7 +719,7 @@ export default function AlgorithmicDialog(
           {formData.durationP &&
           formData.durationP.algorithmType == ALGORITHMTYPE.Sequence ? (
             <SequencerPropertiesBox
-              sequenceType={SEQUENCEATTRIBUTE.duration}
+              attributeType={SEQUENCEATTRIBUTE.duration}
               name="durationP.sequence.values"
               values={(formData.durationP as SequenceValues).values}
               handleChange={handleChange}
@@ -845,7 +844,7 @@ export default function AlgorithmicDialog(
           {formData.volumeP &&
           formData.volumeP.algorithmType == ALGORITHMTYPE.Sequence ? (
             <SequencerPropertiesBox
-              sequenceType={SEQUENCEATTRIBUTE.volume}
+              attributeType={SEQUENCEATTRIBUTE.volume}
               name="volumeP.sequence.values"
               values={(formData.volumeP as SequenceValues).values}
               handleChange={handleChange}
@@ -968,7 +967,7 @@ export default function AlgorithmicDialog(
           {formData.panP &&
           formData.panP.algorithmType == ALGORITHMTYPE.Sequence ? (
             <SequencerPropertiesBox
-              sequenceType={SEQUENCEATTRIBUTE.pan}
+              attributeType={SEQUENCEATTRIBUTE.pan}
               name="panP.sequence.values"
               values={(formData.panP as SequenceValues).values}
               handleChange={handleChange}

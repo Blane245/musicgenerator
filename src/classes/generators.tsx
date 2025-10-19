@@ -5,6 +5,7 @@ import {
   Algorithm,
   ALGORITHMTYPE,
   GENERATORTYPE,
+  SEQUENCEATTRIBUTE,
   SoundFontGenerators,
   SoundFontGeneratorsType,
 } from "types";
@@ -193,12 +194,12 @@ export class Algorithmic extends Silent {
     this.context = undefined;
     this.reverbDecay = 0;
     this.reverbDuration = 0;
-    this.noteP = new ConstantValues();
+    this.noteP = new ConstantValues(60);
     this.attackP = new ConstantValues(63);
-    this.speedP = new ConstantValues();
+    this.speedP = new ConstantValues(60);
     this.durationP = new ConstantValues(100);
-    this.volumeP = new ConstantValues();
-    this.panP = new ConstantValues();
+    this.volumeP = new ConstantValues(0);
+    this.panP = new ConstantValues(0);
   }
 
   setContext(context: AudioContext | OfflineAudioContext) {
@@ -358,7 +359,7 @@ export class Algorithmic extends Silent {
             this.noteP = new WienerValues();
             return;
           case "Sequence":
-            this.noteP = new SequenceValues();
+            this.noteP = new SequenceValues(SEQUENCEATTRIBUTE.note);
             return;
         }
         break;
@@ -380,7 +381,7 @@ export class Algorithmic extends Silent {
             this.attackP = new WienerValues();
             return;
           case "Sequence":
-            this.attackP = new SequenceValues();
+            this.attackP = new SequenceValues(SEQUENCEATTRIBUTE.attack);
             return;
         }
         break;
@@ -402,7 +403,7 @@ export class Algorithmic extends Silent {
             this.speedP = new WienerValues();
             return;
           case "Sequence":
-            this.speedP = new SequenceValues();
+            this.speedP = new SequenceValues(SEQUENCEATTRIBUTE.speed);
             return;
         }
         break;
@@ -424,7 +425,7 @@ export class Algorithmic extends Silent {
             this.durationP = new WienerValues();
             return;
           case "Sequence":
-            this.durationP = new SequenceValues();
+            this.durationP = new SequenceValues(SEQUENCEATTRIBUTE.duration);
             return;
         }
         break;
@@ -446,7 +447,7 @@ export class Algorithmic extends Silent {
             this.volumeP = new WienerValues();
             return;
           case "Sequence":
-            this.volumeP = new SequenceValues();
+            this.volumeP = new SequenceValues(SEQUENCEATTRIBUTE.volume);
             return;
         }
         break;
@@ -468,7 +469,7 @@ export class Algorithmic extends Silent {
             this.panP = new WienerValues();
             return;
           case "Sequence":
-            this.panP = new SequenceValues();
+            this.panP = new SequenceValues(SEQUENCEATTRIBUTE.pan);
             return;
         }
         break;

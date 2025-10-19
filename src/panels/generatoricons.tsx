@@ -5,7 +5,7 @@
 import Track from "classes/track";
 import { useCMGContext } from "cmgcontext";
 import GeneratorMenuDialog from "dialogs/generatormenudialog";
-import { MouseEvent, useEffect, useState } from "react";
+import React, { MouseEvent, useEffect, useState } from "react";
 import { GeneratorType, TimeLineScales, TIMELINETYPE } from "types";
 import {
   moveGeneratorBodyPosition,
@@ -30,13 +30,11 @@ type GeneratorBox = {
 export default function GeneratorIcons(props: GeneratorIconProps) {
   const { track } = props;
   const {
-    controlWidth,
     setFileContents,
     timeLine,
     setStatus,
     playing,
     timeInterval,
-    generatorsPlaying,
     mouseDown,
     mouseLocation,
     setMouseLocation,
@@ -112,14 +110,14 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
         // console.log('Time snap mode. tick size is', positionTick);
       } else {
         // the number of displayed beats in the time line
-        const {tickPositionSize,  startTickPosition,  endTickPosition} = 
-        measureScaling ({
-            startTime:timeLine.startTime,
-          timeExtent: TimeLineScales[timeLine.currentZoomLevel].extent,
-          positionWidth: timeLine.width,
-          measureTime: timeLine.measureSize,
-          beatsPerMeasure: timeLine.beatsPerMeasure
-        });
+        const { tickPositionSize, startTickPosition, endTickPosition } =
+          measureScaling({
+            startTime: timeLine.startTime,
+            timeExtent: TimeLineScales[timeLine.currentZoomLevel].extent,
+            positionWidth: timeLine.width,
+            measureTime: timeLine.measureSize,
+            beatsPerMeasure: timeLine.beatsPerMeasure,
+          });
 
         setPositionXTick(tickPositionSize);
         setStartTickPosition(startTickPosition);
@@ -160,12 +158,29 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
       // in snap mode we need to constrain the accumulated location to ticks
       // the mouse x location may be anywhere in the window so we round off
       // this location to the nearest tick position
-      const newPosition: number = mouseLocation.X > 0?
-        Math.trunc(mouseLocation.X / positionXTick) * positionXTick + startTickPosition:
-        Math.trunc(mouseLocation.X / positionXTick) * positionXTick - 1 + startTickPosition;
-      console.log('snap mode mouse location is ',mouseLocation.X, 'tick size is ', positionXTick, 'new position is ',newPosition, 'old position is ',accumXLocation);
-      if ((newPosition < 0 && edgeSelected == 'start' || (newPosition < positionXTick && edgeSelected == 'stop'))
-        || newPosition > timeLine.width) return;
+      const newPosition: number =
+        mouseLocation.X > 0
+          ? Math.trunc(mouseLocation.X / positionXTick) * positionXTick +
+            startTickPosition
+          : Math.trunc(mouseLocation.X / positionXTick) * positionXTick -
+            1 +
+            startTickPosition;
+      console.log(
+        "snap mode mouse location is ",
+        mouseLocation.X,
+        "tick size is ",
+        positionXTick,
+        "new position is ",
+        newPosition,
+        "old position is ",
+        accumXLocation
+      );
+      if (
+        (newPosition < 0 && edgeSelected == "start") ||
+        (newPosition < positionXTick && edgeSelected == "stop") ||
+        newPosition > timeLine.width
+      )
+        return;
       if (newPosition != accumXLocation) setAccumXLocation(newPosition);
       // console.log('mouse moved in snap move, new accumulated position is', newPosition, 'old position is ', accumXLocation);
     }
@@ -327,11 +342,9 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
         viewBox={`0 0 ${trackWidth} ${trackHeight}`}
       >
         {generatorBoxes.map((generatorBox, i) => (
-          <>
+          <React.Fragment key={"genbox-" + generatorBox.generator.name}>
             <rect
-              className={selectClass(
-                generatorBoxes[i].selected,
-              )}
+              className={selectClass(generatorBoxes[i].selected)}
               pointerEvents={playing.current ? "none" : "all"}
               x={generatorBox.position.x}
               y={generatorBox.position.y}
@@ -340,7 +353,6 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
               fill="white"
               stroke="black"
               strokeWidth={1}
-              key={"genrect-" + generatorBox.generator.name}
               onMouseDown={(event) => onMouseDownBody(event, i)}
               onMouseEnter={(event) => onBodyEnter(event)}
               onMouseLeave={(event) => onLeave(event)}
@@ -353,7 +365,6 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
               fontWeight={"200"}
               textAnchor="middle"
               dominantBaseline="hanging"
-              key={"gentext-" + generatorBox.generator.name}
               onMouseDown={(event) => handleTextMouseDown(event, i)}
               stroke={generatorBox.generator.mute ? "red" : "black"}
             >
@@ -363,7 +374,6 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
             </text>
             <line
               pointerEvents={playing.current ? "none" : "all"}
-              key={"genstart-" + generatorBox.generator.name}
               stroke="blue"
               strokeWidth={5}
               x1={generatorBox.position.x}
@@ -376,7 +386,6 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
             />
             <line
               pointerEvents={playing.current ? "none" : "all"}
-              key={"genstop-" + generatorBox.generator.name}
               stroke="blue"
               strokeWidth={5}
               x1={generatorBox.position.x + generatorBox.width}
@@ -387,7 +396,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
               onMouseLeave={(e) => onLeave(e)}
               onMouseDown={(e) => onMouseDownStopEdge(e, i)}
             />
-          </>
+          </React.Fragment>
         ))}
       </svg>
       {editGeneratorMenuVisible &&
