@@ -134,7 +134,7 @@ export const getPresetNote = (
 
     // get the end times for the amplitude envelope
     const sampleTime: number =
-      instrumentSample.length / instrumentSampleRate;
+      instrumentSample.length * instrumentSampleRate;
     const delayEnd: number = precision(tc2s(delayVolEnv), 3);
     const attackEnd: number = delayEnd + precision(tc2s(attackVolEnv), 3);
     const holdEnd: number = attackEnd + precision(tc2s(holdVolEnv), 3);
@@ -143,7 +143,7 @@ export const getPresetNote = (
     const noteEnd: number = loop ? duration : Math.min(sampleTime, duration);
     // release is cutoff if this is a staccatto or the sample is not looping
     const releaseEnd: number =
-      loop && duration == interval
+      loop && Math.abs(duration - interval) < 0.01
         ? noteEnd + precision(tc2s(releaseVolEnv), 3)
         : noteEnd;
     const totalTime: number = releaseEnd;
@@ -380,6 +380,7 @@ function getSampleWithNoise(
   return thisSample;
 }
 
+// test : remove envelope and see how things sound
 function applyEnvelope(
   sample: Float32Array,
   sampleRate: number,
@@ -390,15 +391,19 @@ function applyEnvelope(
   let ti: number = 0;
   let iEnvelope: number = 0;
   const maxI: number = envelope.length - 1;
+  const doEnvelope: boolean = false;
+  let g: number = 1;
   sample.forEach((s,i) => {
     if (ti >= envelope[iEnvelope].t && iEnvelope < maxI) iEnvelope++;
-    const g: number = envelope[iEnvelope].g != envelope[iEnvelope - 1].g? linearInterpolate(
+    if (doEnvelope) {
+    g = envelope[iEnvelope].g != envelope[iEnvelope - 1].g? linearInterpolate(
       ti,
       envelope[iEnvelope - 1].t,
       envelope[iEnvelope].t,
       envelope[iEnvelope - 1].g,
       envelope[iEnvelope].g
     ): envelope[iEnvelope].g;
+  }
     newSample[i] = s * g;
     ti+=deltaT;
   });

@@ -8,7 +8,7 @@ import {
   GeneratorType,
   RawSourceData,
 } from "../../types";
-import {dBToGain } from 'sfcomponents/util'
+import { dBToGain } from "sfcomponents/util";
 
 export interface SourceReportProps {
   generator: GeneratorType | undefined; // undefined if for all generators
@@ -38,13 +38,16 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
     sources = result.sources;
     error = result.error;
   } else {
-    const { AlgorithmicGenerators, AudioFileGenerators, SilentGenerators } =
-      ReadyPlay({
-        mode: PLAYMODE.preview,
-        generator: null,
-        fileContents,
-        timeInterval: { startOffset: 0, endOffset: 0 },
-      });
+    const {
+      AlgorithmicGenerators,
+      AudioFileGenerators,
+      SilentGenerators,
+    } = ReadyPlay({
+      mode: PLAYMODE.preview,
+      generator: null,
+      fileContents,
+      timeInterval: { startOffset: 0, endOffset: 0 },
+    });
     const result = buildSources({
       fileContents,
       AlgorithmicGenerators,
@@ -58,7 +61,10 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
     <>
       {error != "" ? <h5>Error in source construction - {error}</h5> : null}
       {generator ? (
-        <h5>Generators Sources for {generator.name}:{generator.type}, start/stop {generator.startTime.toFixed(3)}/{generator.stopTime.toFixed(3)}</h5>
+        <h5>
+          Generators Sources for {generator.name}:{generator.type}, start/stop{" "}
+          {generator.startTime.toFixed(3)}/{generator.stopTime.toFixed(3)}
+        </h5>
       ) : (
         <h5>Generator Sources for Composition in Start Time Order</h5>
       )}
@@ -81,8 +87,8 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
             <th>Sustain</th>
             <th>Attenuation</th>
             <th>Pan</th>
-            </tr>
-            <tr>
+          </tr>
+          <tr>
             <th>Root Key</th>
             <th>Cents</th>
             <th>Delay</th>
@@ -94,42 +100,42 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
             <th>Note End</th>
             <th>Release</th>
             <th>Total Time</th>
-            </tr>
+          </tr>
         </thead>
         <tbody>
           {sources.map((s: RawSourceData) => (
             <>
-            <tr>
-              <td>{s.instrument?.name}</td>
-              <td>{s.source.startTime.toFixed(3)}</td>
-              <td>{s.source.duration.toFixed(3)}</td>
-              <td>{s.source.stopTime.toFixed(3)}</td>
-              <td>{s.source.note.toFixed(2)}</td>
-              <td>{s.instrument?.loop?'true':'false'}</td>
-              <td>{s.instrument?.loopStart}</td>
-              <td>{s.instrument?.loopEnd}</td>
-              <td>{s.source.sample[0].length}</td>
-              <td>{s.source.sampleRate.toFixed(0)}</td>
-              <td>{s.instrument?.sample.length}</td>
-              <td>{s.instrument?.sampleRate.toFixed(0)}</td>
-              <td>{dBToGain(s.vol.value).toFixed(1)}</td>
-              <td>{s.instrument?.sustainGain.toFixed(1)}</td>
-              <td>{s.instrument?.attenuation.toFixed(1)}</td>
-              <td>{s.panner.value.toFixed(1)}</td>
-            </tr>
-            <tr>
-              <td>{s.instrument?.rootKey}</td>
-              <td>{s.instrument?.cents}</td>
-              <td>{s.instrument?.delayEnd.toFixed(3)}</td>
-              <td>{s.instrument?.attackEnd.toFixed(3)}</td>
-              <td>{s.instrument?.holdEnd.toFixed(3)}</td>
-              <td>{s.instrument?.decayEnd.toFixed(3)}</td>
-              <td>{s.instrument?.interval.toFixed(3)}</td>
-              <td>{s.instrument?.duration.toFixed(3)}</td>
-              <td>{s.instrument?.noteEnd.toFixed(3)}</td>
-              <td>{s.instrument?.releaseEnd.toFixed(3)}</td>
-              <td>{s.instrument?.totalTime.toFixed(3)}</td>
-            </tr>
+              <tr>
+                <td>{s.instrument?.name}</td>
+                <td>{s.source.startTime.toFixed(3)}</td>
+                <td>{s.source.duration.toFixed(3)}</td>
+                <td>{s.source.stopTime.toFixed(3)}</td>
+                <td>{s.source.note.toFixed(2)}</td>
+                <td>{s.instrument?.loop ? "true" : "false"}</td>
+                <td>{s.instrument?.loopStart}</td>
+                <td>{s.instrument?.loopEnd}</td>
+                <td>{s.source.sample[0].length}</td>
+                <td>{s.source.sampleRate.toFixed(0)}</td>
+                <td>{s.instrument?.sample.length}</td>
+                <td>{s.instrument?.sampleRate.toFixed(0)}</td>
+                <td>{dBToGain(s.vol.value).toFixed(1)}</td>
+                <td>{s.instrument?.sustainGain.toFixed(1)}</td>
+                <td>{s.instrument?.attenuation.toFixed(1)}</td>
+                <td>{s.panner.value.toFixed(1)}</td>
+              </tr>
+              <tr>
+                <td>{s.instrument?.rootKey}</td>
+                <td>{s.instrument?.cents}</td>
+                <td>{s.instrument?.delayEnd.toFixed(3)}</td>
+                <td>{s.instrument?.attackEnd.toFixed(3)}</td>
+                <td>{s.instrument?.holdEnd.toFixed(3)}</td>
+                <td>{s.instrument?.decayEnd.toFixed(3)}</td>
+                <td>{s.instrument?.interval.toFixed(3)}</td>
+                <td>{s.instrument?.duration.toFixed(3)}</td>
+                <td>{s.instrument?.noteEnd.toFixed(3)}</td>
+                <td>{s.instrument?.releaseEnd.toFixed(3)}</td>
+                <td>{s.instrument?.totalTime.toFixed(3)}</td>
+              </tr>
             </>
           ))}
         </tbody>

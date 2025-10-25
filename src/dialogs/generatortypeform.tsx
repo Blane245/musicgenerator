@@ -16,7 +16,7 @@ export interface GeneratorTypeFormProps {
 export default function GeneratorTypeForm(
   props: GeneratorTypeFormProps
 ): JSX.Element {
-  const { formData, handleChange } = props;
+  const { formData, handleChange} = props;
   return (
     <>
       {formData.type == GENERATORTYPE.Algorithmic ? (

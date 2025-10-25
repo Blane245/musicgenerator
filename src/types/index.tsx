@@ -9,16 +9,19 @@ export type TimeLinePreferences = {
   MeasureSubdivisions: number;
 }
 
+export type OscillatorBoxProperties = {
+  
+}
+
 import { Buffer } from "buffer";
+import { SequenceItem } from "classes/sequenceitems";
 import Track from "classes/track";
-import {
-  AlgorithmValues,
+import SequenceValues, {
   AutoregressiveValues,
   ConstantValues,
   MarkovianValues,
   OscillatorValues,
-  SequenceValues,
-  WienerValues,
+  WienerValues
 } from "../classes/algorithmvalues";
 import { Algorithmic, AudioFile, Silent } from "../classes/generators";
 import RandomNumber from "../classes/randomnumber";
@@ -30,7 +33,6 @@ import {
   triangleModulator,
 } from "../modulators";
 import { SoundFont2 } from "../soundfont2";
-import { SequenceItem } from "classes/sequenceitems";
 // import { AttackItem, DurationItem, NoteItem, PanItem, SequenceItem, SpeedItem, VolumeItem } from "classes/sequenceitems";
 
 export const SAMPLERATE: number = 44100;
@@ -81,7 +83,7 @@ export type Algorithm =
   | OscillatorValues
   | MarkovianValues
   | WienerValues
-  | SequenceValues;
+  | SequenceValues
 
 export enum ALGORITHMTYPE {
   "None" = "None",
@@ -90,7 +92,7 @@ export enum ALGORITHMTYPE {
   "Oscillator" = "Oscillator",
   "Markovian" = "Markovian",
   "Wiener" = "Wiener",
-  "Sequence" = "Sequence",
+  "Sequencer" = "Sequencer",
 }
 
 export type AlgorithmType = {
@@ -156,8 +158,20 @@ export type WienerType = {
   hi: number;
 };
 
+export const parameterNames: string[] = [
+  'noteP', 'speedP','attackP','durationP','volumeP','panP'
+]
+export const atttributeTitles: string[] = [
+  "Note (midi)",
+  "Speed (BPM)",
+  "Attack [0-127]",
+  "Duration (0,100]",
+  "Volume [-10, +10]",
+  "Pan [-1, +1]",
+];
+
+
 export enum SEQUENCEATTRIBUTE {
-  "none" = "none",
   "note" = "note",
   "speed" = "speed",
   "attack" = "attack",
@@ -166,7 +180,6 @@ export enum SEQUENCEATTRIBUTE {
   "pan" = "pan",
 }
 export const Attributes: SEQUENCEATTRIBUTE[] = [
-  SEQUENCEATTRIBUTE.none,
   SEQUENCEATTRIBUTE.note,
   SEQUENCEATTRIBUTE.speed,
   SEQUENCEATTRIBUTE.attack,
@@ -175,49 +188,12 @@ export const Attributes: SEQUENCEATTRIBUTE[] = [
   SEQUENCEATTRIBUTE.pan,
 ];
 
-
 export type SequenceType = {
   name: string;
   sequenceAttribute: SEQUENCEATTRIBUTE;
-  transpose?: number;
+  transpose: number;
   items:SequenceItem[];
 }
-
-// export type NoteType = {
-//   name: string;
-//   sequenceType: SEQUENCEATTRIBUTE;
-//   items:NoteItem[]
-//   transpose:number;
-// }
-
-// export type SpeedType = {
-//   name: string;
-//   sequenceType: SEQUENCEATTRIBUTE;
-//   items:SpeedItem[]
-// }
-
-// export type AttackType = {
-//   name: string;
-//   sequenceType: SEQUENCEATTRIBUTE;
-//   items:AttackItem[]
-// }
-// export type DurationType = {
-//   name: string;
-//   sequenceType: SEQUENCEATTRIBUTE;
-//   items:DurationItem[]
-// }
-
-// export type VolumeType = {
-//   name: string;
-//   sequenceType: SEQUENCEATTRIBUTE;
-//   items:VolumeItem[]
-// }
-
-// export type PanType = {
-//   name: string;
-//   sequenceType: SEQUENCEATTRIBUTE;
-//   items:PanItem[]
-// }
 
 export enum NOISETYPE {
   white = "white",
@@ -264,7 +240,7 @@ export enum TIMEFORMATTYPE {
 // place to hold the soundfont file and the presets in it
 export type SoundFontGeneratorsType = {
   name: string; // the name of the soundfont file
-  generators: Algorithmic[]; // the generators that are using this soundfont
+  generators: (Algorithmic)[]; // the generators that are using this soundfont
 };
 
 // the soundfont file collection for algorithmic generators

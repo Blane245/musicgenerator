@@ -219,7 +219,7 @@ ul:after {
   height: 100%;
   text-align: left;
   display: grid;
-  grid-template-rows: 40px 40px 1fr 180px;
+  grid-template-rows: 40px 45px 1fr 180px;
   grid-template-areas:
     "header"
     "timeline"
@@ -276,7 +276,6 @@ ul:after {
     grid-area: timeline;
     grid-template-columns: 200px 1fr;
     grid-template-areas: "control display";
-    height: 40px;
 
     .control {
       grid-area: control;
@@ -294,7 +293,7 @@ ul:after {
     grid-template-rows: repeat(6, 100px);
     gap: 0;
     position: absolute;
-    top: 80px;
+    top: 85px;
     left: 0;
     overflow: auto;
     overflow-x: hidden;
@@ -654,7 +653,7 @@ ul:after {
   cursor: inherit;
 }
 
-div.algorithmic-table {
+.algorithmic-table {
   display: grid;
   grid-template-columns: 1fr 1fr 10fr;
   grid-template-areas: "attribute gentype parameters";
@@ -663,65 +662,80 @@ div.algorithmic-table {
     grid-area: attribute;
     align-self: center;
   }
-  div.gentype {
+  .gentype {
     grid-area: gentype;
     align-self: center;
   }
-  div.parameters {
+  .parameters {
     grid-area: parameters;
-    div.constant {
+    .sequencer {
       display: grid;
-      grid-template-columns: 1fr;
-      grid-template-areas:
-        "valuetitle"
-        "value";
+      grid-template-columns: 3fr 1fr 1fr 1fr 7fr;
+      grid-template-areas: "name reload view transpose .";
+      .name {
+        grid-area: name;
+      }
+      .reload {
+        grid-area: reload;
+      }
+      .view {
+        grid-area: view;
+      }
+      .transpose {
+        grid-area: transpose;
+      }
+    }
+    .constant {
+      display: grid;
+      grid-template-columns: 1fr 1fr 10fr;
+      grid-template-areas: "valuetitle value .";
       gap: 0;
-      div.valuetitle {
+      .valuetitle {
         grid-area: valuetitle;
       }
       div.value {
         grid-area: value;
       }
     }
-    div.oscillator {
+    .oscillator {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       grid-template-areas:
         "typetitle centertitle frequencytitle amplitudetitle phasetitle"
         "type center frequency amplitude phase";
       gap: 0;
-      div.typetitle {
+      .typetitle {
         grid-area: typetitle;
       }
-      div.centertitle {
+      .centertitle {
         grid-area: centertitle;
       }
-      div.frequencytitle {
+      .frequencytitle {
         grid-area: frequencytitle;
       }
-      div.amplitudetitle {
+      .amplitudetitle {
         grid-area: amplitudetitle;
       }
-      div.phasetitle {
+      .phasetitle {
         grid-area: phasetitle;
       }
-      div.type {
+      .type {
         grid-area: type;
       }
-      div.center {
+      .center {
         grid-area: center;
       }
-      div.frequency {
+      .frequency {
         grid-area: frequency;
       }
-      div.amplitude {
+      .amplitude {
         grid-area: amplitude;
       }
-      div.phase {
+      .phase {
         grid-area: phase;
       }
     }
-    div.autoregressive {
+    .autoregressive {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
       grid-template-areas:
@@ -765,7 +779,7 @@ div.algorithmic-table {
         grid-area: hi;
       }
     }
-    div.markovian {
+    .markovian {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       grid-template-areas:
@@ -839,7 +853,7 @@ div.algorithmic-table {
         grid-area: dd;
       }
     }
-    div.wiener {
+    .wiener {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
       grid-template-areas:
@@ -887,36 +901,7 @@ div.algorithmic-table {
     }
   }
 }
-div.sequencer {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 3fr;
-  grid-template-areas:
-    "nametitle transposetitle listbuttontitle  ."
-    "name transpose listbutton  .";
-  gap: 2px;
-  .nametitle {
-    grid-area: nametitle;
-    size: 10em;
-  }
-  .listbuttontitle {
-    grid-area: listbuttontitle;
-    size: 10em;
-  }
-  .transposetitle {
-    grid-area: transposetitle;
-    size: 10em;
-  }
-  .name {
-    grid-area: name;
-  }
-  .listbutton {
-    grid-area: listbutton;
-    z-index: 99;
-  }
-  .transpose {
-    grid-area: transpose;
-  }
-}
+
 table,
 th,
 td {
@@ -1025,7 +1010,7 @@ td {
   display: grid;
   width: 100%;
   height: 100%;
-  grid-template-rows: 40px 40px 1fr 180px;
+  grid-template-rows: 40px 50px 1fr 180px;
   grid-template-areas:
     "header"
     "timeline"

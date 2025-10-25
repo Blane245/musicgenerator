@@ -17,7 +17,7 @@ export function loadValidSequenceNames(
       "GET"
     );
     if (response.type == DBRESPONSETYPE.error) setValidSequenceNames([]);
-    setValidSequenceNames((response as DbSequenceValidNamesType).value);
+    else setValidSequenceNames((response as DbSequenceValidNamesType).value);
   };
   load();
 }

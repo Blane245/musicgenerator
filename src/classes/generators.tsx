@@ -1,10 +1,11 @@
-import { SoundFont2 } from "soundfont2";
 import { Preset } from "sfcomponents/types";
 import { presetNameToPreset } from "sfcomponents/util";
+import { SoundFont2 } from "soundfont2";
 import {
   Algorithm,
   ALGORITHMTYPE,
   GENERATORTYPE,
+  parameterNames,
   SEQUENCEATTRIBUTE,
   SoundFontGenerators,
   SoundFontGeneratorsType,
@@ -15,12 +16,12 @@ import {
   convertFromJsonAndDecompress,
 } from "utils/gzip";
 import { getAttributeValue, getElementElement } from "utils/xmlfunctions";
-import {
+import SequenceValues, {
+  AlgorithmValues,
   AutoregressiveValues,
   ConstantValues,
   MarkovianValues,
   OscillatorValues,
-  SequenceValues,
   WienerValues,
 } from "./algorithmvalues";
 import CMGFile from "./cmgfile";
@@ -56,28 +57,28 @@ export class Silent {
     return newCMG;
   }
 
-  setAttribute(name: string, value: string): void {
+  setAttribute(name: string, value: string): boolean {
     switch (name) {
       case "name":
         this.name = value;
-        break;
+        return true;
       case "type":
         this.type = GENERATORTYPE.Silent;
-        break;
+        return true;
       case "startTime":
         const interval: number = this.stopTime - this.startTime;
         this.startTime = parseFloat(value);
         this.stopTime = this.startTime + interval;
-        break;
+        return true;
       case "stopTime":
         this.stopTime = parseFloat(value);
-        break;
+        return true;
       case "mute":
         this.mute = value == "true";
-        break;
+        return true;
 
       default:
-        break;
+        return false;
     }
   }
 
@@ -280,9 +281,9 @@ export class Algorithmic extends Silent {
     return n;
   }
 
-  override async setAttribute(name: string, value: string) {
+  override setAttribute(name: string, value: string): boolean {
     // handle a change of the algorithm type
-    super.setAttribute(name, value);
+    if (super.setAttribute(name, value)) return true;
     switch (name) {
       case "soundfontfile": {
         if (value != "select a file") {
@@ -290,25 +291,25 @@ export class Algorithmic extends Silent {
           // this will trigger the soundfont to be loaded and the presets to be set
           // by the calling dialog
         }
-        return;
+        return true;
       }
       case "presetName":
         this.presetName = value;
         const { preset } = presetNameToPreset(this.presetName, this.presets);
         this.preset = preset;
-        return;
+        return true;
       case "isLooping":
         this.isLooping = value == "true";
-        return;
+        return true;
       case "measureLength":
         this.measureLength = parseInt(value);
-        return;
+        return true;
       case "beatCount":
         this.beatCount = parseInt(value);
-        return;
+        return true;
       case "offsetSequence":
         this.offsetSequence = parseInt(value);
-        return;
+        return true;
       case "noteCount":
         this.noteCount = parseInt(value);
         this.#activeNotes = euclideanRhythm(
@@ -316,7 +317,7 @@ export class Algorithmic extends Silent {
           12,
           this.offsetNotes
         );
-        return;
+        return true;
       case "offsetNotes":
         this.offsetNotes = parseInt(value);
         this.#activeNotes = euclideanRhythm(
@@ -324,180 +325,188 @@ export class Algorithmic extends Silent {
           12,
           this.offsetNotes
         );
-        return;
+        return true;
       case "noiseSeed":
         this.noiseSeed = value;
         this.rn = new RandomNumber(this.noiseSeed);
-        return;
+        return true;
       case "noiseAmplitude":
         this.noiseAmplitude = parseFloat(value);
-        return;
+        return true;
       case "noiseFrequency":
         this.noiseFrequency = parseFloat(value);
-        return;
+        return true;
       case "reverbDuration":
         this.reverbDuration = parseFloat(value);
-        return;
+        return true;
       case "reverbDecay":
         this.reverbDecay = parseFloat(value);
-        return;
+        return true;
       case "noteP.algorithmType":
         switch (value) {
           case "Constant":
             this.noteP = new ConstantValues();
-            return;
+            return true;
           case "Autoregressive":
             this.noteP = new AutoregressiveValues();
-            return;
+            return true;
           case "Oscillator":
             this.noteP = new OscillatorValues();
-            return;
+            return true;
           case "Markovian":
             this.noteP = new MarkovianValues();
-            return;
+            return true;
           case "Wiener":
             this.noteP = new WienerValues();
-            return;
-          case "Sequence":
+            return true;
+          case "Sequencer":
             this.noteP = new SequenceValues(SEQUENCEATTRIBUTE.note);
-            return;
+            return true;
+          default:
+            return false;
         }
-        break;
       case "attackP.algorithmType":
         switch (value) {
           case "Constant":
             this.attackP = new ConstantValues();
-            return;
+            return true;
           case "Autoregressive":
             this.attackP = new AutoregressiveValues();
-            return;
+            return true;
           case "Oscillator":
             this.attackP = new OscillatorValues();
-            return;
+            return true;
           case "Markovian":
             this.attackP = new MarkovianValues();
-            return;
+            return true;
           case "Wiener":
             this.attackP = new WienerValues();
-            return;
-          case "Sequence":
+            return true;
+          case "Sequencer":
             this.attackP = new SequenceValues(SEQUENCEATTRIBUTE.attack);
-            return;
+            return true;
+          default:
+            return false;
         }
-        break;
       case "speedP.algorithmType":
         switch (value) {
           case "Constant":
             this.speedP = new ConstantValues();
-            return;
+            return true;
           case "Autoregressive":
             this.speedP = new AutoregressiveValues();
-            return;
+            return true;
           case "Oscillator":
             this.speedP = new OscillatorValues();
-            return;
+            return true;
           case "Markovian":
             this.speedP = new MarkovianValues();
-            return;
+            return true;
           case "Wiener":
             this.speedP = new WienerValues();
-            return;
-          case "Sequence":
+            return true;
+          case "Sequencer":
             this.speedP = new SequenceValues(SEQUENCEATTRIBUTE.speed);
-            return;
+            return true;
+          default:
+            return false;
         }
-        break;
       case "durationP.algorithmType":
         switch (value) {
           case "Constant":
             this.durationP = new ConstantValues(100);
-            return;
+            return true;
           case "Autoregressive":
             this.durationP = new AutoregressiveValues();
-            return;
+            return true;
           case "Oscillator":
             this.durationP = new OscillatorValues();
-            return;
+            return true;
           case "Markovian":
             this.durationP = new MarkovianValues();
-            return;
+            return true;
           case "Wiener":
             this.durationP = new WienerValues();
-            return;
-          case "Sequence":
+            return true;
+          case "Sequencer":
             this.durationP = new SequenceValues(SEQUENCEATTRIBUTE.duration);
-            return;
+            return true;
+          default:
+            return false;
         }
-        break;
       case "volumeP.algorithmType":
         switch (value) {
           case "Constant":
             this.volumeP = new ConstantValues();
-            return;
+            return true;
           case "Autoregressive":
             this.volumeP = new AutoregressiveValues();
-            return;
+            return true;
           case "Oscillator":
             this.volumeP = new OscillatorValues();
-            return;
+            return true;
           case "Markovian":
             this.volumeP = new MarkovianValues();
-            return;
+            return true;
           case "Wiener":
             this.volumeP = new WienerValues();
-            return;
-          case "Sequence":
+            return true;
+          case "Sequencer":
             this.volumeP = new SequenceValues(SEQUENCEATTRIBUTE.volume);
-            return;
+            return true;
+          default:
+            return false;
         }
-        break;
       case "panP.algorithmType":
         switch (value) {
           case "Constant":
             this.panP = new ConstantValues();
-            return;
+            return true;
           case "Autoregressive":
             this.panP = new AutoregressiveValues();
-            return;
+            return true;
           case "Oscillator":
             this.panP = new OscillatorValues();
-            return;
+            return true;
           case "Markovian":
             this.panP = new MarkovianValues();
-            return;
+            return true;
           case "Wiener":
             this.panP = new WienerValues();
-            return;
-          case "Sequence":
+            return true;
+          case "Sequencer":
             this.panP = new SequenceValues(SEQUENCEATTRIBUTE.pan);
-            return;
+            return true;
+          default:
+            return false;
         }
-        break;
     }
 
     // handle all other algorithm property values
     const nameParts: string[] = name.split("."); // should be four, the third being 'values'
     const parameterName: string = nameParts[0];
-    const valueName: string = nameParts[3];
+    const valueName: string = nameParts[1];
     switch (parameterName) {
       case "noteP":
         if (this.noteP) this.noteP.setAttribute(valueName, value);
-        break;
+        return true;
       case "attackP":
         if (this.attackP) this.attackP.setAttribute(valueName, value);
-        break;
+        return true;
       case "speedP":
         if (this.speedP) this.speedP.setAttribute(valueName, value);
-        break;
+        return true;
       case "durationP":
         if (this.durationP) this.durationP.setAttribute(valueName, value);
-        break;
+        return true;
       case "volumeP":
         if (this.volumeP) this.volumeP.setAttribute(valueName, value);
-        break;
+        return true;
       case "panP":
         if (this.panP) this.panP.setAttribute(valueName, value);
-        break;
+        return true;
+      default:
+        return false;
     }
   }
 
@@ -513,7 +522,10 @@ export class Algorithmic extends Silent {
     this.#currentRhythmEntry = 0;
   }
 
-  getCurrentValues(time: number, measureLength:number, beatCount: number): {
+  getCurrentValues(
+    time: number,
+    beats: number
+  ): {
     beat: boolean;
     attack: number;
     note: number;
@@ -526,23 +538,28 @@ export class Algorithmic extends Silent {
     this.#currentRhythmEntry =
       (this.#currentRhythmEntry + 1) % this.measureLength;
     const beat: boolean = this.#beatSequence[entry] != 0;
-
-    let note: number = this.noteP.getCurrentValue(time, measureLength, beatCount);
+    let note: number = 0;
+    let attack: number = 0;
+    let speed: number = 0;
+    let duration: number = 0;
+    let volume: number = 0;
+    let pan: number = 0;
+    note = (this.noteP as AlgorithmValues).getCurrentValue(time);
     note = Math.min(127, Math.max(0, note));
 
-    let attack: number = this.attackP.getCurrentValue(time, measureLength, beatCount);
+    attack = this.attackP.getCurrentValue(time, beats);
     attack = Math.min(127, Math.max(0, attack));
 
-    let speed: number = this.speedP.getCurrentValue(time, measureLength, beatCount);
+    speed = this.speedP.getCurrentValue(time, beats);
     speed = Math.min(10000, Math.max(0.001, speed));
 
-    let duration: number = this.durationP.getCurrentValue(time, measureLength, beatCount);
+    duration = this.durationP.getCurrentValue(time, beats);
     duration = Math.min(100, Math.max(0, duration));
 
-    let volume: number = this.volumeP.getCurrentValue(time, measureLength, beatCount);
+    volume = this.volumeP.getCurrentValue(time, beats);
     volume = Math.min(10, Math.max(-10, volume));
 
-    let pan: number = this.panP.getCurrentValue(time, measureLength, beatCount);
+    pan = this.panP.getCurrentValue(time, beats);
     pan = Math.min(1, Math.max(-1, pan));
 
     // modify the note based on those selectable in the octave
@@ -622,17 +639,18 @@ export class Algorithmic extends Silent {
       returnElem.appendChild(durationPElem);
       returnElem.appendChild(volumePElem);
       returnElem.appendChild(panPElem);
-      this.noteP?.appendXML(doc, notePElem);
-      this.attackP?.appendXML(doc, attackPElem);
-      this.speedP?.appendXML(doc, speedPElem);
-      this.durationP?.appendXML(doc, durationPElem);
-      this.volumeP?.appendXML(doc, volumePElem);
-      this.panP?.appendXML(doc, panPElem);
+      this.noteP.appendXML(doc, notePElem);
+      this.attackP.appendXML(doc, attackPElem);
+      this.speedP.appendXML(doc, speedPElem);
+      this.durationP.appendXML(doc, durationPElem);
+      this.volumeP.appendXML(doc, volumePElem);
+      this.panP.appendXML(doc, panPElem);
       return Promise.resolve(returnElem);
     } catch (e: any) {
       return Promise.reject(e);
     }
   }
+
   static override async getXML(
     elem: Element,
     version: string
@@ -722,194 +740,79 @@ export class Algorithmic extends Silent {
         g.reverbDecay = 0;
         g.reverbDuration = 0;
       }
+      [g.noteP, g.speedP, g.attackP, g.durationP, g.volumeP, g.panP].forEach(
+        async (algorithm: Algorithm, i) => {
+          let newAlgorithm: Algorithm = algorithm.copy();
+          const pElem: Element = getElementElement(elem, parameterNames[i]);
+          const pType: ALGORITHMTYPE = getAttributeValue(
+            pElem,
+            "algorithmType",
+            "string"
+          ) as ALGORITHMTYPE;
+          switch (pType) {
+            case ALGORITHMTYPE.Constant: {
+              const promise: Promise<ConstantValues> = ConstantValues.getXML(
+                pElem,
+                version
+              );
+              const result: Algorithm[] = await Promise.all([promise]);
+              newAlgorithm = result[0];
+              break;
+            }
+            case ALGORITHMTYPE.Autoregressive: {
+              const promise: Promise<AutoregressiveValues> =
+                AutoregressiveValues.getXML(pElem, version);
+              const result: Algorithm[] = await Promise.all([promise]);
+              newAlgorithm = result[0];
+              break;
+            }
+            case ALGORITHMTYPE.Oscillator: {
+              const promise: Promise<OscillatorValues> =
+                OscillatorValues.getXML(pElem, version);
+              const result: Algorithm[] = await Promise.all([promise]);
+              newAlgorithm = result[0];
+              break;
+            }
+            case ALGORITHMTYPE.Markovian: {
+              const promise: Promise<MarkovianValues> = MarkovianValues.getXML(
+                pElem,
+                version
+              );
+              const result: Algorithm[] = await Promise.all([promise]);
+              newAlgorithm = result[0];
+              break;
+            }
+            case ALGORITHMTYPE.Wiener: {
+              const promise: Promise<WienerValues> = WienerValues.getXML(
+                pElem,
+                version
+              );
+              const result: Algorithm[] = await Promise.all([promise]);
+              newAlgorithm = result[0];
+              break;
+            }
+            case ALGORITHMTYPE.Sequencer: {
+              const promise: Promise<SequenceValues> = SequenceValues.getXML(
+                pElem,
+                version
+              );
+              const result: Algorithm[] = await Promise.all([promise]);
+              newAlgorithm = result[0];
+              break;
+            }
+          }
 
-      const notePElem: Element = getElementElement(elem, "noteP");
-      const notePType: ALGORITHMTYPE = getAttributeValue(
-        notePElem,
-        "algorithmType",
-        "string"
-      ) as ALGORITHMTYPE;
-      switch (notePType) {
-        case ALGORITHMTYPE.Constant:
-          g.noteP = await ConstantValues.getXML(notePElem, version);
-          break;
-        case ALGORITHMTYPE.Autoregressive:
-          g.noteP = await AutoregressiveValues.getXML(notePElem, version);
-          break;
-        case ALGORITHMTYPE.Oscillator:
-          g.noteP = await OscillatorValues.getXML(notePElem, version);
-          break;
-        case ALGORITHMTYPE.Markovian:
-          g.noteP = await MarkovianValues.getXML(notePElem, version);
-          break;
-        case ALGORITHMTYPE.Wiener:
-          g.noteP = await WienerValues.getXML(notePElem, version);
-          break;
-        case ALGORITHMTYPE.Sequence:
-          g.noteP = await SequenceValues.getXML(notePElem, version);
-          break;
-      }
-
-      let attackPElem: Element | null = null;
-      try {
-        attackPElem = getElementElement(elem, "attackP");
-      } catch {
-        attackPElem = null;
-      }
-      let attackPType: ALGORITHMTYPE = ALGORITHMTYPE.Constant;
-      if (attackPElem)
-        attackPType = getAttributeValue(
-          attackPElem,
-          "algorithmType",
-          "string"
-        ) as ALGORITHMTYPE;
-
-      if (!attackPElem) {
-        g.durationP = new ConstantValues(63);
-      } else {
-        switch (attackPType) {
-          case ALGORITHMTYPE.Constant:
-            g.attackP = await ConstantValues.getXML(attackPElem, version);
-            break;
-          case ALGORITHMTYPE.Autoregressive:
-            g.attackP = await AutoregressiveValues.getXML(attackPElem, version);
-            break;
-          case ALGORITHMTYPE.Oscillator:
-            g.attackP = await OscillatorValues.getXML(attackPElem, version);
-            break;
-          case ALGORITHMTYPE.Markovian:
-            g.attackP = await MarkovianValues.getXML(attackPElem, version);
-            break;
-          case ALGORITHMTYPE.Wiener:
-            g.attackP = await WienerValues.getXML(attackPElem, version);
-            break;
-          case ALGORITHMTYPE.Sequence:
-            g.attackP = await SequenceValues.getXML(attackPElem, version);
-            break;
+          // move the new algorithm to the correct attribute
+          switch (parameterNames[i]) {
+            case 'noteP': g.noteP = newAlgorithm; break;
+            case 'speedP': g.speedP = newAlgorithm; break;
+            case 'attackP': g.attackP = newAlgorithm; break;
+            case 'durationP': g.durationP = newAlgorithm; break;
+            case 'volumeP': g.volumeP = newAlgorithm; break;
+            case 'panP': g.panP = newAlgorithm; break;
+          }
         }
-      }
-
-      const speedPElem: Element = getElementElement(elem, "speedP");
-      const speedPType: ALGORITHMTYPE = getAttributeValue(
-        speedPElem,
-        "algorithmType",
-        "string"
-      ) as ALGORITHMTYPE;
-      switch (speedPType) {
-        case ALGORITHMTYPE.Constant:
-          g.speedP = await ConstantValues.getXML(speedPElem, version);
-          break;
-        case ALGORITHMTYPE.Autoregressive:
-          g.speedP = await AutoregressiveValues.getXML(speedPElem, version);
-          break;
-        case ALGORITHMTYPE.Oscillator:
-          g.speedP = await OscillatorValues.getXML(speedPElem, version);
-          break;
-        case ALGORITHMTYPE.Markovian:
-          g.speedP = await MarkovianValues.getXML(speedPElem, version);
-          break;
-        case ALGORITHMTYPE.Wiener:
-          g.speedP = await WienerValues.getXML(speedPElem, version);
-          break;
-        case ALGORITHMTYPE.Sequence:
-          g.speedP = await SequenceValues.getXML(speedPElem, version);
-          break;
-      }
-
-      let durationPElem: Element | null = null;
-      try {
-        durationPElem = getElementElement(elem, "durationP");
-      } catch {
-        durationPElem = null;
-      }
-      let durationPType: ALGORITHMTYPE = ALGORITHMTYPE.Constant;
-      if (durationPElem)
-        durationPType = getAttributeValue(
-          durationPElem,
-          "algorithmType",
-          "string"
-        ) as ALGORITHMTYPE;
-      if (!durationPElem) {
-        g.durationP = new ConstantValues(100);
-      } else {
-        switch (durationPType) {
-          case ALGORITHMTYPE.Constant:
-            g.durationP = await ConstantValues.getXML(durationPElem, version);
-            break;
-          case ALGORITHMTYPE.Autoregressive:
-            g.durationP = await AutoregressiveValues.getXML(
-              durationPElem,
-              version
-            );
-            break;
-          case ALGORITHMTYPE.Oscillator:
-            g.durationP = await OscillatorValues.getXML(durationPElem, version);
-            break;
-          case ALGORITHMTYPE.Markovian:
-            g.durationP = await MarkovianValues.getXML(durationPElem, version);
-            break;
-          case ALGORITHMTYPE.Wiener:
-            g.durationP = await WienerValues.getXML(durationPElem, version);
-            break;
-          case ALGORITHMTYPE.Sequence:
-            g.durationP = await SequenceValues.getXML(durationPElem, version);
-            break;
-        }
-      }
-
-      const volumePElem: Element = getElementElement(elem, "volumeP");
-      const volumePType: ALGORITHMTYPE = getAttributeValue(
-        volumePElem,
-        "algorithmType",
-        "string"
-      ) as ALGORITHMTYPE;
-      switch (volumePType) {
-        case ALGORITHMTYPE.Constant:
-          g.volumeP = await ConstantValues.getXML(volumePElem, version);
-          break;
-        case ALGORITHMTYPE.Autoregressive:
-          g.volumeP = await AutoregressiveValues.getXML(volumePElem, version);
-          break;
-        case ALGORITHMTYPE.Oscillator:
-          g.volumeP = await OscillatorValues.getXML(volumePElem, version);
-          break;
-        case ALGORITHMTYPE.Markovian:
-          g.volumeP = await MarkovianValues.getXML(volumePElem, version);
-          break;
-        case ALGORITHMTYPE.Wiener:
-          g.volumeP = await WienerValues.getXML(volumePElem, version);
-          break;
-        case ALGORITHMTYPE.Sequence:
-          g.volumeP = await SequenceValues.getXML(volumePElem, version);
-          break;
-      }
-
-      const panPElem: Element = getElementElement(elem, "panP");
-      const panPType: ALGORITHMTYPE = getAttributeValue(
-        panPElem,
-        "algorithmType",
-        "string"
-      ) as ALGORITHMTYPE;
-      switch (panPType) {
-        case ALGORITHMTYPE.Constant:
-          g.panP = await ConstantValues.getXML(panPElem, version);
-          break;
-        case ALGORITHMTYPE.Autoregressive:
-          g.panP = await AutoregressiveValues.getXML(panPElem, version);
-          break;
-        case ALGORITHMTYPE.Oscillator:
-          g.panP = await OscillatorValues.getXML(panPElem, version);
-          break;
-        case ALGORITHMTYPE.Markovian:
-          g.panP = await MarkovianValues.getXML(panPElem, version);
-          break;
-        case ALGORITHMTYPE.Wiener:
-          g.panP = await WienerValues.getXML(panPElem, version);
-          break;
-        case ALGORITHMTYPE.Sequence:
-          g.panP = await SequenceValues.getXML(panPElem, version);
-          break;
-      }
+      );
 
       return Promise.resolve(g);
     } catch (e) {
@@ -930,214 +833,62 @@ export class Algorithmic extends Silent {
     if (values.offsetSequence >= values.measureLength)
       result.push("Beat shift amount must be less than the measurement length");
     if (values.noiseSeed == "") result.push("Seed must not be blank");
-    if (values.noteP) {
-      const notePType: ALGORITHMTYPE = values.noteP.algorithmType;
-      switch (notePType) {
-        case ALGORITHMTYPE.Constant:
-          result.push(
-            ...ConstantValues.validate(values.noteP as ConstantValues)
-          );
-          break;
-        case ALGORITHMTYPE.Autoregressive:
-          result.push(
-            ...AutoregressiveValues.validate(
-              values.noteP as AutoregressiveValues
-            )
-          );
-          break;
-        case ALGORITHMTYPE.Oscillator:
-          result.push(
-            ...OscillatorValues.validate(values.noteP as OscillatorValues)
-          );
-          break;
-        case ALGORITHMTYPE.Markovian:
-          result.push(
-            ...MarkovianValues.validate(values.noteP as MarkovianValues)
-          );
-          break;
-        case ALGORITHMTYPE.Wiener:
-          result.push(...WienerValues.validate(values.noteP as WienerValues));
-          break;
-        case ALGORITHMTYPE.Sequence:
-          result.push(...SequenceValues.validate(values.noteP as SequenceValues));
-          break;
-      }
+    const noteP: Algorithm = values.noteP;
+    const speedP: Algorithm = values.speedP;
+    const attackP: Algorithm = values.attackP;
+    const durationP: Algorithm = values.durationP;
+    const volumeP: Algorithm = values.volumeP;
+    const panP: Algorithm = values.panP;
+    // if the noteP is not of sequencer type, then none of the other
+    // atrtibutes can be of sequencer type
+    if (noteP.algorithmType != ALGORITHMTYPE.Sequencer) {
+      if (
+        speedP.algorithmType == ALGORITHMTYPE.Sequencer ||
+        attackP.algorithmType == ALGORITHMTYPE.Sequencer ||
+        durationP.algorithmType == ALGORITHMTYPE.Sequencer ||
+        volumeP.algorithmType == ALGORITHMTYPE.Sequencer ||
+        panP.algorithmType == ALGORITHMTYPE.Sequencer
+      )
+        result.push(
+          "If note is not a sequencer, no other attribute can be a sequencer."
+        );
     }
-    if (values.attackP) {
-      const attackPType: ALGORITHMTYPE = values.attackP.algorithmType;
-      switch (attackPType) {
-        case ALGORITHMTYPE.Constant:
-          result.push(
-            ...ConstantValues.validate(values.attackP as ConstantValues)
-          );
-          break;
-        case ALGORITHMTYPE.Autoregressive:
-          result.push(
-            ...AutoregressiveValues.validate(
-              values.attackP as AutoregressiveValues
-            )
-          );
-          break;
-        case ALGORITHMTYPE.Oscillator:
-          result.push(
-            ...OscillatorValues.validate(values.attackP as OscillatorValues)
-          );
-          break;
-        case ALGORITHMTYPE.Markovian:
-          result.push(
-            ...MarkovianValues.validate(values.attackP as MarkovianValues)
-          );
-          break;
-        case ALGORITHMTYPE.Wiener:
-          result.push(...WienerValues.validate(values.attackP as WienerValues));
-          break;
-        case ALGORITHMTYPE.Sequence:
-          result.push(
-            ...SequenceValues.validate(values.attackP as SequenceValues)
-          );
-          break;
+    [noteP, speedP, attackP, durationP, volumeP, panP].forEach(
+      (algorithm: Algorithm) => {
+        switch (algorithm.algorithmType) {
+          case ALGORITHMTYPE.Constant:
+            result.push(
+              ...ConstantValues.validate(algorithm as ConstantValues)
+            );
+            break;
+          case ALGORITHMTYPE.Autoregressive:
+            result.push(
+              ...AutoregressiveValues.validate(
+                algorithm as AutoregressiveValues
+              )
+            );
+            break;
+          case ALGORITHMTYPE.Oscillator:
+            result.push(
+              ...OscillatorValues.validate(algorithm as OscillatorValues)
+            );
+            break;
+          case ALGORITHMTYPE.Markovian:
+            result.push(
+              ...MarkovianValues.validate(algorithm as MarkovianValues)
+            );
+            break;
+          case ALGORITHMTYPE.Wiener:
+            result.push(...WienerValues.validate(algorithm as WienerValues));
+            break;
+          case ALGORITHMTYPE.Sequencer:
+            result.push(
+              ...SequenceValues.validate(algorithm as SequenceValues)
+            );
+            break;
+        }
       }
-    }
-    if (values.speedP) {
-      const speedPType: ALGORITHMTYPE = values.speedP.algorithmType;
-      switch (speedPType) {
-        case ALGORITHMTYPE.Constant:
-          result.push(
-            ...ConstantValues.validate(values.speedP as ConstantValues)
-          );
-          break;
-        case ALGORITHMTYPE.Autoregressive:
-          result.push(
-            ...AutoregressiveValues.validate(
-              values.speedP as AutoregressiveValues
-            )
-          );
-          break;
-        case ALGORITHMTYPE.Oscillator:
-          result.push(
-            ...OscillatorValues.validate(values.speedP as OscillatorValues)
-          );
-          break;
-        case ALGORITHMTYPE.Markovian:
-          result.push(
-            ...MarkovianValues.validate(values.speedP as MarkovianValues)
-          );
-          break;
-        case ALGORITHMTYPE.Wiener:
-          result.push(...WienerValues.validate(values.speedP as WienerValues));
-          break;
-        case ALGORITHMTYPE.Sequence:
-          result.push(
-            ...SequenceValues.validate(values.speedP as SequenceValues)
-          );
-          break;
-      }
-    }
-    if (values.durationP) {
-      const durationPType: ALGORITHMTYPE = values.durationP.algorithmType;
-      switch (durationPType) {
-        case ALGORITHMTYPE.Constant:
-          result.push(
-            ...ConstantValues.validate(values.durationP as ConstantValues)
-          );
-          break;
-        case ALGORITHMTYPE.Autoregressive:
-          result.push(
-            ...AutoregressiveValues.validate(
-              values.durationP as AutoregressiveValues
-            )
-          );
-          break;
-        case ALGORITHMTYPE.Oscillator:
-          result.push(
-            ...OscillatorValues.validate(values.durationP as OscillatorValues)
-          );
-          break;
-        case ALGORITHMTYPE.Markovian:
-          result.push(
-            ...MarkovianValues.validate(values.durationP as MarkovianValues)
-          );
-          break;
-        case ALGORITHMTYPE.Wiener:
-          result.push(
-            ...WienerValues.validate(values.durationP as WienerValues)
-          );
-          break;
-        case ALGORITHMTYPE.Sequence:
-          result.push(
-            ...SequenceValues.validate(values.durationP as SequenceValues)
-          );
-          break;
-      }
-    }
-    if (values.volumeP) {
-      const volumePType: ALGORITHMTYPE = values.volumeP.algorithmType;
-      switch (volumePType) {
-        case ALGORITHMTYPE.Constant:
-          result.push(
-            ...ConstantValues.validate(values.volumeP as ConstantValues)
-          );
-          break;
-        case ALGORITHMTYPE.Autoregressive:
-          result.push(
-            ...AutoregressiveValues.validate(
-              values.volumeP as AutoregressiveValues
-            )
-          );
-          break;
-        case ALGORITHMTYPE.Oscillator:
-          result.push(
-            ...OscillatorValues.validate(values.volumeP as OscillatorValues)
-          );
-          break;
-        case ALGORITHMTYPE.Markovian:
-          result.push(
-            ...MarkovianValues.validate(values.volumeP as MarkovianValues)
-          );
-          break;
-        case ALGORITHMTYPE.Wiener:
-          result.push(...WienerValues.validate(values.volumeP as WienerValues));
-          break;
-        case ALGORITHMTYPE.Sequence:
-          result.push(
-            ...SequenceValues.validate(values.volumeP as SequenceValues)
-          );
-          break;
-      }
-    }
-    if (values.panP) {
-      const panPType: ALGORITHMTYPE = values.panP.algorithmType;
-      switch (panPType) {
-        case ALGORITHMTYPE.Constant:
-          result.push(
-            ...ConstantValues.validate(values.panP as ConstantValues)
-          );
-          break;
-        case ALGORITHMTYPE.Autoregressive:
-          result.push(
-            ...AutoregressiveValues.validate(
-              values.panP as AutoregressiveValues
-            )
-          );
-          break;
-        case ALGORITHMTYPE.Oscillator:
-          result.push(
-            ...OscillatorValues.validate(values.panP as OscillatorValues)
-          );
-          break;
-        case ALGORITHMTYPE.Markovian:
-          result.push(
-            ...MarkovianValues.validate(values.panP as MarkovianValues)
-          );
-          break;
-        case ALGORITHMTYPE.Wiener:
-          result.push(...WienerValues.validate(values.panP as WienerValues));
-          break;
-        case ALGORITHMTYPE.Sequence:
-          result.push(...SequenceValues.validate(values.panP as SequenceValues));
-          break;
-      }
-    }
+    );
     return result;
   }
 }
@@ -1191,14 +942,14 @@ export class AudioFile extends Silent {
     }
   }
 
-  override async setAttribute(name: string, value: string) {
+  override setAttribute(name: string, value: string): boolean {
     super.setAttribute(name, value);
     switch (name) {
       case "volume":
         this.volume = parseFloat(value);
-        break;
+        return true;
       default:
-        break;
+        return false;
     }
   }
 

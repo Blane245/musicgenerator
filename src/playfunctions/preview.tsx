@@ -887,13 +887,11 @@ export default function Preview(params: PreviewProps): JSX.Element {
     if (!done && playing.current) {
       timerID = window.setTimeout(scheduler, LOOKAHEAD);
     } else {
-      let endTime: number = playbackLength;
       if (audioContext.state !== "closed") {
-        endTime = audioContext.currentTime;
         audioContext.suspend();
         audioContext.close();
       }
-      // console.log("completed preview at ", endTime);
+      console.log("completed preview at ", playbackLength);
       onExit();
       return;
     }

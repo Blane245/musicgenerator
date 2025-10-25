@@ -78,7 +78,7 @@ export default function Home() {
       const displayHeight: number = screenHeight;
       const displayWidth: number = screenWidth;
       const headerHeight: number = 40;
-      const timelineHeight: number = 40;
+      const timelineHeight: number = 45;
       const controlWidth: number = 200;
       const timelineWidth: number = displayWidth - controlWidth;
       const previewWidth: number = displayWidth;
@@ -293,7 +293,7 @@ export default function Home() {
         </div>
       ) : (
         <Preview
-          appName="Computer Music Generator"
+          appName="Computer Music Generator (Preview)"
           appVersion={import.meta.env.VERSION}
           sourceData={sourceData}
           setMode={setMode}

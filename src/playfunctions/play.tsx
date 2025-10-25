@@ -61,7 +61,7 @@ export default function Play(props: PlayProps) {
     setError(buildError);
     if (buildError != "") return;
     setSourceData(builtSourceData);
-    // let the system know that playing if entered
+    // let the system know that playing is entered
     playing.current = true;
   }, [mode]);
 

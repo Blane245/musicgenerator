@@ -201,7 +201,8 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
         }
         case GENERATORTYPE.Algorithmic: {
           const newFormData: Algorithmic = (prev as Algorithmic).copy();
-          newFormData.setAttribute(eventName, eventValue);
+          const isSet: boolean = newFormData.setAttribute(eventName, eventValue);
+          if (!isSet) console.log('value not set eventname, eventvalue', eventName, eventValue);
 
           // when the soundfont filename changes, load the new soundfont and presets
           if (eventName == "soundfontfile") {
@@ -330,13 +331,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     if (buildError != "") return;
     setSourceData(builtSourceData);
     playing.current = true;
-    // when preview is complete, reshow this dialog with the latest data
-    // setEditGeneratorData({
-    //   track: track,
-    //   generator: formData,
-    //   type: formData.type,
-    //   newGenerator: newGenerator,
-    // });
+    
     setPreviewVisible(true);
     setMode(PLAYMODE.solo);
     setStatus(``);
@@ -477,7 +472,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                 onChange={handleChange}
                 value={timeToBeat(formData.startTime)}
                 />
-                <span>&nbsp;of Measure {timeLine.beatsPerMeasure};</span>
               </label>
               <label>
                 &nbsp;Stop Measure:&nbsp;
@@ -503,7 +497,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                 onChange={handleChange}
                 value={timeToBeat(formData.stopTime)}
                 />
-                <span>&nbsp;of Measure {timeLine.beatsPerMeasure}</span>
               </label>
               </>
             ):null}

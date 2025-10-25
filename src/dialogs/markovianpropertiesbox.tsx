@@ -5,7 +5,6 @@ export type MarkovianPropertiesBoxProps = {
   name: string;
   values: MarkovianType;
   valueSuffix: Function;
-  stepSuffix: Function;
   min: number;
   max: number;
   step: number;
@@ -17,7 +16,7 @@ export type MarkovianPropertiesBoxProps = {
 export default function MarkovianPropertiesBox(
   props: MarkovianPropertiesBoxProps
 ): JSX.Element {
-  const { name, values, min, max, step, valueSuffix, stepSuffix, handleChange } =
+  const { name, values, min, max, step, valueSuffix, handleChange } =
     props;
   return (
     <div className="markovian">
@@ -89,7 +88,6 @@ export default function MarkovianPropertiesBox(
             onChange={handleChange}
             value={values.range.step}
           />
-          <span style={{ fontSize: "small" }}>{stepSuffix(values.range.step)}</span>
         </label>
       </div>
       <div className="transition">{"from/to"}</div>

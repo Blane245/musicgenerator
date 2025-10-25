@@ -17,7 +17,7 @@ export interface PresetDialogProps {
 }
 export default function PresetDialog(props: PresetDialogProps): JSX.Element {
   const { generator, setViewPreset } = props;
-  const {fileContents} = useCMGContext();
+  const { fileContents } = useCMGContext();
   const [SFFile] = useState<SoundFont2 | undefined>(generator.soundFont);
   const [presetName, setPresetName] = useState<string>(generator.presetName);
   const [preset, setPreset] = useState<Preset | undefined>(generator.preset);
@@ -29,33 +29,28 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
   const [presetInfo, setPresetInfo] = useState<RawSourceData[]>([]);
 
   useEffect(() => {
-    let midi: number = 60;
-    if (generator.noteP) midi = generator.noteP.getCurrentValue(0, 0, 0);
-
+    const midi: number = (generator as Algorithmic).noteP.getCurrentValue(0, 1);
     setPresetMidi(midi);
-    let interval: number = 1;
-    if (generator.speedP) {
-      const value = generator.speedP.getCurrentValue(0,0,0);
-      interval = value == 0 ? 1 : 60.0 / value;
-    }
-
+    const speed = generator.speedP.getCurrentValue(0, 0);
+    const interval: number = speed == 0 ? 1 : 60.0 / speed;
     setPresetInterval(interval);
-    let duration: number = 100;
-    if (generator.durationP) duration = generator.durationP.getCurrentValue(0,0,0);
-
+    const duration: number = generator.durationP.getCurrentValue(0, 0);
     setPresetDuration(duration);
-    let volume: number = 0;
-    if (generator.volumeP) volume = generator.volumeP.getCurrentValue(0,0,0);
-
+    const volume: number = generator.volumeP.getCurrentValue(0, 1);
     setPresetVolume(volume);
-
-    let attack: number = 63;
-    if (generator.attackP) attack = generator.attackP.getCurrentValue(0,0,0);
-
+    const attack: number = generator.attackP.getCurrentValue(0, 1);
     setPresetAttack(attack);
 
     if (preset)
-      getPresetData(fileContents, preset, interval, duration, midi, attack, volume);
+      getPresetData(
+        fileContents,
+        preset,
+        interval,
+        duration,
+        midi,
+        attack,
+        volume
+      );
   }, []);
 
   // given a preset, midi, and velocity, get the envelope data
@@ -115,7 +110,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
     setPresetMidi(midi);
     if (preset)
       getPresetData(
-    fileContents,
+        fileContents,
         preset,
         presetInterval,
         presetDuration,
@@ -130,8 +125,8 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
     setPresetAttack(attack);
     if (preset)
       getPresetData(
-    fileContents,
-            preset,
+        fileContents,
+        preset,
         presetInterval,
         presetDuration,
         presetMidi,
@@ -160,7 +155,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
     setPresetInterval(interval);
     if (preset)
       getPresetData(
-    fileContents,
+        fileContents,
         preset,
         interval,
         presetDuration,
@@ -213,7 +208,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
       return `L${x * xScale} ${yScale * (1 - y)} `;
     };
     result.push(<div>Signal Envelopes</div>);
-    pI.forEach((p) => {
+    pI.forEach((p,i) => {
       if (p.instrument) {
         let path: string = "";
         path += `M0 ${ENVHEIGHT} `;
@@ -227,6 +222,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
             height={ENVHEIGHT.toString()}
             width={xWidth.toString()}
             fill="black"
+            key={`envelope-${i}`}
           >
             <path d={path} fill="black" />
           </svg>
@@ -237,17 +233,31 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
     return result;
   }
 
-  const numberCell = (object: object | undefined, value: string, precision: number): JSX.Element => {
-    if (object == undefined || object[value] == undefined) return <td style={{textAlign:'right'}}>0</td>;
+  const numberCell = (
+    i: number,
+    object: object | undefined,
+    value: string,
+    precision: number
+  ): JSX.Element => {
+    if (object == undefined || object[value] == undefined)
+      return <td key={`${value}-${i}`} style={{ textAlign: "right" }}>0</td>;
     return (
-      <td style={{ textAlign: "right" }}>
+      <td key={`${value}-${i}`} style={{ textAlign: "right" }}>
         {precisionString(object[value], precision)}
       </td>
     );
   };
-  const lengthCell = (object: object | undefined, array: string, dimension: number, precision: number): JSX.Element => {
-    if (object == undefined || object[array] == undefined) return <td style={{textAlign:'right'}}>0</td>;
-    const value: number = dimension < 0? object[array].length: object[array][dimension].length;
+  const lengthCell = (
+    i: number,
+    object: object | undefined,
+    array: string,
+    dimension: number,
+    precision: number
+  ): JSX.Element => {
+    if (object == undefined || object[array] == undefined)
+      return <td key={`${array}-${i}`} style={{ textAlign: "right" }}>0</td>;
+    const value: number =
+      dimension < 0 ? object[array].length : object[array][dimension].length;
     return (
       <td style={{ textAlign: "right" }}>
         {precisionString(value, precision)}
@@ -262,7 +272,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
           display: "block",
           top: 0,
           left: 0,
-          width: DISPLAYWIDTH.toString()+'px',
+          width: DISPLAYWIDTH.toString() + "px",
         }}
       >
         <div className="modal-header">
@@ -352,7 +362,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
           {presetInfo ? (
             <table>
               <tbody>
-                <tr key='name'>
+                <tr key="name">
                   <td>name</td>
                   {presetInfo.map((s: RawSourceData) => (
                     <td
@@ -365,9 +375,9 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
                 </tr>
                 <tr>
                   <td>sampleRate</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    numberCell(s.source, 'sampleRate', 0)
-                  ))}
+                  {presetInfo.map((s: RawSourceData, i) =>
+                    numberCell(i, s.source, "sampleRate", 0)
+                  )}
                 </tr>
                 <tr>
                   <td>loopStart</td>
@@ -395,251 +405,192 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
                 </tr>
                 <tr>
                   <td>rootKey</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    numberCell(s.instrument, 'rootKey', 0)
-                  ))}
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "rootKey", 0)
+                  )}
                 </tr>
                 <tr>
                   <td>pitchCorrection</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    numberCell(s.instrument, 'pitchCorrection', 0)
-                  ))}
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "pitchCorrection", 0)
+                  )}
                 </tr>
                 <tr>
                   <td>fineTune</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    numberCell(s.instrument, 'fineTune', 0)
-                  ))}
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "fineTune", 0)
+                  )}
                 </tr>
                 <tr>
                   <td>baseDetune</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    numberCell(s.instrument, 'baseDetune', 0)
-                  ))}
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "baseDetune", 0)
+                  )}
                 </tr>
                 <tr>
                   <td>cents</td>
-                  {presetInfo.map((s: RawSourceData) =>
-                    numberCell(s.instrument, 'cents', 0)
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "cents", 0)
                   )}
                 </tr>
                 <tr>
                   <td>delayVolEnv</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    numberCell(s.instrument, 'delayVolEnv', 0)
-                  ))}
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "delayVolEnv", 0)
+                  )}
                 </tr>
                 <tr>
                   <td>attackVolEnv</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    numberCell(s.instrument, 'attackVolEnv', 0)
-                  ))}
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "attackVolEnv", 0)
+                  )}
                 </tr>
                 <tr>
                   <td>holdVolEnv</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    numberCell(s.instrument, 'holdVolEnv', 0)
-                  ))}
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "holdVolEnv", 0)
+                  )}
                 </tr>
                 <tr>
                   <td>decayVolEnv</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    numberCell(s.instrument, 'delayVolEnv', 0)
-                  ))}
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "delayVolEnv", 0)
+                  )}
                 </tr>
                 <tr>
                   <td>sustainVolEnv</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    numberCell(s.instrument, 'sustainVolEnv', 0)
-                  ))}
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "sustainVolEnv", 0)
+                  )}
                 </tr>
                 <tr>
                   <td>releaseVolEnv</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    numberCell(s.instrument, 'releaseVolEnv', 0)
-                  ))}
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "releaseVolEnv", 0)
+                  )}
                 </tr>
                 <tr>
                   <td>delayEnd</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    numberCell(s.instrument, 'delayEnd', 3)
-                  ))}
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "delayEnd", 3)
+                  )}
                 </tr>
                 <tr>
                   <td>attackEnd</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    numberCell(s.instrument, 'attackEnd', 3)
-                    )
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "attackEnd", 3)
                   )}
                 </tr>
                 <tr>
                   <td>holdEnd</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    numberCell(s.instrument, 'holdEnd', 3)
-                    )
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "holdEnd", 3)
                   )}
                 </tr>
                 <tr>
                   <td>decayEnd</td>
-                  {presetInfo.map((s: RawSourceData) =>(
-                    numberCell(s.instrument, 'decayEnd', 3)
-                    )
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "decayEnd", 3)
                   )}
                 </tr>
                 <tr>
                   <td>noteEnd</td>
-                  {presetInfo.map((s: RawSourceData) =>(
-                    numberCell(s.instrument, 'noteEnd', 3)
-                    )
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "noteEnd", 3)
                   )}
                 </tr>
                 <tr>
                   <td>interval</td>
-                  {presetInfo.map((s: RawSourceData) =>(
-                    numberCell(s.instrument, 'interval', 3)
-                    )
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "interval", 3)
                   )}
                 </tr>
                 <tr>
                   <td>duration</td>
-                  {presetInfo.map((s: RawSourceData) =>(
-                    numberCell(s.instrument, 'duration', 3)
-                    )
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "duration", 3)
                   )}
                 </tr>
                 <tr>
                   <td>releaseEnd</td>
-                  {presetInfo.map((s: RawSourceData) =>(
-                    numberCell(s.instrument, 'releaseEnd', 3)
-                    )
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "releaseEnd", 3)
                   )}
                 </tr>
                 <tr>
                   <td>instrumentSampleRate</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    numberCell(s.instrument, 'sampleRate', 0)
-                    )
-                    )}
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "sampleRate", 0)
+                  )}
                 </tr>
                 <tr>
                   <td>instrumentSampleLength</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    lengthCell(s.instrument, 'sample', -1, 0)
-                    )
-                    )}
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    lengthCell(i,s.instrument, "sample", -1, 0)
+                  )}
                 </tr>
                 <tr>
                   <td>sampleLength</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    lengthCell(s.source, 'sample', 0, 0)
-                    )
-                    )}
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    lengthCell(i,s.source, "sample", 0, 0)
+                  )}
                 </tr>
                 <tr>
                   <td>playbackRate</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    numberCell(s.source, 'playbackRate', 4)
-                    )
-                    )}
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.source, "playbackRate", 4)
+                  )}
                 </tr>
                 <tr>
                   <td>volumeValue</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    numberCell(s.instrument, 'volumeValue', 1)
-                    )
-                    )}
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "volumeValue", 1)
+                  )}
                 </tr>
                 <tr>
                   <td>volumeGain</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    numberCell(s.instrument, 'volumeGain', 3)
-                    )
-                )}
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "volumeGain", 3)
+                  )}
                 </tr>
                 <tr>
                   <td>attenuationdB</td>
-                  {presetInfo.map((s: RawSourceData) =>(
-                    numberCell(s.instrument, 'initialAttenuation', 3)
-                    )
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "initialAttenuation", 3)
                   )}
                 </tr>
                 <tr>
                   <td>attenuationGain</td>
-                  {presetInfo.map((s: RawSourceData) =>(
-                    numberCell(s.instrument, 'attenuation', 3)
-                    )
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "attenuation", 3)
                   )}
                 </tr>
                 <tr>
                   <td>sustainGain</td>
-                  {presetInfo.map((s: RawSourceData) =>(
-                    numberCell(s.instrument, 'sustainGain', 3)
-                    )
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "sustainGain", 3)
                   )}
                 </tr>
                 <tr>
                   <td>noteEndGain</td>
-                  {presetInfo.map((s: RawSourceData) =>(
-                    numberCell(s.instrument, 'noteEndGain', 3)
-                    )
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "noteEndGain", 3)
                   )}
                 </tr>
                 <tr>
                   <td>signalLevel</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td style={{ textAlign: "right" }}>
+                  {presetInfo.map((s: RawSourceData,i) => (
+                    <td key={`signallevel-${i}`}style={{ textAlign: "right" }}>
                       {precisionString(signalLevel(s.source.sample[0]), 3)}
                     </td>
                   ))}
                 </tr>
                 <tr>
                   <td>totalTime</td>
-                  {presetInfo.map((s: RawSourceData) =>(
-                    numberCell(s.instrument, 'totalTime', 3)
-                    )
+                  {presetInfo.map((s: RawSourceData,i) =>
+                    numberCell(i,s.instrument, "totalTime", 3)
                   )}
                 </tr>
-                {/* <tr>
-                  <td>Envelope</td>
-                  {presetInfo.map((s: RawSourceData) =>
-                    s.instrument ? (
-                      <td>
-                        <svg
-                          height="100"
-                          width="300"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d={`M 0 100
-                      L${
-                        (s.instrument.delayEnd * 300) / s.instrument.totalTime
-                      } 100 
-                      L${
-                        (s.instrument.attackEnd * 300) / s.instrument.totalTime
-                      } 0 
-                      L${
-                        (s.instrument.holdEnd * 300) / s.instrument.totalTime
-                      } 0 
-                      L${Math.min(
-                        (s.instrument.decayEnd * 300) / s.instrument.totalTime,
-                        (s.instrument.noteEnd * 300) / s.instrument.totalTime
-                      )} ${100 - s.instrument.noteEndGain * 100}  
-                      L${
-                        (s.instrument.noteEnd * 300) / s.instrument.totalTime
-                      } ${100 - s.instrument.noteEndGain * 100} 
-                      L${
-                        (s.instrument.releaseEnd * 300) / s.instrument.totalTime
-                      } 100
-                      Z`}
-                            style={{ fill: "black" }}
-                          />
-                        </svg>
-                      </td>
-                    ) : (
-                      <td>{"_"}</td>
-                    )
-                  )}
-                </tr> */}
               </tbody>
             </table>
           ) : null}

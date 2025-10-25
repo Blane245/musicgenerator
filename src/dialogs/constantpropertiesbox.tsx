@@ -16,7 +16,7 @@ export default function ConstantPropertiesBox(props: ConstantBoxProps) {
   const { name, values, min, max, step, valueSuffix, handleChange } = props;
   return (
     <div className="constant">
-      <div className="valuetitle">{"Value"}</div>
+      <div className="valuetitle">&nbsp;{"Value"}</div>
       <br />
       <div className="value">
         <input

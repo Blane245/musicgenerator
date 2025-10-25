@@ -52,7 +52,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
   const [accumXLocation, setAccumXLocation] = useState<number>(0);
   const [positionXTick, setPositionXTick] = useState<number>(0);
   const [startTickPosition, setStartTickPosition] = useState<number>(0);
-  const [endTickPosition, setEndTickPosition] = useState<number>(0);
+  // const [endTickPosition, setEndTickPosition] = useState<number>(0);
   const [edgeSelected, setEdgeSelected] = useState<string>("");
 
   // set the visible generator icon boxes based on the generator times and timeLine
@@ -110,7 +110,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
         // console.log('Time snap mode. tick size is', positionTick);
       } else {
         // the number of displayed beats in the time line
-        const { tickPositionSize, startTickPosition, endTickPosition } =
+        const { tickPositionSize, startTickPosition } =
           measureScaling({
             startTime: timeLine.startTime,
             timeExtent: TimeLineScales[timeLine.currentZoomLevel].extent,
@@ -121,7 +121,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
 
         setPositionXTick(tickPositionSize);
         setStartTickPosition(startTickPosition);
-        setEndTickPosition(endTickPosition);
+        // setEndTickPosition(endTickPosition);
       }
     }
   }, [track.generators, timeLine, timeInterval]);
