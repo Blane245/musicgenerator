@@ -29,8 +29,20 @@ export default function SequencerPropertiesBox(
   // load the valid sequence from the db when this dislog starts up
   useEffect(() => {
     loadValidSequenceNames(attributeType, setValidSequences);
-    console.log(`load valid ${attributeType} sequences`);
+    // console.log(`load valid ${attributeType} sequences`);
   }, [attributeType]);
+
+  useEffect(() => {
+    async function load() {
+      const sequenceItems: SequenceItem[] = await loadSequenceItems(
+        attributeType,
+        values.name
+      );
+      values.items = sequenceItems;
+      setSequenceItems(sequenceItems);
+    }
+    if (sequenceItems.length == 0) load();
+  }, [values.name]);
 
   // when a new sequence name is selected, load its sequence items and
   // then signal the change

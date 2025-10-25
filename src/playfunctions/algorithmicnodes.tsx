@@ -95,7 +95,7 @@ export function getBufferSourceNodesFromAlgorithmic(
     } = gen.getCurrentValues(time - startTime, beats);
     const interval: number = (beat * 60.0) / speed;
     const duration = (interval * noteDuration) / 100;
-    console.log(`build connects for note, beat, speed, noteDuration, attack, volume, pan, interval, duration`, note,beat,speed,noteDuration,attack,volume,pan, interval, duration)
+    // console.log(`build connects for note, beat, speed, noteDuration, attack, volume, pan, interval, duration`, note,beat,speed,noteDuration,attack,volume,pan, interval, duration)
     if (note >= 0) {
       // Note a rest
       const connections: RawSourceData[] = getPresetNote(
@@ -114,7 +114,7 @@ export function getBufferSourceNodesFromAlgorithmic(
         nextSource
       );
       sourceData.push(...connections);
-      console.log('connections', connections);
+      // console.log('connections', connections);
       nextSource += connections.length;
     }
     time += interval;

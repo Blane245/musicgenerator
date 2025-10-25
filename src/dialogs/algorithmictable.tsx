@@ -1,9 +1,10 @@
 import SequenceValues, {
+  AlgorithmValues,
   AutoregressiveValues,
   ConstantValues,
   MarkovianValues,
   OscillatorValues,
-  WienerValues
+  WienerValues,
 } from "classes/algorithmvalues";
 import { Algorithmic } from "classes/generators";
 import { ChangeEvent } from "react";
@@ -15,6 +16,10 @@ import MarkovianPropertiesBox from "./markovianpropertiesbox";
 import OscillatorPropertiesBox from "./oscillatorpropertiesbox";
 import SequencerPropertiesBox from "./sequencerpropertiesbox";
 import WienerPropertiesBox from "./wienerpropertiesbox";
+import { calulateSequencerGeneratorStopTime } from "utils/calculatesequencergeneratorstoptime";
+import { SequenceItem } from "classes/sequenceitems";
+import { loadSequenceItems } from "utils/loadsequenceitems";
+import { validate } from "numeral";
 
 // provides the form fields and validators for the algorithmic generator
 
@@ -29,6 +34,59 @@ export default function AlgorithmicTable(
   props: AlgorithmicTableProps
 ): JSX.Element {
   const { formData, handleChange } = props;
+
+  // seems the best place to handle changes to the note sequencer and speed parameters
+  // order to calculate a new stop time.
+  async function handleNoteSpeedChange(
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) {
+    //if the current noteP algorithm is sequencer, any change to it
+    // or the speedP algorithm will result in a change to the stopTime
+
+    // only do this when the note is in sequencer mode
+    if (formData.noteP.algorithmType != ALGORITHMTYPE.Sequencer){
+      handleChange(e);
+      return;
+    }
+    // determine what changed
+    let items: SequenceItem[] = (formData.noteP as SequenceValues).values.items;
+    let speedP: AlgorithmValues = formData.speedP;
+    let doCalc: boolean = false;
+
+    // if the name of the sequence changes, then load the new items to be used
+    if (formData.noteP.algorithmType == ALGORITHMTYPE.Sequencer) {
+      if (e.target.name == "noteP.name") {
+        const sequenceName: string = e.target.value;
+        items = await loadSequenceItems(SEQUENCEATTRIBUTE.note, sequenceName);
+        doCalc = true;
+      }
+    }
+
+    // if any of the speed parameters changes
+    if (e.target.name.startsWith("speedP")) {
+      const nameParts: string[] = e.target.name.split('.');
+      formData.speedP.setAttribute(nameParts[1], e.target.value);
+      speedP = formData.speedP;
+      doCalc = true;
+    }
+    if (doCalc) {
+      const startTime: number = formData.startTime;
+      const stopTime = calulateSequencerGeneratorStopTime(
+        startTime,
+        items,
+        speedP
+      );
+
+      // pass the original change onto handleChange
+      handleChange(e);
+
+      // if the stop time has been recalcuated, send it to handleChange
+      if (stopTime != formData.stopTime)
+        handleChange({
+          target: { name: "stopTime", value: stopTime.toString() },
+        } as ChangeEvent<HTMLInputElement>);
+    }
+  }
   return (
     <>
       <div className="algorithmic-table">
@@ -52,7 +110,7 @@ export default function AlgorithmicTable(
           </label>
         </div>
         <div className="parameters">
-          {!!(formData.noteP.algorithmType == ALGORITHMTYPE.Oscillator)&& (
+          {!!(formData.noteP.algorithmType == ALGORITHMTYPE.Oscillator) && (
             <OscillatorPropertiesBox
               name="noteP"
               type={(formData.noteP as OscillatorValues).values.type}
@@ -88,10 +146,10 @@ export default function AlgorithmicTable(
                 step: 1,
                 suffix: "(degrees)",
               }}
-              handleChange={handleChange}
+              handleChange={handleNoteSpeedChange}
             />
           )}
-          {!!(formData.noteP.algorithmType == ALGORITHMTYPE.Markovian)&& (
+          {!!(formData.noteP.algorithmType == ALGORITHMTYPE.Markovian) && (
             <MarkovianPropertiesBox
               name="noteP"
               values={(formData.noteP as MarkovianValues).values}
@@ -102,48 +160,48 @@ export default function AlgorithmicTable(
               min={0}
               max={127}
               step={0.1}
-              handleChange={handleChange}
+              handleChange={handleNoteSpeedChange}
             />
           )}
-          {!!(formData.noteP.algorithmType == ALGORITHMTYPE.Wiener)&& (
+          {!!(formData.noteP.algorithmType == ALGORITHMTYPE.Wiener) && (
             <WienerPropertiesBox
               name="noteP"
               values={(formData.noteP as WienerValues).values}
-              handleChange={handleChange}
+              handleChange={handleNoteSpeedChange}
               min={0}
               max={127}
               step={0.001}
               valueSuffix={(value: number) => toNote(value)}
             />
           )}
-          {!!(formData.noteP.algorithmType == ALGORITHMTYPE.Constant)&& (
+          {!!(formData.noteP.algorithmType == ALGORITHMTYPE.Constant) && (
             <ConstantPropertiesBox
               name="noteP"
               values={(formData.noteP as ConstantValues).values}
-              handleChange={handleChange}
+              handleChange={handleNoteSpeedChange}
               min={0}
               max={127}
               step={0.001}
               valueSuffix={(value: number) => toNote(value)}
             />
           )}
-          {!!(formData.noteP.algorithmType == ALGORITHMTYPE.Autoregressive)&& (
+          {!!(formData.noteP.algorithmType == ALGORITHMTYPE.Autoregressive) && (
             <AutoregressivePropertiesBox
               name="noteP"
               values={(formData.noteP as AutoregressiveValues).values}
-              handleChange={handleChange}
+              handleChange={handleNoteSpeedChange}
               min={0}
               max={127}
               step={0.001}
               valueSuffix={(value: number) => toNote(value)}
             />
           )}
-          {!!(formData.noteP.algorithmType == ALGORITHMTYPE.Sequencer)&& (
+          {!!(formData.noteP.algorithmType == ALGORITHMTYPE.Sequencer) && (
             <SequencerPropertiesBox
               attributeType={SEQUENCEATTRIBUTE.note}
               name="noteP"
               values={(formData.noteP as SequenceValues).values}
-              handleChange={handleChange}
+              handleChange={handleNoteSpeedChange}
             />
           )}
         </div>
@@ -174,7 +232,7 @@ export default function AlgorithmicTable(
           </label>
         </div>
         <div className="parameters">
-          {!!(formData.attackP.algorithmType == ALGORITHMTYPE.Oscillator)&& (
+          {!!(formData.attackP.algorithmType == ALGORITHMTYPE.Oscillator) && (
             <OscillatorPropertiesBox
               name="attackP"
               type={(formData.attackP as OscillatorValues).values.type}
@@ -213,7 +271,7 @@ export default function AlgorithmicTable(
               handleChange={handleChange}
             />
           )}
-          {!!(formData.attackP.algorithmType == ALGORITHMTYPE.Markovian)&& (
+          {!!(formData.attackP.algorithmType == ALGORITHMTYPE.Markovian) && (
             <MarkovianPropertiesBox
               name="attackP"
               values={(formData.attackP as MarkovianValues).values}
@@ -227,7 +285,7 @@ export default function AlgorithmicTable(
               handleChange={handleChange}
             />
           )}
-          {!!(formData.attackP.algorithmType == ALGORITHMTYPE.Wiener)&& (
+          {!!(formData.attackP.algorithmType == ALGORITHMTYPE.Wiener) && (
             <WienerPropertiesBox
               name="attackP"
               values={(formData.attackP as WienerValues).values}
@@ -235,10 +293,10 @@ export default function AlgorithmicTable(
               min={0}
               max={127}
               step={1}
-              valueSuffix={()=>"(0-127)"}
+              valueSuffix={() => "(0-127)"}
             />
           )}
-          {!!(formData.attackP.algorithmType == ALGORITHMTYPE.Constant)&& (
+          {!!(formData.attackP.algorithmType == ALGORITHMTYPE.Constant) && (
             <ConstantPropertiesBox
               name="attackP"
               values={(formData.attackP as ConstantValues).values}
@@ -249,7 +307,9 @@ export default function AlgorithmicTable(
               valueSuffix={() => "(0-127)"}
             />
           )}
-          {!!(formData.attackP.algorithmType == ALGORITHMTYPE.Autoregressive)&& (
+          {!!(
+            formData.attackP.algorithmType == ALGORITHMTYPE.Autoregressive
+          ) && (
             <AutoregressivePropertiesBox
               name="attackP"
               values={(formData.attackP as AutoregressiveValues).values}
@@ -260,7 +320,7 @@ export default function AlgorithmicTable(
               valueSuffix={() => "(0-127)"}
             />
           )}
-          {!!(formData.attackP.algorithmType == ALGORITHMTYPE.Sequencer)&& (
+          {!!(formData.attackP.algorithmType == ALGORITHMTYPE.Sequencer) && (
             <SequencerPropertiesBox
               attributeType={SEQUENCEATTRIBUTE.attack}
               name="attackP"
@@ -330,7 +390,7 @@ export default function AlgorithmicTable(
                 step: 1,
                 suffix: "(degrees)",
               }}
-              handleChange={handleChange}
+              handleChange={handleNoteSpeedChange}
             />
           ) : null}
           {formData.speedP &&
@@ -344,7 +404,7 @@ export default function AlgorithmicTable(
               min={1}
               max={1000}
               step={1}
-              handleChange={handleChange}
+              handleChange={handleNoteSpeedChange}
             />
           ) : null}
           {formData.speedP &&
@@ -356,7 +416,7 @@ export default function AlgorithmicTable(
               max={1000}
               step={0.1}
               valueSuffix={() => ""}
-              handleChange={handleChange}
+              handleChange={handleNoteSpeedChange}
             />
           ) : null}
           {formData.speedP &&
@@ -364,7 +424,7 @@ export default function AlgorithmicTable(
             <ConstantPropertiesBox
               name="speedP"
               values={(formData.speedP as ConstantValues).values}
-              handleChange={handleChange}
+              handleChange={handleNoteSpeedChange}
               min={1}
               max={1000}
               step={1}
@@ -377,7 +437,7 @@ export default function AlgorithmicTable(
             <AutoregressivePropertiesBox
               name="speedP"
               values={(formData.speedP as AutoregressiveValues).values}
-              handleChange={handleChange}
+              handleChange={handleNoteSpeedChange}
               min={1}
               max={1000}
               step={0.001}
@@ -390,7 +450,7 @@ export default function AlgorithmicTable(
               attributeType={SEQUENCEATTRIBUTE.speed}
               name="speedP"
               values={(formData.speedP as SequenceValues).values}
-              handleChange={handleChange}
+              handleChange={handleNoteSpeedChange}
             />
           ) : null}
         </div>
@@ -435,14 +495,16 @@ export default function AlgorithmicTable(
               }}
               centerSuffix={() => "%"}
               frequency={{
-                value: (formData.durationP as OscillatorValues).values.frequency,
+                value: (formData.durationP as OscillatorValues).values
+                  .frequency,
                 lo: 0,
                 hi: 1000000,
                 step: 1,
                 suffix: "(mHz)",
               }}
               amplitude={{
-                value: (formData.durationP as OscillatorValues).values.amplitude,
+                value: (formData.durationP as OscillatorValues).values
+                  .amplitude,
                 lo: 0,
                 hi: 100,
                 step: 1,

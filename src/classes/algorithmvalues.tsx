@@ -861,7 +861,7 @@ export default class SequenceValues extends AlgorithmValues {
     const itemIndex: number = beatsToIndex(beat, this.values.items);
     const value: number =
       itemIndex < 0 ? 0 : this.values.items[itemIndex].value;
-    console.log("beat, itemindex, value", beat, itemIndex, value);
+    // console.log("beat, itemindex, value", beat, itemIndex, value);
     if (itemIndex < 0) return 0;
     return this.values.items[itemIndex].value;
   }

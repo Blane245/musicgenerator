@@ -1,16 +1,11 @@
 # things to do
-- tune up signal processing - envelope processing seems to generate harsh timbres in some cases, but duration processing is included, so that the staccato effect is there.
-- implement a algorithmic genertaor level flag to enable/disable the delay/attack part of the envelope
+- implement a algorithmic generator level flag to enable/disable the delay/attack part of the envelope
 maybe implement duration separately. maybe implement a envelope flag for each generator?
-- consolidate the sequencer with algorithms. If the note is a sequencer algorith, time increments with the note sequence. If not, time is used, and the measure and beats per measure are used to pick up any other attribute's values. Also, if any atribute is a sequencer and the note is not, this is an error and will be caught when the generator is being modified.
-- streamline tools in the algorithmic and sequencer dialogs
 - measure lengths are not constant in time when the speed attribute is changed. Now, I have a measure length in seconds in preferences and that is what is used to draw the timeline. This is incorrent and in fact I'm not sure that the conversion from time to measures makes since when genertors can all run at teir own speeds. The sequencers conversion is particularly bad. Maybe I should abandon measure display and data entry unless I can think of a solution. 
  # Bugs
- - stop time calculation not triggered on change to speed. I've partially implemeted but ran into some object casting problems in SequencerDialog useEffect designed to handle the spped change. The effect trigger everytin the formData.speedP object changs. I only want to change the stoptime when the speed value changes. I have written 'isEqual' methods for each of the algorithmvalue and sequencer objects but I can seem to cast object correctly for the holdSpeedP state...
 - when previewing in the generator dialog, changes made to the parameters are lost after the preview. Somehow the dialog has to be reactivated after a preview with these changes but not update the fileContents with the formdata. This is a result of the use of the .copy() method which signals a change similar to the stop time calucaltion mehoded above
 - preference editor throws error message about soundfont not in directory everytim it is started
 # Enhancements
-- implement sequencing
 - (don't think this is necessary as envelope processing has improved) disable delay of a preset. For presets that have multiple instruments, the shortest delay is removed and the other instrument delays are shortened.
 - implement granular synthesis to achieve vibrato, tremelo, glissandi, and other effects
 - consider using slow time line scrolling during preview

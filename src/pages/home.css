@@ -1010,7 +1010,7 @@ td {
   display: grid;
   width: 100%;
   height: 100%;
-  grid-template-rows: 40px 50px 1fr 180px;
+  grid-template-rows: 40px 45px 1fr 180px;
   grid-template-areas:
     "header"
     "timeline"

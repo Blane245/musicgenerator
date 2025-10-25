@@ -5,7 +5,13 @@ import { gaussianRandom } from "../utils/gaussianrandom";
 import { getGeneratorValues } from "sfcomponents/sfgenerators";
 import { samplePool } from "sfcomponents/samplepool";
 import { InstrumentZone, Preset, PresetZone } from "sfcomponents/types";
-import { attenuate, dBToGain, midiToFrequency, precision, tc2s } from "sfcomponents/util";
+import {
+  attenuate,
+  dBToGain,
+  midiToFrequency,
+  precision,
+  tc2s,
+} from "sfcomponents/util";
 import { linearInterpolate } from "utils/interpolation";
 import Track from "classes/track";
 import findGeneratorParent from "utils/findgeneratorparent";
@@ -118,7 +124,7 @@ export const getPresetNote = (
 
     // combining the instrument's sampleRate with the playbackRate
     let playbackRate = 1.0 * Math.pow(2, cents / 1200);
-    const sampleRate: number = Math.floor(instrumentSampleRate * playbackRate);
+    const sampleRate: number = instrumentSampleRate;
     // playbackRate = 1;
 
     // get the sample looping parameters and override looping if requested
@@ -133,22 +139,25 @@ export const getPresetNote = (
     }
 
     // get the end times for the amplitude envelope
-    const sampleTime: number =
-      instrumentSample.length * instrumentSampleRate;
     const delayEnd: number = precision(tc2s(delayVolEnv), 3);
     const attackEnd: number = delayEnd + precision(tc2s(attackVolEnv), 3);
     const holdEnd: number = attackEnd + precision(tc2s(holdVolEnv), 3);
     const decayEnd: number = holdEnd + precision(tc2s(decayVolEnv), 3);
     // this last two number may be less than the others
-    const noteEnd: number = loop ? duration : Math.min(sampleTime, duration);
+    // the end of the note may be cutoff if not looping
+    const noteEnd: number = loop
+      ? duration
+      : Math.min(instrumentSample.length * instrumentSampleRate, duration);
     // release is cutoff if this is a staccatto or the sample is not looping
     const releaseEnd: number =
-      loop && Math.abs(duration - interval) < 0.01
+      loop && Math.abs(duration - interval) < 0.0001
         ? noteEnd + precision(tc2s(releaseVolEnv), 3)
         : noteEnd;
     const totalTime: number = releaseEnd;
-    const track: Track| null = findGeneratorParent(gen.name, fileContents);
-    const volumeValue: number = track? generatorVolume + track.volume: generatorVolume
+    const track: Track | null = findGeneratorParent(gen.name, fileContents);
+    const volumeValue: number = track
+      ? generatorVolume + track.volume
+      : generatorVolume;
     const volumeGain: number = dBToGain(volumeValue);
     let attenuationdB: number = initialAttenuation / 10;
     // const attenuation: number = attenuate(1.0, attenuationdB);
@@ -161,7 +170,7 @@ export const getPresetNote = (
     if (noteEnd < delayEnd) {
       envelope.push({ t: noteEnd, g: 0 });
     } else {
-      envelope.push({t:delayEnd, g:0});
+      envelope.push({ t: delayEnd, g: 0 });
     }
 
     if (noteEnd >= delayEnd && noteEnd < attackEnd) {
@@ -192,7 +201,7 @@ export const getPresetNote = (
       );
       envelope.push({ t: noteEnd, g: noteEndGain });
       if (noteEnd != releaseEnd) envelope.push({ t: releaseEnd, g: 0 });
-    } else if(noteEnd >= decayEnd) {
+    } else if (noteEnd >= decayEnd) {
       envelope.push({ t: decayEnd, g: sustainGain });
       envelope.push({ t: noteEnd, g: sustainGain });
       noteEndGain = sustainGain;
@@ -202,22 +211,27 @@ export const getPresetNote = (
 
     let sample: Float32Array = buildSampleArray(
       instrumentSample,
-      instrumentSampleRate,
-      sampleRate, // includes instrumentSampleRate and playbackRate
+      sampleRate,
+      playbackRate,
       loop,
       loopStart,
       loopEnd,
-      delayEnd,
       totalTime,
-      pitchValue,
-      noiseFrequency,
-      noiseAmplitude,
       volumeGain,
-      attenuation,
-      gen.rn
+      attenuation
     );
 
-    sample = applyEnvelope(sample, sampleRate, envelope);
+    if (noiseFrequency != 0 && noiseAmplitude != 0)
+      applyNoise(
+        sample,
+        sampleRate,
+        midiToFrequency(pitchValue),
+        noiseFrequency,
+        noiseAmplitude,
+        gen.rn
+      );
+
+    applyEnvelope(sample, sampleRate, envelope);
 
     const aResult: RawSourceData = {
       gen,
@@ -226,7 +240,7 @@ export const getPresetNote = (
         note: pitchValue,
         sample: [sample],
         sampleRate,
-        playbackRate,
+        playbackRate: 1.0,
         startTime: time,
         duration: releaseEnd,
         stopTime: time + releaseEnd,
@@ -281,87 +295,63 @@ export const getPresetNote = (
 // construct the sample array from the original sample and the total time and sample rate
 // add zeroes for any delay. Add noise and adsjust the volume
 function buildSampleArray(
-  instrumentSample: Float32Array,
-  instrumentSampleRate: number,
+  inputSample: Float32Array,
   sampleRate: number,
+  playbackRate: number,
   looping: boolean,
   loopStart: number,
   loopEnd: number,
-  delayEnd: number,
   totalTime: number,
-  midi: number,
-  noiseFrequency: number,
-  noiseAmplitude: number,
   volume: number,
-  attenuation: number,
-  rn: RandomNumber
+  attenuation: number
 ): Float32Array {
   const sampleCount: number = Math.ceil(sampleRate * totalTime);
   const result: Float32Array = new Float32Array(sampleCount);
-  const deltaT: number = 1 / sampleRate;
+  const deltaT: number = 1 / sampleRate; // time spacing between samples
   let t: number = 0;
-  const instrumentSampleLength: number = instrumentSample.length;
-  const delayCount: number = Math.ceil(sampleRate * delayEnd);
-
-  // console.log('signal level', signalLevel);
-  // handle sampling where the instrument sample rate is to the final sample rate
-  const deltaIndex: number = instrumentSampleRate / sampleRate;
-  // console.log('delta index', deltaIndex);
   let currentIndex: number = 0;
-  // let iSample = delayCount;
-  const lastSample: number = looping ? loopEnd : instrumentSampleLength;
-  const centerFrequency: number = midiToFrequency(midi);
-  for (let iSample: number = delayCount; iSample < sampleCount; iSample++) {
-  // while (iSample < sampleCount) {
+  const lastSample: number = looping ? loopEnd : sampleCount;
+  for (let iSample: number = 0; iSample < sampleCount; iSample++) {
     let thisIndex: number = Math.round(currentIndex);
 
-    if (thisIndex < lastSample) {
-      // haven't reach the end
-      result[iSample] =
-        getSampleWithNoise(
-          instrumentSample[thisIndex],
-          t,
-          centerFrequency,
-          noiseFrequency,
-          noiseAmplitude,
-          rn
-        ) * volume * 
-        attenuation;
-      // iSample++;
-      t+=deltaT;
-    } else if (looping) {
-      // handle looping
-      if (thisIndex >= lastSample) {
-        currentIndex = loopStart;
-        thisIndex = loopStart;
-      }
-      result[iSample] =
-        getSampleWithNoise(
-          instrumentSample[thisIndex],
-          t,
-          centerFrequency,
-          noiseFrequency,
-          noiseAmplitude,
-          rn
-        ) * volume *
-        attenuation;
-      // iSample++;
-      t+=deltaT;
-    } else {
-      // signal is zero if not looping
-      result[iSample] = 0;
-      // iSample++;
-      t+=deltaT;
+    if (looping && thisIndex >= lastSample) {
+      currentIndex = loopStart;
+      thisIndex = loopStart;
     }
+    if (!looping && thisIndex > lastSample) {
+      result[iSample] = 0;
+    } else result[iSample] = inputSample[thisIndex] * volume * attenuation;
 
-    // increment to next index
-    currentIndex += deltaIndex;
-    thisIndex = Math.round(currentIndex);
+    // increment to next sample index and time
+    currentIndex += playbackRate;
+    t += deltaT;
   }
 
   return result; // an array of size sampleCount to accomodate the entire sound
 }
 
+function applyNoise(
+  sample: Float32Array,
+  sampleRate: number,
+  centerFrequency: number,
+  frequency: number,
+  amplitude: number,
+  rn: RandomNumber
+) {
+  const deltaT: number = 1 / sampleRate;
+  let t: number = 0;
+  for (let i = 0; i < sample.length; i++) {
+    sample[i] = getSampleWithNoise(
+      sample[i],
+      t,
+      centerFrequency,
+      frequency,
+      amplitude,
+      rn
+    );
+    t += deltaT;
+  }
+}
 function getSampleWithNoise(
   sample: number,
   t: number,
@@ -374,7 +364,8 @@ function getSampleWithNoise(
   if (noiseAmplitude != 0 && noiseFrequency != 0) {
     const noise: number = gaussianRandom(0, noiseFrequency, rn);
     thisSample =
-      (thisSample + noiseAmplitude * Math.sin(2 * Math.PI * (frequency + noise) * t)) /
+      (thisSample +
+        noiseAmplitude * Math.sin(2 * Math.PI * (frequency + noise) * t)) /
       (1 + noiseAmplitude);
   }
   return thisSample;
@@ -384,28 +375,30 @@ function getSampleWithNoise(
 function applyEnvelope(
   sample: Float32Array,
   sampleRate: number,
-  envelope: { t: number; g: number }[],
-): Float32Array {
-  const newSample: Float32Array = new Float32Array(sample.length);
+  envelope: { t: number; g: number }[]
+) {
+  // const newSample: Float32Array = new Float32Array(sample.length);
   const deltaT: number = 1 / sampleRate;
   let ti: number = 0;
   let iEnvelope: number = 0;
   const maxI: number = envelope.length - 1;
   const doEnvelope: boolean = false;
   let g: number = 1;
-  sample.forEach((s,i) => {
+  for (let i = 0; i < sample.length; i++) {
     if (ti >= envelope[iEnvelope].t && iEnvelope < maxI) iEnvelope++;
     if (doEnvelope) {
-    g = envelope[iEnvelope].g != envelope[iEnvelope - 1].g? linearInterpolate(
-      ti,
-      envelope[iEnvelope - 1].t,
-      envelope[iEnvelope].t,
-      envelope[iEnvelope - 1].g,
-      envelope[iEnvelope].g
-    ): envelope[iEnvelope].g;
+      g =
+        envelope[iEnvelope].g != envelope[iEnvelope - 1].g
+          ? linearInterpolate(
+              ti,
+              envelope[iEnvelope - 1].t,
+              envelope[iEnvelope].t,
+              envelope[iEnvelope - 1].g,
+              envelope[iEnvelope].g
+            )
+          : envelope[iEnvelope].g;
+    }
+    sample[i] = sample[i] * g;
+    ti += deltaT;
   }
-    newSample[i] = s * g;
-    ti+=deltaT;
-  });
-  return newSample;
 }
