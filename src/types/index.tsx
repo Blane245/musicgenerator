@@ -14,7 +14,6 @@ export type OscillatorBoxProperties = {
 }
 
 import { Buffer } from "buffer";
-import { SequenceItem } from "classes/sequenceitems";
 import Track from "classes/track";
 import SequenceValues, {
   AutoregressiveValues,
@@ -33,7 +32,6 @@ import {
   triangleModulator,
 } from "../modulators";
 import { SoundFont2 } from "../soundfont2";
-// import { AttackItem, DurationItem, NoteItem, PanItem, SequenceItem, SpeedItem, VolumeItem } from "classes/sequenceitems";
 
 export const SAMPLERATE: number = 44100;
 
@@ -68,16 +66,8 @@ export enum GENERATORTYPE {
   "Algorithmic" = "Algorithmic",
   "AudioFile" = "AudioFile",
 }
-// export type AlgorithmTypes =
-//   | AlgorithmType
-//   | ConstantType
-//   | AutoregressiveType
-//   | OscillatorType
-//   | MarkovianType
-//   | WienerType
-//   | SequenceType;
 
-export type Algorithm =
+export type AlgorithmType =
   | ConstantValues
   | AutoregressiveValues
   | OscillatorValues
@@ -95,8 +85,6 @@ export enum ALGORITHMTYPE {
   "Sequencer" = "Sequencer",
 }
 
-export type AlgorithmType = {
-}
 export type ConstantType = {
   value: number; // the constant value
 };
@@ -162,7 +150,7 @@ export const parameterNames: string[] = [
   'noteP', 'speedP','attackP','durationP','volumeP','panP'
 ]
 export const atttributeTitles: string[] = [
-  "Note (midi)",
+  "Note (pitch)",
   "Speed (BPM)",
   "Attack [0-127]",
   "Duration (0,100]",
@@ -187,7 +175,10 @@ export const Attributes: SEQUENCEATTRIBUTE[] = [
   SEQUENCEATTRIBUTE.volume,
   SEQUENCEATTRIBUTE.pan,
 ];
-
+export type SequenceItem = {
+  value: number;
+  beats: number;
+}
 export type SequenceType = {
   name: string;
   sequenceAttribute: SEQUENCEATTRIBUTE;
@@ -354,8 +345,9 @@ export type RawSourceData = {
   gen: GeneratorType;
   index: number;
   source: {
-    note: number; // midi number of the source
+    note: number; // pitch number of the source
     sample: Float32Array[]; // the sf instrument sample converted to float32 or noise as float32 - length is sampleRate * totalTime * playbackRate
+                            // or the audiofile samples
     sampleRate: number; // hz/sec (includes the playbackRate sampleRate (instrument sample) * playbackRate (as calcuated) )
     playbackRate: number; // sf playback rate or 1 for noise (will always be one)
     startTime: number; // start time of the source within the generator
@@ -379,6 +371,7 @@ export type RawSourceData = {
     fineTune: number;
     baseDetune: number;
     cents: number;
+    attackEnabled: boolean;
     delayVolEnv: number;
     attackVolEnv: number;
     holdVolEnv: number;
@@ -416,7 +409,9 @@ export type ActiveSource = {
 
 export type SignalLevelsType = {
   leftVolume: number;
+  leftMax: number;
   rightVolume: number;
+  rightMax: number;
   leftSpectrum: Uint8Array;
   rightSpectrum: Uint8Array;
 }

@@ -1,5 +1,5 @@
+import { dBToGain } from "sfcomponents/util";
 import { getAttributeValue } from "utils/xmlfunctions";
-import { v2g } from "../utils/v2g";
 
 // room volume
 export default class Volume {
@@ -18,13 +18,13 @@ export default class Volume {
 
     // create all of the effects
     this.effect = context.createGain();
-    this.effect.gain.value = v2g(this.volume);
+    this.effect.gain.value = dBToGain(this.volume);
   }
 
-  // volume scale is -5 to 5
+  // volume scale is -10 to 10
   setVolume(value: number): void {
     this.volume = value;
-    if (this.effect) this.effect.gain.value = v2g(value);
+    if (this.effect) this.effect.gain.value = dBToGain(value);
   }
 
   copy(): Volume {

@@ -12,8 +12,8 @@ export default function MidiFrequencyDialog(
   const [midiFrequency, setMidiFrequency] = useState<number>(0);
   const [frequencyMidi, setFrequencyMidi] = useState<number>(0);
   function handleMidiChange(e: ChangeEvent<HTMLInputElement>) {
-    const midi: number = parseFloat(e.currentTarget.value);
-    setMidiFrequency(midiToFrequency(midi));
+    const pitch: number = parseFloat(e.currentTarget.value);
+    setMidiFrequency(midiToFrequency(pitch));
   }
   function handleFrequencyChange(e: ChangeEvent<HTMLInputElement>) {
     const frequency: number = parseFloat(e.currentTarget.value);

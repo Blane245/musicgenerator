@@ -1082,6 +1082,10 @@ td {
         stroke: red;
         fill: none;
       }
+      .leftMax {
+        stroke: blue;
+        fill: none;
+      }
     }
     .rightSignal {
       background-color: white;
@@ -1100,6 +1104,10 @@ td {
         stroke: black;
       }
       .rightPoint {
+        stroke: red;
+        fill: none;
+      }
+      .rightMax {
         stroke: blue;
         fill: none;
       }

@@ -12,7 +12,7 @@ export function getBufferSourceNodesFromSilent(gen: Silent, sourceCount: number)
     gen,
     index: sourceCount,
     source: {
-      sample: [new Float32Array(0)],
+      sample: [new Float32Array(0), new Float32Array(0)],
       sampleRate: 0,
       note: 0,
       playbackRate: 0,

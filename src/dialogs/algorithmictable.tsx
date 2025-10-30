@@ -7,19 +7,18 @@ import SequenceValues, {
   WienerValues,
 } from "classes/algorithmvalues";
 import { Algorithmic } from "classes/generators";
+import { SequenceItem } from "types";
 import { ChangeEvent } from "react";
 import { toNote } from "sfcomponents/util";
 import { ALGORITHMTYPE, SEQUENCEATTRIBUTE } from "types";
+import { calulateSequencerGeneratorStopTime } from "utils/calculatesequencergeneratorstoptime";
+import { loadSequenceItems } from "utils/loadsequenceitems";
 import AutoregressivePropertiesBox from "./autoregresivepropertiesbox";
 import ConstantPropertiesBox from "./constantpropertiesbox";
 import MarkovianPropertiesBox from "./markovianpropertiesbox";
 import OscillatorPropertiesBox from "./oscillatorpropertiesbox";
 import SequencerPropertiesBox from "./sequencerpropertiesbox";
 import WienerPropertiesBox from "./wienerpropertiesbox";
-import { calulateSequencerGeneratorStopTime } from "utils/calculatesequencergeneratorstoptime";
-import { SequenceItem } from "classes/sequenceitems";
-import { loadSequenceItems } from "utils/loadsequenceitems";
-import { validate } from "numeral";
 
 // provides the form fields and validators for the algorithmic generator
 
@@ -48,25 +47,23 @@ export default function AlgorithmicTable(
       handleChange(e);
       return;
     }
-    // determine what changed
+    // determine what changed. First, load the current values from the form
     let items: SequenceItem[] = (formData.noteP as SequenceValues).values.items;
-    let speedP: AlgorithmValues = formData.speedP;
+    let speedP: AlgorithmValues = formData.speedP.copy();
     let doCalc: boolean = false;
 
     // if the name of the sequence changes, then load the new items to be used
-    if (formData.noteP.algorithmType == ALGORITHMTYPE.Sequencer) {
       if (e.target.name == "noteP.name") {
         const sequenceName: string = e.target.value;
         items = await loadSequenceItems(SEQUENCEATTRIBUTE.note, sequenceName);
         doCalc = true;
-      }
+        console.log(`AT: sequence name change. new items loaded for '${sequenceName}'`);
     }
 
-    // if any of the speed parameters changes
+    // if any of the speed parameters changes, 
     if (e.target.name.startsWith("speedP")) {
       const nameParts: string[] = e.target.name.split('.');
-      formData.speedP.setAttribute(nameParts[1], e.target.value);
-      speedP = formData.speedP;
+      speedP.setAttribute(nameParts[1], e.target.value);
       doCalc = true;
     }
     if (doCalc) {
@@ -77,20 +74,19 @@ export default function AlgorithmicTable(
         speedP
       );
 
-      // pass the original change onto handleChange
-      handleChange(e);
-
       // if the stop time has been recalcuated, send it to handleChange
       if (stopTime != formData.stopTime)
         handleChange({
           target: { name: "stopTime", value: stopTime.toString() },
         } as ChangeEvent<HTMLInputElement>);
     }
+      // pass the original change onto handleChange
+      handleChange(e);
   }
   return (
     <>
       <div className="algorithmic-table">
-        <div className="attribute">Note (midi)</div>
+        <div className="attribute">Note (pitch)</div>
         <div className="gentype">
           <label>
             Algorithm:&nbsp;
@@ -119,7 +115,7 @@ export default function AlgorithmicTable(
                 lo: 0,
                 hi: 127,
                 step: 0.001,
-                suffix: "(midi)",
+                suffix: "(pitch)",
               }}
               centerSuffix={(value: number) => {
                 if (value < 0) return "";
@@ -137,7 +133,7 @@ export default function AlgorithmicTable(
                 lo: 0,
                 hi: 127,
                 step: 0.001,
-                suffix: "(midi)",
+                suffix: "(pitch)",
               }}
               phase={{
                 value: (formData.noteP as OscillatorValues).values.phase,
@@ -146,7 +142,7 @@ export default function AlgorithmicTable(
                 step: 1,
                 suffix: "(degrees)",
               }}
-              handleChange={handleNoteSpeedChange}
+              handleChange={handleChange}
             />
           )}
           {!!(formData.noteP.algorithmType == ALGORITHMTYPE.Markovian) && (
@@ -160,14 +156,14 @@ export default function AlgorithmicTable(
               min={0}
               max={127}
               step={0.1}
-              handleChange={handleNoteSpeedChange}
+              handleChange={handleChange}
             />
           )}
           {!!(formData.noteP.algorithmType == ALGORITHMTYPE.Wiener) && (
             <WienerPropertiesBox
               name="noteP"
               values={(formData.noteP as WienerValues).values}
-              handleChange={handleNoteSpeedChange}
+              handleChange={handleChange}
               min={0}
               max={127}
               step={0.001}
@@ -178,7 +174,7 @@ export default function AlgorithmicTable(
             <ConstantPropertiesBox
               name="noteP"
               values={(formData.noteP as ConstantValues).values}
-              handleChange={handleNoteSpeedChange}
+              handleChange={handleChange}
               min={0}
               max={127}
               step={0.001}
@@ -189,7 +185,7 @@ export default function AlgorithmicTable(
             <AutoregressivePropertiesBox
               name="noteP"
               values={(formData.noteP as AutoregressiveValues).values}
-              handleChange={handleNoteSpeedChange}
+              handleChange={handleChange}
               min={0}
               max={127}
               step={0.001}
@@ -208,7 +204,7 @@ export default function AlgorithmicTable(
       </div>
       <hr />
       <div className="algorithmic-table">
-        <div className="attribute">Attack</div>
+        <div className="attribute">Attack (velocity)</div>
         <div className="gentype">
           <label>
             Algorithm:&nbsp;
@@ -652,9 +648,9 @@ export default function AlgorithmicTable(
                 return "";
               }}
               values={(formData.volumeP as MarkovianValues).values}
-              min={-50}
-              max={50}
-              step={0.1}
+              min={-10}
+              max={10}
+              step={1}
               handleChange={handleChange}
             />
           ) : null}
@@ -663,9 +659,9 @@ export default function AlgorithmicTable(
             <WienerPropertiesBox
               name="volumeP"
               values={(formData.volumeP as WienerValues).values}
-              min={-50}
-              max={50}
-              step={0.1}
+              min={-10}
+              max={10}
+              step={1}
               valueSuffix={() => ""}
               handleChange={handleChange}
             />
@@ -676,8 +672,8 @@ export default function AlgorithmicTable(
               name="volumeP"
               values={(formData.volumeP as ConstantValues).values}
               handleChange={handleChange}
-              min={-50}
-              max={50}
+              min={-10}
+              max={10}
               step={1}
               valueSuffix={() => "dB"}
             />
@@ -688,8 +684,8 @@ export default function AlgorithmicTable(
               name="volumeP"
               values={(formData.volumeP as AutoregressiveValues).values}
               handleChange={handleChange}
-              min={-50}
-              max={50}
+              min={-10}
+              max={10}
               step={1}
               valueSuffix={() => "dB"}
             />
@@ -707,7 +703,7 @@ export default function AlgorithmicTable(
       </div>
       <hr />
       <div className="algorithmic-table">
-        <div className="attribute">Pan</div>
+        <div className="attribute">{"Pan (left<->right)"}</div>
         <div className="gentype">
           <label>
             Algorithm:&nbsp;
@@ -720,7 +716,7 @@ export default function AlgorithmicTable(
             >
               {Object.values(ALGORITHMTYPE).map((p) => {
                 return (
-                  <option key={`volumePmodulator-${p}`} value={p}>
+                  <option key={`panPmodulator-${p}`} value={p}>
                     {p}
                   </option>
                 );

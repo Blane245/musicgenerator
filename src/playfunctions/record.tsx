@@ -258,7 +258,7 @@ export default function Record(params: RecordProps) {
           // render the batch and write it and its data to session storage
           for (let i = sourceStart; i <= sourceEnd; i++) {
             const s = sortedSources.current[i];
-            if (s.gen.type != GENERATORTYPE.Silent)
+            if (s.gen.type != GENERATORTYPE.Silent) 
               realizeSource(context, s, s.index, concentrator).source.start(
                 s.source.startTime,
                 0,

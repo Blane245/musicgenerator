@@ -1,5 +1,5 @@
 import { GENERATORTYPE, GeneratorType } from "types";
-import { getAttributeValue, getElementElement } from "utils/xmlfunctions";
+import { getAttributeValue, getAttributeValueWithDefault, getElementElement } from "utils/xmlfunctions";
 import { Algorithmic, AudioFile, Silent } from "./generators";
 export default class Track {
   name: string;
@@ -75,11 +75,7 @@ export default class Track {
       this.name = getAttributeValue(elem, "name", "string") as string;
       this.mute = getAttributeValue(elem, "mute", "string") == "true";
       this.solo = getAttributeValue(elem, "solo", "string") == "true";
-      try {
-        this.volume = getAttributeValue(elem,'volume','float') as number;
-      } catch (e) {
-        this.volume = 0;
-      }
+      this.volume = getAttributeValueWithDefault(elem,'volume','float', 0) as number;
 
       // load the generators for this track
       const generatorsElem: Element = getElementElement(elem, "generators");

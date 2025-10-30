@@ -208,12 +208,12 @@ export function TrackVolumeDialog(props: ToolsProps): JSX.Element {
       <div className="modal-body">
         <form onSubmit={(e)=>onSubmit(e)}>
           <label>
-            Volume Level:&nbsp;
+            Volume Level (dB):&nbsp;
             <input type="range" name="amount" 
             defaultValue={track.volume} 
-            min={-5}
+            min={-10}
             step={1}
-            max={5}
+            max={10}
             onChange={(e) => onAmountChange(e)}
             />
             <span>

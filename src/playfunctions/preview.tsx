@@ -14,7 +14,7 @@
 // Hue - the pan value [-1,1]
 // Saturation - the volume value [-10,10]
 // Lightness - if the source is playing
-// algorithmic sources are drawn as lines from their start to their stop time at their midi values
+// algorithmic sources are drawn as lines from their start to their stop time at their pitch values
 // Their are user controls:
 // Exit - quit the preview. This disappears when Start is pressed
 // Start/Stop - start the preview from the beginning. Stop is the same as exit
@@ -119,12 +119,16 @@ export default function Preview(params: PreviewProps): JSX.Element {
   const [activeSourcesCount, setActiveSourcesCount] = useState<number>(0);
   const [signalLevels, setSignalLevels] = useState<SignalLevelsType>({
     leftVolume: 0,
+    leftMax: 0,
     rightVolume: 0,
+    rightMax: 0,
     leftSpectrum: new Uint8Array(0),
     rightSpectrum: new Uint8Array(0),
   });
   const [leftVolumes, setLeftVolumes] = useState<string>("");
   const [rightVolumes, setRightVolumes] = useState<string>("");
+  const [leftMaxes, setLeftMaxes] = useState<string>("");
+  const [rightMaxes, setRightMaxes] = useState<string>("");
 
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
   const [concentrator, setConcentrator] = useState<GainNode | null>(null);
@@ -569,7 +573,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
       });
     } else {
       console.log(
-        "drawing sectioning case not determined",
+        "drawing section case not determined",
         "nInstrument",
         nInstrument,
         "nPercussion",
@@ -687,7 +691,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
       sectionHiElement.setAttribute("fill", "black");
       drawing.appendChild(sectionHiElement);
 
-      // draw a dotted line at each midi
+      // draw a dotted line at each pitch
       section.loValue = loScale;
       section.hiValue = hiScale;
       const hiMidi = hiScale;
@@ -798,7 +802,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
         timelineStart,
         timelineEnd
       );
-      // for instruments and percussion, draw lines at midi notes based on
+      // for instruments and percussion, draw lines at pitch notes based on
       // source start and stop times, volume, pan, and activity
       // TODO for now, just draw a line for an audiofile
       if (
@@ -928,13 +932,14 @@ export default function Preview(params: PreviewProps): JSX.Element {
               concentrator
             );
             if (activeSource.gen.type != GENERATORTYPE.Silent) {
+              activeSource.source.playbackRate.value = 1.0;
               activeSource.source.start(
                 s.source.startTime - offsetTime,
                 0,
                 s.source.duration
               );
             }
-            // console.log("source", s.index, "started at ", s.source.startTime, 'duration', s.source.duration);
+            console.log("source", s.index, "started at ", s.source.startTime, 'duration', s.source.duration);
             newActiveSources.push(activeSource);
             s.source.started = true;
             redrawSource(s);
@@ -973,7 +978,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
               activeSource.source.disconnect();
               activeSource.vol.disconnect();
               activeSource.panner.disconnect();
-              // console.log('source stopped at', audioContext.currentTime);
+              console.log('source stopped at', audioContext.currentTime);
             }
             thisSource.source.started = false;
             if (activeSource.gen.type != GENERATORTYPE.Silent)
@@ -993,12 +998,12 @@ export default function Preview(params: PreviewProps): JSX.Element {
       }
       // notify the display engine of the sources currently playing
       if (nStarted > 0 || nStopped > 0) {
-        // console.log(
-        //   "activesources has changed",
-        //   newActiveSources.length,
-        //   "pendingSources",
-        //   pendingSourceData.current.length
-        // );
+        console.log(
+          "activesources has changed",
+          newActiveSources.length,
+          "pendingSources",
+          pendingSourceData.current.length
+        );
         activeSources.current = newActiveSources;
         setActiveSourcesCount(newActiveSources.length);
       }
@@ -1114,31 +1119,35 @@ export default function Preview(params: PreviewProps): JSX.Element {
     if (!audioContext) return;
     if (playing.current && audioContext.currentTime <= playbackLength) {
       // get the current volume and spectrum levels
-      setSignalLevels(() => {
+      setSignalLevels(():SignalLevelsType => {
         if (!analyser)
           return {
             leftVolume: 0,
+            leftMax: 0,
             rightVolume: 0,
+            rightMax: 0,
             leftSpectrum: new Uint8Array(0),
             rightSpectrum: new Uint8Array(0),
           };
-        const { leftVolume, rightVolume, leftSpectrum, rightSpectrum } =
+        const { leftVolume, leftMax, rightVolume, rightMax, leftSpectrum, rightSpectrum } =
           analyser.getValues();
-        addVolumePoints(leftVolume, rightVolume);
-        return { leftVolume, rightVolume, leftSpectrum, rightSpectrum };
+        addVolumePoints(leftVolume, leftMax, rightVolume, rightMax);
+        return { leftVolume, leftMax, rightVolume, rightMax, leftSpectrum, rightSpectrum };
       });
       signalId = window.setTimeout(signalMonitor, 250);
     } else {
       signalId && clearTimeout(signalId);
       setSignalLevels({
         leftVolume: 0,
+        leftMax: 0,
         rightVolume: 0,
+        rightMax: 0,
         leftSpectrum: new Uint8Array(0),
         rightSpectrum: new Uint8Array(0),
       });
     }
-    const addVolumePoints = (left: number, right: number) => {
-      setLeftVolumes((prev) => {
+    const addVolumePoints = (leftAverage: number, leftMax: number, rightAverage: number, rightMax: number) => {
+      const addNewPoint = (value: number): string => {
         const x: number = linearInterpolate(
           audioContext.currentTime,
           0,
@@ -1147,30 +1156,29 @@ export default function Preview(params: PreviewProps): JSX.Element {
           signalWidth
         );
         const y: number = linearInterpolate(
-          Math.min(1, Math.max(0, left)),
+          Math.min(1, Math.max(0, value)),
           0,
           1,
           volumeHeight + volumeOffset,
           volumeOffset
         );
-        return `${prev} ${x.toString()},${y.toString()}`;
+        return `${x.toString()},${y.toString()}`;
+      }
+      setLeftVolumes((prev) => {
+        const newPoint: string = addNewPoint(leftAverage);
+        return prev + " " + newPoint;
       });
       setRightVolumes((prev) => {
-        const x: number = linearInterpolate(
-          audioContext.currentTime,
-          0,
-          playbackLength,
-          0,
-          signalWidth
-        );
-        const y: number = linearInterpolate(
-          Math.min(1, Math.max(0, right)),
-          0,
-          1,
-          volumeHeight + volumeOffset,
-          volumeOffset
-        );
-        return `${prev} ${x.toString()},${y.toString()}`;
+        const newPoint: string = addNewPoint(rightAverage);
+        return prev + " " + newPoint;
+      });
+      setLeftMaxes((prev) => {
+        const newPoint: string = addNewPoint(leftMax);
+        return prev + " " + newPoint;
+      });
+      setRightMaxes((prev) => {
+        const newPoint: string = addNewPoint(rightMax);
+        return prev + " " + newPoint;
       });
     };
   }
@@ -1185,7 +1193,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
   }
 
   function getOffsetFromMidi(
-    midi: number,
+    pitch: number,
     loMidi: number,
     hiMidi: number,
     height: number,
@@ -1194,7 +1202,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
     // adjust the range to add 10% to lo and 10% to high
     let lo: number = loMidi;
     let hi: number = hiMidi;
-    return height - ((midi - lo) * height) / (hi - lo) + offset;
+    return height - ((pitch - lo) * height) / (hi - lo) + offset;
   }
 
   // if the time progress past the end of the current timeline
@@ -1272,6 +1280,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
     const maxFrequency = frequencyForBinIndex(spectrum.length - 1);
     let d: string = `M 0 ${spectrumHeight * (1.0 - spectrum[0] / 255)} `;
     for (let i = 1; i < spectrum.length; i++) {
+      const value: number = isNaN(spectrum[i])? 0: spectrum[i]
       const frequency = frequencyForBinIndex(i);
       d += `L 
        ${linearInterpolate(
@@ -1281,7 +1290,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
          0,
          signalWidth
        )}
-       ${spectrumHeight * (1.0 - spectrum[i] / 255)} `;
+       ${spectrumHeight * (1.0 - value / 255)} `;
     }
     result.push(<path d={d} stroke="red" fill="none" />);
     return result;
@@ -1451,6 +1460,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
                 height={volumeHeight}
               />
               <polyline className="leftPoint" points={leftVolumes} />
+              <polyline className="leftMax" points={leftMaxes} />
             </svg>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -1477,6 +1487,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
                 height={volumeHeight}
               />
               <polyline className="rightPoint" points={rightVolumes} />
+              <polyline className="rightMax" points={rightMaxes} />
             </svg>
           </>
         ) : null}

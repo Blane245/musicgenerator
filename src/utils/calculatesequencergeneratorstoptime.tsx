@@ -2,8 +2,7 @@
 // as it changes during the sequence. Each note may be running at a different
 
 import { AlgorithmValues } from "classes/algorithmvalues";
-import { SequenceItem } from "classes/sequenceitems";
-import { Algorithm } from "types";
+import { SequenceItem } from "types";
 
 // Each note in a sequencer may be runniing at a different speed.
 // The total run time is the sum of these the beat size / speed over the note sequence

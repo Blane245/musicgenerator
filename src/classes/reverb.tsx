@@ -1,3 +1,4 @@
+import { dBToGain } from "sfcomponents/util";
 import { softDisconnect } from "utils/softdisconnect";
 import { getAttributeValue, getElementElement } from "utils/xmlfunctions";
 
@@ -87,11 +88,11 @@ export default class Reverb {
     this.#rwGain.connect(this.effectOut);
     this.#ceGain.connect(this.effectOut);
     this.#lwNode.delayTime.value = this.leftWall.delay;
-    this.#lwGain.gain.value = this.leftWall.gain;
+    this.#lwGain.gain.value = dBToGain(this.leftWall.gain);
     this.#rwNode.delayTime.value = this.leftWall.delay;
-    this.#rwGain.gain.value = this.leftWall.gain;
+    this.#rwGain.gain.value = dBToGain(this.leftWall.gain);
     this.#ceNode.delayTime.value = this.leftWall.delay;
-    this.#ceGain.gain.value = this.leftWall.gain;
+    this.#ceGain.gain.value = dBToGain(this.leftWall.gain);
   }
 
   // generate far field impulse reverb response
@@ -163,7 +164,7 @@ export default class Reverb {
         break;
       case "reverb.leftwall.gain":
         this.leftWall.gain = parseFloat(value);
-        if (this.#lwGain) this.#lwGain.gain.value = this.leftWall.delay;
+        if (this.#lwGain) this.#lwGain.gain.value = dBToGain(this.leftWall.delay);
         break;
       case "reverb.rightwall.delay":
         this.rightWall.delay = parseFloat(value) / 1000;
@@ -171,7 +172,7 @@ export default class Reverb {
         break;
       case "reverb.rightwall.gain":
         this.rightWall.gain = parseFloat(value);
-        if (this.#rwGain) this.#rwGain.gain.value = this.rightWall.delay;
+        if (this.#rwGain) this.#rwGain.gain.value = dBToGain(this.rightWall.gain);
         break;
       case "reverb.ceiling.delay":
         this.ceiling.delay = parseFloat(value) / 1000;
@@ -179,7 +180,7 @@ export default class Reverb {
         break;
       case "reverb.ceiling.gain":
         this.ceiling.gain = parseFloat(value);
-        if (this.#ceGain) this.#ceGain.gain.value = this.ceiling.delay;
+        if (this.#ceGain) this.#ceGain.gain.value = dBToGain(this.ceiling.gain);
         break;
       default:
         break;
@@ -216,15 +217,15 @@ export default class Reverb {
     }
     if (this.#lwNode && this.#lwGain) {
       this.#lwNode.delayTime.value = this.leftWall.delay;
-      this.#lwGain.gain.value = this.leftWall.gain;
+      this.#lwGain.gain.value = dBToGain(this.leftWall.gain);
     }
     if (this.#rwNode && this.#rwGain) {
       this.#rwNode.delayTime.value = this.rightWall.delay;
-      this.#rwGain.gain.value = this.rightWall.gain;
+      this.#rwGain.gain.value = dBToGain(this.rightWall.gain);
     }
     if (this.#ceNode && this.#ceGain) {
       this.#ceNode.delayTime.value = this.ceiling.delay;
-      this.#ceGain.gain.value = this.ceiling.gain;
+      this.#ceGain.gain.value = dBToGain(this.ceiling.gain);
     }
   }
 

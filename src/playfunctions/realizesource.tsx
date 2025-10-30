@@ -14,12 +14,16 @@ export function realizeSource(
   // build source
   const source: AudioBufferSourceNode = ctx.createBufferSource();
   // the source will either Silent, Algorithmic, or AudioFile
-  if (rawSourceData.gen.type == GENERATORTYPE.Algorithmic || rawSourceData.gen.type == GENERATORTYPE.Sequencer) {
+  if (rawSourceData.gen.type == GENERATORTYPE.Algorithmic) {
     source.buffer = ctx.createBuffer(
-      1,
+      rawSourceData.source.sample.length,
       rawSourceData.source.sample[0].length,
       rawSourceData.source.sampleRate
     );
+    rawSourceData.source.sample.forEach((channel: Float32Array, i)=> {
+      const cD: Float32Array | undefined = source.buffer?.getChannelData(i);
+      if (cD != undefined) cD.set(channel);
+    })
     const cD: Float32Array = source.buffer.getChannelData(0);
     cD.set(rawSourceData.source.sample[0]);
     // console.log('source sample for note ', rawSourceData.source.note, 'length', cD.length);
@@ -28,8 +32,8 @@ export function realizeSource(
   }
   if (rawSourceData.gen.type != GENERATORTYPE.Silent) {
     source.loop = false;
-    source.playbackRate.value = rawSourceData.source.playbackRate;
-    // source.playbackRate.value = 1;
+    source.playbackRate.value = 1.0;
+
     // build gain
     const vol: GainNode = ctx.createGain();
     vol.gain.value = 1.0;

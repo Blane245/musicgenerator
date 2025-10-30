@@ -1,9 +1,8 @@
+import CMGFile from "classes/cmgfile";
 import RandomNumber from "classes/randomnumber";
-import { Algorithmic } from "../classes/generators";
-import { RawSourceData } from "../types";
-import { gaussianRandom } from "../utils/gaussianrandom";
-import { getGeneratorValues } from "sfcomponents/sfgenerators";
+import Track from "classes/track";
 import { samplePool } from "sfcomponents/samplepool";
+import { getGeneratorValues } from "sfcomponents/sfgenerators";
 import { InstrumentZone, Preset, PresetZone } from "sfcomponents/types";
 import {
   attenuate,
@@ -12,35 +11,36 @@ import {
   precision,
   tc2s,
 } from "sfcomponents/util";
-import { linearInterpolate } from "utils/interpolation";
-import Track from "classes/track";
 import findGeneratorParent from "utils/findgeneratorparent";
-import CMGFile from "classes/cmgfile";
+import { linearInterpolate } from "utils/interpolation";
+import { Algorithmic } from "../classes/generators";
+import { RawSourceData } from "../types";
+import { gaussianRandom } from "../utils/gaussianrandom";
 
 // select mid range velocity Range
 const isActiveZone = (
   zone: PresetZone | InstrumentZone,
-  midi: number,
+  pitch: number,
   velocity: number
 ): boolean => {
   const keyRange: any = zone.keyRange;
   const velRange: any = zone.velRange;
   const keyCheck: boolean =
-    !keyRange || (keyRange.lo <= midi && midi <= keyRange.hi);
+    !keyRange || (keyRange.lo <= pitch && pitch <= keyRange.hi);
   const velCheck: boolean =
     !velRange || (velRange.lo <= velocity && velocity <= velRange.hi);
   return keyCheck && velCheck;
 };
 
-const getActiveZones = (preset: Preset, midi: number, velocity: number) => {
+const getActiveZones = (preset: Preset, pitch: number, velocity: number) => {
   const activeZones = preset.zones
     .filter(
       (pzone: PresetZone) =>
-        isActiveZone(pzone, midi, velocity) && pzone.instrument
+        isActiveZone(pzone, pitch, velocity) && pzone.instrument
     )
     .map((pzone: PresetZone) => {
       return pzone.instrument.zones
-        .filter((izone: InstrumentZone) => isActiveZone(izone, midi, velocity))
+        .filter((izone: InstrumentZone) => isActiveZone(izone, pitch, velocity))
         .map((izone: InstrumentZone) => {
           const mergedGenerators = getGeneratorValues(izone, pzone, preset);
           return {
@@ -58,12 +58,12 @@ export const getPresetNote = (
   gen: Algorithmic,
   preset: Preset,
   noiseFrequency: number,
-  noiseAmplitude: number,
+  noiseAmplitude: number, // in dB
   interval: number, // the note's time interval
   duration: number, // the note's duration with that interval
-  pitchValue: number, // midi
+  pitchValue: number, // pitch
   attack: number,
-  generatorVolume: number,
+  generatorVolume: number, // dB
   panValue: number,
   time: number,
   nextSource: number
@@ -136,18 +136,21 @@ export const getPresetNote = (
         startLoop + startloopAddrsOffset + startloopAddrsCoarseOffset * 32768;
       loopEnd = endLoop + endloopAddrsOffset + endloopAddrsCoarseOffset * 32768;
       loop = (gen as Algorithmic).isLooping;
-    }
+    } else if (sampleModes == 0) { loop = false }
 
-    // get the end times for the amplitude envelope
-    const delayEnd: number = precision(tc2s(delayVolEnv), 3);
-    const attackEnd: number = delayEnd + precision(tc2s(attackVolEnv), 3);
+    // get the end times for the amplitude envelope, handling the diabling of the delay/attack phase
+    const delayEnd: number = gen.attackEnabled
+      ? precision(tc2s(delayVolEnv), 3)
+      : 0;
+    const attackEnd: number =
+      delayEnd + (gen.attackEnabled ? precision(tc2s(attackVolEnv), 3) : 0);
     const holdEnd: number = attackEnd + precision(tc2s(holdVolEnv), 3);
     const decayEnd: number = holdEnd + precision(tc2s(decayVolEnv), 3);
     // this last two number may be less than the others
     // the end of the note may be cutoff if not looping
     const noteEnd: number = loop
       ? duration
-      : Math.min(instrumentSample.length * instrumentSampleRate, duration);
+      : Math.min(instrumentSample.length / instrumentSampleRate, duration);
     // release is cutoff if this is a staccatto or the sample is not looping
     const releaseEnd: number =
       loop && Math.abs(duration - interval) < 0.0001
@@ -162,7 +165,7 @@ export const getPresetNote = (
     let attenuationdB: number = initialAttenuation / 10;
     // const attenuation: number = attenuate(1.0, attenuationdB);
     const attenuation: number = 1;
-    const sustainGain: number = attenuate(volumeGain, sustainVolEnv / 100);
+    const sustainGain: number = attenuate(volumeGain * attenuation, sustainVolEnv / 10);
 
     // get the envelope curve
     let noteEndGain: number = 0;
@@ -178,17 +181,17 @@ export const getPresetNote = (
       envelope.push({ t: noteEnd, g: noteEndGain });
       if (noteEnd != releaseEnd) envelope.push({ t: releaseEnd, g: 0 });
     } else if (noteEnd >= attackEnd) {
-      envelope.push({ t: attackEnd, g: 1 });
-      noteEndGain = 1;
+      envelope.push({ t: attackEnd, g: volumeGain * attenuation });
+      noteEndGain = volumeGain * attenuation;
     }
 
     if (noteEnd >= attackEnd && noteEnd < holdEnd) {
-      envelope.push({ t: noteEnd, g: 1 });
+      envelope.push({ t: noteEnd, g: volumeGain * attenuation });
       if (noteEnd != releaseEnd) envelope.push({ t: releaseEnd, g: 0 });
-      noteEndGain = 1;
+      noteEndGain = volumeGain * attenuation;
     } else if (noteEnd >= holdEnd) {
-      envelope.push({ t: holdEnd, g: 1 });
-      noteEndGain = 1;
+      envelope.push({ t: holdEnd, g: volumeGain * attenuation });
+      noteEndGain = volumeGain * attenuation;
     }
 
     if (noteEnd >= holdEnd && noteEnd < decayEnd) {
@@ -221,26 +224,26 @@ export const getPresetNote = (
       attenuation
     );
 
-    if (noiseFrequency != 0 && noiseAmplitude != 0)
-      applyNoise(
+    if (noiseFrequency != 0)
+      sample = applyNoise(
         sample,
         sampleRate,
         midiToFrequency(pitchValue),
         noiseFrequency,
-        noiseAmplitude,
+        dBToGain(noiseAmplitude),
         gen.rn
       );
 
-    applyEnvelope(sample, sampleRate, envelope);
+    sample = applyEnvelope(sample, sampleRate, envelope);
 
     const aResult: RawSourceData = {
       gen,
       index: sourceCount,
       source: {
         note: pitchValue,
-        sample: [sample],
+        sample: [sample, sample],
         sampleRate,
-        playbackRate: 1.0,
+        playbackRate,
         startTime: time,
         duration: releaseEnd,
         stopTime: time + releaseEnd,
@@ -262,6 +265,7 @@ export const getPresetNote = (
         fineTune,
         baseDetune,
         cents,
+        attackEnabled: gen.attackEnabled,
         delayVolEnv,
         attackVolEnv,
         holdVolEnv,
@@ -302,7 +306,7 @@ function buildSampleArray(
   loopStart: number,
   loopEnd: number,
   totalTime: number,
-  volume: number,
+  volumeGain: number,
   attenuation: number
 ): Float32Array {
   const sampleCount: number = Math.ceil(sampleRate * totalTime);
@@ -318,9 +322,18 @@ function buildSampleArray(
       currentIndex = loopStart;
       thisIndex = loopStart;
     }
-    if (!looping && thisIndex > lastSample) {
-      result[iSample] = 0;
-    } else result[iSample] = inputSample[thisIndex] * volume * attenuation;
+    if (!looping && thisIndex >= lastSample - 1) {
+      result[iSample] = inputSample[lastSample-1];
+    } else { 
+      if (isFinite(inputSample[thisIndex])) {
+      result[iSample] = inputSample[thisIndex];
+      } else result[iSample] = 0;
+      // result[iSample] = linearInterpolate ( 
+      // currentIndex, thisIndex, thisIndex + 1, 
+      // inputSample[thisIndex], inputSample[thisIndex + 1]
+      // );
+    }
+    result[iSample] = result[iSample] * volumeGain * attenuation;
 
     // increment to next sample index and time
     currentIndex += playbackRate;
@@ -337,11 +350,12 @@ function applyNoise(
   frequency: number,
   amplitude: number,
   rn: RandomNumber
-) {
+): Float32Array {
+  const newSample: Float32Array = new Float32Array(sample.length);
   const deltaT: number = 1 / sampleRate;
   let t: number = 0;
   for (let i = 0; i < sample.length; i++) {
-    sample[i] = getSampleWithNoise(
+    newSample[i] = getSampleWithNoise(
       sample[i],
       t,
       centerFrequency,
@@ -351,6 +365,7 @@ function applyNoise(
     );
     t += deltaT;
   }
+  return newSample;
 }
 function getSampleWithNoise(
   sample: number,
@@ -376,29 +391,27 @@ function applyEnvelope(
   sample: Float32Array,
   sampleRate: number,
   envelope: { t: number; g: number }[]
-) {
-  // const newSample: Float32Array = new Float32Array(sample.length);
+): Float32Array {
+  const newSample: Float32Array = new Float32Array(sample.length);
   const deltaT: number = 1 / sampleRate;
   let ti: number = 0;
   let iEnvelope: number = 0;
   const maxI: number = envelope.length - 1;
-  const doEnvelope: boolean = false;
   let g: number = 1;
   for (let i = 0; i < sample.length; i++) {
     if (ti >= envelope[iEnvelope].t && iEnvelope < maxI) iEnvelope++;
-    if (doEnvelope) {
-      g =
-        envelope[iEnvelope].g != envelope[iEnvelope - 1].g
-          ? linearInterpolate(
-              ti,
-              envelope[iEnvelope - 1].t,
-              envelope[iEnvelope].t,
-              envelope[iEnvelope - 1].g,
-              envelope[iEnvelope].g
-            )
-          : envelope[iEnvelope].g;
-    }
-    sample[i] = sample[i] * g;
+    g =
+      envelope[iEnvelope].g != envelope[iEnvelope - 1].g
+        ? linearInterpolate(
+            ti,
+            envelope[iEnvelope - 1].t,
+            envelope[iEnvelope].t,
+            envelope[iEnvelope - 1].g,
+            envelope[iEnvelope].g
+          )
+        : envelope[iEnvelope].g;
+    newSample[i] = sample[i] * g;
     ti += deltaT;
   }
+  return newSample;
 }

@@ -1,16 +1,14 @@
+import { dBToGain } from "sfcomponents/util";
 import { getAttributeValue } from "../utils/xmlfunctions";
-import { v2g } from "../utils/v2g";
 
 // The collection of all room nodes
 // the base class captures the things in common
 export class RoomNode {
-  name: string;
   enabled: boolean;
   context: AudioContext | OfflineAudioContext | undefined;
   in: GainNode | undefined;
   out: GainNode | undefined;
-  constructor(name: string) {
-    this.name = name;
+  constructor() {
     this.enabled = true;
     this.context = undefined;
     this.in = undefined;
@@ -40,36 +38,31 @@ export class RoomNode {
     }
   }
 
-  copy(): Volume {
-    const n = new Volume(this.name);
+  copy(): RoomNode {
+    const n = new RoomNode();
     n.enabled = this.enabled;
     n.context = this.context;
     n.in = this.in;
     n.out = this.out;
     return n;
   }
-  setAttribute(name: string, value: string): void {
-    switch (name) {
-      case "name":
-        this.name = value;
-        break;
-      default:
-        break;
-    }
+  setAttribute(_name: string, _value: string): void {
+    return;
   }
 
   getXML(_elem: Element, _version: string): void {}
 
   appendXML(_doc: XMLDocument, _elem: Element): void {}
 }
+
 // room volume
 export default class Volume extends RoomNode {
   volume: number;
   #effect: GainNode | undefined;
 
-  constructor(name: string) {
-    super(name);
-    this.volume = 5;
+  constructor() {
+    super();
+    this.volume = 0;
   }
 
   // set the context and build the equalizer
@@ -78,7 +71,7 @@ export default class Volume extends RoomNode {
 
     // create the volume effect and connect it if enabled
     this.#effect = context.createGain();
-    this.#effect.gain.value = v2g(this.volume);
+    this.#effect.gain.value = dBToGain(this.volume);
     if (this.in && this.out) {
       if (this.enabled) this.in.connect(this.#effect).connect(this.out);
       else this.in.connect(this.out);
@@ -98,7 +91,7 @@ export default class Volume extends RoomNode {
   }
 
   override copy(): Volume {
-    const n = new Volume(this.name);
+    const n = new Volume();
     n.enabled = this.enabled;
     n.context = this.context;
     n.volume = this.volume;
@@ -112,27 +105,11 @@ export default class Volume extends RoomNode {
     super.setAttribute(name, value);
     switch (name) {
       case "volume":
-        this.volume = v2g(parseFloat(value));
+        this.volume = dBToGain(parseFloat(value));
         if (this.#effect) this.#effect.gain.value = this.volume;
-        break;
-      case "enable":
-        this.enabled = !this.enabled;
-        this.#flipEnabled();
         break;
       default:
         break;
-    }
-  }
-
-  #flipEnabled() {
-    if (this.in && this.out && this.#effect) {
-      if (this.enabled) {
-        this.in.connect(this.#effect).connect(this.out);
-      } else {
-        this.in.disconnect(this.#effect);
-        this.#effect.disconnect(this.out);
-        this.in.connect(this.out);
-      }
     }
   }
 
@@ -166,8 +143,8 @@ export class Reverb extends RoomNode {
   #rightWall: { delay: number; gain: number };
   #ceiling: { delay: number; gain: number };
 
-  constructor(name: string) {
-    super(name);
+  constructor() {
+    super();
     this.duration = 1.0;
     this.decay = 2.0;
     this.leftWall = { delay: 0, gain: 0 };
@@ -191,9 +168,9 @@ export class Reverb extends RoomNode {
     } else {
       this.#duration = 0;
       this.#decay = 0;
-      this.#leftWall = { delay: 0, gain: 0.001 };
-      this.#rightWall = { delay: 0, gain: 0.001 };
-      this.#ceiling = { delay: 0, gain: 0.001 };
+      this.#leftWall = { delay: 0, gain: 0 };
+      this.#rightWall = { delay: 0, gain: 0 };
+      this.#ceiling = { delay: 0, gain: 0 };
     }
     if (this.#effect) {
       const impulse: AudioBuffer | undefined = this.#impulseResponse(
@@ -222,15 +199,15 @@ export class Reverb extends RoomNode {
     // set up the left, right walls, and ceiling reflections
     if (this.context) {
       const leftGainNode: GainNode = this.context.createGain();
-      leftGainNode.gain.value = this.#leftWall.gain;
+      leftGainNode.gain.value = dBToGain(this.#leftWall.gain);
       const leftWallNode: DelayNode = this.context.createDelay(1);
       leftWallNode.delayTime.value = this.#leftWall.delay / 1000;
       const rightGainNode: GainNode = this.context.createGain();
-      rightGainNode.gain.value = this.#rightWall.gain;
+      rightGainNode.gain.value = dBToGain(this.#rightWall.gain);
       const rightWallNode: DelayNode = this.context.createDelay(1);
       rightWallNode.delayTime.value = this.#rightWall.delay / 1000;
       const ceilingGainNode: GainNode = this.context.createGain();
-      ceilingGainNode.gain.value = this.#ceiling.gain;
+      ceilingGainNode.gain.value = dBToGain(this.#ceiling.gain);
       const ceilingNode: DelayNode = this.context.createDelay(1);
       ceilingNode.delayTime.value = this.#ceiling.delay / 1000;
 

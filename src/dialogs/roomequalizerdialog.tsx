@@ -41,7 +41,7 @@ export default function RoomEqualizerDialog() {
           <input type="checkbox" onChange={(()=> handleEnable())} checked={equalizerData.enabled}/>
           <span>&nbsp;Enable&nbsp;</span>
         </label>
-        Equalizer (+- 15dB) Freqs (Hz) Reset: &nbsp;
+        Equalizer (+- 10dB) Freqs (Hz) Reset: &nbsp;
         <button className="button" onClick={reset}>
           &nbsp;
         </button>
@@ -60,8 +60,8 @@ export default function RoomEqualizerDialog() {
               <span className="param">{g}</span>
               <input
                 type="range"
-                min="-15"
-                max="15"
+                min="-10"
+                max="10"
                 step="1"
                 value={g}
                 onChange={(event) => handleGain(event, i)}

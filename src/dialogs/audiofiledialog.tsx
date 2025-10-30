@@ -103,12 +103,12 @@ export default function AudioFileDialog(
           name="volume"
           type="number"
           onChange={handleChange}
-          min={-20}
-          max={20}
+          min={-10}
+          max={10}
           step={1}
           value={formData.volume}
         />
-        <span> (-20 to +20dB) </span>
+        <span> (-10 to +10dB) </span>
       </label>
       &nbsp;
       <input

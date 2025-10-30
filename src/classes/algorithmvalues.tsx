@@ -3,7 +3,6 @@
 
 import {
   ALGORITHMTYPE,
-  AlgorithmType,
   AutoregressiveType,
   ConstantType,
   EPS,
@@ -14,13 +13,13 @@ import {
   OscillatorType,
   SEQUENCEATTRIBUTE,
   SequenceType,
-  WienerType,
+  WienerType
 } from "types";
 import { gaussianRandom } from "utils/gaussianrandom";
 import { loadSequenceItems } from "utils/loadsequenceitems";
 import { getAttributeValue } from "utils/xmlfunctions";
 import RandomNumber from "./randomnumber";
-import { SequenceItem } from "./sequenceitems";
+import { SequenceItem } from "types";
 // import { AttackItem, DurationItem, NoteItem, PanItem, SequenceItem, SpeedItem, VolumeItem } from "./sequenceitems";
 
 // the parent class for this collection holds the properties that are required
@@ -28,7 +27,7 @@ import { SequenceItem } from "./sequenceitems";
 // The user interface should take care to check that these have been specified
 export class AlgorithmValues {
   algorithmType: ALGORITHMTYPE = ALGORITHMTYPE.None; // the type of algorithm
-  values: AlgorithmType = { value: 0 };
+  values: {} = {};
 
   constructor(algorithmType: ALGORITHMTYPE) {
     this.algorithmType = algorithmType;
@@ -40,6 +39,10 @@ export class AlgorithmValues {
 
   isEqual(newAlgorithm: AlgorithmValues): boolean {
     return newAlgorithm instanceof AlgorithmValues;
+  }
+
+  setAttribute(_name: string, _value: string): boolean {
+    return false;
   }
 
   getCurrentValue(_time: number, _beat?: number): number {
@@ -82,7 +85,7 @@ export class ConstantValues extends AlgorithmValues {
     return newAlgorithm.values.value == newAlgorithm.values.value;
   }
 
-  setAttribute(name: string, value: string): boolean {
+  override setAttribute(name: string, value: string): boolean {
     if (name == "value") {
       this.values.value = parseFloat(value);
       return true;
@@ -157,7 +160,7 @@ export class OscillatorValues extends AlgorithmValues {
     );
   }
 
-  setAttribute(name: string, value: string): boolean {
+  override setAttribute(name: string, value: string): boolean {
     switch (name) {
       case "algorithmType":
         this.algorithmType = ALGORITHMTYPE[value];
@@ -276,7 +279,7 @@ export class AutoregressiveValues extends AlgorithmValues {
     );
   }
 
-  setAttribute(name: string, value: string): boolean {
+  override setAttribute(name: string, value: string): boolean {
     switch (name) {
       case "algorithmType":
         this.algorithmType = ALGORITHMTYPE[value];
@@ -426,7 +429,7 @@ export class MarkovianValues extends AlgorithmValues {
     );
   }
 
-  setAttribute(name: string, value: string): boolean {
+  override setAttribute(name: string, value: string): boolean {
     switch (name) {
       case "algorithmType":
         this.algorithmType = ALGORITHMTYPE[value];
@@ -693,7 +696,7 @@ export class WienerValues extends AlgorithmValues {
     );
   }
 
-  setAttribute(name: string, value: string): boolean {
+  override setAttribute(name: string, value: string): boolean {
     switch (name) {
       case "algorithmType":
         this.algorithmType = ALGORITHMTYPE[value];
@@ -797,7 +800,7 @@ const beatsToIndex = (beat: number, items: SequenceItem[]) => {
   let beatSum: number = 0;
   let itemIndex: number = -1;
   for (let i = 0; i < items.length && itemIndex < 0; i++) {
-    if (items[i].beats + beatSum > beat) itemIndex = i;
+    if (items[i].beats + beatSum >= beat - 1) itemIndex = i;
     beatSum += items[i].beats;
     if (i == items.length - 1) itemIndex = items.length - 1;
   }
@@ -822,6 +825,7 @@ export default class SequenceValues extends AlgorithmValues {
     n.values.items = [...this.values.items];
     return n;
   }
+
   override isEqual(newAlgorithm: SequenceValues): boolean {
     if (!(newAlgorithm instanceof SequenceValues)) return false;
     return (
@@ -831,7 +835,7 @@ export default class SequenceValues extends AlgorithmValues {
     );
   }
 
-  async setAttribute(name: string, value: string): Promise<boolean> {
+  override setAttribute(name: string, value: string): boolean {
     switch (name) {
       case "algorithmType":
         this.algorithmType = ALGORITHMTYPE[value];
@@ -842,18 +846,20 @@ export default class SequenceValues extends AlgorithmValues {
 
       case "name":
         this.values.name = value;
-        this.values.items = await loadSequenceItems(
-          this.values.sequenceAttribute,
-          this.values.name
-        );
+        const loadItems = async (
+          sequenceAttribute: SEQUENCEATTRIBUTE,
+          name: string
+        ) => {
+          this.values.items = await loadSequenceItems(sequenceAttribute, name);
+        };
+        loadItems(this.values.sequenceAttribute, this.values.name);
         return true;
 
-      // only used by the note sequence
       case "transpose":
         this.values.transpose = parseFloat(value);
         return true;
       default:
-        return false;
+        return true;
     }
   }
 
@@ -863,7 +869,7 @@ export default class SequenceValues extends AlgorithmValues {
       itemIndex < 0 ? 0 : this.values.items[itemIndex].value;
     // console.log("beat, itemindex, value", beat, itemIndex, value);
     if (itemIndex < 0) return 0;
-    return this.values.items[itemIndex].value;
+    return value;
   }
   override async appendXML(_doc: XMLDocument, elem: Element): Promise<Element> {
     try {

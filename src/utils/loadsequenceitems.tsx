@@ -1,4 +1,4 @@
-import { SequenceItem } from "classes/sequenceitems";
+import { SequenceItem } from "types";
 import { DBRESPONSETYPE, DbResponseType, DbSequenceType, SEQUENCEATTRIBUTE } from "types";
 import { fetchDBData } from "./fetchdata";
 

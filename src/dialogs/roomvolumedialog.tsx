@@ -27,8 +27,8 @@ export default function RoomVolumeDialog() {
           <span className="param">{volumeData.volume.toString()}</span>
           <input
             type="range"
-            min={-5}
-            max={5}
+            min={-10}
+            max={10}
             step={1}
             value={volumeData.volume}
             onChange={(event) => handleChange(event)}

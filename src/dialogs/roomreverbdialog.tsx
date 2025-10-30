@@ -89,14 +89,14 @@ export default function RoomReverbDialog() {
           />
         </div>
         <div className="slider">
-          <span className="param">LW gain (___)</span>
+          <span className="param">LW gain (dB)</span>
           <span className="param">{reverbData.leftWall.gain}</span>
           <input
             name="reverb.leftwall.gain"
             type="range"
-            min="0"
-            max="1"
-            step=".1"
+            min="-10"
+            max="10"
+            step="1"
             value={reverbData.leftWall.gain}
             onChange={(event) => handleChange(event)}
           />
@@ -115,14 +115,14 @@ export default function RoomReverbDialog() {
           />
         </div>
         <div className="slider">
-          <span className="param">RW gain (___)</span>
+          <span className="param">RW gain (dB)</span>
           <span className="param">{reverbData.rightWall.gain}</span>
           <input
             name="reverb.rightwall.gain"
             type="range"
-            min="0"
-            max="1"
-            step=".1"
+            min="-10"
+            max="10"
+            step="1"
             value={reverbData.rightWall.gain}
             onChange={(event) => handleChange(event)}
           />
@@ -146,9 +146,9 @@ export default function RoomReverbDialog() {
           <input
             name="reverb.ceiling.gain"
             type="range"
-            min="0"
-            max="1"
-            step=".1"
+            min="-10"
+            max="10"
+            step="1"
             value={reverbData.ceiling.gain}
             onChange={(event) => handleChange(event)}
           />

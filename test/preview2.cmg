@@ -5,7 +5,7 @@
     <tracks>
         <track name="T1" mute="false" solo="false">
             <generators>
-                <generator name="G1" startTime="0" stopTime="5" type="SFRG" solo="false" mute="false" position="0" seed="G0" presetName="000:001:Piano 2" repeat="Sample" midi="60">
+                <generator name="G1" startTime="0" stopTime="5" type="SFRG" solo="false" mute="false" position="0" seed="G0" presetName="000:001:Piano 2" repeat="Sample" pitch="60">
                     <instreverb name="G1:reverb" enabled="false" attack="0.001" decay="0.1" release="1" reverbTime="1"/>
                     <midiT startValue="60">
                         <range lo="0" hi="127" step="1"/>

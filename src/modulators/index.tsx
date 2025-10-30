@@ -1,4 +1,4 @@
-// waveform generators for midi, volume, and pan attributes
+// waveform generators for pitch, volume, and pan attributes
 export function descendingSawtoothModulator(
   time: number,
   baseValue: number,

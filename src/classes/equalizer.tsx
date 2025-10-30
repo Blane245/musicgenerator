@@ -1,5 +1,6 @@
 import { softDisconnect } from "utils/softdisconnect";
 import { getAttributeValue, getElementElement } from "../utils/xmlfunctions";
+import { dBToGain } from "sfcomponents/util";
 
 // This is a 10 octave equalizer made of lowshelf, peaking, and highshelf filter
 const BANDS: number[] = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 15000];
@@ -41,27 +42,26 @@ export default class Equalizer {
     let lastFilter: BiquadFilterNode | null = null;
     for (let i = 0; i < BANDCOUNT; i++) {
       const newFilter = context.createBiquadFilter();
-      this.#filters.push(context.createBiquadFilter());
+      newFilter.gain.value = dBToGain(this.gains[i] - 15);
+      newFilter.frequency.value = BANDS[i];
       if (i == 0) {
         newFilter.type = "highshelf";
-        newFilter.gain.value = 1.0;
-        newFilter.frequency.value = BANDS[i];
-        this.#filterHead.connect(newFilter);
+        const ratio: number = BANDS[1] / BANDS[0];
+        newFilter.Q.value = Math.sqrt(ratio);
+        if (this.enabled) this.#filterHead.connect(newFilter);
       } else if (i == BANDCOUNT - 1) {
         newFilter.type = "lowshelf";
-        newFilter.gain.value = 1.0;
-        newFilter.frequency.value = BANDS[i];
         if (lastFilter) lastFilter.connect(newFilter);
+        newFilter.Q.value = Math.sqrt(2);
         newFilter.connect(this.effectOut);
       } else {
         newFilter.type = "peaking";
-        newFilter.frequency.value = BANDS[i];
-        newFilter.gain.value = this.gains[i];
-        const ratio: number = i < BANDCOUNT - 1 ? BANDS[i + 1] / BANDS[i] : 2;
+        const ratio: number = BANDS[i + 1] / BANDS[i];
         newFilter.Q.value = Math.sqrt(ratio);
         if (lastFilter) lastFilter.connect(newFilter);
       }
       lastFilter = newFilter;
+      this.#filters.push(newFilter);
     }
   }
 

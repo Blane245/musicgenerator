@@ -4,7 +4,7 @@
     <tracks>
         <track name="T0" mute="false" solo="false">
             <generators>
-                <generator name="G0" type="SFPG" startTime="0" stopTime="5" mute="false" position="0" presetName="000:026:SMW Jazz Guitar" isLooping="false" midi="45" duration="0.3" FMType="SINE" FMAmplitude="1" FMFrequency="8" FMPhase="2" VMType="SQUARE" VMCenter="51" VMFrequency="4" VMAmplitude="3" VMPhase="5" PMType="TRIANGLE" PMCenter="0.1" PMFrequency="6" PMAmplitude="0.2" PMPhase="7"/>
+                <generator name="G0" type="SFPG" startTime="0" stopTime="5" mute="false" position="0" presetName="000:026:SMW Jazz Guitar" isLooping="false" pitch="45" duration="0.3" FMType="SINE" FMAmplitude="1" FMFrequency="8" FMPhase="2" VMType="SQUARE" VMCenter="51" VMFrequency="4" VMAmplitude="3" VMPhase="5" PMType="TRIANGLE" PMCenter="0.1" PMFrequency="6" PMAmplitude="0.2" PMPhase="7"/>
             </generators>
         </track>
     </tracks>

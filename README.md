@@ -30,7 +30,7 @@ The data structure is hierarchial:
 All sound generators have a time when its effect starts and stops. A generator maybe be muted. 
 There are three types of sound generators in this version:
 1. A silent (**Silent**) generator, which produces silence. It most commonly used at the beginning or end of a composition to offset its start or end time.
-2. An algorithmic (**Algorithmic**) generator, which uses selectable algorithms for the assigned voice's parameter. Each of the voice's parameters may be assigned a different algorithm. The algorithm assigned to the note parameter uses midi numbers to select presets from a soundfont file. Each generator obtains its audio sample from a preset in a soundfont file. Each generator may use a different soundfont and preset.
+2. An algorithmic (**Algorithmic**) generator, which uses selectable algorithms for the assigned voice's parameter. Each of the voice's parameters may be assigned a different algorithm. The algorithm assigned to the note parameter uses pitch numbers to select presets from a soundfont file. Each generator obtains its audio sample from a preset in a soundfont file. Each generator may use a different soundfont and preset.
     * The Constant algorithm sets the parameter at a constant value. 
     * The Oscillator algorithm creates a sequence of values using sine, sawtooth, square, descending triangular, or ascending triangular wave forms. Each waveform have a center, frequency, amplitude, and phase. The waveforms are sampled at each beat and a audio source is generated that starts at that time and ends at the next beat. If the amplitude of the oscillator is zero, the value generated is the center value, equivalent to the Constant algorithm.
     * The Autoregressive algorithm creates a sequence of values for the assigned voice's parameter. This is a statistical first-order autoregressive sequence of values given by the equation $$V_{i}=\alpha V_{i-1}+\sigma_i$$
@@ -53,7 +53,7 @@ where
     where $x_t$ is the new attribute value at time $t$, $x_0$ is initial attribute value, $\alpha$ is the trend, $\sigma$ is the dispersion variable, and $\N$ is the Gaussian noise function which generates a random variable with mean $0$ and standard deviation $\sigma\sqrt{t}$.
     * A Euclidean Rhythm algorithm is used to determine a beat pattern and the notes selectable with in octave. 
         * The number of beats in the measure is specified along with the number of 'on beats'. An 'on beat' is one that will produce a sound from the current preset, while an 'off beat' is silent no matter what preset is currently active. If the measure length and on beat count are the same, all notes will be played.
-        * The number of notes in an octave determines which presets are available for use by the note parameter. When the note algorithm selects a midi value, the value is modified to the closest selectable midi number. If the number of notes in the octave is set to 12, all notes in teh octave will be heard.
+        * The number of notes in an octave determines which presets are available for use by the note parameter. When the note algorithm selects a pitch value, the value is modified to the closest selectable pitch number. If the number of notes in the octave is set to 12, all notes in teh octave will be heard.
     * A Gaussian noise algorithm is used to apply noise the note's sample. The noise amplitude determines the gain of the noise signal. The frequency of the noise is given in hertz. If the amplitude or frequency is 0, no noise is applied. The Gaussian noise equation is  $$\varphi(z)=\frac {1}{2\pi\sigma}e^{-\frac {(z-\mu)^2}{2\sigma^2}}$$
     where $\sigma$ is the noise frequency and $\mu$ is zero. The equation for the signal after adding the noise is $$s(t)=\frac {sin(2\pi(s_i(t)+\varphi(\rho))t)}{(1+\sigma)}$$ where $s(t)$ is the signal with applied noise, $\rho$ is a Gaussian-distributed random number, $t$ is the time and $s(t)_i$ is the instrument's signal at time $t$.
 
@@ -154,7 +154,7 @@ Preview provides a display overlay that contains three areas:
     - volume monitor sliders for the left and right channels
     - the timeline 
 - Body
-    - one to three sections that display the sources for any instruments, percussions, or audio files that are being previewed. The vertical location of the sources within their sections depend on their midi number. The color of the source lines varying depending on their volume (saturation), pan (hue), and current playing status (lightness).
+    - one to three sections that display the sources for any instruments, percussions, or audio files that are being previewed. The vertical location of the sources within their sections depend on their pitch number. The color of the source lines varying depending on their volume (saturation), pan (hue), and current playing status (lightness).
 - Footer 
     - a table enumerating the number of total and active generators and sources. A source is 'active' when it is currently being played.
     - the spectra of the left and right channels
@@ -199,7 +199,7 @@ Before recording can begin, the user is asked to identify the file that is to co
 
 I have found the gain envelope feature of the Web API audio framework to be problematic. Envelope control does not have a high level of accuracy and does not always perform as desired. I have developed the following scheme to construct the audio samples for each source using information from the SoundFont preset and instruments and the user controls for note, attack, speed, duration, and volume.
 
-The gain envelope, in general has five different regions that may be present. The values for these are derived from the preset and instrument of the selected midi and velocity. There may be one or more instruments associated with the midi/velocity combination. Each of them will have its own gain envelope. The gain regions, and their SoundFont definition parameters are:
+The gain envelope, in general has five different regions that may be present. The values for these are derived from the preset and instrument of the selected pitch and velocity. There may be one or more instruments associated with the pitch/velocity combination. Each of them will have its own gain envelope. The gain regions, and their SoundFont definition parameters are:
 1. **Delay** - the amount of time (*delayEnd*) that the signal is zero before the instrument's sound begins (*delayVolEnv*).
 2. **Attack** - the amount of time (*attackEnd*) that the signal gain changes from 0 to 1 (*attackVolEnv*).
 3. **Hold** - the amount of time (*holdEnd*) that the signal gain remains at 1 (*holdVolEnv*).
@@ -301,7 +301,7 @@ Special thanks to various people and non-people
 
 - Bugs
     - watch that pause/resume working properly and that the preview always starts at the proper place.
-    - the general user flute preset cannot play faster than 180 BPM. It generates silence above that speed. must be something about the attack, sustain, or release. At 200BPM, the repeat rate is 300ms. The flute at midi 72, and velocity of 63, the attack, sustain, and release are 4.8ms, 952ms, and 250ms respectively. There is no delay, hold, or decay.
+    - the general user flute preset cannot play faster than 180 BPM. It generates silence above that speed. must be something about the attack, sustain, or release. At 200BPM, the repeat rate is 300ms. The flute at pitch 72, and velocity of 63, the attack, sustain, and release are 4.8ms, 952ms, and 250ms respectively. There is no delay, hold, or decay.
 
 # Development and Installation
 

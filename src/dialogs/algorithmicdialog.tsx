@@ -61,6 +61,14 @@ export default function AlgorithmicDialog(
           })}
         </select>
       </label>
+      <button
+        type="button"
+        disabled={!formData.preset}
+        style={{ fontSize: "12px", paddingLeft: "5px" }}
+        onClick={() => setViewPreset(true)}
+      >
+        {"View Preset"}
+      </button>
       <label style={{ paddingLeft: "5px" }}>
         &nbsp;Looping?:&nbsp;
         <input
@@ -70,14 +78,15 @@ export default function AlgorithmicDialog(
           onChange={handleChange}
         />
       </label>
-      <button
-        type="button"
-        disabled={!formData.preset}
-        style={{ fontSize: "12px", paddingLeft: "5px" }}
-        onClick={() => setViewPreset(true)}
-      >
-        {"View Preset"}
-      </button>
+      <label style={{ paddingLeft: "5px" }}>
+        &nbsp;Attack Enabled?:&nbsp;
+        <input
+          name="attackEnabled"
+          type="checkbox"
+          checked={formData.attackEnabled ? true : false}
+          onChange={handleChange}
+        />
+      </label>
       <div style={{ height: "21px", width: "100px" }}>
         <ToolsMenu />
       </div>
@@ -171,12 +180,12 @@ export default function AlgorithmicDialog(
           name="noiseAmplitude"
           type="number"
           min={0}
-          max={1000}
+          max={1}
           step={0.001}
           onChange={handleChange}
           value={formData.noiseAmplitude}
         />
-        <span> (gain) </span>
+        <span> (+-10 dB) </span>
       </label>
       <label>
         &nbsp;Reverb Duration:&nbsp;

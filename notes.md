@@ -1,21 +1,26 @@
+# things to know    
+for match conditional statements in HTML
+/\{g\.(.*)\?.*\n(.*).*\n.*\).*/
 # things to do
-- implement a algorithmic generator level flag to enable/disable the delay/attack part of the envelope
-maybe implement duration separately. maybe implement a envelope flag for each generator?
 - measure lengths are not constant in time when the speed attribute is changed. Now, I have a measure length in seconds in preferences and that is what is used to draw the timeline. This is incorrent and in fact I'm not sure that the conversion from time to measures makes since when genertors can all run at teir own speeds. The sequencers conversion is particularly bad. Maybe I should abandon measure display and data entry unless I can think of a solution. 
  # Bugs
+ - DB problem. The connection to mysql times out after 24 hours of inactivity. I haven't found out how to restart it yet.
 - when previewing in the generator dialog, changes made to the parameters are lost after the preview. Somehow the dialog has to be reactivated after a preview with these changes but not update the fileContents with the formdata. This is a result of the use of the .copy() method which signals a change similar to the stop time calucaltion mehoded above
 - preference editor throws error message about soundfont not in directory everytim it is started
+- the tools menu in the generator dialog is in the worn place and overlays the view present dialog when present
 # Enhancements
 - (don't think this is necessary as envelope processing has improved) disable delay of a preset. For presets that have multiple instruments, the shortest delay is removed and the other instrument delays are shortened.
 - implement granular synthesis to achieve vibrato, tremelo, glissandi, and other effects
 - consider using slow time line scrolling during preview
 - pipe dream - add a video producer that takes hints from the composer and does drawings based on the sounds and those hints. See the ChatGPT chat on scribble for some guidance on structural hints from the composer. 
-- implement soundfont modulators - this is very complicated and adds alot of controls to each instrument. It would give me better control over attenuation, which is currently problematic. 
+- implement soundfont modulators - (probably not) this is very complicated and adds alot of controls to each instrument. It would give me better control over attenuation, which is currently problematic. 
 - give user control of spectrum parameters and implement sonogram
 
 # 5.0.0 Updates
 
 - implemented sequencing
+- added a generator flag to bypass the attack envelope as an option. The attack part of the envelope seems to be overemphasizing signals that already have a lot of attack in them.
+- rebalanced the various gains used throughout the application
 
 A plan for a generator type that is based on note sequences.
 - sequencing is like any other algorithm: it returns an attibute value at a certian time

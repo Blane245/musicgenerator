@@ -2,7 +2,7 @@ import { Preset } from "sfcomponents/types";
 import { presetNameToPreset } from "sfcomponents/util";
 import { SoundFont2 } from "soundfont2";
 import {
-  Algorithm,
+  AlgorithmType,
   ALGORITHMTYPE,
   GENERATORTYPE,
   parameterNames,
@@ -15,14 +15,13 @@ import {
   compressAndConvertToString,
   convertFromJsonAndDecompress,
 } from "utils/gzip";
-import { getAttributeValue, getElementElement } from "utils/xmlfunctions";
+import { getAttributeValue, getAttributeValueWithDefault, getElementElement } from "utils/xmlfunctions";
 import SequenceValues, {
-  AlgorithmValues,
   AutoregressiveValues,
   ConstantValues,
   MarkovianValues,
   OscillatorValues,
-  WienerValues,
+  WienerValues
 } from "./algorithmvalues";
 import CMGFile from "./cmgfile";
 import RandomNumber from "./randomnumber";
@@ -53,7 +52,6 @@ export class Silent {
     newCMG.stopTime = this.stopTime;
     newCMG.mute = this.mute;
     newCMG.position = this.position;
-
     return newCMG;
   }
 
@@ -101,12 +99,12 @@ export class Silent {
   static async getXML(elem: Element, _version: string): Promise<Silent> {
     try {
       const g: Silent = new Silent(0);
-      g.name = getAttributeValue(elem, "name", "string") as string;
-      g.startTime = getAttributeValue(elem, "startTime", "float") as number;
-      g.stopTime = getAttributeValue(elem, "stopTime", "float") as number;
-      g.type = getAttributeValue(elem, "type", "string") as GENERATORTYPE;
-      g.mute = getAttributeValue(elem, "mute", "string") == "true";
-      g.position = getAttributeValue(elem, "position", "float") as number;
+      g.name = getAttributeValueWithDefault(elem, "name", "string", "") as string;
+      g.startTime = getAttributeValueWithDefault(elem, "startTime", "float", 0) as number;
+      g.stopTime = getAttributeValueWithDefault(elem, "stopTime", "float", 0) as number;
+      g.type = getAttributeValueWithDefault(elem, "type", "string", GENERATORTYPE.Silent) as GENERATORTYPE;
+      g.mute = getAttributeValueWithDefault(elem, "mute", "string", false) == "true";
+      g.position = getAttributeValueWithDefault(elem, "position", "float", 0) as number;
       return Promise.resolve(g);
     } catch (e) {
       return Promise.reject(e);
@@ -165,12 +163,13 @@ export class Algorithmic extends Silent {
   context: AudioContext | OfflineAudioContext | undefined;
   reverbDuration: number;
   reverbDecay: number;
-  noteP: Algorithm;
-  attackP: Algorithm;
-  speedP: Algorithm;
-  durationP: Algorithm;
-  volumeP: Algorithm;
-  panP: Algorithm;
+  attackEnabled: boolean;
+  noteP: AlgorithmType;
+  attackP: AlgorithmType;
+  speedP: AlgorithmType;
+  durationP: AlgorithmType;
+  volumeP: AlgorithmType;
+  panP: AlgorithmType;
 
   constructor(nextGenerator: number) {
     super(nextGenerator);
@@ -195,6 +194,7 @@ export class Algorithmic extends Silent {
     this.context = undefined;
     this.reverbDecay = 0;
     this.reverbDuration = 0;
+    this.attackEnabled = true;
     this.noteP = new ConstantValues(60);
     this.attackP = new ConstantValues(63);
     this.speedP = new ConstantValues(60);
@@ -252,6 +252,7 @@ export class Algorithmic extends Silent {
     n.stopTime = this.stopTime;
     n.mute = this.mute;
     n.position = this.position;
+    n.attackEnabled = this.attackEnabled;
     n.soundFontFile = this.soundFontFile;
     n.soundFont = this.soundFont;
     n.presetName = this.presetName;
@@ -272,6 +273,7 @@ export class Algorithmic extends Silent {
     n.context = this.context;
     n.reverbDuration = this.reverbDuration;
     n.reverbDecay = this.reverbDecay;
+    n.attackEnabled = this.attackEnabled;
     n.noteP = this.noteP.copy();
     n.attackP = this.attackP.copy();
     n.speedP = this.speedP.copy();
@@ -341,6 +343,9 @@ export class Algorithmic extends Silent {
         return true;
       case "reverbDecay":
         this.reverbDecay = parseFloat(value);
+        return true;
+      case "attackEnabled":
+        this.attackEnabled = value == 'true';
         return true;
       case "noteP.algorithmType":
         switch (value) {
@@ -544,7 +549,7 @@ export class Algorithmic extends Silent {
     let duration: number = 0;
     let volume: number = 0;
     let pan: number = 0;
-    note = (this.noteP as AlgorithmValues).getCurrentValue(time);
+    note = this.noteP.getCurrentValue(time, beats);
     note = Math.min(127, Math.max(0, note));
 
     attack = this.attackP.getCurrentValue(time, beats);
@@ -568,14 +573,14 @@ export class Algorithmic extends Silent {
   }
 
   #getSelectedNote(note: number): number {
-    // get the midi integer and fraction parts
-    let midi = Math.round(note);
-    const midiFraction = note - midi;
+    // get the pitch integer and fraction parts
+    let pitch = Math.round(note);
+    const midiFraction = note - pitch;
 
     // get the octave and offset values
-    const midiOffset = midi % 12;
+    const midiOffset = pitch % 12;
     const normalizedMidiOffset = (midiOffset + 12) % 12;
-    const octave: number = Math.trunc(midi / 12);
+    const octave: number = Math.trunc(pitch / 12);
 
     // if the note is on, return the original note
     if (this.#activeNotes[normalizedMidiOffset] == 1) {
@@ -591,13 +596,13 @@ export class Algorithmic extends Silent {
     while (last < 12 && this.#activeNotes[last] == 0) last++;
     const firstOffset: number = normalizedMidiOffset - first;
     const lastOffset: number = last - normalizedMidiOffset;
-    // set the midi to the closest active note, favoring the lower one
-    if (firstOffset <= lastOffset) midi = octave * 12 + first;
-    else midi = octave * 12 + last;
+    // set the pitch to the closest active note, favoring the lower one
+    if (firstOffset <= lastOffset) pitch = octave * 12 + first;
+    else pitch = octave * 12 + last;
 
     // return with the fractional note applied
-    // console.log("returning modified note", midi + midiFraction);
-    return midi + midiFraction;
+    // console.log("returning modified note", pitch + midiFraction);
+    return pitch + midiFraction;
   }
 
   override async appendXML(doc: XMLDocument, elem: Element): Promise<Element> {
@@ -626,6 +631,7 @@ export class Algorithmic extends Silent {
       returnElem.setAttribute("noiseFrequency", this.noiseFrequency.toString());
       returnElem.setAttribute("reverbDuration", this.reverbDuration.toString());
       returnElem.setAttribute("reverbDecay", this.reverbDecay.toString());
+      returnElem.setAttribute("attackEnabled", this.attackEnabled.toString());
 
       const notePElem: Element = doc.createElement("noteP");
       const attackPElem: Element = doc.createElement("attackP");
@@ -740,9 +746,15 @@ export class Algorithmic extends Silent {
         g.reverbDecay = 0;
         g.reverbDuration = 0;
       }
+        g.attackEnabled = getAttributeValueWithDefault(
+          elem,
+          "attackEnabled",
+          "boolean",
+          true
+        ) as boolean;
       [g.noteP, g.speedP, g.attackP, g.durationP, g.volumeP, g.panP].forEach(
-        async (algorithm: Algorithm, i) => {
-          let newAlgorithm: Algorithm = algorithm.copy();
+        async (algorithm: AlgorithmType, i) => {
+          let newAlgorithm: AlgorithmType = algorithm.copy();
           const pElem: Element = getElementElement(elem, parameterNames[i]);
           const pType: ALGORITHMTYPE = getAttributeValue(
             pElem,
@@ -755,21 +767,21 @@ export class Algorithmic extends Silent {
                 pElem,
                 version
               );
-              const result: Algorithm[] = await Promise.all([promise]);
+              const result: AlgorithmType[] = await Promise.all([promise]);
               newAlgorithm = result[0];
               break;
             }
             case ALGORITHMTYPE.Autoregressive: {
               const promise: Promise<AutoregressiveValues> =
                 AutoregressiveValues.getXML(pElem, version);
-              const result: Algorithm[] = await Promise.all([promise]);
+              const result: AlgorithmType[] = await Promise.all([promise]);
               newAlgorithm = result[0];
               break;
             }
             case ALGORITHMTYPE.Oscillator: {
               const promise: Promise<OscillatorValues> =
                 OscillatorValues.getXML(pElem, version);
-              const result: Algorithm[] = await Promise.all([promise]);
+              const result: AlgorithmType[] = await Promise.all([promise]);
               newAlgorithm = result[0];
               break;
             }
@@ -778,7 +790,7 @@ export class Algorithmic extends Silent {
                 pElem,
                 version
               );
-              const result: Algorithm[] = await Promise.all([promise]);
+              const result: AlgorithmType[] = await Promise.all([promise]);
               newAlgorithm = result[0];
               break;
             }
@@ -787,7 +799,7 @@ export class Algorithmic extends Silent {
                 pElem,
                 version
               );
-              const result: Algorithm[] = await Promise.all([promise]);
+              const result: AlgorithmType[] = await Promise.all([promise]);
               newAlgorithm = result[0];
               break;
             }
@@ -796,7 +808,7 @@ export class Algorithmic extends Silent {
                 pElem,
                 version
               );
-              const result: Algorithm[] = await Promise.all([promise]);
+              const result: AlgorithmType[] = await Promise.all([promise]);
               newAlgorithm = result[0];
               break;
             }
@@ -833,12 +845,12 @@ export class Algorithmic extends Silent {
     if (values.offsetSequence >= values.measureLength)
       result.push("Beat shift amount must be less than the measurement length");
     if (values.noiseSeed == "") result.push("Seed must not be blank");
-    const noteP: Algorithm = values.noteP;
-    const speedP: Algorithm = values.speedP;
-    const attackP: Algorithm = values.attackP;
-    const durationP: Algorithm = values.durationP;
-    const volumeP: Algorithm = values.volumeP;
-    const panP: Algorithm = values.panP;
+    const noteP: AlgorithmType = values.noteP;
+    const speedP: AlgorithmType = values.speedP;
+    const attackP: AlgorithmType = values.attackP;
+    const durationP: AlgorithmType = values.durationP;
+    const volumeP: AlgorithmType = values.volumeP;
+    const panP: AlgorithmType = values.panP;
     // if the noteP is not of sequencer type, then none of the other
     // atrtibutes can be of sequencer type
     if (noteP.algorithmType != ALGORITHMTYPE.Sequencer) {
@@ -854,7 +866,7 @@ export class Algorithmic extends Silent {
         );
     }
     [noteP, speedP, attackP, durationP, volumeP, panP].forEach(
-      (algorithm: Algorithm) => {
+      (algorithm: AlgorithmType) => {
         switch (algorithm.algorithmType) {
           case ALGORITHMTYPE.Constant:
             result.push(

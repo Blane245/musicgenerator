@@ -5,7 +5,7 @@ import { Algorithmic, AudioFile, Silent } from "../classes/generators";
 import { RawSourceData } from "../types";
 import { getBufferSourceNodesFromAlgorithmic } from "./algorithmicnodes";
 import { getBufferSourceNodesFromAudioFile } from "./audiofilenodes";
-import { getBufferSourceNodesFromSilent } from "./cmgnodes";
+import { getBufferSourceNodesFromSilent } from "./silentnodes";
 
 export interface buildSourcesProps {
   fileContents: CMGFile;

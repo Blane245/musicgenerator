@@ -35,3 +35,27 @@ export function getAttributeValue(
   }
 }
 
+export function getAttributeValueWithDefault(
+  object: Element,
+  item: string,
+  outputType: string,
+  defaultValue: string | number | boolean,
+): string | number | boolean {
+  const itemAttr: Attr | null = object.attributes.getNamedItem(item);
+
+  if (!itemAttr) return defaultValue;
+  const itemText: string = itemAttr.value;
+  switch (outputType) {
+    case "string":
+      return itemText;
+    case "int":
+      return parseInt(itemText);
+    case "float":
+      return parseFloat(itemText);
+    case "boolean":
+      return itemText == "true";
+    default:
+      throw new Error(`Invalid output type '${outputType}' for item '${item}'`);
+  }
+}
+

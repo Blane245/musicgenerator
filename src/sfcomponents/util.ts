@@ -11,7 +11,7 @@ export const tokenizeNote = (note: any) => {
   return [pc, acc, oct ? Number(oct) : undefined];
 };
 const accs = { "#": 1, b: -1, s: 1 };
-// turns the given note into its midi number representation
+// turns the given note into its pitch number representation
 export const toMidi = (note: any) => {
   if (typeof note === "number") {
     return note;
@@ -39,10 +39,10 @@ export const tc2s = (timecents: number) => {
 // attenuate gain by dB
 export const attenuate = (gain: number, dB:number): number => {
   if (dB <= 0) return gain;
-  return dBToGain(-dB) * gain;
+  return gain * Math.pow(10, -dB);
 }
 export const dBToGain = (dB: number): number => { 
-  return Math.pow(10, dB/10);
+  return Math.pow(10, (dB-7)/20);
 }
 // seconds to timecents
 export const s2tc = (seconds: number):number => Math.round(Math.log2(seconds) * 1200);
@@ -71,9 +71,9 @@ const noteNames: string[] = [
   "B",
 ];
 
-export const toNote = (midi: number): string => {
-  const baseMidi:number = Math.round(midi);
-  const cents: number = Math.round((midi - baseMidi) * 100);
+export const toNote = (pitch: number): string => {
+  const baseMidi:number = Math.round(pitch);
+  const cents: number = Math.round((pitch - baseMidi) * 100);
   const octave = Math.trunc(baseMidi / 12) - 1;
   const noteNumber = baseMidi - 12 * (octave + 1);
   const extra: string = cents == 0 ? "" : Intl.NumberFormat("en-US", {
@@ -111,8 +111,8 @@ export function presetNameToPreset(
 }
 
 //curtesy of https://inspiredacoustics.com/en/MIDI_note_numbers_and_center_frequencies
-export function midiToFrequency (midi: number) : number {
-  return 440.0 * Math.pow(2, (midi - 69)/12);
+export function midiToFrequency (pitch: number) : number {
+  return 440.0 * Math.pow(2, (pitch - 69)/12);
 }
 
 export function frequencyToMidi(frequency: number) : number {

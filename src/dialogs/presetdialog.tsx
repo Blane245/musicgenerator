@@ -11,6 +11,7 @@ import { SoundFont2 } from "soundfont2";
 import { RawSourceData } from "types";
 import CMGFile from "classes/cmgfile";
 import { useCMGContext } from "cmgcontext";
+import { signalLevel } from "utils/signallevel";
 export interface PresetDialogProps {
   generator: Algorithmic;
   setViewPreset: Function;
@@ -26,11 +27,14 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
   const [presetInterval, setPresetInterval] = useState<number>(1);
   const [presetDuration, setPresetDuration] = useState<number>(100);
   const [presetVolume, setPresetVolume] = useState<number>(0);
+  const [presetAttackEnabled, setPresetAttackEnabled] = useState<boolean>(
+    generator.attackEnabled
+  );
   const [presetInfo, setPresetInfo] = useState<RawSourceData[]>([]);
 
   useEffect(() => {
-    const midi: number = (generator as Algorithmic).noteP.getCurrentValue(0, 1);
-    setPresetMidi(midi);
+    const pitch: number = (generator as Algorithmic).noteP.getCurrentValue(0, 1);
+    setPresetMidi(pitch);
     const speed = generator.speedP.getCurrentValue(0, 0);
     const interval: number = speed == 0 ? 1 : 60.0 / speed;
     setPresetInterval(interval);
@@ -40,6 +44,8 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
     setPresetVolume(volume);
     const attack: number = generator.attackP.getCurrentValue(0, 1);
     setPresetAttack(attack);
+    const attackEnabled: boolean = generator.attackEnabled;
+    setPresetAttackEnabled(attackEnabled);
 
     if (preset)
       getPresetData(
@@ -47,31 +53,35 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
         preset,
         interval,
         duration,
-        midi,
+        pitch,
         attack,
-        volume
+        volume,
+        attackEnabled
       );
   }, []);
 
-  // given a preset, midi, and velocity, get the envelope data
+  // given a preset, pitch, and velocity, get the envelope data
   function getPresetData(
     fileContents: CMGFile,
     preset: Preset,
     interval: number,
     duration: number,
-    midi: number,
+    pitch: number,
     vel: number,
-    vol: number
+    vol: number,
+    attackEnabled: boolean
   ) {
+    const aGen: Algorithmic = generator.copy();
+    aGen.attackEnabled = attackEnabled;
     const result: RawSourceData[] = getPresetNote(
       fileContents,
-      generator,
+      aGen,
       preset,
       0,
       0,
       interval,
       (interval * duration) / 100.0,
-      midi,
+      pitch,
       vel,
       vol,
       0,
@@ -99,29 +109,31 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
           presetDuration,
           presetMidi,
           presetAttack,
-          presetVolume
+          presetVolume,
+          presetAttackEnabled
         );
       }
     }
   }
 
   function handlePresetMidi(e: ChangeEvent) {
-    const midi = e.target["value"];
-    setPresetMidi(midi);
+    const pitch = parseFloat(e.target["value"]);
+    setPresetMidi(pitch);
     if (preset)
       getPresetData(
         fileContents,
         preset,
         presetInterval,
         presetDuration,
-        midi,
+        pitch,
         presetAttack,
-        presetVolume
+        presetVolume,
+        presetAttackEnabled
       );
   }
 
   function handlepresetAttack(e: ChangeEvent) {
-    const attack = e.target["value"];
+    const attack = parseFloat(e.target["value"]);
     setPresetAttack(attack);
     if (preset)
       getPresetData(
@@ -131,12 +143,13 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
         presetDuration,
         presetMidi,
         attack,
-        presetVolume
+        presetVolume,
+        presetAttackEnabled
       );
   }
 
   function handlePresetDuration(e: ChangeEvent) {
-    const duration = e.target["value"];
+    const duration = parseFloat(e.target["value"]);
     setPresetDuration(duration);
     if (preset)
       getPresetData(
@@ -146,12 +159,13 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
         duration,
         presetMidi,
         presetAttack,
-        presetVolume
+        presetVolume,
+        presetAttackEnabled
       );
   }
 
   function handlePresetInterval(e: ChangeEvent) {
-    const interval = e.target["value"];
+    const interval = parseFloat(e.target["value"]);
     setPresetInterval(interval);
     if (preset)
       getPresetData(
@@ -161,12 +175,13 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
         presetDuration,
         presetMidi,
         presetAttack,
-        presetVolume
+        presetVolume,
+        presetAttackEnabled
       );
   }
 
   function handlePresetVolume(e: ChangeEvent) {
-    const volume = e.target["value"];
+    const volume = parseInt(e.target["value"]);
     setPresetVolume(volume);
     if (preset)
       getPresetData(
@@ -176,19 +191,28 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
         presetDuration,
         presetMidi,
         presetAttack,
-        volume
+        volume,
+        presetAttackEnabled
       );
   }
 
-  function signalLevel(sample: Float32Array): number {
-    let level: number = 0;
-    sample.forEach((s) => {
-      level += Math.abs(s);
-    });
-    return sample.length == 0 ? 0 : level / sample.length;
+  function handlePresetAttackEnabled(e: ChangeEvent<HTMLInputElement>) {
+    const attackEnabled = e.target.checked;
+    setPresetAttackEnabled(attackEnabled);
+    if (preset)
+      getPresetData(
+        fileContents,
+        preset,
+        presetInterval,
+        presetDuration,
+        presetMidi,
+        presetAttack,
+        presetVolume,
+        attackEnabled
+      );
   }
 
-  const DISPLAYWIDTH: number = 1500;
+  const DISPLAYWIDTH: number = 1700;
   const ENVHEIGHT: number = 50;
 
   function drawEnvelopes(pI: RawSourceData[]): JSX.Element[] {
@@ -208,7 +232,7 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
       return `L${x * xScale} ${yScale * (1 - y)} `;
     };
     result.push(<div>Signal Envelopes</div>);
-    pI.forEach((p,i) => {
+    pI.forEach((p, i) => {
       if (p.instrument) {
         let path: string = "";
         path += `M0 ${ENVHEIGHT} `;
@@ -240,7 +264,11 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
     precision: number
   ): JSX.Element => {
     if (object == undefined || object[value] == undefined)
-      return <td key={`${value}-${i}`} style={{ textAlign: "right" }}>0</td>;
+      return (
+        <td key={`${value}-${i}`} style={{ textAlign: "right" }}>
+          0
+        </td>
+      );
     return (
       <td key={`${value}-${i}`} style={{ textAlign: "right" }}>
         {precisionString(object[value], precision)}
@@ -255,9 +283,12 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
     precision: number
   ): JSX.Element => {
     if (object == undefined || object[array] == undefined)
-      return <td key={`${array}-${i}`} style={{ textAlign: "right" }}>0</td>;
-    const value: number =
-      dimension < 0 ? object[array].length : object[array][dimension].length;
+      return (
+        <td key={`${array}-${i}`} style={{ textAlign: "right" }}>
+          0
+        </td>
+      );
+    const value: number = object[array][dimension].length;
     return (
       <td style={{ textAlign: "right" }}>
         {precisionString(value, precision)}
@@ -352,18 +383,26 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
               type="number"
               min={-10}
               max={10}
-              step={0.1}
+              step={1}
               onChange={(e) => handlePresetVolume(e)}
               value={presetVolume}
             ></input>
             <span>&nbsp;(-10 - +10)</span>
+          </label>
+          <label>
+            &nbsp;Attack Enabled:&nbsp;
+            <input
+              type="checkbox"
+              onChange={(e) => handlePresetAttackEnabled(e)}
+              checked={presetAttackEnabled}
+            ></input>
           </label>
           <br />
           {presetInfo ? (
             <table>
               <tbody>
                 <tr key="name">
-                  <td>name</td>
+                  <td>Instrument Name</td>
                   {presetInfo.map((s: RawSourceData) => (
                     <td
                       style={{ textAlign: "right" }}
@@ -374,29 +413,19 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
                   ))}
                 </tr>
                 <tr>
-                  <td>sampleRate</td>
+                  <td>Sample Rate (samples/sec)</td>
                   {presetInfo.map((s: RawSourceData, i) =>
                     numberCell(i, s.source, "sampleRate", 0)
                   )}
                 </tr>
                 <tr>
-                  <td>loopStart</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td style={{ textAlign: "right" }}>
-                      {s.instrument?.loopStart}
-                    </td>
-                  ))}
+                  <td>Sample Count</td>
+                  {presetInfo.map((s: RawSourceData, i) =>
+                    lengthCell(i, s.source, "sample", 0, 0)
+                  )}
                 </tr>
                 <tr>
-                  <td>loopEnd</td>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td style={{ textAlign: "right" }}>
-                      {s.instrument?.loopEnd}
-                    </td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>loop</td>
+                  <td>Looping?</td>
                   {presetInfo.map((s: RawSourceData) => (
                     <td style={{ textAlign: "right" }}>
                       {s.instrument?.loop ? "true" : "false"}
@@ -404,192 +433,126 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
                   ))}
                 </tr>
                 <tr>
-                  <td>rootKey</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "rootKey", 0)
+                  <td>Root Key (pitch)</td>
+                  {presetInfo.map((s: RawSourceData, i) =>
+                    numberCell(i, s.instrument, "rootKey", 0)
                   )}
                 </tr>
                 <tr>
-                  <td>pitchCorrection</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "pitchCorrection", 0)
+                  <td>Pitch Correction (cents)</td>
+                  {presetInfo.map((s: RawSourceData, i) =>
+                    numberCell(i, s.instrument, "cents", 0)
                   )}
                 </tr>
                 <tr>
-                  <td>fineTune</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "fineTune", 0)
+                  <td>Playback Rate</td>
+                  {presetInfo.map((s: RawSourceData, i) =>
+                    numberCell(i, s.source, "playbackRate", 6)
                   )}
                 </tr>
                 <tr>
-                  <td>baseDetune</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "baseDetune", 0)
-                  )}
+                  <td style={{ fontWeight: "bold" }}>Envelope Controls</td>
                 </tr>
                 <tr>
-                  <td>cents</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "cents", 0)
-                  )}
-                </tr>
-                <tr>
-                  <td>delayVolEnv</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "delayVolEnv", 0)
-                  )}
-                </tr>
-                <tr>
-                  <td>attackVolEnv</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "attackVolEnv", 0)
-                  )}
-                </tr>
-                <tr>
-                  <td>holdVolEnv</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "holdVolEnv", 0)
-                  )}
-                </tr>
-                <tr>
-                  <td>decayVolEnv</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "delayVolEnv", 0)
-                  )}
-                </tr>
-                <tr>
-                  <td>sustainVolEnv</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "sustainVolEnv", 0)
-                  )}
-                </tr>
-                <tr>
-                  <td>releaseVolEnv</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "releaseVolEnv", 0)
-                  )}
-                </tr>
-                <tr>
-                  <td>delayEnd</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "delayEnd", 3)
-                  )}
-                </tr>
-                <tr>
-                  <td>attackEnd</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "attackEnd", 3)
-                  )}
-                </tr>
-                <tr>
-                  <td>holdEnd</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "holdEnd", 3)
-                  )}
-                </tr>
-                <tr>
-                  <td>decayEnd</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "decayEnd", 3)
-                  )}
-                </tr>
-                <tr>
-                  <td>noteEnd</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "noteEnd", 3)
-                  )}
-                </tr>
-                <tr>
-                  <td>interval</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "interval", 3)
-                  )}
-                </tr>
-                <tr>
-                  <td>duration</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "duration", 3)
-                  )}
-                </tr>
-                <tr>
-                  <td>releaseEnd</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "releaseEnd", 3)
-                  )}
-                </tr>
-                <tr>
-                  <td>instrumentSampleRate</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "sampleRate", 0)
-                  )}
-                </tr>
-                <tr>
-                  <td>instrumentSampleLength</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    lengthCell(i,s.instrument, "sample", -1, 0)
-                  )}
-                </tr>
-                <tr>
-                  <td>sampleLength</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    lengthCell(i,s.source, "sample", 0, 0)
-                  )}
-                </tr>
-                <tr>
-                  <td>playbackRate</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.source, "playbackRate", 4)
-                  )}
-                </tr>
-                <tr>
-                  <td>volumeValue</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "volumeValue", 1)
-                  )}
-                </tr>
-                <tr>
-                  <td>volumeGain</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "volumeGain", 3)
-                  )}
-                </tr>
-                <tr>
-                  <td>attenuationdB</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "initialAttenuation", 3)
-                  )}
-                </tr>
-                <tr>
-                  <td>attenuationGain</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "attenuation", 3)
-                  )}
-                </tr>
-                <tr>
-                  <td>sustainGain</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "sustainGain", 3)
-                  )}
-                </tr>
-                <tr>
-                  <td>noteEndGain</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "noteEndGain", 3)
-                  )}
-                </tr>
-                <tr>
-                  <td>signalLevel</td>
-                  {presetInfo.map((s: RawSourceData,i) => (
-                    <td key={`signallevel-${i}`}style={{ textAlign: "right" }}>
-                      {precisionString(signalLevel(s.source.sample[0]), 3)}
+                  <td>Attack Enabled?</td>
+                  {presetInfo.map((s: RawSourceData) => (
+                    <td style={{ textAlign: "right" }}>
+                      {s.instrument?.attackEnabled ? "true" : "false"}
                     </td>
                   ))}
                 </tr>
                 <tr>
-                  <td>totalTime</td>
-                  {presetInfo.map((s: RawSourceData,i) =>
-                    numberCell(i,s.instrument, "totalTime", 3)
+                  <td>Interval Length</td>
+                  {presetInfo.map((s: RawSourceData, i) =>
+                    numberCell(i, s.instrument, "interval", 3)
                   )}
+                </tr>
+                <tr>
+                  <td>Note Duration</td>
+                  {presetInfo.map((s: RawSourceData, i) =>
+                    numberCell(i, s.instrument, "duration", 3)
+                  )}
+                </tr>
+                <tr>
+                  <td style={{ fontWeight: "bold" }}>Envelope (sec)</td>
+                </tr>
+                {!!presetAttackEnabled && (
+                  <>
+                    <tr>
+                      <td>Delay</td>
+                      {presetInfo.map((s: RawSourceData, i) =>
+                        numberCell(i, s.instrument, "delayEnd", 3)
+                      )}
+                    </tr>
+                    <tr>
+                      <td>Attack</td>
+                      {presetInfo.map((s: RawSourceData, i) =>
+                        numberCell(i, s.instrument, "attackEnd", 3)
+                      )}
+                    </tr>
+                  </>
+                )}
+                <tr>
+                  <td>Hold</td>
+                  {presetInfo.map((s: RawSourceData, i) =>
+                    numberCell(i, s.instrument, "holdEnd", 3)
+                  )}
+                </tr>
+                <tr>
+                  <td>Decay</td>
+                  {presetInfo.map((s: RawSourceData, i) =>
+                    numberCell(i, s.instrument, "decayEnd", 3)
+                  )}
+                </tr>
+                <tr>
+                  <td>End</td>
+                  {presetInfo.map((s: RawSourceData, i) =>
+                    numberCell(i, s.instrument, "noteEnd", 3)
+                  )}
+                </tr>
+                <tr>
+                  <td>Release</td>
+                  {presetInfo.map((s: RawSourceData, i) =>
+                    numberCell(i, s.instrument, "releaseEnd", 3)
+                  )}
+                </tr>
+                <tr>
+                  <td>Total Duration (sec)</td>
+                  {presetInfo.map((s: RawSourceData, i) =>
+                    numberCell(i, s.instrument, "totalTime", 3)
+                  )}
+                </tr>
+                <tr>
+                  <td>Volume Gain</td>
+                  {presetInfo.map((s: RawSourceData, i) =>
+                    numberCell(i, s.instrument, "volumeGain", 3)
+                  )}
+                </tr>
+                <tr>
+                  <td>Attenuation Gain</td>
+                  {presetInfo.map((s: RawSourceData, i) =>
+                    numberCell(i, s.instrument, "attenuation", 3)
+                  )}
+                </tr>
+                <tr>
+                  <td>Sustain Gain</td>
+                  {presetInfo.map((s: RawSourceData, i) =>
+                    numberCell(i, s.instrument, "sustainGain", 3)
+                  )}
+                </tr>
+                <tr>
+                  <td>End Gain</td>
+                  {presetInfo.map((s: RawSourceData, i) =>
+                    numberCell(i, s.instrument, "noteEndGain", 3)
+                  )}
+                </tr>
+                <tr>
+                  <td>Average Signal Level</td>
+                  {presetInfo.map((s: RawSourceData, i) => (
+                    <td key={`signallevel-${i}`} style={{ textAlign: "right" }}>
+                      {precisionString(signalLevel(s.source.sample[0]), 5)}
+                    </td>
+                  ))}
                 </tr>
               </tbody>
             </table>

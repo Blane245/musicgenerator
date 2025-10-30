@@ -553,11 +553,11 @@ The fields and their restrictions are defined as follows:</p>
 <p><strong>Looping:</strong> Instrument samples contain sounds that are produced for a certain amount of time. If the sound needs to be played for longer than the sample, then a sample loop is defined. This is part of the SoundFont protocol. This option allows the default behavior to be overridden such that no looping will be done.</p>
 </li>
 <li>
-<p><strong>View Preset</strong> - This button is used to view the details of a preset and a specific midi number, attack, interval, duration, and volume. The number of samples, playback rate, delay, attack, hold, decay, sustain release times, and the sustain level and attenuation can be viewed for each instrument in the preset. The gain envelopes for all of the instruments in the preset also appear.
+<p><strong>View Preset</strong> - This button is used to view the details of a preset and a specific pitch number, attack, interval, duration, and volume. The number of samples, playback rate, delay, attack, hold, decay, sustain release times, and the sustain level and attenuation can be viewed for each instrument in the preset. The gain envelopes for all of the instruments in the preset also appear.
 <img src="./images/PresetDialog.png" alt="Preset Dialog"></p>
 </li>
 <li>
-<p><strong>Frequency&lt;-&gt;Midi</strong> - This button provides a tool to convert between tone frequency and midi number.</p>
+<p><strong>Frequency&lt;-&gt;Midi</strong> - This button provides a tool to convert between tone frequency and pitch number.</p>
 </li>
 <li>
 <p><strong>Rhythm</strong> - The beat of the sequence of notes (tones) is determined by a <a href="https://en.wikipedia.org/wiki/Euclidean_rhythm">Euclidean Rhythm</a> algorithm. The beats that are silent will cause a note to be not heard on that beat. For example, a rhythm that has 4 beats in a measure with 3 of them on will produce a 3/4 rhythm with the first 3 'on' and the last one silent. This is particularly useful when applied to percussive voices, but can be applied to any voice. Rhythm is defined by the following fields:</p>
@@ -588,7 +588,7 @@ The fields and their restrictions are defined as follows:</p>
 </ul>
 <p>The values of the sound attributes can be determined by one of three algorithms. These algorithms are discussed below.</p>
 <ul>
-<li>Note - This determines which note is to be used from the selected SoundFont preset. Sometimes call the midi number, a note may be fractional so that it lies between two integer midi numbers.</li>
+<li>Note - This determines which note is to be used from the selected SoundFont preset. Sometimes call the pitch number, a note may be fractional so that it lies between two integer pitch numbers.</li>
 <li>Attack - This defines the preset velocity representing how fast a key was pressed. Higher velocities cause instruments to be added to the preset that have rapid attack profiles.</li>
 <li>Speed - This determines the rate at which notes will be played. It is expressed in beats per minute (BPM).</li>
 <li>Duration - This is used to introduce a staccato effect to a note. Any value less that 100% will cause the note to be shortened during its performance period.</li>
@@ -600,7 +600,7 @@ The fields and their restrictions are defined as follows:</p>
 <blockquote>
 <blockquote>
 <blockquote>
-<div class="note">*Note: Midi numbers range from 0 to 127 and correspond to tones of C0 to G9 from the Acoustical Society at https://acousticalsociety.org/. When a midi number is entered, its note name is displayed next to the entry box. Fractional numbers may be entered. For example is 60.5 is entered the note name is displayed as *C4+50*</div>
+<div class="note">*Note: Midi numbers range from 0 to 127 and correspond to tones of C0 to G9 from the Acoustical Society at https://acousticalsociety.org/. When a pitch number is entered, its note name is displayed next to the entry box. Fractional numbers may be entered. For example is 60.5 is entered the note name is displayed as *C4+50*</div>
 </blockquote>
 </blockquote>
 </blockquote>
@@ -612,7 +612,7 @@ The fields and their restrictions are defined as follows:</p>
 <li><strong>Modulator:</strong> This is the type of oscillator used to modify the attribute over time. It can be either <em>Sine</em>, <em>Square</em>, <em>Triangle</em>, <em>Descending Sawtooth</em>, or <em>Ascending Sawtooth</em>.</li>
 <li><strong>Center:</strong> This is the center value about which the attribute is oscillated.</li>
 <li><strong>Frequency:</strong> This is the frequency of the oscillator expressed in <em>mHz</em>. The frequency must be between 0 and 1,000,000 in steps of 1.</li>
-<li><strong>Amplitude:</strong> This is amplitude of the oscillator in attribute units. For example if the note algorithm is Oscillator, the amplitude is 6, and the center number is 50, then the generated midi numbers will vary from 44 to 56 over time. If the amplitude is 0, then the center value is generated at all times.</li>
+<li><strong>Amplitude:</strong> This is amplitude of the oscillator in attribute units. For example if the note algorithm is Oscillator, the amplitude is 6, and the center number is 50, then the generated pitch numbers will vary from 44 to 56 over time. If the amplitude is 0, then the center value is generated at all times.</li>
 <li><strong>Phase:</strong> This is the phase of the FM oscillator expressed in <em>degrees</em>. The phase must be between -360 and 360 in steps of 1.</li>
 </ul>
 </li>
@@ -788,7 +788,7 @@ This window has three sections:</p>
 <p>Header: The application logo, a set of buttons, the application name, version, and file, the left and right volume monitors, and the time line are displayed here. The initial set of buttons are <em><strong>Exit</strong></em> and <em><strong>Start</strong></em>. Exit will terminate the preview and return to either the main composition panel or the generator dialog, depending on how Preview was invoked. When Start is pressed, it is replaced by a <em><strong>Pause</strong></em> button. Pressing the Pause button will cause it to be replaced by a <em><strong>Resume</strong></em> button. Pressing the Resume button will resume the preview and display the Pause button again.</p>
 </li>
 <li>
-<p>Body: Up to three sections may appears in the body - Instruments, Percussions, and AudioFile. Each section's scale is derived from the range of values that the notes of the sources can take. The lower left hand corner display the section name and the minimum value on the scale, while the upper left hand corner displays the maximum value of the scale. In the case of the percussion section, the notes each correspond to a different percussion instrument as per Soundfont2 rules. The instrument and percussion sections also have dashed lines that represent the integer midi numbers. A bolder dashed line indicates a C note.</p>
+<p>Body: Up to three sections may appears in the body - Instruments, Percussions, and AudioFile. Each section's scale is derived from the range of values that the notes of the sources can take. The lower left hand corner display the section name and the minimum value on the scale, while the upper left hand corner displays the maximum value of the scale. In the case of the percussion section, the notes each correspond to a different percussion instrument as per Soundfont2 rules. The instrument and percussion sections also have dashed lines that represent the integer pitch numbers. A bolder dashed line indicates a C note.</p>
 <p>Within each section the sources are displayed. The vertical location corresponds to its note value, while its horizontal extent is determined by its start time and duration. The color is such that the hue is based on the pan location, the saturation is based on its volume, and its lightness is based on whether or not it is current producing sound. See the figure below for a close up of a preview that has been paused with some sources currently producing sound.</p>
 <p><img src="./images/PreviewWindowZoom.png" alt="Zoom Preview"></p>
 <p>If a generator is previewed by selection of generator preview option, or generators are selected via the timeline interval, the generators' start times are moved such that the earliest start time is at zero. This avoids waiting until the generator would normal start before it is heard.</p>

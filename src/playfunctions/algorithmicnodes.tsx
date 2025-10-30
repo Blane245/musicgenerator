@@ -4,7 +4,8 @@ import { getPresetNote } from "playfunctions/getpresetnote";
 import SequenceValues, { AlgorithmValues } from "classes/algorithmvalues";
 import RandomNumber from "../classes/randomnumber";
 import CMGFile from "classes/cmgfile";
-import { SequenceItem } from "classes/sequenceitems";
+import { SequenceItem } from "types";
+import { dBToGain } from "sfcomponents/util";
 
 export function getBufferSourceNodesFromAlgorithmic(
   fileContents: CMGFile,
@@ -14,10 +15,6 @@ export function getBufferSourceNodesFromAlgorithmic(
   const { startTime, stopTime, preset } = gen;
   if (!preset)
     throw new Error(`Preset not defined for generator '${gen.name}'`);
-  if (!gen.noteP || !gen.speedP ||  !gen.volumeP || !gen.panP)
-    throw new Error(
-      `Parameter definition incomplete for generator '${gen.name}'`
-    );
   let time: number = startTime;
   const sourceData: RawSourceData[] = [];
 
@@ -64,7 +61,7 @@ export function getBufferSourceNodesFromAlgorithmic(
         duration,
         note,
         attack,
-        volume,
+        volume, // in dB
         pan,
         time,
         nextSource
@@ -108,7 +105,7 @@ export function getBufferSourceNodesFromAlgorithmic(
         duration,
         note,
         attack,
-        volume,
+        volume, // in dB
         pan,
         time,
         nextSource

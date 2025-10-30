@@ -1,4 +1,4 @@
-import { SequenceItem } from "classes/sequenceitems";
+import { SequenceItem } from "types";
 import DraggablePopup from "panels/draggablepopup";
 import ItemTable from "panels/itemtable";
 import { ChangeEvent, MouseEvent, useEffect, useState } from "react";
@@ -48,17 +48,16 @@ export default function SequencerPropertiesBox(
   // then signal the change
   async function handleSequenceNameClick(e: ChangeEvent<HTMLSelectElement>) {
     const sequenceName: string = e.currentTarget.value;
-    const name: string = e.currentTarget.name;
-    const sequenceItems: SequenceItem[] = await loadSequenceItems(
+    const newItems: SequenceItem[] = await loadSequenceItems(
       attributeType,
       sequenceName
     );
     values.name = sequenceName;
-    values.items = sequenceItems;
-    // TODO handle stoptime change if this is for the note
-    setSequenceItems(sequenceItems);
+    values.items = newItems;
+    setSequenceItems(newItems);
+    // passing the original 'e' seems to lose the targete.value, so it is reconstructed here
     handleChange({
-      target: { name: name, value: sequenceName },
+      target: { name: `${name.concat(".name")}`, value: sequenceName },
     } as ChangeEvent<HTMLInputElement>);
   }
 

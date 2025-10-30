@@ -1,4 +1,4 @@
-import { SequenceItem } from "classes/sequenceitems";
+import { SequenceItem } from "types";
 import { toNote } from "sfcomponents/util";
 import { SEQUENCEATTRIBUTE } from "types";
 
