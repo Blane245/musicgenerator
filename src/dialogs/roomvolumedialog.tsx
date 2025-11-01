@@ -1,4 +1,4 @@
-import Volume from "classes/volume";
+import Volume from "classes/roomnodes/volume";
 import { useCMGContext } from "cmgcontext";
 import { ChangeEvent, useEffect, useState } from "react";
 import { setVolume } from "utils/cmfiletransactions";

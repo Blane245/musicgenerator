@@ -1,7 +1,7 @@
 // The file menu handles creating new files, opening existing ones,
 // saving current ones, and adding tracks to current ones
 // import { Algorithmic } from "classes/generators";
-import { Algorithmic } from "classes/generators";
+import { Algorithmic } from "classes/generators/algorithmic";
 import TimeLine from "classes/timeline";
 import Track from "classes/track";
 import { useCMGContext } from "cmgcontext";

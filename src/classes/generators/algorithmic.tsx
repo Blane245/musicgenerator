@@ -1,146 +1,22 @@
-import { Preset } from "sfcomponents/types";
-import { presetNameToPreset } from "sfcomponents/util";
-import { SoundFont2 } from "soundfont2";
-import {
-  AlgorithmType,
-  ALGORITHMTYPE,
-  GENERATORTYPE,
-  parameterNames,
-  SEQUENCEATTRIBUTE,
-  SoundFontGenerators,
-  SoundFontGeneratorsType,
-} from "types";
-import { euclideanRhythm } from "utils/euclidean-rhythm";
-import {
-  compressAndConvertToString,
-  convertFromJsonAndDecompress,
-} from "utils/gzip";
-import { getAttributeValue, getAttributeValueWithDefault, getElementElement } from "utils/xmlfunctions";
-import SequenceValues, {
-  AutoregressiveValues,
-  ConstantValues,
-  MarkovianValues,
-  OscillatorValues,
-  WienerValues
-} from "./algorithmvalues";
-import CMGFile from "./cmgfile";
-import RandomNumber from "./randomnumber";
-
-// base class for all generator types
-// contains properties used almost all generators
-export class Silent {
-  name: string; // the unique name of the generator
-  startTime: number; // time (seconds) that the generator starts
-  stopTime: number; // time (seconds) that the generator stops
-  type: GENERATORTYPE;
-  mute: boolean;
-  position: number; // the vertical location of the generator icon on the track timeline
-
-  constructor(nextGenerator: number) {
-    this.name = "G".concat(nextGenerator.toString());
-    this.startTime = 0;
-    this.stopTime = 0;
-    this.type = GENERATORTYPE.Silent;
-    this.mute = false;
-    this.position = 0;
-  }
-
-  copy(): Silent {
-    const newCMG = new Silent(0);
-    newCMG.name = this.name;
-    newCMG.startTime = this.startTime;
-    newCMG.stopTime = this.stopTime;
-    newCMG.mute = this.mute;
-    newCMG.position = this.position;
-    return newCMG;
-  }
-
-  setAttribute(name: string, value: string): boolean {
-    switch (name) {
-      case "name":
-        this.name = value;
-        return true;
-      case "type":
-        this.type = GENERATORTYPE.Silent;
-        return true;
-      case "startTime":
-        const interval: number = this.stopTime - this.startTime;
-        this.startTime = parseFloat(value);
-        this.stopTime = this.startTime + interval;
-        return true;
-      case "stopTime":
-        this.stopTime = parseFloat(value);
-        return true;
-      case "mute":
-        this.mute = value == "true";
-        return true;
-
-      default:
-        return false;
-    }
-  }
-
-  async appendXML(_: XMLDocument, elem: Element): Promise<Element> {
-    try {
-      const returnElem: Element = elem;
-      returnElem.setAttribute("name", this.name);
-      returnElem.setAttribute("type", this.type);
-      returnElem.setAttribute("startTime", this.startTime.toString());
-      returnElem.setAttribute("stopTime", this.stopTime.toString());
-      returnElem.setAttribute("type", this.type);
-      returnElem.setAttribute("mute", this.mute.toString());
-      returnElem.setAttribute("position", this.position.toString());
-      return Promise.resolve(returnElem);
-    } catch (e: any) {
-      return Promise.reject(e);
-    }
-  }
-
-  static async getXML(elem: Element, _version: string): Promise<Silent> {
-    try {
-      const g: Silent = new Silent(0);
-      g.name = getAttributeValueWithDefault(elem, "name", "string", "") as string;
-      g.startTime = getAttributeValueWithDefault(elem, "startTime", "float", 0) as number;
-      g.stopTime = getAttributeValueWithDefault(elem, "stopTime", "float", 0) as number;
-      g.type = getAttributeValueWithDefault(elem, "type", "string", GENERATORTYPE.Silent) as GENERATORTYPE;
-      g.mute = getAttributeValueWithDefault(elem, "mute", "string", false) == "true";
-      g.position = getAttributeValueWithDefault(elem, "position", "float", 0) as number;
-      return Promise.resolve(g);
-    } catch (e) {
-      return Promise.reject(e);
-    }
-  }
-
-  // validate the user-supplied values of the generator
-  static validate(
-    values: Silent,
-    fileContents: CMGFile,
-    oldName: string
-  ): string[] {
-    const errors: string[] = [];
-    if (values.name == "") errors.push("Name must not be blank");
-    if (values.name != oldName) {
-      for (let i = 0; i < fileContents.tracks.length; i++) {
-        const t = fileContents.tracks[i];
-        for (let j = 0; j < t.generators.length; j++) {
-          if (t.generators[j].name == values.name) {
-            errors.push("A generator with that name already exists");
-          }
-        }
-      }
-    }
-    if (values.startTime < 0 || values.stopTime <= values.startTime)
-      errors.push(
-        "All times must be greater than zero and stop must be greater than start"
-      );
-
-    return errors;
-  }
-}
-
 // the algorithmic generator - uses oscillator, markovian, wiener algorithms to
 // provide note, speed, volume, and pan values
 // uses the euclidean beats from the parent class
+
+import { SoundFont2 } from "soundfont2";
+import { Silent } from "./silent";
+import { Preset } from "sfcomponents/types";
+import RandomNumber from "classes/randomnumber";
+import { ALGORITHMTYPE, AlgorithmType, GENERATORTYPE, parameterNames, SEQUENCEATTRIBUTE, SoundFontGenerators, SoundFontGeneratorsType } from "types";
+import { euclideanRhythm } from "utils/euclidean-rhythm";
+import { ConstantValues } from "classes/algorithms/constantvalues";
+import { presetNameToPreset } from "sfcomponents/util";
+import { AutoregressiveValues } from "classes/algorithms/autoregressivevalues";
+import { OscillatorValues } from "classes/algorithms/oscillatorvalues";
+import { MarkovianValues } from "classes/algorithms/markovianvalues";
+import { WienerValues } from "classes/algorithms/wienervalues";
+import SequenceValues from "classes/algorithms/sequencevalues";
+import { getAttributeValueWithDefault, getElementElement } from "utils/xmlfunctions";
+import CMGFile from "classes/cmgfile";
 
 export class Algorithmic extends Silent {
   soundFontFile: string;
@@ -493,22 +369,22 @@ export class Algorithmic extends Silent {
     const valueName: string = nameParts[1];
     switch (parameterName) {
       case "noteP":
-        if (this.noteP) this.noteP.setAttribute(valueName, value);
+        this.noteP.setAttribute(valueName, value);
         return true;
       case "attackP":
-        if (this.attackP) this.attackP.setAttribute(valueName, value);
+        this.attackP.setAttribute(valueName, value);
         return true;
       case "speedP":
-        if (this.speedP) this.speedP.setAttribute(valueName, value);
+        this.speedP.setAttribute(valueName, value);
         return true;
       case "durationP":
-        if (this.durationP) this.durationP.setAttribute(valueName, value);
+        this.durationP.setAttribute(valueName, value);
         return true;
       case "volumeP":
-        if (this.volumeP) this.volumeP.setAttribute(valueName, value);
+        this.volumeP.setAttribute(valueName, value);
         return true;
       case "panP":
-        if (this.panP) this.panP.setAttribute(valueName, value);
+        this.panP.setAttribute(valueName, value);
         return true;
       default:
         return false;
@@ -670,11 +546,11 @@ export class Algorithmic extends Silent {
       g.mute = CMGgen.mute;
       g.position = CMGgen.position;
 
-      g.presetName = getAttributeValue(elem, "presetName", "string") as string;
-      g.soundFontFile = getAttributeValue(
+      g.presetName = getAttributeValueWithDefault(elem, "presetName", "string","") as string;
+      g.soundFontFile = getAttributeValueWithDefault(
         elem,
         "soundFontFile",
-        "string"
+        "string",""
       ) as string;
       // need to load the list of unique soundfont files
       // and when they are all assembled retrieve files to the pool and
@@ -692,55 +568,51 @@ export class Algorithmic extends Silent {
         foundSoundFont.generators.push(g);
       }
       g.isLooping =
-        (getAttributeValue(elem, "isLooping", "string") as string) == "true";
-      g.measureLength = getAttributeValue(
+        (getAttributeValueWithDefault(elem, "isLooping", "string", "true") as string) == "true";
+      g.measureLength = getAttributeValueWithDefault(
         elem,
         "measureLength",
-        "int"
+        "int",1
       ) as number;
-      g.beatCount = getAttributeValue(elem, "beatCount", "int") as number;
-      try {
-        g.offsetSequence = getAttributeValue(
+      g.beatCount = getAttributeValueWithDefault(elem, "beatCount", "int",1) as number;
+        g.offsetSequence = getAttributeValueWithDefault(
           elem,
           "offsetSequence",
-          "int"
+          "int",1
         ) as number;
-      } catch (e) {
-        g.offsetSequence = 0;
-      }
       g.initialSequence();
-      g.noteCount = getAttributeValue(elem, "noteCount", "int") as number;
+      g.noteCount = getAttributeValueWithDefault(elem, "noteCount", "int", 1) as number;
       try {
-        g.offsetNotes = getAttributeValue(elem, "offsetNotes", "int") as number;
+        g.offsetNotes = getAttributeValueWithDefault(elem, "offsetNotes", "int",1) as number;
       } catch (e) {
         g.offsetNotes = 0;
       }
       g.#activeNotes = euclideanRhythm(g.noteCount, 12, g.offsetNotes);
-      g.noiseSeed = getAttributeValue(elem, "noiseSeed", "string") as string;
-      g.noiseAmplitude = getAttributeValue(
+      g.noiseSeed = getAttributeValueWithDefault(elem, "noiseSeed", "string","seed") as string;
+      g.noiseAmplitude = getAttributeValueWithDefault(
         elem,
         "noiseAmplitude",
-        "float"
+        "float",0
       ) as number;
       try {
-        g.noiseFrequency = getAttributeValue(
+        g.noiseFrequency = getAttributeValueWithDefault(
           elem,
           "noiseFrequency",
-          "float"
+          "float",0
         ) as number;
       } catch (e) {
         g.noiseFrequency = 0;
       }
       try {
-        g.reverbDuration = getAttributeValue(
+        g.reverbDuration = getAttributeValueWithDefault(
           elem,
           "reverbDuration",
-          "float"
+          "float",0
         ) as number;
-        g.reverbDecay = getAttributeValue(
+        g.reverbDecay = getAttributeValueWithDefault(
           elem,
           "reverbDecay",
-          "float"
+          "float",0
         ) as number;
       } catch (e) {
         g.reverbDecay = 0;
@@ -756,10 +628,10 @@ export class Algorithmic extends Silent {
         async (algorithm: AlgorithmType, i) => {
           let newAlgorithm: AlgorithmType = algorithm.copy();
           const pElem: Element = getElementElement(elem, parameterNames[i]);
-          const pType: ALGORITHMTYPE = getAttributeValue(
+          const pType: ALGORITHMTYPE = getAttributeValueWithDefault(
             pElem,
             "algorithmType",
-            "string"
+            "string", ""
           ) as ALGORITHMTYPE;
           switch (pType) {
             case ALGORITHMTYPE.Constant: {
@@ -905,159 +777,3 @@ export class Algorithmic extends Silent {
   }
 }
 
-// this class represents an audio file that can be used as a generator source
-export class AudioFile extends Silent {
-  fileName: string;
-  samples: Float32Array[];
-  sampleRate: number;
-  duration: number;
-  volume: number;
-
-  constructor(nextGenerator: number) {
-    super(nextGenerator);
-    this.type = GENERATORTYPE.AudioFile;
-    this.fileName = "";
-    this.samples = [];
-    this.sampleRate = 0;
-    this.duration = 0;
-    this.volume = 0;
-  }
-
-  override copy(): AudioFile {
-    const n = new AudioFile(0);
-    n.name = this.name;
-    n.startTime = this.startTime;
-    n.stopTime = this.stopTime;
-    n.mute = this.mute;
-    n.position = this.position;
-    n.fileName = this.fileName;
-    n.samples = this.samples;
-    n.sampleRate = this.sampleRate;
-    n.duration = this.duration;
-    n.volume = this.volume;
-    return n;
-  }
-
-  getSample(
-    context: AudioContext | OfflineAudioContext,
-    source: AudioBufferSourceNode
-  ): void {
-    const numberOfChannels = this.samples.length;
-    source.buffer = context.createBuffer(
-      numberOfChannels,
-      this.duration * this.sampleRate,
-      this.sampleRate
-    );
-    for (let i = 0; i < numberOfChannels; i++) {
-      // @ts-ignore
-      source.buffer.copyToChannel(this.samples[i], i);
-    }
-  }
-
-  override setAttribute(name: string, value: string): boolean {
-    super.setAttribute(name, value);
-    switch (name) {
-      case "volume":
-        this.volume = parseFloat(value);
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  override async appendXML(doc: XMLDocument, elem: Element): Promise<Element> {
-    try {
-      // start any compression of audio samples necessary
-      // should be one for each channel
-      const audioPromises: Promise<string>[] = [];
-      this.samples.forEach((sample: Float32Array) => {
-        const samplePromise: Promise<string> = compressAndConvertToString(
-          // @ts-ignore
-          sample.buffer
-        );
-        audioPromises.push(samplePromise);
-      });
-
-      // write the general attributes and wait for the sample promises to resolve, if there are any
-      const returnElem: Element = await super.appendXML(doc, elem);
-      returnElem.setAttribute("fileName", this.fileName);
-      returnElem.setAttribute("volume", this.volume.toString());
-      returnElem.setAttribute("duration", this.duration.toString());
-      returnElem.setAttribute("sampleRate", this.sampleRate.toString());
-      returnElem.setAttribute(
-        "numberOfChannels",
-        this.samples.length.toString()
-      );
-
-      if (audioPromises.length > 0) {
-        const sampleStrings: string[] = await Promise.all(audioPromises);
-        sampleStrings.forEach((s: string, i: number) => {
-          returnElem.setAttribute(`sample${i}`, s);
-        });
-      }
-      return Promise.resolve(returnElem);
-    } catch (e: any) {
-      return Promise.reject(e);
-    }
-  }
-
-  static override async getXML(
-    elem: Element,
-    version: string
-  ): Promise<AudioFile> {
-    try {
-      const CMGgen: Silent = await Silent.getXML(elem, version);
-      const g: AudioFile = new AudioFile(0);
-
-      g.fileName = getAttributeValue(elem, "fileName", "string") as string;
-      g.volume = getAttributeValue(elem, "volume", "float") as number;
-      g.duration = getAttributeValue(elem, "duration", "float") as number;
-      g.sampleRate = getAttributeValue(elem, "sampleRate", "float") as number;
-      const numberOfChannels = getAttributeValue(
-        elem,
-        "numberOfChannels",
-        "int"
-      ) as number;
-
-      // decompress the samples
-      const samplePromises: Promise<Float32Array>[] = [];
-      for (let i = 0; i < numberOfChannels; i++) {
-        const sampleString: string = getAttributeValue(
-          elem,
-          `sample${i}`,
-          "string"
-        ) as string;
-        const samplePromise: Promise<Float32Array> =
-          convertFromJsonAndDecompress(sampleString);
-        samplePromises.push(samplePromise);
-      }
-
-      // get the Silent values
-      g.name = CMGgen.name;
-      g.startTime = CMGgen.startTime;
-      g.stopTime = CMGgen.stopTime;
-      g.mute = CMGgen.mute;
-      g.position = CMGgen.position;
-
-      // load the decompressed samples
-      if (samplePromises.length > 0) {
-        const samples: Float32Array[] = await Promise.all(samplePromises);
-        g.samples = samples;
-      }
-
-      return Promise.resolve(g);
-    } catch (e) {
-      return Promise.reject(e);
-    }
-  }
-
-  static override validate(
-    values: AudioFile,
-    _fileContents: CMGFile,
-    _oldName: string
-  ): string[] {
-    const errors: string[] = [];
-    if (values.fileName == "") errors.push("Audio file must be specified");
-    return errors;
-  }
-}

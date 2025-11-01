@@ -1,7 +1,7 @@
-import Reverb from "../classes/reverb";
-import Compressor from "../classes/compressor";
-import Equalizer from "../classes/equalizer";
-import Volume from "../classes/volume";
+import Compressor from "classes/roomnodes/compressor";
+import Equalizer from "classes/roomnodes/equalizer";
+import Reverb from "classes/roomnodes/reverb";
+import Volume from "classes/roomnodes/volume";
 
 // create a room concentrator and connect the concentrator->reverb->compressor->equalizer->volume
 export function buildRoomNodes(

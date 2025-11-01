@@ -1,5 +1,5 @@
 import { softDisconnect } from "utils/softdisconnect";
-import { getAttributeValue, getElementElement } from "../utils/xmlfunctions";
+import { getAttributeValue, getElementElement } from "utils/xmlfunctions";
 
 export default class Compressor {
   enabled: boolean;

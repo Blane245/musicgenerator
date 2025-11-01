@@ -1,5 +1,5 @@
 import CMGFile from "classes/cmgfile";
-import { Algorithmic, AudioFile, Silent } from "classes/generators";
+import { Algorithmic, AudioFile, Silent } from "classes/generators/generators";
 import { buildSources } from "playfunctions/buildsources";
 import ReadyPlay from "playfunctions/readyplay";
 import { signalLevel } from "utils/signallevel";

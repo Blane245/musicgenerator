@@ -17,10 +17,10 @@
 //
 // when all batches have completed or playing has stopped (in waitForCompletion)
 //  write the accumulated buffer to the recording file
-import Compressor from "classes/compressor";
-import Equalizer from "classes/equalizer";
-import Reverb from "classes/reverb";
-import Volume from "classes/volume";
+import Compressor from "classes/roomnodes/compressor";
+import Equalizer from "classes/roomnodes/equalizer";
+import Reverb from "classes/roomnodes/reverb";
+import Volume from "classes/roomnodes/volume";
 import { useCMGContext } from "cmgcontext";
 import { useEffect, useRef, useState } from "react";
 import { PLAYMODE, GENERATORTYPE, RawSourceData } from "types";

@@ -6,7 +6,7 @@ import SequenceValues, {
   WienerValues,
 } from "classes/algorithmvalues";
 import CMGFile from "classes/cmgfile";
-import { Algorithmic, AudioFile } from "classes/generators";
+import { Algorithmic, AudioFile } from "classes/generators/generators";
 import { ALGORITHMTYPE, GENERATORTYPE, GeneratorType } from "types";
 import SourceReport from "./sourcereport";
 

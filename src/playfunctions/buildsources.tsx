@@ -1,11 +1,13 @@
 // Construct the data from each active generator that will be used to
 // realize them when they are inserted into the audio node graph
 import CMGFile from "classes/cmgfile";
-import { Algorithmic, AudioFile, Silent } from "../classes/generators";
 import { RawSourceData } from "../types";
 import { getBufferSourceNodesFromAlgorithmic } from "./algorithmicnodes";
 import { getBufferSourceNodesFromAudioFile } from "./audiofilenodes";
 import { getBufferSourceNodesFromSilent } from "./silentnodes";
+import { Algorithmic } from "classes/generators/algorithmic";
+import { AudioFile } from "classes/generators/audiofile";
+import { Silent } from "classes/generators/silent";
 
 export interface buildSourcesProps {
   fileContents: CMGFile;

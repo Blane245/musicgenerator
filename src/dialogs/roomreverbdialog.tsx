@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect, useState } from "react";
-import Reverb from "classes/reverb";
+import Reverb from "classes/roomnodes/reverb";
 import { useCMGContext } from "cmgcontext";
 import { setReverb } from "utils/cmfiletransactions";
 

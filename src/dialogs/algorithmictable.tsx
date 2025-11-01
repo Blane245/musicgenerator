@@ -1,12 +1,3 @@
-import SequenceValues, {
-  AlgorithmValues,
-  AutoregressiveValues,
-  ConstantValues,
-  MarkovianValues,
-  OscillatorValues,
-  WienerValues,
-} from "classes/algorithmvalues";
-import { Algorithmic } from "classes/generators";
 import { SequenceItem } from "types";
 import { ChangeEvent } from "react";
 import { toNote } from "sfcomponents/util";
@@ -19,6 +10,14 @@ import MarkovianPropertiesBox from "./markovianpropertiesbox";
 import OscillatorPropertiesBox from "./oscillatorpropertiesbox";
 import SequencerPropertiesBox from "./sequencerpropertiesbox";
 import WienerPropertiesBox from "./wienerpropertiesbox";
+import { Algorithmic } from "classes/generators/algorithmic";
+import { OscillatorValues } from "classes/algorithms/oscillatorvalues";
+import { MarkovianValues } from "classes/algorithms/markovianvalues";
+import { WienerValues } from "classes/algorithms/wienervalues";
+import { ConstantValues } from "classes/algorithms/constantvalues";
+import { AutoregressiveValues } from "classes/algorithms/autoregressivevalues";
+import SequenceValues from "classes/algorithms/sequencevalues";
+import { AlgorithmValues } from "classes/algorithms/algorithmvalues";
 
 // provides the form fields and validators for the algorithmic generator
 
@@ -201,6 +200,7 @@ export default function AlgorithmicTable(
             />
           )}
         </div>
+        {/* implement vibrator here. needs a css class, a parameters vibrator parameters of speed depth, and waveform */}
       </div>
       <hr />
       <div className="algorithmic-table">
@@ -700,6 +700,7 @@ export default function AlgorithmicTable(
             />
           ) : null}
         </div>
+        {/* implement tremelo here. needs css class and parameters for speed, depth, and waveform */}
       </div>
       <hr />
       <div className="algorithmic-table">

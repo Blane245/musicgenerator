@@ -1,13 +1,15 @@
 // determine what is to be scheduled for generator based on
 // proper definition and selection filters
+import { Algorithmic } from "classes/generators/algorithmic";
 import CMGFile from "../classes/cmgfile";
-import { Algorithmic, AudioFile, Silent } from "../classes/generators";
 import {
   GeneratorType,
   GENERATORTYPE,
   PLAYMODE,
   TimelineInterval,
 } from "../types";
+import { AudioFile } from "classes/generators/audiofile";
+import { Silent } from "classes/generators/silent";
 
 // timeline interval selector
 function isSelected(

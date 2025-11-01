@@ -1,7 +1,7 @@
 // the stop time of a sequencer is dependent on the items in the note and the speed
 // as it changes during the sequence. Each note may be running at a different
 
-import { AlgorithmValues } from "classes/algorithmvalues";
+import { AlgorithmValues } from "classes/algorithms/algorithmvalues";
 import { SequenceItem } from "types";
 
 // Each note in a sequencer may be runniing at a different speed.

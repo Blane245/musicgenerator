@@ -2,11 +2,11 @@
 // a volume setting
 
 import { dBToGain } from "sfcomponents/util";
-import { AudioFile } from "../classes/generators";
 import { RawSourceData } from "../types";
 import CMGFile from "classes/cmgfile";
 import findGeneratorParent from "utils/findgeneratorparent";
 import Track from "classes/track";
+import { AudioFile } from "classes/generators/audiofile";
 
 export function getBufferSourceNodesFromAudioFile(
   fileContents: CMGFile,

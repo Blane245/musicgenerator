@@ -1,4 +1,4 @@
-import Equalizer from "classes/equalizer";
+import Equalizer from "classes/roomnodes/equalizer";
 import { useCMGContext } from "cmgcontext";
 import { ChangeEvent, useEffect, useState } from "react";
 import { setEqualizer } from "utils/cmfiletransactions";

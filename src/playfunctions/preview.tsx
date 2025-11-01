@@ -25,7 +25,7 @@
 // Drawing which includes the source graphics
 // Footer which includes status on genrators and sources playing and the room effect controls
 import CMG2 from "assets/CGM2.svg";
-import { Algorithmic } from "classes/generators";
+import { Algorithmic } from "classes/generators/algorithmic";
 import SignalLevel from "classes/signallevel";
 import TimeLine from "classes/timeline";
 import { useCMGContext } from "cmgcontext";

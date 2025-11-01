@@ -1,5 +1,5 @@
 import { softDisconnect } from "utils/softdisconnect";
-import { getAttributeValue, getElementElement } from "../utils/xmlfunctions";
+import { getAttributeValue, getElementElement } from "utils/xmlfunctions";
 import { dBToGain } from "sfcomponents/util";
 
 // This is a 10 octave equalizer made of lowshelf, peaking, and highshelf filter

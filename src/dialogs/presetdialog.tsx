@@ -1,4 +1,3 @@
-import { Algorithmic } from "classes/generators";
 import { ChangeEvent, useEffect, useState } from "react";
 import { getPresetNote } from "playfunctions/getpresetnote";
 import { Preset } from "sfcomponents/types";
@@ -12,6 +11,7 @@ import { RawSourceData } from "types";
 import CMGFile from "classes/cmgfile";
 import { useCMGContext } from "cmgcontext";
 import { signalLevel } from "utils/signallevel";
+import { Algorithmic } from "classes/generators/algorithmic";
 export interface PresetDialogProps {
   generator: Algorithmic;
   setViewPreset: Function;

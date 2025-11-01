@@ -15,14 +15,6 @@ export type OscillatorBoxProperties = {
 
 import { Buffer } from "buffer";
 import Track from "classes/track";
-import SequenceValues, {
-  AutoregressiveValues,
-  ConstantValues,
-  MarkovianValues,
-  OscillatorValues,
-  WienerValues
-} from "../classes/algorithmvalues";
-import { Algorithmic, AudioFile, Silent } from "../classes/generators";
 import RandomNumber from "../classes/randomnumber";
 import {
   ascendingSawtoothModulator,
@@ -32,6 +24,15 @@ import {
   triangleModulator,
 } from "../modulators";
 import { SoundFont2 } from "../soundfont2";
+import { Silent } from "classes/generators/silent";
+import { Algorithmic } from "classes/generators/algorithmic";
+import { AudioFile } from "classes/generators/audiofile";
+import { ConstantValues } from "classes/algorithms/constantvalues";
+import { AutoregressiveValues } from "classes/algorithms/autoregressivevalues";
+import { OscillatorValues } from "classes/algorithms/oscillatorvalues";
+import { MarkovianValues } from "classes/algorithms/markovianvalues";
+import { WienerValues } from "classes/algorithms/wienervalues";
+import SequenceValues from "classes/algorithms/sequencevalues";
 
 export const SAMPLERATE: number = 44100;
 

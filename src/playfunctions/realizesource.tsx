@@ -2,8 +2,9 @@
 // connect it to the destination
 // there are several use cases for the gain envelop
 // see volumeprocessing.md for details
-import { Algorithmic, AudioFile } from "../classes/generators";
+import { AudioFile } from "classes/generators/audiofile";
 import { ActiveSource, GENERATORTYPE, RawSourceData } from "../types";
+import { Algorithmic } from "classes/generators/algorithmic";
 
 export function realizeSource(
   ctx: AudioContext | OfflineAudioContext,

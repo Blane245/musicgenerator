@@ -1,4 +1,4 @@
-import { Algorithmic } from "classes/generators";
+import { Algorithmic } from "classes/generators/algorithmic";
 import { useCMGContext } from "cmgcontext";
 import ToolsMenu from "menus/toolsmenu";
 import { ChangeEvent, useState } from "react";

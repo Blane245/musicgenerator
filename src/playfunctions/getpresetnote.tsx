@@ -13,9 +13,9 @@ import {
 } from "sfcomponents/util";
 import findGeneratorParent from "utils/findgeneratorparent";
 import { linearInterpolate } from "utils/interpolation";
-import { Algorithmic } from "../classes/generators";
 import { RawSourceData } from "../types";
 import { gaussianRandom } from "../utils/gaussianrandom";
+import { Algorithmic } from "classes/generators/algorithmic";
 
 // select mid range velocity Range
 const isActiveZone = (

@@ -1,11 +1,10 @@
-import { ALGORITHMTYPE, RawSourceData } from "types";
-import { Algorithmic } from "classes/generators";
-import { getPresetNote } from "playfunctions/getpresetnote";
-import SequenceValues, { AlgorithmValues } from "classes/algorithmvalues";
-import RandomNumber from "../classes/randomnumber";
 import CMGFile from "classes/cmgfile";
-import { SequenceItem } from "types";
-import { dBToGain } from "sfcomponents/util";
+import { getPresetNote } from "playfunctions/getpresetnote";
+import { ALGORITHMTYPE, RawSourceData, SequenceItem } from "types";
+import RandomNumber from "../classes/randomnumber";
+import { Algorithmic } from "classes/generators/algorithmic";
+import { AlgorithmValues } from "classes/algorithms/algorithmvalues";
+import SequenceValues from "classes/algorithms/sequencevalues";
 
 export function getBufferSourceNodesFromAlgorithmic(
   fileContents: CMGFile,

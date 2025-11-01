@@ -1,10 +1,11 @@
 // provides the tie to the form fields and validators for all generators
 
-import { Algorithmic, AudioFile } from "classes/generators";
 import { ChangeEvent } from "react";
 import { GeneratorType, GENERATORTYPE } from "types";
 import AlgorithmicDialog from "./algorithmicdialog";
 import AudioFileDialog from "./audiofiledialog";
+import { Algorithmic } from "classes/generators/algorithmic";
+import { AudioFile } from "classes/generators/audiofile";
 
 export interface GeneratorTypeFormProps {
   formData: GeneratorType;

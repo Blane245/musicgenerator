@@ -2,6 +2,12 @@
 for match conditional statements in HTML
 /\{g\.(.*)\?.*\n(.*).*\n.*\).*/
 # things to do
+- implement tremelo and vibrato effects. This may cause some refactoring as some of the source files are getting quite large. 
+    - Vibrato may be a rapid repitition of the same note or alternating notes. This form can be done by using an oscillator on the note attribute along with a rapid speed. It may also be a pitch variation that has a rate, depth, and wave form and generates microtones. Pitch variation would be implemented as a change in playback rate. This could be a property of the note.
+    - Tremelo is a change in volume. It may also have a rate, depth, and wave form. It is a modification of the volume attribute.
+    - As these effects are modification of existing attributes, they could be implemented a properties of these attributes. The effects would be realized as modifications to the samples generated when the instrument sample is being processed.
+        - in the case of pitch variation vibrato, this is realized by modifying the playback rate during the conversion of the instrumenet sample into the final sample. As the exact length of the final sample is not known until the playrate rate changes have been made, the method that the sample array is built will have to change. (buildSampleArray)
+        - in the case of tremelo, the volume envelope processing will be changed. This will put modulations on the volume envelope thus creating many more points. There may need to be considering for using a higher order interpolation that linear to smooth out the transitions when the envelope is applied. 
 - measure lengths are not constant in time when the speed attribute is changed. Now, I have a measure length in seconds in preferences and that is what is used to draw the timeline. This is incorrent and in fact I'm not sure that the conversion from time to measures makes since when genertors can all run at teir own speeds. The sequencers conversion is particularly bad. Maybe I should abandon measure display and data entry unless I can think of a solution. 
  # Bugs
  - DB problem. The connection to mysql times out after 24 hours of inactivity. I haven't found out how to restart it yet.

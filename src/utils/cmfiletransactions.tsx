@@ -1,12 +1,12 @@
 // Update various parts of the CMGFile based
 // various transactions within the system
-import CMGFile from "../classes/cmgfile";
-import Compressor from "../classes/compressor";
-import Equalizer from "../classes/equalizer";
-import Reverb from "../classes/reverb";
-import Track from "../classes/track";
-import Volume from "../classes/volume";
-import { GeneratorType } from "../types";
+import CMGFile from "classes/cmgfile";
+import Compressor from "classes/roomnodes/compressor";
+import Equalizer from "classes/roomnodes/equalizer";
+import Reverb from "classes/roomnodes/reverb";
+import Volume from "classes/roomnodes/volume";
+import Track from "classes/track";
+import { GeneratorType } from "types";
 
 export function newFile(contents: CMGFile, setFileContents: Function): void {
   setFileContents(contents);

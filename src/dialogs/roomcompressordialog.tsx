@@ -1,4 +1,4 @@
-import Compressor from "classes/compressor";
+import Compressor from "classes/roomnodes/compressor";
 import { useCMGContext } from "cmgcontext";
 import { ChangeEvent, useEffect, useState } from "react";
 import { setCompressor } from "utils/cmfiletransactions";
