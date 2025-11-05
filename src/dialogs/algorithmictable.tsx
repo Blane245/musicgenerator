@@ -1,4 +1,4 @@
-import { SequenceItem } from "types";
+import { MODULATOR, SequenceItem } from "types";
 import { ChangeEvent } from "react";
 import { toNote } from "sfcomponents/util";
 import { ALGORITHMTYPE, SEQUENCEATTRIBUTE } from "types";
@@ -42,7 +42,7 @@ export default function AlgorithmicTable(
     // or the speedP algorithm will result in a change to the stopTime
 
     // only do this when the note is in sequencer mode
-    if (formData.noteP.algorithmType != ALGORITHMTYPE.Sequencer){
+    if (formData.noteP.algorithmType != ALGORITHMTYPE.Sequencer) {
       handleChange(e);
       return;
     }
@@ -52,16 +52,18 @@ export default function AlgorithmicTable(
     let doCalc: boolean = false;
 
     // if the name of the sequence changes, then load the new items to be used
-      if (e.target.name == "noteP.name") {
-        const sequenceName: string = e.target.value;
-        items = await loadSequenceItems(SEQUENCEATTRIBUTE.note, sequenceName);
-        doCalc = true;
-        console.log(`AT: sequence name change. new items loaded for '${sequenceName}'`);
+    if (e.target.name == "noteP.name") {
+      const sequenceName: string = e.target.value;
+      items = await loadSequenceItems(SEQUENCEATTRIBUTE.note, sequenceName);
+      doCalc = true;
+      console.log(
+        `AT: sequence name change. new items loaded for '${sequenceName}'`
+      );
     }
 
-    // if any of the speed parameters changes, 
+    // if any of the speed parameters changes,
     if (e.target.name.startsWith("speedP")) {
-      const nameParts: string[] = e.target.name.split('.');
+      const nameParts: string[] = e.target.name.split(".");
       speedP.setAttribute(nameParts[1], e.target.value);
       doCalc = true;
     }
@@ -79,13 +81,13 @@ export default function AlgorithmicTable(
           target: { name: "stopTime", value: stopTime.toString() },
         } as ChangeEvent<HTMLInputElement>);
     }
-      // pass the original change onto handleChange
-      handleChange(e);
+    // pass the original change onto handleChange
+    handleChange(e);
   }
   return (
     <>
       <div className="algorithmic-table">
-        <div className="attribute">Note (pitch)</div>
+        <div className="attribute"><label>Note (pitch)</label></div>
         <div className="gentype">
           <label>
             Algorithm:&nbsp;
@@ -200,11 +202,10 @@ export default function AlgorithmicTable(
             />
           )}
         </div>
-        {/* implement vibrator here. needs a css class, a parameters vibrator parameters of speed depth, and waveform */}
       </div>
       <hr />
       <div className="algorithmic-table">
-        <div className="attribute">Attack (velocity)</div>
+        <div className="attribute"><label>Attack (velocity)</label></div>
         <div className="gentype">
           <label>
             Algorithm:&nbsp;
@@ -328,7 +329,7 @@ export default function AlgorithmicTable(
       </div>
       <hr />
       <div className="algorithmic-table">
-        <div className="attribute">Speed (BPM)</div>
+        <div className="attribute"><label>Speed (BPM)</label></div>
         <div className="gentype">
           <label>
             Algorithm:&nbsp;
@@ -453,7 +454,7 @@ export default function AlgorithmicTable(
       </div>
       <hr />
       <div className="algorithmic-table">
-        <div className="attribute">Duration (sec)</div>
+        <div className="attribute"><label>Duration (sec)</label></div>
         <div className="gentype">
           <label>
             Algorithm:&nbsp;
@@ -579,7 +580,7 @@ export default function AlgorithmicTable(
       </div>
       <hr />
       <div className="algorithmic-table">
-        <div className="attribute">Volume (dB)</div>
+        <div className="attribute"><label>Volume (dB)</label></div>
         <div className="gentype">
           <label>
             Algorithm:&nbsp;
@@ -700,11 +701,10 @@ export default function AlgorithmicTable(
             />
           ) : null}
         </div>
-        {/* implement tremelo here. needs css class and parameters for speed, depth, and waveform */}
       </div>
       <hr />
       <div className="algorithmic-table">
-        <div className="attribute">{"Pan (left<->right)"}</div>
+        <div className="attribute"><label>{"Pan (left<->right)"}</label></div>
         <div className="gentype">
           <label>
             Algorithm:&nbsp;

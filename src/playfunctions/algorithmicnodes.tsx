@@ -1,5 +1,5 @@
 import CMGFile from "classes/cmgfile";
-import { getPresetNote } from "playfunctions/getpresetnote";
+import { getPresetNote } from "playfunctions/presetProcessing/getpresetnote";
 import { ALGORITHMTYPE, RawSourceData, SequenceItem } from "types";
 import RandomNumber from "../classes/randomnumber";
 import { Algorithmic } from "classes/generators/algorithmic";

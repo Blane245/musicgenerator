@@ -6,7 +6,16 @@ import { SoundFont2 } from "soundfont2";
 import { Silent } from "./silent";
 import { Preset } from "sfcomponents/types";
 import RandomNumber from "classes/randomnumber";
-import { ALGORITHMTYPE, AlgorithmType, GENERATORTYPE, parameterNames, SEQUENCEATTRIBUTE, SoundFontGenerators, SoundFontGeneratorsType } from "types";
+import {
+  ALGORITHMTYPE,
+  AlgorithmType,
+  effectNames,
+  GENERATORTYPE,
+  parameterNames,
+  SEQUENCEATTRIBUTE,
+  SoundFontGenerators,
+  SoundFontGeneratorsType,
+} from "types";
 import { euclideanRhythm } from "utils/euclidean-rhythm";
 import { ConstantValues } from "classes/algorithms/constantvalues";
 import { presetNameToPreset } from "sfcomponents/util";
@@ -15,8 +24,12 @@ import { OscillatorValues } from "classes/algorithms/oscillatorvalues";
 import { MarkovianValues } from "classes/algorithms/markovianvalues";
 import { WienerValues } from "classes/algorithms/wienervalues";
 import SequenceValues from "classes/algorithms/sequencevalues";
-import { getAttributeValueWithDefault, getElementElement } from "utils/xmlfunctions";
+import {
+  getAttributeValueWithDefault,
+  getElementElement,
+} from "utils/xmlfunctions";
 import CMGFile from "classes/cmgfile";
+import Tremelo from "classes/algorithms/tremelo";
 
 export class Algorithmic extends Silent {
   soundFontFile: string;
@@ -46,6 +59,8 @@ export class Algorithmic extends Silent {
   durationP: AlgorithmType;
   volumeP: AlgorithmType;
   panP: AlgorithmType;
+  tremelo: Tremelo;
+  vibrato: Tremelo;
 
   constructor(nextGenerator: number) {
     super(nextGenerator);
@@ -77,6 +92,8 @@ export class Algorithmic extends Silent {
     this.durationP = new ConstantValues(100);
     this.volumeP = new ConstantValues(0);
     this.panP = new ConstantValues(0);
+    this.tremelo = new Tremelo();
+    this.vibrato = new Tremelo();
   }
 
   setContext(context: AudioContext | OfflineAudioContext) {
@@ -156,6 +173,8 @@ export class Algorithmic extends Silent {
     n.durationP = this.durationP.copy();
     n.volumeP = this.volumeP.copy();
     n.panP = this.panP.copy();
+    n.tremelo = this.tremelo.copy();
+    n.vibrato = this.vibrato.copy();
     return n;
   }
 
@@ -221,7 +240,7 @@ export class Algorithmic extends Silent {
         this.reverbDecay = parseFloat(value);
         return true;
       case "attackEnabled":
-        this.attackEnabled = value == 'true';
+        this.attackEnabled = value == "true";
         return true;
       case "noteP.algorithmType":
         switch (value) {
@@ -386,6 +405,12 @@ export class Algorithmic extends Silent {
       case "panP":
         this.panP.setAttribute(valueName, value);
         return true;
+      case "tremelo":
+        this.tremelo.setAttribute(valueName, value);
+        return true;
+      case "vibrato":
+        this.vibrato.setAttribute(valueName, value);
+        return true;
       default:
         return false;
     }
@@ -446,6 +471,9 @@ export class Algorithmic extends Silent {
     // modify the note based on those selectable in the octave
     note = this.#getSelectedNote(note);
     return { beat, note, attack, speed, duration, volume, pan };
+
+    // the tremelo and vibrato effects values are retrieved when the sample
+    // is being processed
   }
 
   #getSelectedNote(note: number): number {
@@ -515,18 +543,24 @@ export class Algorithmic extends Silent {
       const durationPElem: Element = doc.createElement("durationP");
       const volumePElem: Element = doc.createElement("volumeP");
       const panPElem: Element = doc.createElement("panP");
+      const tremeloElem: Element = doc.createElement("tremelo");
+      const vibratoElem: Element = doc.createElement("vibrato");
       returnElem.appendChild(notePElem);
       returnElem.appendChild(attackPElem);
       returnElem.appendChild(speedPElem);
       returnElem.appendChild(durationPElem);
       returnElem.appendChild(volumePElem);
       returnElem.appendChild(panPElem);
+      returnElem.appendChild(tremeloElem);
+      returnElem.appendChild(vibratoElem);
       this.noteP.appendXML(doc, notePElem);
       this.attackP.appendXML(doc, attackPElem);
       this.speedP.appendXML(doc, speedPElem);
       this.durationP.appendXML(doc, durationPElem);
       this.volumeP.appendXML(doc, volumePElem);
       this.panP.appendXML(doc, panPElem);
+      this.tremelo.appendXML(doc, tremeloElem);
+      this.vibrato.appendXML(doc, vibratoElem);
       return Promise.resolve(returnElem);
     } catch (e: any) {
       return Promise.reject(e);
@@ -546,11 +580,17 @@ export class Algorithmic extends Silent {
       g.mute = CMGgen.mute;
       g.position = CMGgen.position;
 
-      g.presetName = getAttributeValueWithDefault(elem, "presetName", "string","") as string;
+      g.presetName = getAttributeValueWithDefault(
+        elem,
+        "presetName",
+        "string",
+        ""
+      ) as string;
       g.soundFontFile = getAttributeValueWithDefault(
         elem,
         "soundFontFile",
-        "string",""
+        "string",
+        ""
       ) as string;
       // need to load the list of unique soundfont files
       // and when they are all assembled retrieve files to the pool and
@@ -568,62 +608,88 @@ export class Algorithmic extends Silent {
         foundSoundFont.generators.push(g);
       }
       g.isLooping =
-        (getAttributeValueWithDefault(elem, "isLooping", "string", "true") as string) == "true";
+        (getAttributeValueWithDefault(
+          elem,
+          "isLooping",
+          "string",
+          "true"
+        ) as string) == "true";
       g.measureLength = getAttributeValueWithDefault(
         elem,
         "measureLength",
-        "int",1
+        "int",
+        1
       ) as number;
-      g.beatCount = getAttributeValueWithDefault(elem, "beatCount", "int",1) as number;
-        g.offsetSequence = getAttributeValueWithDefault(
-          elem,
-          "offsetSequence",
-          "int",1
-        ) as number;
+      g.beatCount = getAttributeValueWithDefault(
+        elem,
+        "beatCount",
+        "int",
+        1
+      ) as number;
+      g.offsetSequence = getAttributeValueWithDefault(
+        elem,
+        "offsetSequence",
+        "int",
+        1
+      ) as number;
       g.initialSequence();
-      g.noteCount = getAttributeValueWithDefault(elem, "noteCount", "int", 1) as number;
+      g.noteCount = getAttributeValueWithDefault(
+        elem,
+        "noteCount",
+        "int",
+        1
+      ) as number;
       try {
-        g.offsetNotes = getAttributeValueWithDefault(elem, "offsetNotes", "int",1) as number;
+        g.offsetNotes = getAttributeValueWithDefault(
+          elem,
+          "offsetNotes",
+          "int",
+          1
+        ) as number;
       } catch (e) {
         g.offsetNotes = 0;
       }
       g.#activeNotes = euclideanRhythm(g.noteCount, 12, g.offsetNotes);
-      g.noiseSeed = getAttributeValueWithDefault(elem, "noiseSeed", "string","seed") as string;
+      g.noiseSeed = getAttributeValueWithDefault(
+        elem,
+        "noiseSeed",
+        "string",
+        "seed"
+      ) as string;
       g.noiseAmplitude = getAttributeValueWithDefault(
         elem,
         "noiseAmplitude",
-        "float",0
+        "float",
+        0
       ) as number;
       try {
         g.noiseFrequency = getAttributeValueWithDefault(
           elem,
           "noiseFrequency",
-          "float",0
+          "float",
+          0
         ) as number;
       } catch (e) {
         g.noiseFrequency = 0;
       }
-      try {
         g.reverbDuration = getAttributeValueWithDefault(
           elem,
           "reverbDuration",
-          "float",0
+          "float",
+          0
         ) as number;
         g.reverbDecay = getAttributeValueWithDefault(
           elem,
           "reverbDecay",
-          "float",0
+          "float",
+          0
         ) as number;
-      } catch (e) {
-        g.reverbDecay = 0;
-        g.reverbDuration = 0;
-      }
-        g.attackEnabled = getAttributeValueWithDefault(
-          elem,
-          "attackEnabled",
-          "boolean",
-          true
-        ) as boolean;
+      g.attackEnabled = getAttributeValueWithDefault(
+        elem,
+        "attackEnabled",
+        "boolean",
+        true
+      ) as boolean;
       [g.noteP, g.speedP, g.attackP, g.durationP, g.volumeP, g.panP].forEach(
         async (algorithm: AlgorithmType, i) => {
           let newAlgorithm: AlgorithmType = algorithm.copy();
@@ -631,7 +697,8 @@ export class Algorithmic extends Silent {
           const pType: ALGORITHMTYPE = getAttributeValueWithDefault(
             pElem,
             "algorithmType",
-            "string", ""
+            "string",
+            ""
           ) as ALGORITHMTYPE;
           switch (pType) {
             case ALGORITHMTYPE.Constant: {
@@ -685,16 +752,45 @@ export class Algorithmic extends Silent {
               break;
             }
           }
-
           // move the new algorithm to the correct attribute
           switch (parameterNames[i]) {
-            case 'noteP': g.noteP = newAlgorithm; break;
-            case 'speedP': g.speedP = newAlgorithm; break;
-            case 'attackP': g.attackP = newAlgorithm; break;
-            case 'durationP': g.durationP = newAlgorithm; break;
-            case 'volumeP': g.volumeP = newAlgorithm; break;
-            case 'panP': g.panP = newAlgorithm; break;
+            case "noteP":
+              g.noteP = newAlgorithm;
+              break;
+            case "speedP":
+              g.speedP = newAlgorithm;
+              break;
+            case "attackP":
+              g.attackP = newAlgorithm;
+              break;
+            case "durationP":
+              g.durationP = newAlgorithm;
+              break;
+            case "volumeP":
+              g.volumeP = newAlgorithm;
+              break;
+            case "panP":
+              g.panP = newAlgorithm;
+              break;
           }
+
+          // get the tremelo and vibrator effects
+          [g.tremelo, g.vibrato].forEach(async (_effect:Tremelo, i) => {
+            try {
+              const eElem: Element = getElementElement(elem, effectNames[i]);
+              const promise: Promise<Tremelo> = Tremelo.getXML(eElem, version);
+              const tResult: Tremelo[] = await Promise.all([promise]);
+              if (effectNames[i] == 'tremelo')
+                g.tremelo = tResult[0];  
+              else
+                g.vibrato = tResult[0];
+            } catch (e) {
+              if (effectNames[i] == 'tremelo')
+                g.tremelo = new Tremelo();  
+              else
+                g.vibrato = new Tremelo();
+            }
+          });
         }
       );
 
@@ -773,7 +869,10 @@ export class Algorithmic extends Silent {
         }
       }
     );
+
+    [values.tremelo, values.vibrato].forEach((effect: Tremelo) => {
+      result.push(...Tremelo.validate(effect));
+    })
     return result;
   }
 }
-

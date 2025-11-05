@@ -78,7 +78,7 @@ body {
   float: left;
   position: relative;
   overflow: visible;
-  z-index: 99;
+  /* z-index: 99; */
 }
 
 .dropdown .dropbtn {
@@ -612,23 +612,6 @@ ul:after {
   animation-duration: 0.4s;
   cursor: inherit;
 }
-
-.generator-header {
-  padding: 2px 16px;
-  background-color: #5c75b8;
-  color: white;
-}
-
-.generator-body {
-  padding: 2px 16px;
-}
-
-.generator-footer {
-  padding: 2px 16px;
-  background-color: #5c75b8;
-  color: white;
-}
-
 .generator-selected {
   fill: rgba(255, 169, 203, 0.418);
 }
@@ -651,7 +634,53 @@ ul:after {
   animation-name: animateleft;
   animation-duration: 0.4s;
   cursor: inherit;
+  display: grid;
+  grid-template-rows: 20px 1fr auto;
+  grid-template-areas: "header" "body" "footer";
+  .header {
+    grid-area: header;
+    background-color: #5c75b8;
+    color: white;
+  }
+  .body { grid-area: body; background-color: white; color:black;}
+    .footer{grid-area:footer; background-color: #5c75b8;}
 }
+.id {padding: 5px;}
+.algorithmic-preamble {
+    display: grid;
+    grid-area: body;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: "soundfont tools" "tremelo vibrato" "noise reverb" "rhythm rhythm";
+    background-color: white;
+    color: black;
+    .id {
+      grid-area: id; padding: 5px;
+    }
+    .soundfont {
+      grid-area: soundfont;padding: 5px;
+    }
+    .tremelo {
+      grid-area: tremelo;padding: 5px;
+    }
+    .vibrato {
+      grid-area: vibrato;padding: 5px;
+    }
+    .tools {
+      grid-area: tools;padding: 5px;
+    }
+    .rhythm {
+      grid-area: rhythm;padding: 5px;
+    }
+    .noise {
+      grid-area: noise;padding: 5px;
+    }
+    .reverb {
+      grid-area: reverb;padding: 5px;
+    }
+    .table {
+      grid-area: table;padding: 5px;
+    }
+  }
 
 .algorithmic-table {
   display: grid;
@@ -901,7 +930,8 @@ ul:after {
     }
   }
 }
-
+hr {height:2px;border-width:0;color:gray;background-color:gray}
+label {padding: 5px; }
 table,
 th,
 td {

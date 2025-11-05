@@ -1,17 +1,15 @@
 // Preferenences that are composition related
 export enum TIMELINETYPE {
-  'Time' = 'Time',
-  'Measure' = 'Measure',
+  "Time" = "Time",
+  "Measure" = "Measure",
 }
 export type TimeLinePreferences = {
   TimeSnappingEnabled: boolean;
   TimeLineSetting: TIMELINETYPE;
   MeasureSubdivisions: number;
-}
+};
 
-export type OscillatorBoxProperties = {
-  
-}
+export type OscillatorBoxProperties = {};
 
 import { Buffer } from "buffer";
 import Track from "classes/track";
@@ -74,7 +72,7 @@ export type AlgorithmType =
   | OscillatorValues
   | MarkovianValues
   | WienerValues
-  | SequenceValues
+  | SequenceValues;
 
 export enum ALGORITHMTYPE {
   "None" = "None",
@@ -148,8 +146,13 @@ export type WienerType = {
 };
 
 export const parameterNames: string[] = [
-  'noteP', 'speedP','attackP','durationP','volumeP','panP'
-]
+  "noteP",
+  "speedP",
+  "attackP",
+  "durationP",
+  "volumeP",
+  "panP",
+];
 export const atttributeTitles: string[] = [
   "Note (pitch)",
   "Speed (BPM)",
@@ -159,6 +162,7 @@ export const atttributeTitles: string[] = [
   "Pan [-1, +1]",
 ];
 
+export const effectNames: string[] = ["tremelo", "vibrato"];
 
 export enum SEQUENCEATTRIBUTE {
   "note" = "note",
@@ -179,13 +183,13 @@ export const Attributes: SEQUENCEATTRIBUTE[] = [
 export type SequenceItem = {
   value: number;
   beats: number;
-}
+};
 export type SequenceType = {
   name: string;
   sequenceAttribute: SEQUENCEATTRIBUTE;
   transpose: number;
-  items:SequenceItem[];
-}
+  items: SequenceItem[];
+};
 
 export enum NOISETYPE {
   white = "white",
@@ -232,7 +236,7 @@ export enum TIMEFORMATTYPE {
 // place to hold the soundfont file and the presets in it
 export type SoundFontGeneratorsType = {
   name: string; // the name of the soundfont file
-  generators: (Algorithmic)[]; // the generators that are using this soundfont
+  generators: Algorithmic[]; // the generators that are using this soundfont
 };
 
 // the soundfont file collection for algorithmic generators
@@ -341,6 +345,10 @@ export enum PLAYMODE {
   idle = "idle",
 }
 
+export type GainEnvelope = {
+  t: number;
+  g: number;
+}[]
 // the data that is needed to realize a source and manage it during preview and record
 export type RawSourceData = {
   gen: GeneratorType;
@@ -348,7 +356,7 @@ export type RawSourceData = {
   source: {
     note: number; // pitch number of the source
     sample: Float32Array[]; // the sf instrument sample converted to float32 or noise as float32 - length is sampleRate * totalTime * playbackRate
-                            // or the audiofile samples
+    // or the audiofile samples
     sampleRate: number; // hz/sec (includes the playbackRate sampleRate (instrument sample) * playbackRate (as calcuated) )
     playbackRate: number; // sf playback rate or 1 for noise (will always be one)
     startTime: number; // start time of the source within the generator
@@ -359,7 +367,7 @@ export type RawSourceData = {
   panner: {
     value: number; // pan value from generator
   };
-  vol: { value: number; }
+  vol: { value: number };
   instrument?: {
     name: string;
     sampleRate: number; // sample rate of the instrument
@@ -394,8 +402,8 @@ export type RawSourceData = {
     sustainGain: number;
     initialAttenuation: number;
     attenuation: number;
-    envelope:{t:number, g:number}[]
-  }
+    envelope: GainEnvelope;
+  };
 };
 
 // the attributes of a source that is managed during preview
@@ -415,7 +423,7 @@ export type SignalLevelsType = {
   rightMax: number;
   leftSpectrum: Uint8Array;
   rightSpectrum: Uint8Array;
-}
+};
 export const FFTSIZE: number = 4096;
 export const MINDECIBELS: number = -100;
 export const MAXDECIBELS: number = -10;
@@ -434,8 +442,8 @@ export type DirectoryEntry = {
   name: string;
   path: string;
   type: ENTRYTYPE;
-}
-export type FileEntry = { data: Buffer, type: string};
+};
+export type FileEntry = { data: Buffer; type: string };
 export type FSResponse = {
   error: boolean;
   status?: string;
@@ -444,9 +452,9 @@ export type FSResponse = {
 };
 export type DirectoryList = string[];
 export type FSEntry = {
-  mountPoint: string,
+  mountPoint: string;
   list: string[];
-}
+};
 export type FSList = FSEntry[];
 export enum DBRESPONSETYPE {
   "error" = "error",
@@ -489,8 +497,4 @@ export type DbSequenceType = {
 export type DbResponseType =
   | DbErrorType
   | DbSequenceValidNamesType
-  | DbSequenceType
-;
-
-
-
+  | DbSequenceType;

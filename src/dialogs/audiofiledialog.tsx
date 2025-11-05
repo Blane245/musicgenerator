@@ -133,6 +133,7 @@ export default function AudioFileDialog(
           </span>
         </>
       ) : null}
+      <hr/>
     </>
   );
 }

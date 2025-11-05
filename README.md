@@ -214,7 +214,7 @@ SoundFonts are normally driven by a human gesture, e.g., the press and release o
 
 CMG has certain parameters that mimic human gestures. A generator has a start and stop time, similar to pressing and releasing a key. It has a speed which defines how often notes are played during the generator start/stop period. It has a duration with is a percentage of the time between start and stop that mimics early release for staccato effects. It has an attack parameter which is the note velocity. It has a volume mimicking some form of human control, like a turning of a knob or moving of a slider.
 
-As an example, a violin preset (000:040) in the GeneralUser-GS SoundFont file has a number of instruments defined that are keyed by note range and velocity range. By specify these two parameters, either one or two instruments are selected depending on the note and velocity values. For most notes, the higher velocities have an instrument that contains the samples for hard string bowing. Lower velocities do not have this instrument.
+As an example, a violin preset (000:040) in the GeneralUser-GS SoundFont file has two instruments defined that are keyed by note range and velocity range. By specify these two parameters, either one or two instruments are selected depending on the note and velocity values. For most notes, the higher velocities have an instrument that contains the samples for hard string bowing. Lower velocities do not have this instrument.
 
 The envelope for an instrument is determined by CMG using the following scheme:
 1. The instrument's playback rate is determined from the rootKey, and pitchCorrection. This playback rate and the instrument's sample rate are used to determine the sample rate for the final sample to be constructed (*sampleRate*). 
@@ -222,7 +222,7 @@ The envelope for an instrument is determined by CMG using the following scheme:
 3. The time when the note is to end (*noteEnd*) is either the *Duration* or the length of time of the sample, depending on whether the sample is looping. 
 4. If the sample is not looping or the duration is not the full note length, there is no release phase of the envelope and *releaseEnd* is set to *NoteEnd*.
 5. All of the envelope values are read from the preset/instrument combination. 
-6. The envelope is constructed as follows:
+6. The envelope is constructed as follows.
     * If *noteEnd* is less than *delayEnd* there is no sound and the envelope has one point of zero gain.
     * If *noteEnd* is between *delayEnd* and *attackEnd*, the attack is terminated early at *noteEnd*, the gain at the end of the note is determined by linear interpolation (*noteGainEnd*) and a new point is added to the gain envelope at *noteEnd* with a gain of *noteGainEnd*; otherwise, the envelope has a new point a time of *attackEnd* with a gain of 1 and *noteGainEnd* is 1 in preparation for handling the hold phase.
     * If *noteEnd* is between *attackEnd* and *holdEnd*, there is no decay phase, a new point is added to the gain envelope at *noteEnd* with a gain of 1 and if there is a release phase, a point is added at *releaseEnd* with a gain of 0; otherwise, a point is added at *holdEnd* with a gain of 1 in preparation for handling the decay phase.
@@ -232,22 +232,28 @@ The envelope for an instrument is determined by CMG using the following scheme:
     * There is always a point at *totalTime* with a gain of 0.
 
         Thus a gain envelope may have as few as one point and as many as six.
-    
+
+The delay and and attack phases may be bypassed if the user has diabled the attack phase. Many instruments have attack built into their samples. Applying the SoundFont generators will over emphasize this attack.  
+
+If tremelo if active, the envelope is revised to apply the tremelo waveform. This is done by interpolating the original envelope at 10 ms intervals and applying the waveform. The number of points in the envelope will them by *totalTime/0.01*.
 
 Once the *sampleRate* and *totalTime* are defined the samples can be determined by resampling the instrument's samples and applying noise, which is defined by *noiseFrequency* and *noiseAmplitude*. During this resampling, the *Volume* gain value for the generator is applied. The resampling scheme is as follows:
 
+1. The initial playback rate is determined from the *cents* of the instrument,
 1. The *sampleCount* is the product of *sampleRate* and *totalTime*. construct the sample array with this number of elements and initialized to zero.
 1. The time spacing between samples is the reciprocal of *sampleRate*.
 1. The delay time dead period has length of the product of *sampleRate* and *delayEnd*
 1. The spacing between each instrument sample (*deltaIndex*) is the ratio of the instrument's sample rate and the new sample rate. This may not be an integer. Set current index to zero. This points to the instrument's sample to the used. 
 1. Starting at *delayEnd*, loop through sample array, one entry at a time, incrementing the time by the time spacing
     * if the current index is less than the instrument's last sample, set the sample array to the instrument's sample with noise added (see below); 
-    * otherwise, if looping, adjust the current index to the start opf the loop and set the sample array to this instrument's sample with noise added
+    * otherwise, if looping, adjust the current index to the start of the loop and set the sample array to this instrument's sample with noise added
     * otherwise, there are no more instrument samples, set the sample array at this point to zero.
+    * if there is vibrator active, its waveform is applied to the instruments cents and a new playback rate is calculated. 
+    * The current indes is increments by the play back rate and the process repeated 
 
 Gaussian frequency modulation noise may be added to the sample if specified by the user. The noise has a dispersion of *noiseFrequency* and an amplitude of *noiseAmplitude*. The added noise is balanced with the original signal assuming that the original signal's gain is 1.
 
-Once the sample array has been constructed by resampling the instrument's signal and applying noise, the gain envelope can be applied to it. This is a relatively simple process of interpolating the gain between envelope points and applying it to the signal. The time spacing of the sample points.
+Once the sample array has been constructed by resampling the instrument's signal and applying noise, the gain envelope can be applied to it. This is a relatively simple process of interpolating the gain between envelope points and applying it to the signal.
 
 # Thanks
 

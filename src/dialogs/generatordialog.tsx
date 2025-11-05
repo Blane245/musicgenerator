@@ -393,9 +393,8 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
       <div
         className="generator-content"
         aria-modal="true"
-        style={{ display: "block" }}
       >
-        <div className="generator-header">
+        <div className="header">
           <span className="close" onClick={handleCancelClick}>
             &times;
           </span>
@@ -405,12 +404,14 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
               : "  Generator: " + formData.name}
           </span>
         </div>
-        <div className="generator-body">
+        <div className="body">
+
           <form
             name="generator_CRUD"
             id="generator_CRUD"
             onSubmit={handleSubmit}
           >
+            <div className="id">
             <label>
               Name:&nbsp;
               <input
@@ -423,7 +424,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
             {timeLine?.mode == TIMELINETYPE.Time ? (
               <>
                 <label>
-                  &nbsp;Start Time:&nbsp;
+                  Start Time:&nbsp;
                   <input
                     name="startTime"
                     type="number"
@@ -435,7 +436,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                   <span> (sec) </span>
                 </label>
                 <label>
-                  &nbsp;Stop Time:&nbsp;
+                  Stop Time:&nbsp;
                   <input
                     name="stopTime"
                     type="number"
@@ -451,7 +452,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
             {timeLine?.mode == TIMELINETYPE.Measure? (
               <>
               <label>
-                &nbsp;Start Measure:&nbsp;
+                Start Measure:&nbsp;
                 <input 
                 name='startMeasure'
                 id='startMeasure'
@@ -463,7 +464,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                 />
               </label>
               <label>
-                &nbsp;Start Beat:&nbsp;
+                Start Beat:&nbsp;
                 <input 
                 name='startBeat'
                 id='startBeat'
@@ -476,7 +477,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                 />
               </label>
               <label>
-                &nbsp;Stop Measure:&nbsp;
+                Stop Measure:&nbsp;
                 <input 
                 name='stopMeasure'
                 id='stopMeasure'
@@ -488,7 +489,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                 />
               </label>
               <label>
-                &nbsp;Stop Beat:&nbsp;
+                Stop Beat:&nbsp;
                 <input 
                 name='stopBeat'
                 id='stopBeat'
@@ -502,7 +503,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
               </label>
               </>
             ):null}
-            <br />
+            </div>
             <GeneratorTypeForm
               formData={formData}
               handleChange={handleChange}
@@ -511,7 +512,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
             <input type="submit" value={newGenerator ? "Add" : "Modify"} />
           </form>
         </div>
-        <div className="generator-footer">
+        <div className="footer">
           <button
             type="button"
             id={"generator-preview:" + formData.name}
@@ -526,7 +527,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
             Cancel
           </button>
           {errorMessages.map((m, i) => (
-            <h3 color="red" key={`error-${i}`}>
+            <h3 style={{color:"white"}} key={`error-${i}`}>
               {m}
             </h3>
           ))}

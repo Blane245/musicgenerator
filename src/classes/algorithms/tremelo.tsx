@@ -1,15 +1,17 @@
-import { MODULATOR } from "types";
+import { dBToGain } from "sfcomponents/util";
+import { MODULATOR, ModulatorMap } from "types";
 import { getAttributeValueWithDefault } from "utils/xmlfunctions";
 
-// the tremelo class defines a generator's tremelo effect
+// the tremelo class defines a generator's volume tremelo and pitch vibrator effects
 export default class Tremelo {
     values: {
-        speed: number; // BPM
+        speed: number; // mHz
         depth: number; // dB
         waveForm: MODULATOR; // waveform 
     } = {speed: 0, depth: 0, waveForm: MODULATOR.SINE}
 copy(): Tremelo {
     const n = new Tremelo();
+    n.values = {...this.values};
     return n;
 }
 
@@ -35,9 +37,19 @@ isEqual (newTremelo: Tremelo): boolean {
     return false;
   }
 
-  // TODO teh business end of tremelo
-getCurrentValue(_time: number, _beat?: number): number {
-    return this.values.value;
+  // Tremelo is an oscillator. Use Oscillator algorithm methof
+getCurrentValue(time: number, _beat?: number): number {
+    let value: number = 0;
+    const valueFunction = ModulatorMap.get(this.values.waveForm);
+    if (!valueFunction) return value;
+    value = valueFunction(
+      time,
+      0,
+      this.values.speed,
+      this.values.depth,
+      0
+    );
+    return value;
   }
 
 

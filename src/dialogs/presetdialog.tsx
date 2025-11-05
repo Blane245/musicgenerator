@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect, useState } from "react";
-import { getPresetNote } from "playfunctions/getpresetnote";
+import { getPresetNote } from "playfunctions/presetProcessing/getpresetnote";
 import { Preset } from "sfcomponents/types";
 import {
   bankPresettoName,
