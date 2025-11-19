@@ -3,7 +3,7 @@ import { ALGORITHMTYPE, EPS, MarkovianType, MARKOVSTATE } from "types";
 import { getAttributeValueWithDefault } from "utils/xmlfunctions";
 import { AlgorithmValues } from "./algorithmvalues";
 
-export class MarkovianValues extends AlgorithmValues {
+export default class MarkovianValues extends AlgorithmValues {
   override values: MarkovianType;
 
   constructor(

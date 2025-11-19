@@ -15,17 +15,20 @@ import {
 import CMGFile from "./classes/cmgfile";
 import TimeLine from "./classes/timeline";
 import {
-  PLAYMODE,
+  EditGenerator,
   GeneratorType,
   MouseLocation,
+  PLAYMODE,
   RawSourceData,
-  TimelineInterval,
-  EditGenerator,
-  SignalLevelsType
+  TimelineInterval
 } from "./types";
 
 // the elements of this application that are used at many levels
 interface CMGContextType {
+  appName: string;
+  setAppName: Dispatch<SetStateAction<string>>;
+  appVersion: string;
+  setAppVersion: Dispatch<SetStateAction<string>>;
   screenHeight: number;
   setScreenHeight: Dispatch<SetStateAction<number>>;
   screenWidth: number;
@@ -96,13 +99,18 @@ interface CMGContextType {
   setMouseLocation: Dispatch<SetStateAction<MouseLocation | null>>;
   generatorsPlaying: GeneratorType[];
   setGeneratorsPlaying: Dispatch<SetStateAction<GeneratorType[]>>;
-  signalLevels: SignalLevelsType;
-  setSignalLevels: Dispatch<SetStateAction<SignalLevelsType>>;
+  FFTSize: number;
+  setFFTSize: Dispatch<SetStateAction<number>>;
+  frequencyDisplay: string;
+  setFrequencyDisplay: Dispatch<SetStateAction<string>>;
 }
 
 const CMGContext = createContext<CMGContextType | undefined>(undefined);
 
 export const CMGProvider = ({ children }: { children: ReactNode }) => {
+  // application data
+  const [appName, setAppName] = useState<string>("");
+  const [appVersion, setAppVersion] = useState<string>('');
   // items used to define the window layout
   const [screenHeight, setScreenHeight] = useState<number>(0);
   const [screenWidth, setScreenWidth] = useState<number>(0);
@@ -147,8 +155,8 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
   const [generatorsPlaying, setGeneratorsPlaying] = useState<GeneratorType[]>(
     []
   );
-  const [signalLevels, setSignalLevels] = useState<SignalLevelsType> (
-  { leftVolume: -90, rightVolume: -90, leftSpectrum: new Uint8Array(0), rightSpectrum: new Uint8Array(0) });
+  const [FFTSize, setFFTSize] = useState<number>(2048);
+  const [frequencyDisplay, setFrequencyDisplay] = useState<string>('spectrum');
 
   // items used to manage mouse interactivity
   const mouseDown = useRef<boolean>(false);
@@ -156,6 +164,10 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     null
   );
   const contextValue = {
+    appName,
+    setAppName,
+    appVersion,
+    setAppVersion,
     screenHeight,
     setScreenHeight,
     screenWidth,
@@ -226,10 +238,10 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     setMouseLocation,
     generatorsPlaying,
     setGeneratorsPlaying,
-    signalLevels,
-    setSignalLevels,
-    // generatorType,
-    // setGeneratorType,
+    FFTSize,
+    setFFTSize,
+    frequencyDisplay,
+    setFrequencyDisplay,
   };
 
   return (

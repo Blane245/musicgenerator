@@ -22,14 +22,14 @@ import {
   triangleModulator,
 } from "../modulators";
 import { SoundFont2 } from "../soundfont2";
-import { Silent } from "classes/generators/silent";
-import { Algorithmic } from "classes/generators/algorithmic";
-import { AudioFile } from "classes/generators/audiofile";
-import { ConstantValues } from "classes/algorithms/constantvalues";
-import { AutoregressiveValues } from "classes/algorithms/autoregressivevalues";
-import { OscillatorValues } from "classes/algorithms/oscillatorvalues";
-import { MarkovianValues } from "classes/algorithms/markovianvalues";
-import { WienerValues } from "classes/algorithms/wienervalues";
+import Silent from "classes/generators/silent";
+import Algorithmic from "classes/generators/algorithmic";
+import AudioFile from "classes/generators/audiofile";
+import ConstantValues from "classes/algorithms/constantvalues";
+import AutoregressiveValues from "classes/algorithms/autoregressivevalues";
+import OscillatorValues from "classes/algorithms/oscillatorvalues";
+import MarkovianValues from "classes/algorithms/markovianvalues";
+import WienerValues from "classes/algorithms/wienervalues";
 import SequenceValues from "classes/algorithms/sequencevalues";
 
 export const SAMPLERATE: number = 44100;
@@ -43,6 +43,8 @@ export const DEFAULTLOCALSFURI: string = "/SoundFonts";
 export const RECENTFILES: string = "recentFiles";
 export const RECENTCMGDIRECTORY: string = "recentCMGDirectory";
 export const RECENTRECORDDIRECTORY: string = "recentRECORDDirectory";
+export const PREVIEWFREQUENCYDISPLAY: string = "previewFrequencyDisplay";
+export const PREVIEWFFTSIZE: string = "previewFFTSize";
 
 export type MouseLocation = {
   X: number;
@@ -162,7 +164,7 @@ export const atttributeTitles: string[] = [
   "Pan [-1, +1]",
 ];
 
-export const effectNames: string[] = ["tremelo", "vibrato"];
+export const effectNames: string[] = ["tremolo", "vibrato"];
 
 export enum SEQUENCEATTRIBUTE {
   "note" = "note",
@@ -416,6 +418,25 @@ export type ActiveSource = {
   stopTime: number;
 };
 
+export enum SectionType {
+  "Instrument" = "Instrument",
+  "Percussion" = "Percussion",
+  "AudioFile" = "AudioFile",
+  "None" = "None",
+}
+export type DrawingSection = {
+  type: SectionType;
+  verticalOffset: number;
+  height: number;
+  loValue: number;
+  hiValue: number;
+};
+export type SourceToDrawingSectionEntry = {
+  sourceIndex: number;
+  sectionIndex: number;
+};
+
+
 export type SignalLevelsType = {
   leftVolume: number;
   leftMax: number;
@@ -424,7 +445,7 @@ export type SignalLevelsType = {
   leftSpectrum: Uint8Array;
   rightSpectrum: Uint8Array;
 };
-export const FFTSIZE: number = 4096;
+
 export const MINDECIBELS: number = -100;
 export const MAXDECIBELS: number = -10;
 

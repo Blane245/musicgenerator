@@ -1,10 +1,9 @@
-import Tremelo from "classes/algorithms/tremelo";
-import { PiEnvelopeThin } from "react-icons/pi";
+import Tremolo from "classes/algorithms/tremolo";
 import { dBToGain } from "sfcomponents/util";
 import { GainEnvelope } from "types";
 import { linearInterpolate } from "utils/interpolation";
 
-const tremeloDelta: number = 0.01; // 10 ms between tremelo samples
+const tremeloDelta: number = 0.01; // 10 ms between tremolo samples
 export default function buildEnvelope(
   delayEnd: number,
   attackEnd: number,
@@ -15,7 +14,7 @@ export default function buildEnvelope(
   volumeGain: number,
   sustainGain: number,
   attenuation: number,
-  tremelo: Tremelo
+  tremolo: Tremolo
 ): { envelope: GainEnvelope; noteEndGain: number } {
   // get the envelope curve
   let noteEndGain: number = 0;
@@ -62,8 +61,8 @@ export default function buildEnvelope(
 
   envelope.push({ t: releaseEnd, g: 0 });
 
-  // now that the basic envelope has been built, apply tremelo if present
-  if (tremelo.values.depth == 0 || tremelo.values.speed == 0)
+  // now that the basic envelope has been built, apply tremolo if present
+  if (tremolo.values.depth == 0 || tremolo.values.speed == 0)
     return { envelope, noteEndGain };
   const newEnvelope: { t: number; g: number }[] = [];
   const endTime: number = envelope[envelope.length - 1].t;
@@ -75,7 +74,8 @@ export default function buildEnvelope(
     const nextIndex:number = Math.min(envelopIndex + 1, envelope.length - 1);
     const currentGain: number = linearInterpolate(t, envelope[envelopIndex].t ,
         envelope[nextIndex].t, envelope[envelopIndex].g, envelope[nextIndex].g);
-    const deltaGain: number = dBToGain(tremelo.getCurrentValue(t, 0));
+    const deltaGain: number = dBToGain(tremolo.getCurrentValue(t, 0));
+    // console.log('envelope: current, delta, total gain', currentGain, deltaGain, Math.min(Math.max(currentGain + deltaGain, 0),1));
     newEnvelope.push({ t: t, g: Math.min(Math.max(currentGain + deltaGain, 0),1) });
   }
   return { envelope: newEnvelope, noteEndGain };

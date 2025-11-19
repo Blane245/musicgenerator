@@ -10,15 +10,16 @@ import TimeLineControls from "panels/timelinecontrols";
 import TimeLineDisplay from "panels/timelinedisplay";
 import { useEffect, useState } from "react";
 
-export interface HeaderProps {
-  appName: string;
-  appVersion: string;
-}
-
-export default function Header(props: HeaderProps) {
-  const { appName, appVersion } = props;
-  const { fileName, fileContents, displayWidth, timelineWidth, controlWidth } =
-    useCMGContext();
+export default function Header() {
+  const {
+    appName,
+    appVersion,
+    fileName,
+    fileContents,
+    displayWidth,
+    timelineWidth,
+    controlWidth,
+  } = useCMGContext();
   const [isDirty, setIsDirty] = useState("");
 
   useEffect(() => {

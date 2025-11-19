@@ -70,7 +70,7 @@ The following figure illustrates the audio graph using an example where their ar
 
 The upper figure focuses on overall structure from the generators to the compressor. The lower figure focuses on the multiple sources of a single generator. A generator can create one or more sources depending on its type and the specified interval or speed.
 
-![Web Audio Routine Graph](AudioRoutingGraph.png)
+![Web Audio Routine Graph](./READMEimages/AudioRoutingGraph.png)
 
 The upper figure presents those sources, volumes, pans, and reverbs or a generator as a single box. Each generator group is connected to the room concentrator which has a gain of 1. The lower figure illustrates a generator that creates several sources, applies volume and pan to each source. In all cases the gain for volume is 1, as the attribute has been handled in the construction of the sources signal.
 
@@ -78,15 +78,15 @@ The room concentrator gain output is routed to an reverb, compressor, equalizer,
 
 The reverb, compressor, and equalizer may be enabled or disabled by the user. The diagrams for each is shown below. First the reverb:
 
-![Reverb audio routing graph](RoomReverb.png)
+![Reverb audio routing graph](./READMEimages/RoomReverb.png)
 
 The compressor:
  
-![compressor audio routing graph](RoomCompressor.png)
+![compressor audio routing graph](./READMEimages/RoomCompressor.png)
 
 The equalizer:
 
-![equalizer audio routing graph](RoomEqualizer.png)
+![equalizer audio routing graph](./READMEimages/RoomEqualizer.png)
 
 # Application Structure
 
@@ -100,7 +100,7 @@ The CMG application provides several features:
 
 The figure below illustrates the class structure of the application. It is implemented as a Vite client using TypeScript. A webserver is used to access a library of soundfont files.
 
-![CMG Component Diagram](ClassDiagram.png)
+![CMG Component Diagram](./READMEimages/ClassDiagram.png)
 
 The application is designed around the user interface and supported by a context. The four parts of the application are the header, body, footer, and previewer. Preview is implemented at the top level to facilitate full screen display of the preview window.
 
@@ -208,7 +208,7 @@ The gain envelope, in general has five different regions that may be present. Th
 
 Below is a full gain envelope with all regions present. Not all may be in all cases depending on parameters of the note. 
 
-![Gain Envelop](GainEnvelope.png)
+![Gain Envelop](./READMEimages/GainEnvelope.png)
 
 SoundFonts are normally driven by a human gesture, e.g., the press and release of a key. A key may be pressed soft or hard, thus giving it a sound a different attack. In SoundFont terminology, this is called note velocity.
 
@@ -235,7 +235,7 @@ The envelope for an instrument is determined by CMG using the following scheme:
 
 The delay and and attack phases may be bypassed if the user has diabled the attack phase. Many instruments have attack built into their samples. Applying the SoundFont generators will over emphasize this attack.  
 
-If tremelo if active, the envelope is revised to apply the tremelo waveform. This is done by interpolating the original envelope at 10 ms intervals and applying the waveform. The number of points in the envelope will them by *totalTime/0.01*.
+If tremolo if active, the envelope is revised to apply the tremolo waveform. This is done by interpolating the original envelope at 10 ms intervals and applying the waveform. The number of points in the envelope will them by *totalTime/0.01*.
 
 Once the *sampleRate* and *totalTime* are defined the samples can be determined by resampling the instrument's samples and applying noise, which is defined by *noiseFrequency* and *noiseAmplitude*. During this resampling, the *Volume* gain value for the generator is applied. The resampling scheme is as follows:
 

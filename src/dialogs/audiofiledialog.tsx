@@ -1,4 +1,4 @@
-import { AudioFile } from "classes/generators/audiofile";
+import AudioFile from "classes/generators/audiofile";
 import { ChangeEvent, useEffect, useState } from "react";
 import { precision } from "sfcomponents/util";
 

@@ -13,9 +13,9 @@ import { GeneratorType, GENERATORTYPE, PLAYMODE, TIMELINETYPE } from "types";
 import { addGenerator, modifyGenerator } from "utils/cmfiletransactions";
 import { getGeneratorUID } from "utils/getgeneratoruid";
 import GeneratorTypeForm from "./generatortypeform";
-import { Silent } from "classes/generators/silent";
-import { AudioFile } from "classes/generators/audiofile";
-import { Algorithmic } from "classes/generators/algorithmic";
+import Silent from "classes/generators/silent";
+import AudioFile from "classes/generators/audiofile";
+import Algorithmic from "classes/generators/algorithmic";
 
 // The icon starts at the generator's start time and ends at the generators endtime
 export interface GeneratorDialogProps {

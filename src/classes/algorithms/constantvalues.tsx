@@ -2,7 +2,7 @@ import { ALGORITHMTYPE, ConstantType } from "types";
 import { getAttributeValueWithDefault } from "utils/xmlfunctions";
 import { AlgorithmValues } from "./algorithmvalues";
 
-export class ConstantValues extends AlgorithmValues {
+export default class ConstantValues extends AlgorithmValues {
   override values: ConstantType;
   constructor(initialValue?: number) {
     super(ALGORITHMTYPE.Constant);

@@ -209,7 +209,7 @@ export default function FileMenu() {
         fileName,
         overWrite,
         fileContents,
-        timeLine
+        timeLine,
       );
       if (error == "file exists but overwrite is false") {
         setFileExists(true);
@@ -240,7 +240,7 @@ export default function FileMenu() {
         const { fileContents, timeLine: thisTimeLine } = await readCMGFile(
           name,
           timeLine.width,
-          timeLine.height
+          timeLine.height,
         );
         if (fileContents) {
           setFileContents(fileContents);

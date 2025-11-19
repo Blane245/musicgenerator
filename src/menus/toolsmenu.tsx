@@ -19,6 +19,9 @@ export default function ToolsMenu() {
       case "freq":
         setFreqTool(true);
         break;
+      case "editor":
+        window.open(import.meta.env.SEQUENCEEDITORURL);
+        break;
       case "measure":
         setMeasureTool(true);
         break;
@@ -50,6 +53,9 @@ export default function ToolsMenu() {
           <div className="dropdown-one">
             <a className="dItem" onClick={() => handleMenuSelect("freq")}>
               Midi/Frequency Converter...
+            </a>
+            <a className="dItem" onClick={() => handleMenuSelect("editor")}>
+              Start CMG Sequence Editor
             </a>
             <a className="dItem" onClick={() => handleMenuSelect("measure")}>
               Measure Duration Calculator...

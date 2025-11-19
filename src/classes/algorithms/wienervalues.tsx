@@ -4,7 +4,7 @@ import { gaussianRandom } from "utils/gaussianrandom";
 import { getAttributeValueWithDefault } from "utils/xmlfunctions";
 import { AlgorithmValues } from "./algorithmvalues";
 
-export class WienerValues extends AlgorithmValues {
+export default class WienerValues extends AlgorithmValues {
   override values: WienerType;
 
   constructor(

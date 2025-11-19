@@ -1,4 +1,4 @@
-import { Algorithmic } from "classes/generators/algorithmic";
+import Algorithmic from "classes/generators/algorithmic";
 import { useCMGContext } from "cmgcontext";
 import ToolsMenu from "menus/toolsmenu";
 import { ChangeEvent, useState } from "react";
@@ -91,40 +91,40 @@ export default function AlgorithmicDialog(
             />
           </label>
                   </div>
-                  <div className="tremelo">
+                  <div className="tremolo">
           <label>
-            Tremelo Speed: (mHz)&nbsp;
+            Tremolo Speed: (mHz)&nbsp;
             <input
-              name="tremelo.speed"
+              name="tremolo.speed"
               type="number"
               min={0}
               max={10000}
               step={1}
-              value={formData.tremelo.values.speed}
+              value={formData.tremolo.values.speed}
               onChange={handleChange}
             />
           </label>
           <label>
-            Tremelo Depth: (dB)&nbsp;
+            Tremolo Depth: (dB)&nbsp;
             <input
-              name="tremelo.depth"
+              name="tremolo.depth"
               type="number"
               min={0}
               max={10}
               step={0.1}
-              value={formData.tremelo.values.depth}
+              value={formData.tremolo.values.depth}
               onChange={handleChange}
             />
           </label>
           <label>
-            Tremelo Modulator:&nbsp;
+            Tremolo Modulator:&nbsp;
             <select
-              name="tremelo.waveform"
-              value={formData.tremelo.values.waveForm}
+              name="tremolo.waveform"
+              value={formData.tremolo.values.waveForm}
               onChange={handleChange}
             >
               {Object.values(MODULATOR).map((mod: MODULATOR) => (
-                <option key={`tremelo-waveform-${mod}`} value={mod}>
+                <option key={`tremolo-waveform-${mod}`} value={mod}>
                   {mod}
                 </option>
               ))}

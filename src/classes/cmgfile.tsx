@@ -1,9 +1,9 @@
-import { GeneratorType } from "types";
-import { getAttributeValue } from "utils/xmlfunctions";
 import Compressor from "classes/roomnodes/compressor";
 import Equalizer from "classes/roomnodes/equalizer";
 import Reverb from "classes/roomnodes/reverb";
 import Track from "classes/track";
+import { GeneratorType } from "types";
+import { getAttributeValue } from "utils/xmlfunctions";
 import Volume from "./roomnodes/volume";
 export default class CMGFile {
   dirty: boolean; // if the contents of the file has been changed since loaded, it is marked dirty

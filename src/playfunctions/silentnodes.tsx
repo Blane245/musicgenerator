@@ -1,7 +1,7 @@
 // this prepares for playing a loaded audiofile without any modulation other than
 // a volume setting
 
-import { Silent } from "classes/generators/silent";
+import Silent from "classes/generators/silent";
 import { RawSourceData } from "../types";
 
 export function getBufferSourceNodesFromSilent(gen: Silent, sourceCount: number): RawSourceData[] {

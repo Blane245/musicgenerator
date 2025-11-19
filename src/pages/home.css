@@ -290,7 +290,7 @@ ul:after {
     display: grid;
     grid-area: body;
     grid-template-columns: 200px 1fr;
-    grid-template-rows: repeat(6, 100px);
+    grid-template-rows: repeat(10, 100px);
     gap: 0;
     position: absolute;
     top: 85px;
@@ -650,7 +650,7 @@ ul:after {
     display: grid;
     grid-area: body;
     grid-template-columns: 1fr 1fr;
-    grid-template-areas: "soundfont tools" "tremelo vibrato" "noise reverb" "rhythm rhythm";
+    grid-template-areas: "soundfont tools" "reverb vibrato" "noise tremolo" "rhythm rhythm";
     background-color: white;
     color: black;
     .id {
@@ -659,8 +659,8 @@ ul:after {
     .soundfont {
       grid-area: soundfont;padding: 5px;
     }
-    .tremelo {
-      grid-area: tremelo;padding: 5px;
+    .tremolo {
+      grid-area: tremolo;padding: 5px;
     }
     .vibrato {
       grid-area: vibrato;padding: 5px;
@@ -1086,7 +1086,7 @@ td {
     background-color: lightskyblue;
     grid-area: footer;
     display: grid;
-    grid-template-columns: 1fr 200px 200px 300px 300px 300px 40px;
+    grid-template-columns: 1fr 800px 800px 300px 300px 300px 40px;
     grid-template-areas: "status leftSignal rightSignal reverb compressor equalizer volume";
     .status {
       grid-area: status;

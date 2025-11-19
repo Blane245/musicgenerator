@@ -1,8 +1,8 @@
 import { GENERATORTYPE, GeneratorType } from "types";
 import { getAttributeValue, getAttributeValueWithDefault, getElementElement } from "utils/xmlfunctions";
-import { Silent } from "./generators/silent";
-import { AudioFile } from "./generators/audiofile";
-import { Algorithmic } from "./generators/algorithmic";
+import Silent from "./generators/silent";
+import AudioFile from "./generators/audiofile";
+import Algorithmic from "./generators/algorithmic";
 export default class Track {
   name: string;
   mute: boolean;

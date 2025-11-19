@@ -1,5 +1,5 @@
 import CMGFile from "classes/cmgfile";
-import { Algorithmic } from "classes/generators/algorithmic";
+import Algorithmic from "classes/generators/algorithmic";
 import Track from "classes/track";
 import { samplePool } from "sfcomponents/samplepool";
 import { Preset } from "sfcomponents/types";
@@ -148,7 +148,7 @@ export const getPresetNote = (
       volumeGain,
       sustainGain,
       attenuation,
-      gen.tremelo,
+      gen.tremolo,
     );
 
     // build the sample using resampling

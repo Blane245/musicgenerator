@@ -1,4 +1,4 @@
-import { FFTSIZE, MAXDECIBELS, MINDECIBELS, SignalLevelsType } from "types";
+import { MAXDECIBELS, MINDECIBELS, SignalLevelsType } from "types";
 
 export default class SignalLevel {
   #context: AudioContext; // not usable in recording mode
@@ -9,7 +9,8 @@ export default class SignalLevel {
   #leftDataArray: Float32Array;
   #rightDataArray: Float32Array;
 
-  constructor(context: AudioContext, source: AudioNode) {
+
+  constructor(context: AudioContext, source: AudioNode, FFTSize: number) {
     this.#context = context;
     this.#filter = context.createBiquadFilter();
     this.#filter.type = 'highpass';
@@ -18,14 +19,14 @@ export default class SignalLevel {
     this.#splitter = context.createChannelSplitter(2);
     this.#filter.connect(this.#splitter);
     this.#leftAnalyser = this.#context.createAnalyser();
-    this.#leftAnalyser.fftSize = FFTSIZE;
+    this.#leftAnalyser.fftSize = FFTSize;
     this.#leftAnalyser.minDecibels = MINDECIBELS;
     this.#leftAnalyser.maxDecibels = MAXDECIBELS;
     this.#leftAnalyser.smoothingTimeConstant = 0.8;
     this.#leftDataArray = new Float32Array(this.#leftAnalyser.frequencyBinCount);
     this.#splitter.connect(this.#leftAnalyser, 0, 0);
     this.#rightAnalyser = this.#context.createAnalyser();
-    this.#rightAnalyser.fftSize = FFTSIZE;
+    this.#rightAnalyser.fftSize = FFTSize;
     this.#rightAnalyser.minDecibels = MINDECIBELS;
     this.#rightAnalyser.maxDecibels = MAXDECIBELS;
     this.#rightAnalyser.smoothingTimeConstant = 0.8;

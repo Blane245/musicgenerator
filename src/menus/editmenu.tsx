@@ -1,13 +1,15 @@
 // The file menu handles creating new files, opening existing ones,
 // saving current ones, and adding tracks to current ones
-// import { Algorithmic } from "classes/generators";
-import { Algorithmic } from "classes/generators/algorithmic";
+// import Algorithmic from "classes/generators";
+import Algorithmic from "classes/generators/algorithmic";
 import TimeLine from "classes/timeline";
 import Track from "classes/track";
 import { useCMGContext } from "cmgcontext";
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import {
   GENERATORTYPE,
+  PREVIEWFFTSIZE,
+  PREVIEWFREQUENCYDISPLAY,
   RECORDFORMAT,
   SFFILELOCATION,
   TIMELINETYPE,
@@ -32,6 +34,10 @@ export default function EditMenu() {
     playing,
     recordFormat,
     SFLocalDirectory,
+    FFTSize,
+    setFFTSize,
+    frequencyDisplay,
+    setFrequencyDisplay,
   } = useCMGContext();
   const [comment, setComment] = useState<string>("");
   const [commentModal, setCommentModal] = useState<boolean>(false);
@@ -132,7 +138,14 @@ export default function EditMenu() {
     window.localStorage.setItem(SFFILELOCATION, location);
     setSFFileList(newSFFileList.list);
     setTimeLine(formData.copy());
+    const newFFTSize:number = parseInt(event.target["FFTSize"].value);
+    setFFTSize(newFFTSize);
+    window.localStorage.setItem(PREVIEWFFTSIZE, newFFTSize.toString());
+    const newDisplay:string = event.target["frequencyDisplay"].value;
+    setFrequencyDisplay(newDisplay);
+    window.localStorage.setItem(PREVIEWFREQUENCYDISPLAY, newDisplay);
     setDirty(true, fileContents, setFileContents);
+
     // disable the preferences modal
     setPreferencesModal(false);
   }
@@ -264,6 +277,7 @@ export default function EditMenu() {
                 </select>
               </label>
               <br />
+              <div>Measure Definition</div><br/>
               <label>
                 Measure Length:&nbsp;
                 <input
@@ -292,6 +306,7 @@ export default function EditMenu() {
                 />
               </label>
               <br />
+              <div>Snap Option</div><br/>
               <label>
                 Snap Mode:&nbsp;
                 <input
@@ -320,18 +335,36 @@ export default function EditMenu() {
                   <span>&nbsp;(sec)</span>
                 </label>
               ) : null}
+              <hr/>
+              <div>Frequency Display Options</div><br/>
+              <label>
+                FFT Size:&nbsp;
+                <input type="number"
+                size={10}
+                min={256}
+                max={256*32}
+                step={256}
+                name="FFTSize"
+                defaultValue={FFTSize}
+                    style={{ marginBottom: "2px" }}
+                    />
+              </label>
+              <br />
+              <label>
+                Frequency Display:&nbsp;
+                <select
+                name="frequencyDisplay"
+                  defaultValue={frequencyDisplay}
+                >
+                  <option value="spectrum">spectrum</option>
+                  <option value="sonogram">sonogram</option>
+                </select>
+              </label>
               <hr />
               <input type="submit" value="Save" />
               <button
                 onClick={() => setPreferencesModal(false)}
                 style={{ paddingLeft: "6px", color: "ButtonText"
-                //   backgroundColor: "ButtonFace",
-                //   fontSize: "12px",
-                //   paddingLeft: "6px",
-                //   paddingTop: "1px",
-                //   paddingRight: "6px",
-                //   paddingBottom: "1px",
-                //   border: "3.333",
                 }}
               >
                 Cancel

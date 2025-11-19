@@ -4,7 +4,7 @@
 // TODO the current implementation does not include vibrato
 // construct the sample array from the original sample and the total time and sample rate
 
-import Tremelo from "classes/algorithms/tremelo";
+import Tremolo from "classes/algorithms/tremolo";
 import { linearInterpolate } from "utils/interpolation";
 
 // add zeroes for any delay. Add noise and adsjust the volume
@@ -18,7 +18,7 @@ export default function buildSampleArray(
   totalTime: number,
   volumeGain: number,
   attenuation: number,
-  vibrato: Tremelo
+  vibrato: Tremolo
 ): Float32Array {
   const basePlaybackRate = 1.0 * Math.pow(2, inputCents / 1200);
   const inputCount: number = Math.ceil(inputRate * totalTime);

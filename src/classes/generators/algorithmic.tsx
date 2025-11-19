@@ -2,10 +2,17 @@
 // provide note, speed, volume, and pan values
 // uses the euclidean beats from the parent class
 
-import { SoundFont2 } from "soundfont2";
-import { Silent } from "./silent";
-import { Preset } from "sfcomponents/types";
+import AutoregressiveValues from "classes/algorithms/autoregressivevalues";
+import ConstantValues from "classes/algorithms/constantvalues";
+import MarkovianValues from "classes/algorithms/markovianvalues";
+import OscillatorValues from "classes/algorithms/oscillatorvalues";
+import SequenceValues from "classes/algorithms/sequencevalues";
+import WienerValues from "classes/algorithms/wienervalues";
+import CMGFile from "classes/cmgfile";
 import RandomNumber from "classes/randomnumber";
+import { Preset } from "sfcomponents/types";
+import { presetNameToPreset } from "sfcomponents/util";
+import { SoundFont2 } from "soundfont2";
 import {
   ALGORITHMTYPE,
   AlgorithmType,
@@ -17,21 +24,14 @@ import {
   SoundFontGeneratorsType,
 } from "types";
 import { euclideanRhythm } from "utils/euclidean-rhythm";
-import { ConstantValues } from "classes/algorithms/constantvalues";
-import { presetNameToPreset } from "sfcomponents/util";
-import { AutoregressiveValues } from "classes/algorithms/autoregressivevalues";
-import { OscillatorValues } from "classes/algorithms/oscillatorvalues";
-import { MarkovianValues } from "classes/algorithms/markovianvalues";
-import { WienerValues } from "classes/algorithms/wienervalues";
-import SequenceValues from "classes/algorithms/sequencevalues";
 import {
   getAttributeValueWithDefault,
   getElementElement,
 } from "utils/xmlfunctions";
-import CMGFile from "classes/cmgfile";
-import Tremelo from "classes/algorithms/tremelo";
+import Silent from "./silent";
+import Tremolo from "classes/algorithms/tremolo";
 
-export class Algorithmic extends Silent {
+export default class Algorithmic extends Silent {
   soundFontFile: string;
   soundFont: SoundFont2 | undefined;
   presets: Preset[]; // the soundfont preset list (not needed for AudioFile or Noise)
@@ -59,8 +59,8 @@ export class Algorithmic extends Silent {
   durationP: AlgorithmType;
   volumeP: AlgorithmType;
   panP: AlgorithmType;
-  tremelo: Tremelo;
-  vibrato: Tremelo;
+  tremolo: Tremolo;
+  vibrato: Tremolo;
 
   constructor(nextGenerator: number) {
     super(nextGenerator);
@@ -92,8 +92,8 @@ export class Algorithmic extends Silent {
     this.durationP = new ConstantValues(100);
     this.volumeP = new ConstantValues(0);
     this.panP = new ConstantValues(0);
-    this.tremelo = new Tremelo();
-    this.vibrato = new Tremelo();
+    this.tremolo = new Tremolo();
+    this.vibrato = new Tremolo();
   }
 
   setContext(context: AudioContext | OfflineAudioContext) {
@@ -173,7 +173,7 @@ export class Algorithmic extends Silent {
     n.durationP = this.durationP.copy();
     n.volumeP = this.volumeP.copy();
     n.panP = this.panP.copy();
-    n.tremelo = this.tremelo.copy();
+    n.tremolo = this.tremolo.copy();
     n.vibrato = this.vibrato.copy();
     return n;
   }
@@ -405,8 +405,8 @@ export class Algorithmic extends Silent {
       case "panP":
         this.panP.setAttribute(valueName, value);
         return true;
-      case "tremelo":
-        this.tremelo.setAttribute(valueName, value);
+      case "tremolo":
+        this.tremolo.setAttribute(valueName, value);
         return true;
       case "vibrato":
         this.vibrato.setAttribute(valueName, value);
@@ -472,7 +472,7 @@ export class Algorithmic extends Silent {
     note = this.#getSelectedNote(note);
     return { beat, note, attack, speed, duration, volume, pan };
 
-    // the tremelo and vibrato effects values are retrieved when the sample
+    // the tremolo and vibrato effects values are retrieved when the sample
     // is being processed
   }
 
@@ -543,7 +543,7 @@ export class Algorithmic extends Silent {
       const durationPElem: Element = doc.createElement("durationP");
       const volumePElem: Element = doc.createElement("volumeP");
       const panPElem: Element = doc.createElement("panP");
-      const tremeloElem: Element = doc.createElement("tremelo");
+      const tremeloElem: Element = doc.createElement("tremolo");
       const vibratoElem: Element = doc.createElement("vibrato");
       returnElem.appendChild(notePElem);
       returnElem.appendChild(attackPElem);
@@ -559,7 +559,7 @@ export class Algorithmic extends Silent {
       this.durationP.appendXML(doc, durationPElem);
       this.volumeP.appendXML(doc, volumePElem);
       this.panP.appendXML(doc, panPElem);
-      this.tremelo.appendXML(doc, tremeloElem);
+      this.tremolo.appendXML(doc, tremeloElem);
       this.vibrato.appendXML(doc, vibratoElem);
       return Promise.resolve(returnElem);
     } catch (e: any) {
@@ -774,21 +774,21 @@ export class Algorithmic extends Silent {
               break;
           }
 
-          // get the tremelo and vibrator effects
-          [g.tremelo, g.vibrato].forEach(async (_effect:Tremelo, i) => {
+          // get the tremolo and vibrator effects
+          [g.tremolo, g.vibrato].forEach(async (_effect:Tremolo, i) => {
             try {
               const eElem: Element = getElementElement(elem, effectNames[i]);
-              const promise: Promise<Tremelo> = Tremelo.getXML(eElem, version);
-              const tResult: Tremelo[] = await Promise.all([promise]);
-              if (effectNames[i] == 'tremelo')
-                g.tremelo = tResult[0];  
+              const promise: Promise<Tremolo> = Tremolo.getXML(eElem, version);
+              const tResult: Tremolo[] = await Promise.all([promise]);
+              if (effectNames[i] == 'tremolo')
+                g.tremolo = tResult[0];  
               else
                 g.vibrato = tResult[0];
             } catch (e) {
-              if (effectNames[i] == 'tremelo')
-                g.tremelo = new Tremelo();  
+              if (effectNames[i] == 'tremolo')
+                g.tremolo = new Tremolo();  
               else
-                g.vibrato = new Tremelo();
+                g.vibrato = new Tremolo();
             }
           });
         }
@@ -870,8 +870,8 @@ export class Algorithmic extends Silent {
       }
     );
 
-    [values.tremelo, values.vibrato].forEach((effect: Tremelo) => {
-      result.push(...Tremelo.validate(effect));
+    [values.tremolo, values.vibrato].forEach((effect: Tremolo) => {
+      result.push(...Tremolo.validate(effect));
     })
     return result;
   }

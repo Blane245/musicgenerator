@@ -1,12 +1,12 @@
-import SequenceValues, {
-  AutoregressiveValues,
-  ConstantValues,
-  MarkovianValues,
-  OscillatorValues,
-  WienerValues,
-} from "classes/algorithmvalues";
+import SequenceValues from "classes/algorithms/sequencevalues";
+import  AutoregressiveValues from "classes/algorithms/autoregressivevalues";
+import ConstantValues from "classes/algorithms/constantvalues";
+import MarkovianValues from "classes/algorithms/markovianvalues";
+import  OscillatorValues from "classes/algorithms/oscillatorvalues"
+import   WienerValues from "classes/algorithms/wienervalues";
 import CMGFile from "classes/cmgfile";
-import { Algorithmic, AudioFile } from "classes/generators/generators";
+import Algorithmic from "classes/generators/algorithmic";
+import AudioFile from "classes/generators/audiofile";
 import { ALGORITHMTYPE, GENERATORTYPE, GeneratorType } from "types";
 import SourceReport from "./sourcereport";
 

@@ -3,7 +3,7 @@ import { ALGORITHMTYPE, AutoregressiveType } from "types";
 import { getAttributeValueWithDefault } from "utils/xmlfunctions";
 import { AlgorithmValues } from "./algorithmvalues";
 
-export class AutoregressiveValues extends AlgorithmValues {
+export default class AutoregressiveValues extends AlgorithmValues {
   override values: AutoregressiveType;
   constructor(
     values: AutoregressiveType = {

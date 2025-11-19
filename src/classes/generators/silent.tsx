@@ -5,7 +5,7 @@ import { GENERATORTYPE } from "types";
 import { getAttributeValueWithDefault } from "utils/xmlfunctions";
 
 // contains properties used all generators
-export class Silent {
+export default class Silent {
   name: string; // the unique name of the generator
   startTime: number; // time (seconds) that the generator starts
   stopTime: number; // time (seconds) that the generator stops

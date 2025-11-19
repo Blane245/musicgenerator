@@ -12,7 +12,7 @@ export default function Body() {
 
   return (
     <div className="body" style={{ width: displayWidth, height: bodyHeight }}>
-      <TracksDisplay key={`trackdisplay`} />
+      <TracksDisplay/>
     </div>
   );
 }

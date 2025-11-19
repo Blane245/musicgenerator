@@ -3,7 +3,7 @@ import { getAttributeValueWithDefault } from "utils/xmlfunctions";
 import { AlgorithmValues } from "./algorithmvalues";
 
 // a algorithm that is an oscillator
-export class OscillatorValues extends AlgorithmValues {
+export default class OscillatorValues extends AlgorithmValues {
   override values: OscillatorType;
   constructor(
     values: OscillatorType = {

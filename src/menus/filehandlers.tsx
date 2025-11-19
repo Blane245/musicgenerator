@@ -19,12 +19,15 @@
 // components. First, the file contents, and then the
 // tracks and thie generators asynchornously and in paralle
 
-import { SoundFont2 } from "../soundfont2";
+import { Buffer } from "buffer";
+import TimeLine from "classes/timeline";
+import { fetchFSData } from "utils/fetchdata";
 import CMGFile from "../classes/cmgfile";
 import Track from "../classes/track";
 import { SFPool } from "../sfcomponents/sfpool";
 import { Preset } from "../sfcomponents/types";
 import { presetNameToPreset } from "../sfcomponents/util";
+import { SoundFont2 } from "../soundfont2";
 import {
   FSResponse,
   SFPromiseType,
@@ -32,16 +35,13 @@ import {
   SoundFontGeneratorsType,
 } from "../types";
 import { getDocElement, getElementElement } from "../utils/xmlfunctions";
-import {fetchFSData} from "utils/fetchdata";
-import { Buffer } from "buffer";
-import TimeLine from "classes/timeline";
 
 //
 export async function writeCMGFile(
   fileName: string,
   overWrite: boolean,
   fileContents: CMGFile,
-  timeLine: TimeLine | null
+  timeLine: TimeLine | null,
 ): Promise<string | undefined> {
   // create the XML document and file element
   const doc: XMLDocument = document.implementation.createDocument("", "", null);
@@ -98,7 +98,7 @@ export async function writeCMGFile(
 export async function readCMGFile(
   fileName: string,
   width: number,
-  height: number
+  height: number,
 ): Promise<{ fileContents: CMGFile | null; timeLine: TimeLine | null }> {
   try {
     const uri: string = `/file/read?name=${fileName}`;

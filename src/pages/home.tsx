@@ -2,7 +2,7 @@ import GeneratorDialog from "dialogs/generatordialog";
 import Body from "layouts/body";
 import Footer from "layouts/footer";
 import Header from "layouts/header";
-import Preview from "playfunctions/preview";
+import Preview from "playfunctions/previewer/preview";
 import { MouseEvent, useEffect, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import {
@@ -10,6 +10,8 @@ import {
   DEFAULTRECORDFORMAT,
   MouseLocation,
   PLAYMODE,
+  PREVIEWFFTSIZE,
+  PREVIEWFREQUENCYDISPLAY,
   RECENTCMGDIRECTORY,
   RECENTFILES,
   RECENTRECORDDIRECTORY,
@@ -22,6 +24,9 @@ import { useCMGContext } from "../cmgcontext";
 import "./home.css";
 export default function Home() {
   const {
+    appName,
+    setAppName,
+    setAppVersion,
     setScreenHeight,
     setScreenWidth,
     setDisplayHeight,
@@ -52,6 +57,8 @@ export default function Home() {
     setMode,
     sourceData,
     setStatus,
+    setFFTSize,
+    setFrequencyDisplay,
   } = useCMGContext();
 
   // set up the the layout and handle screen size changes
@@ -70,6 +77,8 @@ export default function Home() {
   const movement = useRef<MouseLocation>({ X: 0, Y: 0, dX: 0, dY: 0 });
 
   useEffect(() => {
+    setAppName("Computer Music Generator");
+    setAppVersion(import.meta.env.VERSION);
     const handleResize = () => {
       const root: HTMLElement | null = document.getElementById("root");
       if (!root) return;
@@ -86,27 +95,6 @@ export default function Home() {
       const previewHeight: number =
         displayHeight - headerHeight - timelineHeight - footerHeight;
       const bodyHeight: number = previewHeight;
-      // console.log(
-      //   "sizes",
-      //   "screenHeight",
-      //   screenHeight,
-      //   "screenWidth",
-      //   screenWidth,
-      //   "displayHeight",
-      //   displayHeight,
-      //   "headerHeight",
-      //   headerHeight,
-      //   "timelineHeight",
-      //   timelineHeight,
-      //   "timelineWidth",
-      //   timelineWidth,
-      //   "previewHeight",
-      //   previewHeight,
-      //   "previewWidth",
-      //   previewWidth,
-      //   "bodyHeight",
-      //   bodyHeight
-      // );
       setScreenHeight(screenHeight);
       setScreenWidth(screenWidth);
       setDisplayHeight(displayHeight);
@@ -147,26 +135,35 @@ export default function Home() {
 
     // load the soundfont file list
     try {
-      getDirectoryList(SFFileLocation, ["sf2", "SF2"], setSFFileList, setStatus);
+      getDirectoryList(
+        SFFileLocation,
+        ["sf2", "SF2"],
+        setSFFileList,
+        setStatus
+      );
     } catch (error) {
       setStatus(error as string);
     }
 
+    // get the record format from local storage
     let recordFormat: string | null = window.localStorage.getItem(RECORDFORMAT);
     if (!recordFormat) {
       window.localStorage.setItem(RECORDFORMAT, DEFAULTRECORDFORMAT);
       setRecordFormat(DEFAULTRECORDFORMAT);
     } else setRecordFormat(recordFormat);
 
+    // get the recent file list from local storage
     const recentFiles: string | null = window.localStorage.getItem(RECENTFILES);
     if (!recentFiles) {
       setRecentFiles([]);
     } else {
-      const recentFileArray: string[] = recentFiles.split("|").filter((f)=>f!="");
-      if (recentFileArray[0] != "")
-        setRecentFiles(recentFileArray);
+      const recentFileArray: string[] = recentFiles
+        .split("|")
+        .filter((f) => f != "");
+      if (recentFileArray[0] != "") setRecentFiles(recentFileArray);
     }
 
+    // get the most recent file list directory from local storage
     const recentCMGDirectory: string | null =
       window.localStorage.getItem(RECENTCMGDIRECTORY);
     if (!recentCMGDirectory) {
@@ -175,20 +172,42 @@ export default function Home() {
       setRecentCMGDirectory(recentCMGDirectory);
     }
 
+    // get the most recent recrod directory from local storage
     const recentRecordDirectory: string | null = window.localStorage.getItem(
       RECENTRECORDDIRECTORY
     );
     if (!recentRecordDirectory) {
-      setRecentRecordDirectory("");
+      setRecentRecordDirectory("spectrum");
     } else {
       setRecentRecordDirectory(recentRecordDirectory);
+    }
+
+    // get the frequency display type from local storage
+    const previewFrequencyDisplay: string | null = window.localStorage.getItem(
+      PREVIEWFREQUENCYDISPLAY
+    );
+
+    if (!previewFrequencyDisplay) {
+      setFrequencyDisplay("spectrum");
+    } else {
+      setFrequencyDisplay(previewFrequencyDisplay);
+    }
+
+    // get the frequency display type from local storage
+    const previewFFTSize: string | null =
+      window.localStorage.getItem(PREVIEWFFTSIZE);
+
+    if (!previewFFTSize) {
+      setFFTSize(2048);
+    } else {
+      setFFTSize(parseInt(previewFFTSize));
     }
   }, []);
 
   // notify the user that the SF file list has been loaded
-  useEffect(()=> {
+  useEffect(() => {
     setStatus(`${SFFileList.length} Soundfont files loaded.`);
-  }, [SFFileList])
+  }, [SFFileList]);
 
   // some of the components of this app process mouse movements. The
   // function below capture those movements and pass them along
@@ -251,7 +270,7 @@ export default function Home() {
       dX: 0,
       dY: 0,
     };
-    // console.log("mouse down at", movement.current); 
+    // console.log("mouse down at", movement.current);
     collectMouseMovements();
     e.stopPropagation();
     e.preventDefault();
@@ -271,10 +290,14 @@ export default function Home() {
     e.preventDefault();
   }
 
+  // the home page has two windows. One is for editing a composition
+  // the other is for previewing a composition.
+  // Since preview can be invoked from a generator edit dialog,
+  // that dialog will be redisplayed after preview is complete.
   return (
     <>
       <Helmet>
-        <title> Computer Music Generator </title>
+        <title> {appName} </title>
       </Helmet>
       {mode != PLAYMODE.preview && mode != PLAYMODE.solo ? (
         <div
@@ -284,20 +307,12 @@ export default function Home() {
           onMouseDown={(e) => onMouseDown(e)}
           onMouseMove={(e) => saveMouseMovement(e)}
         >
-          <Header
-            appName="Computer Music Generator"
-            appVersion={import.meta.env.VERSION}
-          />
+          <Header />
           <Body />
           <Footer />
         </div>
       ) : (
-        <Preview
-          appName="Computer Music Generator (Preview)"
-          appVersion={import.meta.env.VERSION}
-          sourceData={sourceData}
-          setMode={setMode}
-        />
+        <Preview sourceData={sourceData} setMode={setMode} />
       )}
       {mode == PLAYMODE.idle &&
       generatorDialogVisible &&

@@ -16,7 +16,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build --base=/cmg4 --mode=production",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate-icons": "node run-icon-export.js",
+    "create-svg-files": "node create-svg-files.js"
   },
   "dependencies": {
     "@breezystack/lamejs": "^1.2.7",

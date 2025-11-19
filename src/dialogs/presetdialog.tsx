@@ -11,7 +11,7 @@ import { RawSourceData } from "types";
 import CMGFile from "classes/cmgfile";
 import { useCMGContext } from "cmgcontext";
 import { signalLevel } from "utils/signallevel";
-import { Algorithmic } from "classes/generators/algorithmic";
+import Algorithmic from "classes/generators/algorithmic";
 export interface PresetDialogProps {
   generator: Algorithmic;
   setViewPreset: Function;

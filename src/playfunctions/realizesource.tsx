@@ -1,10 +1,8 @@
 // create a source/gain/pan set from the raw source data and
 // connect it to the destination
-// there are several use cases for the gain envelop
-// see volumeprocessing.md for details
-import { AudioFile } from "classes/generators/audiofile";
+import AudioFile from "classes/generators/audiofile";
 import { ActiveSource, GENERATORTYPE, RawSourceData } from "../types";
-import { Algorithmic } from "classes/generators/algorithmic";
+import Algorithmic from "classes/generators/algorithmic";
 
 export function realizeSource(
   ctx: AudioContext | OfflineAudioContext,

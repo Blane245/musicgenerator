@@ -1,7 +1,14 @@
-import { MODULATOR, SequenceItem } from "types";
+import { AlgorithmValues } from "classes/algorithms/algorithmvalues";
+import AutoregressiveValues from "classes/algorithms/autoregressivevalues";
+import ConstantValues from "classes/algorithms/constantvalues";
+import MarkovianValues from "classes/algorithms/markovianvalues";
+import OscillatorValues from "classes/algorithms/oscillatorvalues";
+import SequenceValues from "classes/algorithms/sequencevalues";
+import WienerValues from "classes/algorithms/wienervalues";
+import Algorithmic from "classes/generators/algorithmic";
 import { ChangeEvent } from "react";
 import { toNote } from "sfcomponents/util";
-import { ALGORITHMTYPE, SEQUENCEATTRIBUTE } from "types";
+import { ALGORITHMTYPE, SEQUENCEATTRIBUTE, SequenceItem } from "types";
 import { calulateSequencerGeneratorStopTime } from "utils/calculatesequencergeneratorstoptime";
 import { loadSequenceItems } from "utils/loadsequenceitems";
 import AutoregressivePropertiesBox from "./autoregresivepropertiesbox";
@@ -10,14 +17,6 @@ import MarkovianPropertiesBox from "./markovianpropertiesbox";
 import OscillatorPropertiesBox from "./oscillatorpropertiesbox";
 import SequencerPropertiesBox from "./sequencerpropertiesbox";
 import WienerPropertiesBox from "./wienerpropertiesbox";
-import { Algorithmic } from "classes/generators/algorithmic";
-import { OscillatorValues } from "classes/algorithms/oscillatorvalues";
-import { MarkovianValues } from "classes/algorithms/markovianvalues";
-import { WienerValues } from "classes/algorithms/wienervalues";
-import { ConstantValues } from "classes/algorithms/constantvalues";
-import { AutoregressiveValues } from "classes/algorithms/autoregressivevalues";
-import SequenceValues from "classes/algorithms/sequencevalues";
-import { AlgorithmValues } from "classes/algorithms/algorithmvalues";
 
 // provides the form fields and validators for the algorithmic generator
 
@@ -56,9 +55,9 @@ export default function AlgorithmicTable(
       const sequenceName: string = e.target.value;
       items = await loadSequenceItems(SEQUENCEATTRIBUTE.note, sequenceName);
       doCalc = true;
-      console.log(
-        `AT: sequence name change. new items loaded for '${sequenceName}'`
-      );
+      // console.log(
+      //   `AT: sequence name change. new items loaded for '${sequenceName}'`
+      // );
     }
 
     // if any of the speed parameters changes,

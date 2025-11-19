@@ -1,11 +1,11 @@
 import { GENERATORTYPE } from "types";
-import { Silent } from "./silent";
+import Silent from "./silent";
 import { compressAndConvertToString, convertFromJsonAndDecompress } from "utils/gzip";
 import { getAttributeValueWithDefault } from "utils/xmlfunctions";
 import CMGFile from "classes/cmgfile";
 
 // this class represents an audio file that can be used as a generator source
-export class AudioFile extends Silent {
+export default class AudioFile extends Silent {
   fileName: string;
   samples: Float32Array[];
   sampleRate: number;

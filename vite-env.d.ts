@@ -7,6 +7,7 @@ interface ImportMetaEnv {
     readonly FSPORT:string;
     readonly DBPORT:string;
     readonly PORT:string;
+    readonly SEQUENCEEDITORURL: string;
 }
 
 interface ImportMeta {
