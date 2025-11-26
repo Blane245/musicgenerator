@@ -231,7 +231,8 @@ export default class Reverb {
 
   getXML(fcElem: Element, _version: string): void {
     try {
-      const cElem: Element = getElementElement(fcElem, "reverb");
+      const cElem: Element | null = getElementElement(fcElem, "reverb");
+    if (!cElem) throw new Error (`Reverb getXML missing reverb element`)
       try {
         this.enabled =
           (getAttributeValue(cElem, "enabled", "string") as string) == "true";

@@ -2,8 +2,8 @@
 
 import { ChangeEvent } from "react";
 import { GeneratorType, GENERATORTYPE } from "types";
-import AlgorithmicDialog from "./algorithmicdialog";
-import AudioFileDialog from "./audiofiledialog";
+import AlgorithmicDialog from "dialogs/algorithmic/algorithmicdialog";
+import AudioFileDialog from "dialogs/audiofiledialog";
 import Algorithmic from "classes/generators/algorithmic";
 import AudioFile from "classes/generators/audiofile";
 

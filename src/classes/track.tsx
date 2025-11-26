@@ -1,20 +1,31 @@
 import { GENERATORTYPE, GeneratorType } from "types";
-import { getAttributeValue, getAttributeValueWithDefault, getElementElement } from "utils/xmlfunctions";
+import {
+  getAttributeValue,
+  getAttributeValueWithDefault,
+  getElementElement,
+} from "utils/xmlfunctions";
 import Silent from "./generators/silent";
 import AudioFile from "./generators/audiofile";
 import Algorithmic from "./generators/algorithmic";
+import { TrackEffect } from "./control";
 export default class Track {
   name: string;
   mute: boolean;
   solo: boolean;
   volume: number;
   generators: GeneratorType[];
+  volumeRamp: number;
+  volumeLimit: number;
+  #startTime: number;
   constructor(nextTrack: number) {
     this.name = "T".concat(nextTrack.toString());
     this.mute = false;
     this.solo = false;
     this.volume = 0;
     this.generators = [];
+    this.volumeRamp = 0;
+    this.volumeLimit = 0;
+    this.#startTime = -1;
   }
 
   copy(): Track {
@@ -28,7 +39,34 @@ export default class Track {
       const ng = g.copy();
       t.generators.push(ng);
     });
+    t.volumeLimit = this.volumeLimit;
+    t.volumeRamp = this.volumeRamp;
+    t.#startTime = this.#startTime;
     return t;
+  }
+
+  initializeVolumeRamp(time:number, effect:TrackEffect ) {
+    console.log('track volume control name, time, effect', this.name, time, effect);
+    this.#startTime = time;
+    this.volumeRamp = effect.volumeRamp;
+    this.volumeLimit = effect.volumeLimit;
+  }
+
+  getVolume(time: number): number {
+    if (this.volumeRamp == 0 || this.#startTime < 0 || time < this.#startTime)
+      return this.volume;
+    else if (this.volumeRamp < 0)
+      return Math.max(
+        -10,
+        this.volumeLimit,
+        this.volume + (time - this.#startTime) * this.volumeRamp
+      );
+    else
+      return Math.min(
+        10,
+        this.volumeLimit,
+        this.volume + (time - this.#startTime) * this.volumeRamp
+      );
   }
   async appendXML(doc: XMLDocument, elem: Element): Promise<Element> {
     // request a promose from each of the generators in the track
@@ -68,19 +106,26 @@ export default class Track {
     }
   }
 
-  async getXML(
-    elem: Element,
-    version: string,
-  ): Promise<Track> {
+  async getXML(elem: Element, version: string): Promise<Track> {
     try {
       // load the base attributes of the track
       this.name = getAttributeValue(elem, "name", "string") as string;
       this.mute = getAttributeValue(elem, "mute", "string") == "true";
       this.solo = getAttributeValue(elem, "solo", "string") == "true";
-      this.volume = getAttributeValueWithDefault(elem,'volume','float', 0) as number;
+      this.volume = getAttributeValueWithDefault(
+        elem,
+        "volume",
+        "float",
+        0
+      ) as number;
 
       // load the generators for this track
-      const generatorsElem: Element = getElementElement(elem, "generators");
+      const generatorsElem: Element | null = getElementElement(
+        elem,
+        "generators"
+      );
+      if (!generatorsElem)
+        throw new Error(`Track getXML missing generators element`);
       const generatorChildren: HTMLCollection = generatorsElem.children;
       const generatorPromises: Promise<GeneratorType>[] = [];
       for (let child of generatorChildren) {
@@ -91,7 +136,7 @@ export default class Track {
             {
               const generatorPromise: Promise<Silent> = Silent.getXML(
                 child,
-                version,
+                version
               );
               generatorPromises.push(generatorPromise);
             }
@@ -100,7 +145,7 @@ export default class Track {
             {
               const generatorPromise: Promise<AudioFile> = AudioFile.getXML(
                 child,
-                version,
+                version
               );
               generatorPromises.push(generatorPromise);
             }
@@ -109,7 +154,7 @@ export default class Track {
             {
               const generatorPromise: Promise<Algorithmic> = Algorithmic.getXML(
                 child,
-                version,
+                version
               );
               generatorPromises.push(generatorPromise);
             }

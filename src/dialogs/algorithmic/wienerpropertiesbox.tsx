@@ -1,5 +1,5 @@
 import { ChangeEvent } from "react";
-import { WienerType } from "../types";
+import { WienerType } from "types";
 
 export interface WienerPropertiesBoxProps {
   name: string;

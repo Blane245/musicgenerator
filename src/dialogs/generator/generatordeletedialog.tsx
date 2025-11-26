@@ -1,7 +1,7 @@
 import { FormEvent } from "react";
-import Track from "../classes/track";
-import { useCMGContext } from "../cmgcontext";
-import { deleteGenerator } from "../utils/cmfiletransactions";
+import Track from "classes/track";
+import { useCMGContext } from "cmgcontext";
+import { deleteGenerator } from "utils/cmfiletransactions";
 
 export interface GeneratorDeleteProps {
   trackName: string;

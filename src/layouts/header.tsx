@@ -6,8 +6,8 @@ import FileMenu from "menus/filemenu";
 import HelpMenu from "menus/helpmenu";
 import PlayMenu from "menus/playmenu";
 import ToolsMenu from "menus/toolsmenu";
-import TimeLineControls from "panels/timelinecontrols";
-import TimeLineDisplay from "panels/timelinedisplay";
+import TimeLineControls from "components/timelinecontrols";
+import TimeLineDisplay from "components/timelinedisplay";
 import { useEffect, useState } from "react";
 
 export default function Header() {

@@ -1,7 +1,7 @@
 // various use tools
 
 import { useCMGContext } from "cmgcontext";
-import { GenAlignDialog, GenEqualDialog, GenStaggerDialog } from "dialogs/generatortooldialogs";
+import { GenAlignDialog, GenEqualDialog, GenStaggerDialog } from "dialogs/generator/generatortooldialogs";
 import { ChangeEvent, useState } from "react";
 import { frequencyToMidi, midiToFrequency, toNote } from "sfcomponents/util";
 

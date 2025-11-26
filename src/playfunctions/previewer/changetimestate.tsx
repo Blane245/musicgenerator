@@ -14,6 +14,8 @@ import tick from "./tick";
 import TimeLine from "classes/timeline";
 import SignalLevel from "classes/signallevel";
 import {signalWidth} from "./footer"
+import CMGFile from "classes/cmgfile";
+import { Control } from "classes/control";
 
 export default function changeTimerState(
   displayWidth: number,
@@ -43,7 +45,7 @@ export default function changeTimerState(
   setSignalLevels: React.Dispatch<React.SetStateAction<SignalLevelsType>>,
   analyser: SignalLevel | null,
   frequencyDisplay: string,
-  frequencyBins: Float32Array<ArrayBufferLike>,
+  frequencyBins: Float32Array,
   setLeftVolumes: React.Dispatch<React.SetStateAction<string>>,
   setRightVolumes: React.Dispatch<React.SetStateAction<string>>,
   setLeftMaxes: React.Dispatch<React.SetStateAction<string>>,
@@ -51,6 +53,8 @@ export default function changeTimerState(
   DrawSources: Function,
   redrawSource: Function,
   onExit: Function,
+  fileContents: CMGFile,
+  activeControl:  React.MutableRefObject<Control | null>,
 ) {
   tick(
     paused,
@@ -112,6 +116,8 @@ export default function changeTimerState(
     pendingSourceData,
     offsetTime,
     redrawSource,
-    setActiveSourcesCount
+    setActiveSourcesCount,
+    fileContents,
+    activeControl,
   );
 }

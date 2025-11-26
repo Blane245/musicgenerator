@@ -2,7 +2,10 @@
 // audio routing graph and the preview evolves. Only sources that
 // are currently playing are maintained in the graph to keep the load on the
 
+import CMGFile from "classes/cmgfile";
+import { Control, EFFECTTYPE } from "classes/control";
 import TimeLine from "classes/timeline";
+import { activateGlobalControl, processGlobalControl } from "playfunctions/controls/globalcontrol";
 import { realizeSource } from "playfunctions/realizesource";
 import { ActiveSource, GENERATORTYPE, RawSourceData } from "types";
 
@@ -24,7 +27,9 @@ export default function scheduler(
   pendingSourceData: React.MutableRefObject<RawSourceData[]>,
   offsetTime: number,
   redrawSource: Function,
-  setActiveSourcesCount: Function
+  setActiveSourcesCount: Function,
+  fileContents: CMGFile,
+  activeControl: React.MutableRefObject<Control | null>,
 ): void {
   // if (paused.current) {
   if (paused.current) {
@@ -53,7 +58,9 @@ export default function scheduler(
       pendingSourceData,
       offsetTime,
       redrawSource,
-      setActiveSourcesCount
+      setActiveSourcesCount,
+      fileContents,
+      activeControl,
     );
   } else {
     if (audioContext.state !== "closed") {
@@ -65,10 +72,23 @@ export default function scheduler(
     return;
   }
 
-  if (!audioContext || !concentrator) return;
+  if (!concentrator) return;
   let newActiveSources: ActiveSource[] = [...activeSources.current];
   if (playing.current && previewTimeline.current) {
     const aheadTime = audioContext.currentTime + SCHEDULEAHEADTIME;
+
+    // activate a global control that occurs between currentTime + offsetTime and aheadTime + offsetTime
+    const ctl:Control| undefined = fileContents.controls.find((c)=> (c.time - offsetTime > audioContext.currentTime && c.time - offsetTime <aheadTime && c.type == EFFECTTYPE.Global));
+    if (ctl) {
+      console.log('activating control at time with offset', ctl.name, audioContext.currentTime, offsetTime);
+      activeControl.current = ctl;
+      activateGlobalControl(audioContext.currentTime + offsetTime, ctl, fileContents);
+    }
+    if (activeControl.current) {
+      console.log('processing control at time with offset', activeControl, audioContext.currentTime, offsetTime);
+      processGlobalControl(audioContext.currentTime + offsetTime, activeControl.current, fileContents);
+    }
+
     let nStarted: number = 0;
     let nStopped: number = 0;
     while (nextTime < aheadTime) {

@@ -1,6 +1,7 @@
 // Update various parts of the CMGFile based
 // various transactions within the system
 import CMGFile from "classes/cmgfile";
+import { Control, EFFECTTYPE } from "classes/control";
 import Compressor from "classes/roomnodes/compressor";
 import Equalizer from "classes/roomnodes/equalizer";
 import Reverb from "classes/roomnodes/reverb";
@@ -92,6 +93,10 @@ export function addTrack(newTrack: Track, setFileContents: Function) {
 export function deleteTrack(index: number, setFileContents: Function) {
   setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
+
+    // update the controls that mention this generator
+    nc.controls = renameDeleteControlList (EFFECTTYPE.Generator, nc.tracks[index].name, "", nc.controls);
+
     nc.dirty = true;
     nc.tracks.splice(index, 1);
     return nc;
@@ -106,12 +111,57 @@ export function renameTrack(
   setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
     nc.dirty = true;
+
+    // update the controls that mention this generator
+    nc.controls = renameDeleteControlList (EFFECTTYPE.Generator, nc.tracks[index].name, newName, nc.controls);
     nc.tracks[index].name = newName;
+
+
     return nc;
   });
 }
 
-export function modifyTrackGenerators (index: number, gens: GeneratorType[], setFileContents) {
+export function addControl (newControl: Control, setFileContents: Function) {
+    setFileContents((c: CMGFile) => {
+    const nc: CMGFile = c.copy();
+    nc.dirty = true;
+    nc.controls.push(newControl);
+    nc.controls = nc.controls.sort((a:Control, b:Control)=> a.time - b.time)
+    return nc;
+  });
+}
+
+export function deleteControl (index: number, setFileContents: Function) {
+    setFileContents((c: CMGFile) => {
+    const nc: CMGFile = c.copy();
+    nc.dirty = true;
+    nc.controls.splice(index, 1);
+    nc.controls = nc.controls.sort((a:Control, b:Control)=> a.time - b.time)
+    return nc;
+  });
+
+}
+
+export function renameControl (index: number, newName: string, setFileContents: Function) {
+    setFileContents((c: CMGFile) => {
+    const nc: CMGFile = c.copy();
+    nc.dirty = true;
+    nc.controls[index].name = newName;
+    return nc;
+  });
+
+}
+export function modifyControl(index: number, control: Control, setFileContents: Function) {
+  setFileContents((c:CMGFile)=> {
+    const newC: CMGFile = c.copy();
+    newC.controls[index] = control.copy();
+    newC.dirty = true;
+    return newC;
+  })
+
+}
+
+export function modifyTrackGenerators (index: number, gens: GeneratorType[], setFileContents: Function) {
   setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
     nc.tracks[index].generators = [...gens];
@@ -227,9 +277,11 @@ export function modifyGenerator(
       return prev;
     }
 
+    // update the controls that mention this generator
+    newF.controls = renameDeleteControlList (EFFECTTYPE.Generator, oldName, thisTrack.generators[newGIndex].name, newF.controls);
     thisTrack.generators[newGIndex] = generator.copy();
-
     newF.dirty = true;
+
     return newF;
   });
 }
@@ -260,7 +312,11 @@ export function deleteGenerator(
       return prev;
     }
 
+    // update the controls that mention this generator
+    newF.controls = renameDeleteControlList (EFFECTTYPE.Generator, thisTrack.generators[gIndex].name, "", newF.controls);
+
     thisTrack.generators.splice(gIndex, 1);
+
     newF.dirty = true;
     return newF;
   });
@@ -330,4 +386,24 @@ export function moveGeneratorTime(
     newF.dirty = true;
     return newF;
   });
+}
+
+// rename or delete track or generator affects controls that reference them
+// update those controls
+function renameDeleteControlList (type: EFFECTTYPE, name: string, newName: string, controls: Control[]): Control[] {
+  const newControls: Control[] = [...controls];
+  newControls.forEach((control) => {
+    if (control.type == type && control.list) {
+      const newList:string[] = [];
+      control.list.forEach((item)=> {
+        if (item == name) { // rename or delete
+          if (newName != "") newList.push(newName);
+        } else { // keep as is
+          newList.push(item);
+        }
+      });
+      control.list = [...newList];
+    }
+  });
+  return newControls;
 }

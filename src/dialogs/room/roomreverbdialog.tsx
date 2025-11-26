@@ -11,7 +11,7 @@ export default function RoomReverbDialog() {
 
   useEffect(() => {
     setReverbData(fileContents.reverb);
-  }, [fileContents.compressor]);
+  }, [fileContents.reverb]);
 
   function handleChange(event: ChangeEvent<HTMLInputElement>): void {
     const eventName: string | null = event.target["name"];

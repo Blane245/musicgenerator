@@ -6,14 +6,10 @@ import { Preset } from "sfcomponents/types";
 import {
   attenuate,
   dBToGain,
-  midiToFrequency,
   precision,
-  tc2s,
+  tc2s
 } from "sfcomponents/util";
 import { RawSourceData } from "types";
-import findGeneratorParent from "utils/findgeneratorparent";
-import { applyEnvelope } from "./applyenvelope";
-import applyNoise from "./applynoise";
 import buildEnvelope from "./buildenvelope";
 import buildSampleArray from "./buildsample";
 import getActiveZones from "./getactivezones";
@@ -21,9 +17,8 @@ import getActiveZones from "./getactivezones";
 export const getPresetNote = (
   fileContents: CMGFile,
   gen: Algorithmic,
+  track: Track | null,
   preset: Preset,
-  noiseFrequency: number,
-  noiseAmplitude: number, // in dB
   interval: number, // the note's time interval
   duration: number, // the note's duration with that interval
   pitchValue: number, // pitch
@@ -124,11 +119,15 @@ export const getPresetNote = (
         ? noteEnd + precision(tc2s(releaseVolEnv), 3)
         : noteEnd;
     const totalTime: number = releaseEnd;
-    const track: Track | null = findGeneratorParent(gen.name, fileContents);
-    const volumeValue: number = track
-      ? generatorVolume + track.volume
-      : generatorVolume;
-    const volumeGain: number = dBToGain(volumeValue);
+
+    //TODO only generator volume is needed here
+    // track volume is handled during signal processing
+    // const volumeValue: number = track
+    //   ? generatorVolume + track.getVolume(time)
+    //   : generatorVolume;
+    // const volumeGain: number = dBToGain(volumeValue);
+    const volumeGain: number = dBToGain(generatorVolume);
+    const volumeValue: number = generatorVolume;
     let attenuationdB: number = initialAttenuation / 10;
     // const attenuation: number = attenuate(1.0, attenuationdB);
     const attenuation: number = 1;
@@ -148,11 +147,15 @@ export const getPresetNote = (
       volumeGain,
       sustainGain,
       attenuation,
-      gen.tremolo,
     );
 
     // build the sample using resampling
     let sample: Float32Array = buildSampleArray(
+      time,
+      gen,
+      track,
+      fileContents,
+      pitchValue,
       instrumentSample,
       sampleRate,
       cents,
@@ -161,23 +164,23 @@ export const getPresetNote = (
       loopEnd,
       totalTime,
       volumeGain,
-      attenuation,
-      gen.vibrato
+      envelope,
+      attenuation
     );
 
-    // apply any noise is present
-    if (noiseFrequency != 0)
-      sample = applyNoise(
-        sample,
-        sampleRate,
-        midiToFrequency(pitchValue),
-        noiseFrequency,
-        dBToGain(noiseAmplitude),
-        gen.rn
-      );
+    // // apply any noise is present
+    // if (noiseFrequency != 0)
+    //   sample = applyNoise(
+    //     sample,
+    //     sampleRate,
+    //     midiToFrequency(pitchValue),
+    //     noiseFrequency,
+    //     dBToGain(noiseAmplitude),
+    //     gen.rn
+    //   );
 
-      // modify the sample using the gain envelope
-    sample = applyEnvelope(sample, sampleRate, envelope);
+    //   // modify the sample using the gain envelope
+    // sample = applyEnvelope(sample, sampleRate, envelope);
 
     const aResult: RawSourceData = {
       gen,

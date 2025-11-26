@@ -4,7 +4,7 @@ import ToolsMenu from "menus/toolsmenu";
 import { ChangeEvent, useState } from "react";
 import { bankPresettoName } from "sfcomponents/util";
 import AlgorithmicTable from "./algorithmictable";
-import MidiFrequencyDialog from "./midifrequencydialog";
+import MidiFrequencyDialog from "../midifrequencydialog";
 import PresetDialog from "./presetdialog";
 import { MODULATOR } from "types";
 

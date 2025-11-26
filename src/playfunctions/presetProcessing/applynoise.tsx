@@ -25,7 +25,7 @@ export default function applyNoise(
   }
   return newSample;
 }
-function getSampleWithNoise(
+export function getSampleWithNoise(
   sample: number,
   t: number,
   frequency: number,

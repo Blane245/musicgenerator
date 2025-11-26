@@ -19,25 +19,20 @@ export default function TracksDisplay() {
 
   return (
     <>
-      {tracks.map((t, i) => {
-        return (
-          <React.Fragment key={`track-${t.name}`}>
-            <div
-              className="track-control"
-              style={{ width: controlWidth }}
-            >
-              <TrackControls tracks={tracks} track={t} trackIndex={i}/>
-            </div>
-            <div
-              className="track-display"
-              id={`track-display:${t.name}`}
-              style={{ width: timelineWidth }}
-            >
-              <GeneratorIcons track={t}/>
-            </div>
-          </React.Fragment>
-        );
-      })}
+      {tracks.map((t, i) => (
+        <React.Fragment key={`track-${t.name}`}>
+          <div className="track-control" style={{ width: controlWidth }}>
+            <TrackControls tracks={tracks} track={t} trackIndex={i} />
+          </div>
+          <div
+            className="track-display"
+            id={`track-display:${t.name}`}
+            style={{ width: timelineWidth }}
+          >
+            <GeneratorIcons track={t} />
+          </div>
+        </React.Fragment>
+      ))}
     </>
   );
 }

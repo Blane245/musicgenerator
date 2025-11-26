@@ -1,4 +1,4 @@
-import GeneratorDialog from "dialogs/generatordialog";
+import GeneratorDialog from "dialogs/generator/generatordialog";
 import Body from "layouts/body";
 import Footer from "layouts/footer";
 import Header from "layouts/header";

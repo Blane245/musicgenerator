@@ -81,6 +81,7 @@ export default function DraggablePopup(props: DraggablePopupProps) {
           <button className="popup-close" onClick={onClose}>
             Close
           </button>
+          <br/>
           &nbsp;{headerText}
         </div>
         <div className="popup-content">{children}</div>

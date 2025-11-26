@@ -1,11 +1,11 @@
 import { useCMGContext } from "cmgcontext";
-import RoomCompressorDialog from "dialogs/roomcompressordialog";
-import RoomEqualizerDialog from "dialogs/roomequalizerdialog";
-import RoomReverbDialog from "dialogs/roomreverbdialog";
-import RoomVolumeDialog from "dialogs/roomvolumedialog";
+import RoomCompressorDialog from "dialogs/room/roomcompressordialog";
+import RoomEqualizerDialog from "dialogs/room/roomequalizerdialog";
+import RoomReverbDialog from "dialogs/room/roomreverbdialog";
+import RoomVolumeDialog from "dialogs/room/roomvolumedialog";
 import { GeneratorType, RawSourceData, SignalLevelsType } from "types";
 import { DrawSpectrum } from "./signalmonitor";
-export const signalWidth: number = 800;
+export const signalWidth: number = 300;
 
 interface FooterProps {
   selectedGenerators: GeneratorType[];
@@ -15,7 +15,7 @@ interface FooterProps {
   activeGenerators: React.MutableRefObject<string[]>;
   signalLevels: SignalLevelsType;
   frequencyDisplay: string;
-  frequencyBins: Float32Array<ArrayBufferLike>;
+  frequencyBins: Float32Array;
   rightVolumes: string;
   rightMaxes: string;
   leftVolumes: string;

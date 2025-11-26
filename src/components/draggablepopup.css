@@ -45,4 +45,6 @@
 .popup-content {
   padding: 20px;
   background-color: white;
+  overflow: scroll;
+  height: 500px;
 }

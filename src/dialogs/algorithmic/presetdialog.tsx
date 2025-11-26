@@ -76,9 +76,8 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
     const result: RawSourceData[] = getPresetNote(
       fileContents,
       aGen,
+      null,
       preset,
-      0,
-      0,
       interval,
       (interval * duration) / 100.0,
       pitch,

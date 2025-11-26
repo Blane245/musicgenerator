@@ -1,9 +1,9 @@
 import { ChangeEvent, FormEvent, useState } from "react";
-import Track from "../classes/track";
-import { useCMGContext } from "../cmgcontext";
-import { GeneratorType } from "../types";
-import { addGenerator, deleteGenerator } from "../utils/cmfiletransactions";
-import { getGeneratorUID } from "../utils/getgeneratoruid";
+import Track from "classes/track";
+import { useCMGContext } from "cmgcontext";
+import { GeneratorType } from "types";
+import { addGenerator, deleteGenerator } from "utils/cmfiletransactions";
+import { getGeneratorUID } from "utils/getgeneratoruid";
 
 export interface GeneratorCopyMoveProps {
   mode: string;

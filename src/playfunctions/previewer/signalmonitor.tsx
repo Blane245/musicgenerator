@@ -18,7 +18,7 @@ export default function signalMonitor(
   setRightVolumes: (value: React.SetStateAction<string>) => void,
   setLeftMaxes: (value: React.SetStateAction<string>) => void,
   setRightMaxes: (value: React.SetStateAction<string>) => void,
-  frequencyBins: Float32Array<ArrayBufferLike>
+  frequencyBins: Float32Array
 ) {
   const spectrumHeight: number = footerHeight * 0.67;
   const volumeHeight: number = footerHeight - spectrumHeight;
@@ -185,7 +185,7 @@ export default function signalMonitor(
 }
 export function DrawSpectrum(
     spectrum: Uint8Array,
-    frequencyBins: Float32Array<ArrayBufferLike>,
+    frequencyBins: Float32Array,
     spectrumHeight: number,
     signalWidth: number,
 

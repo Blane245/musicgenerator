@@ -59,14 +59,19 @@ export async function writeCMGFile(
 
   // wait for all of the track promises to resolve, if there are any
   try {
-    // build the file XML and added the track children
+
+    // add the timeline
     if (timeLine) {
       const timeLineElem: Element = doc.createElement("timeLine");
       timeLine.appendXML(doc, timeLineElem, fileName);
       cmgElem.appendChild(timeLineElem);
     }
+
+    // add the file contents
     const fileElem: Element = doc.createElement("fileContents");
     fileContents.appendXML(doc, fileElem, fileName);
+
+    // add the tracks
     const tracksElem: Element = doc.createElement("tracks");
     if (trackPromises.length > 0) {
       const trackXML: Element[] = await Promise.all(trackPromises);
@@ -131,6 +136,7 @@ export async function readCMGFile(
     const fileContents = new CMGFile();
     if (fcElem) {
       await fileContents.getXML(fcElem, fileName);
+
       const tracksElem: Element = getDocElement(xmlDoc, "tracks");
       const tracksChildren: HTMLCollection = tracksElem.children;
       const trackPromises: Promise<Track>[] = [];

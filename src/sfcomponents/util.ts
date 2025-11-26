@@ -72,6 +72,7 @@ const noteNames: string[] = [
 ];
 
 export const toNote = (pitch: number): string => {
+  if (pitch < 0) return "REST";
   const baseMidi:number = Math.round(pitch);
   const cents: number = Math.round((pitch - baseMidi) * 100);
   const octave = Math.trunc(baseMidi / 12) - 1;

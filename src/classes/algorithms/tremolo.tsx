@@ -79,7 +79,6 @@ getCurrentValue(time: number, _beat?: number): number {
     }
   }
 
-  // TODO validate the values, may not be necessary
   static validate(_algorithm: Tremolo): string[] {
     const result: string[] = [];
     return result;

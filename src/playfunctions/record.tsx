@@ -17,17 +17,20 @@
 //
 // when all batches have completed or playing has stopped (in waitForCompletion)
 //  write the accumulated buffer to the recording file
+import CMGFile from "classes/cmgfile";
 import Compressor from "classes/roomnodes/compressor";
 import Equalizer from "classes/roomnodes/equalizer";
 import Reverb from "classes/roomnodes/reverb";
 import Volume from "classes/roomnodes/volume";
 import { useCMGContext } from "cmgcontext";
 import { useEffect, useRef, useState } from "react";
-import { PLAYMODE, GENERATORTYPE, RawSourceData } from "types";
+import { GENERATORTYPE, PLAYMODE, RawSourceData } from "types";
 import { bufferToMp3 } from "utils/buffertomp3";
 import { bufferToWav } from "utils/buffertowav";
 import { buildRoomNodes } from "./buildroomnodes";
+import { restoreControlledState } from "./controlledstate";
 import { realizeSource } from "./realizesource";
+// import { Control } from "classes/control";
 
 export interface RecordProps {
   recordHandle: FileSystemFileHandle;
@@ -47,7 +50,7 @@ export default function Record(params: RecordProps) {
     setMode,
     setRecordHandle,
   } = params;
-  const { fileContents, setStatus, playing } = useCMGContext();
+  const { fileContents, setFileContents, setStatus, playing } = useCMGContext();
   const BATCHSIZE: number = 200; // the number of sources in a batch
   const GROUPSIZE: number = 10; // the number of batches that will be rendered as a group
   const [completed, setCompleted] = useState<number>(-1);
@@ -56,7 +59,7 @@ export default function Record(params: RecordProps) {
   let playbackLength: number = 0;
   sourceData.forEach((s) => {
     playbackLength = Math.max(playbackLength, s.source.stopTime);
-  })
+  });
   const result = useRef<Float32Array[]>([
     new Float32Array(Math.ceil(playbackLength * sampleRate)).fill(0),
     new Float32Array(Math.ceil(playbackLength * sampleRate)).fill(0),
@@ -65,6 +68,9 @@ export default function Record(params: RecordProps) {
   const sortedSources = useRef<RawSourceData[]>(
     sourceData.sort((a, b) => a.source.startTime - b.source.startTime)
   );
+  //TODO not sure I can implement global controls in recording
+  // as there is no access to current time in the contexts
+  // const activeControl = useRef<Control | null>(null);
   const totalBatchCount = useRef<number>(0);
   const completedBatches = useRef<number>(0);
   const nextSource = useRef<number>(0);
@@ -158,6 +164,14 @@ export default function Record(params: RecordProps) {
             playing.current = false;
             completeTimerId.current && clearTimeout(completeTimerId.current);
             recordingActive.current = false;
+
+            // restore the controlled state
+            setFileContents((prev: CMGFile) => {
+              const n: CMGFile | null = restoreControlledState();
+              if (!n) return prev;
+              console.log("file contents restored");
+              return n;
+            });
           });
       } else {
         completeTimerId.current = window.setTimeout(waitForCompletion, 1000);
@@ -171,6 +185,14 @@ export default function Record(params: RecordProps) {
       setMode(PLAYMODE.idle);
       setRecordHandle(null);
       setStatus(`Recording stopped early`);
+
+      // restore the controlled state
+      setFileContents((prev: CMGFile) => {
+        const n: CMGFile | null = restoreControlledState();
+        if (!n) return prev;
+        console.log("file contents restored");
+        return n;
+      });
     }
   }
 
@@ -258,7 +280,7 @@ export default function Record(params: RecordProps) {
           // render the batch and write it and its data to session storage
           for (let i = sourceStart; i <= sourceEnd; i++) {
             const s = sortedSources.current[i];
-            if (s.gen.type != GENERATORTYPE.Silent) 
+            if (s.gen.type != GENERATORTYPE.Silent)
               realizeSource(context, s, s.index, concentrator).source.start(
                 s.source.startTime,
                 0,

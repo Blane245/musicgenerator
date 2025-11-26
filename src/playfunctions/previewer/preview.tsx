@@ -24,10 +24,16 @@
 // Timeline which displays the timeline
 // Drawing which includes the source graphics
 // Footer which includes status on genrators and sources playing and the room effect controls
+import CMGFile from "classes/cmgfile";
+import { Control } from "classes/control";
 import SignalLevel from "classes/signallevel";
 import TimeLine from "classes/timeline";
 import { useCMGContext } from "cmgcontext";
 import { buildRoomNodes } from "playfunctions/buildroomnodes";
+import {
+  restoreControlledState,
+  saveControlledState,
+} from "playfunctions/controlledstate";
 import { useEffect, useRef, useState } from "react";
 import {
   ActiveSource,
@@ -61,6 +67,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
   const { setMode, sourceData } = params;
   const {
     fileContents,
+    setFileContents,
     playing,
     displayHeight,
     displayWidth,
@@ -85,6 +92,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
   );
   const activeSources = useRef<ActiveSource[]>([]);
   const [activeSourcesCount, setActiveSourcesCount] = useState<number>(0);
+  const activeControl = useRef<Control | null>(null);
   const [signalLevels, setSignalLevels] = useState<SignalLevelsType>({
     leftVolume: 0,
     leftMax: 0,
@@ -195,6 +203,10 @@ export default function Preview(params: PreviewProps): JSX.Element {
     ctx.suspend();
     setAudioContext(ctx);
     initializeRoomEffects(ctx);
+
+    // save the control state
+    saveControlledState(fileContents);
+    console.log("file contents saved");
   }, [sourceData]);
 
   // draw the sources when a new previewtimeline and a drawing exists
@@ -231,6 +243,15 @@ export default function Preview(params: PreviewProps): JSX.Element {
     setDrawing(null);
     activeSources.current = [];
     pendingSourceData.current = [];
+
+    // restore the controlled state
+    setFileContents((prev: CMGFile) => {
+      const n: CMGFile | null = restoreControlledState();
+      if (!n) return prev;
+      console.log("file contents restored");
+      return n;
+    });
+    return;
   }
 
   // either start the previewer or exit
@@ -284,6 +305,8 @@ export default function Preview(params: PreviewProps): JSX.Element {
       DrawSources,
       redrawSource,
       onExit,
+      fileContents,
+      activeControl
     );
   }
 
@@ -348,7 +371,8 @@ export default function Preview(params: PreviewProps): JSX.Element {
       DrawSources,
       redrawSource,
       onExit,
-
+      fileContents,
+      activeControl
     );
   }
 
@@ -397,10 +421,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
         OnStartStop={OnStartStop}
         onPauseResume={onPauseResume}
       />
-      <Timeline
-        previewTimeline={previewTimeline}
-        ticks={ticks}
-      />
+      <Timeline previewTimeline={previewTimeline} ticks={ticks} />
       <svg
         xmlns="http://www.w3.org/2000/svg"
         className="drawing"

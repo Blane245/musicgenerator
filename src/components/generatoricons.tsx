@@ -4,7 +4,7 @@
 // Menu functions are handled by the GeneratorMenu component
 import Track from "classes/track";
 import { useCMGContext } from "cmgcontext";
-import GeneratorMenuDialog from "dialogs/generatormenudialog";
+import GeneratorMenuDialog from "dialogs/generator/generatormenudialog";
 import React, { MouseEvent, useEffect, useState } from "react";
 import { GeneratorType, TimeLineScales, TIMELINETYPE } from "types";
 import {

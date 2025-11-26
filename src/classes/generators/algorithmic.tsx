@@ -48,6 +48,7 @@ export default class Algorithmic extends Silent {
   rn: RandomNumber;
   noiseFrequency: number; // frequency of the modulation moise
   noiseAmplitude: number; // noise gain
+  noiseEnabled: boolean;
   reverb: ConvolverNode | undefined;
   context: AudioContext | OfflineAudioContext | undefined;
   reverbDuration: number;
@@ -60,7 +61,9 @@ export default class Algorithmic extends Silent {
   volumeP: AlgorithmType;
   panP: AlgorithmType;
   tremolo: Tremolo;
+  tremeloEnabled: boolean;
   vibrato: Tremolo;
+  vibratoEnabled: boolean;
 
   constructor(nextGenerator: number) {
     super(nextGenerator);
@@ -94,6 +97,9 @@ export default class Algorithmic extends Silent {
     this.panP = new ConstantValues(0);
     this.tremolo = new Tremolo();
     this.vibrato = new Tremolo();
+    this.noiseEnabled = true;
+    this.tremeloEnabled = true;
+    this.vibratoEnabled = true;
   }
 
   setContext(context: AudioContext | OfflineAudioContext) {
@@ -175,6 +181,9 @@ export default class Algorithmic extends Silent {
     n.panP = this.panP.copy();
     n.tremolo = this.tremolo.copy();
     n.vibrato = this.vibrato.copy();
+    n.noiseEnabled = this.noiseEnabled;
+    n.tremeloEnabled = this.tremeloEnabled;
+    n.vibratoEnabled = this.vibratoEnabled;
     return n;
   }
 
@@ -414,6 +423,12 @@ export default class Algorithmic extends Silent {
       default:
         return false;
     }
+  }
+
+  setControlState(noiseEnabled: boolean, tremoloEnabled: boolean, vibratoEnabled: boolean) {
+    this.noiseEnabled = noiseEnabled,
+    this.tremeloEnabled = tremoloEnabled;
+    this.vibratoEnabled = vibratoEnabled;
   }
 
   // beat counting
@@ -693,7 +708,9 @@ export default class Algorithmic extends Silent {
       [g.noteP, g.speedP, g.attackP, g.durationP, g.volumeP, g.panP].forEach(
         async (algorithm: AlgorithmType, i) => {
           let newAlgorithm: AlgorithmType = algorithm.copy();
-          const pElem: Element = getElementElement(elem, parameterNames[i]);
+          const pElem: Element | null = getElementElement(elem, parameterNames[i]);
+          if (!pElem) throw new Error(`Algorithmic getXML missing attribute ${parameterNames[i]}`);
+
           const pType: ALGORITHMTYPE = getAttributeValueWithDefault(
             pElem,
             "algorithmType",
@@ -777,7 +794,9 @@ export default class Algorithmic extends Silent {
           // get the tremolo and vibrator effects
           [g.tremolo, g.vibrato].forEach(async (_effect:Tremolo, i) => {
             try {
-              const eElem: Element = getElementElement(elem, effectNames[i]);
+              const eElem: Element | null = getElementElement(elem, effectNames[i]);
+              if (!eElem) throw new Error(`Algorithmic getXML missing effect ${effectNames[i]}`);
+
               const promise: Promise<Tremolo> = Tremolo.getXML(eElem, version);
               const tResult: Tremolo[] = await Promise.all([promise]);
               if (effectNames[i] == 'tremolo')

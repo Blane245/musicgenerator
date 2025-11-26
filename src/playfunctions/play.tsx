@@ -3,12 +3,7 @@
 import { useCMGContext } from "cmgcontext";
 import Preview from "playfunctions/previewer/preview";
 import { useEffect, useState } from "react";
-import {
-  PLAYMODE,
-  GeneratorType,
-  RawSourceData,
-  SAMPLERATE,
-} from "types";
+import { GeneratorType, PLAYMODE, RawSourceData, SAMPLERATE } from "types";
 import { buildSources } from "./buildsources";
 import ReadyPlay from "./readyplay";
 import Record from "./record";
@@ -21,16 +16,24 @@ export interface PlayProps {
 }
 export default function Play(props: PlayProps) {
   const { setRecordHandle, recordFormat, recordHandle, generator } = props;
-  const { setStatus, playing, mode, setMode, fileContents, timeInterval } =
-    useCMGContext();
+  const {
+    setStatus,
+    playing,
+    mode,
+    setMode,
+    fileContents,
+    timeInterval,
+  } = useCMGContext();
   const [error, setError] = useState<string>("");
 
   // all of the work of the generator is done by this hook when the
   // mode changes to anything but idle
-  // const [sourceData, setSourceData] = useState<RawSourceData[]>([]);
   const [sourceData, setSourceData] = useState<RawSourceData[]>([]);
+  
   useEffect(() => {
-    if (mode == PLAYMODE.idle) return;
+    if (mode == PLAYMODE.idle) {
+      // restore all controlled parameters states
+    }
 
     // determine the selected generators and make sure they are ready to generate sound
     const {
@@ -44,7 +47,7 @@ export default function Play(props: PlayProps) {
       fileContents,
       timeInterval,
     });
-    
+
     // catch any errors will selecting generators
     setError(error);
     if (error != "") return;
@@ -90,12 +93,7 @@ export default function Play(props: PlayProps) {
       ) : null}
       {(mode == PLAYMODE.preview || mode == PLAYMODE.solo) &&
       sourceData.length > 0 ? (
-        <Preview
-          appName="Computer Music Generator"
-          appVersion={import.meta.env.VERSION}
-          sourceData={sourceData}
-          setMode={setMode}
-        />
+        <Preview sourceData={sourceData} setMode={setMode} />
       ) : null}
 
       <div

@@ -1,6 +1,6 @@
 import { SequenceItem } from "types";
-import DraggablePopup from "panels/draggablepopup";
-import ItemTable from "panels/itemtable";
+import DraggablePopup from "components/draggablepopup";
+import ItemTable from "components/itemtable";
 import { ChangeEvent, MouseEvent, useEffect, useState } from "react";
 import { SEQUENCEATTRIBUTE, SequenceName, SequenceType } from "types";
 import { loadSequenceItems } from "utils/loadsequenceitems";

@@ -24,7 +24,7 @@ export default function RoomVolumeDialog() {
       <div className="sliders">
         <div className="slider" key={`roomvolume`}>
           <span className="param">{"dB"}</span>
-          <span className="param">{volumeData.volume.toString()}</span>
+          <span className="param">{volumeData.volume.toFixed(1)}</span>
           <input
             type="range"
             min={-10}

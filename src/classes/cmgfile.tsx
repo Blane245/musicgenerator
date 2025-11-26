@@ -3,8 +3,9 @@ import Equalizer from "classes/roomnodes/equalizer";
 import Reverb from "classes/roomnodes/reverb";
 import Track from "classes/track";
 import { GeneratorType } from "types";
-import { getAttributeValue } from "utils/xmlfunctions";
+import { getAttributeValue, getElementElement } from "utils/xmlfunctions";
 import Volume from "./roomnodes/volume";
+import { Control } from "./control";
 export default class CMGFile {
   dirty: boolean; // if the contents of the file has been changed since loaded, it is marked dirty
   name: string; // the name of the file on the disk or null if not saved
@@ -14,6 +15,7 @@ export default class CMGFile {
   volume: Volume;
   reverb: Reverb;
   tracks: Track[];
+  controls: Control[];
   comment: string;
 
   constructor() {
@@ -26,6 +28,7 @@ export default class CMGFile {
     this.volume = new Volume();
     this.reverb = new Reverb();
     this.tracks = [];
+    this.controls = [];
     this.comment = "";
   }
 
@@ -47,20 +50,35 @@ export default class CMGFile {
       });
       newTracks.push(newTrack);
     });
+    const newControls: Control[] = [];
+    this.controls.forEach((c) => {
+      const n: Control = c.copy();
+      newControls.push(n);
+    });
     newFile.tracks = newTracks;
+    newFile.controls = newControls;
     newFile.comment = this.comment;
     return newFile;
   }
 
   appendXML(doc: XMLDocument, elem: Element, fileName: string): void {
-    const nameParts:string[] = fileName.split('/');
-    elem.setAttribute("name", nameParts[nameParts.length-1]);
+    const nameParts: string[] = fileName.split("/");
+    elem.setAttribute("name", nameParts[nameParts.length - 1]);
     elem.setAttribute("version", this.version);
     elem.setAttribute("comment", this.comment);
     this.compressor.appendXML(doc, elem);
     this.equalizer.appendXML(doc, elem);
     this.volume.appendXML(doc, elem);
     this.reverb.appendXML(doc, elem);
+
+    // add the controls
+    const controlsElem: Element = doc.createElement("controls");
+    elem.appendChild(controlsElem);
+    this.controls.forEach((control: Control) => {
+      const controlElem: Element = doc.createElement("control");
+      controlsElem.appendChild(controlElem);
+      control.appendXML(doc, controlElem);
+    });
   }
 
   async getXML(fcElem: Element, fileName: string) {
@@ -79,5 +97,18 @@ export default class CMGFile {
     this.equalizer.getXML(fcElem, this.version);
     this.volume.getXML(fcElem, this.version);
     this.reverb.getXML(fcElem, this.version);
+
+    // get the controls, if present
+    let controlsElem: Element | null = null;
+    const newControls: Control[] = [];
+    controlsElem = getElementElement(fcElem, "controls");
+    if (controlsElem) {
+      const controlsChildren: HTMLCollection = controlsElem.children;
+      for (let child of controlsChildren) {
+        const control: Control = Control.getXml(child, this.version);
+        newControls.push(control);
+      }
+    }
+    this.controls = newControls;
   }
 }

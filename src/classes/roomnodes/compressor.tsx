@@ -129,7 +129,8 @@ export default class Compressor {
   }
 
   getXML(fcElem: Element, _version: string): void {
-    const cElem: Element = getElementElement(fcElem, "compressor");
+    const cElem: Element | null = getElementElement(fcElem, "compressor");
+    if (!cElem) throw new Error (`Compressor getXML missing compressor element`)
     try {
       this.enabled =
         (getAttributeValue(cElem, "enabled", "string") as string) == "true";

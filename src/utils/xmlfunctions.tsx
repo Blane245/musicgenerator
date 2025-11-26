@@ -5,10 +5,10 @@ export function getDocElement(object: Document, item: string): Element {
   return itemElement;
 }
 
-export function getElementElement(object: Element, item: string): Element {
+export function getElementElement(object: Element, item: string): Element | null {
   const itemElement: Element | null = object.querySelector(item);
   if (!itemElement)
-    throw new Error(`Item '${item}' not found in element '${object.nodeName}'`);
+    return null;
   return itemElement;
 }
 

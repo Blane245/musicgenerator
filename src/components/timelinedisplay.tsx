@@ -1,6 +1,7 @@
 // display the time line based on the current start time and
 // zoom level
 // handle time line interval editing
+// handle control editing
 import TimeLine from "classes/timeline";
 import { useCMGContext } from "cmgcontext";
 import { MouseEvent, useEffect, useState } from "react";
@@ -17,6 +18,7 @@ import {
 import getTickLinesandLabels from "utils/getticklinesandlabels";
 import setCursor from "utils/setcursor";
 import updateTimeTicks from "utils/updatetimeticks";
+import DisplayControls from "./displaycontrols";
 export default function TimeLineDisplay() {
   const {
     mode,
@@ -71,7 +73,7 @@ export default function TimeLineDisplay() {
     }
   }, [timelineWidth, timelineHeight]);
 
-  // when the timeline or the generation mode changes to idle, update the ticks
+  // when the timeline or the generation mode changes to idle, update the ticks and the controls
   useEffect(() => {
     if (mode == PLAYMODE.idle && timeLine) {
       const newTimeTicks: TimeTicks | null = updateTimeTicks(timeLine);
@@ -282,28 +284,31 @@ export default function TimeLineDisplay() {
   return (
     <>
       {timeLine ? (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width={timeLine.width}
-          height={timeLine.height}
-          viewBox={`0 0 ${timeLine.width} ${timeLine.height}`}
-        >
-          <rect
-            id="timeline"
-            x={0}
-            y={0}
+        <>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
             width={timeLine.width}
             height={timeLine.height}
-            style={{ backgroundColor: "white" }}
-            onMouseDown={(e) => onMouseDownTimeLine(e)}
-          />
-          <path
-            stroke="black"
-            d={`m 0 ${timeLine.height} H ${timeLine.width}`}
-          />
-          {getTickLinesandLabels(timeLine, ticks, timeLine.width)}
-          <DisplayInterval interval={timeInterval} timeLine={timeLine} />
-        </svg>
+            viewBox={`0 0 ${timeLine.width} ${timeLine.height}`}
+          >
+            <rect
+              id="timeline"
+              x={0}
+              y={0}
+              width={timeLine.width}
+              height={timeLine.height}
+              style={{ backgroundColor: "white" }}
+              onMouseDown={(e) => onMouseDownTimeLine(e)}
+            />
+            <path
+              stroke="black"
+              d={`m 0 ${timeLine.height} H ${timeLine.width}`}
+            />
+            {getTickLinesandLabels(timeLine, ticks, timeLine.width)}
+            <DisplayInterval interval={timeInterval} timeLine={timeLine} />
+          </svg>
+          <DisplayControls timeLine={timeLine} />
+        </>
       ) : null}
     </>
   );

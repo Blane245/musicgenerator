@@ -642,45 +642,63 @@ ul:after {
     background-color: #5c75b8;
     color: white;
   }
-  .body { grid-area: body; background-color: white; color:black;}
-    .footer{grid-area:footer; background-color: #5c75b8;}
-}
-.id {padding: 5px;}
-.algorithmic-preamble {
-    display: grid;
+  .body {
     grid-area: body;
-    grid-template-columns: 1fr 1fr;
-    grid-template-areas: "soundfont tools" "reverb vibrato" "noise tremolo" "rhythm rhythm";
     background-color: white;
     color: black;
-    .id {
-      grid-area: id; padding: 5px;
-    }
-    .soundfont {
-      grid-area: soundfont;padding: 5px;
-    }
-    .tremolo {
-      grid-area: tremolo;padding: 5px;
-    }
-    .vibrato {
-      grid-area: vibrato;padding: 5px;
-    }
-    .tools {
-      grid-area: tools;padding: 5px;
-    }
-    .rhythm {
-      grid-area: rhythm;padding: 5px;
-    }
-    .noise {
-      grid-area: noise;padding: 5px;
-    }
-    .reverb {
-      grid-area: reverb;padding: 5px;
-    }
-    .table {
-      grid-area: table;padding: 5px;
-    }
   }
+  .footer {
+    grid-area: footer;
+    background-color: #5c75b8;
+  }
+}
+.id {
+  padding: 5px;
+}
+.algorithmic-preamble {
+  display: grid;
+  grid-area: body;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas: "soundfont tools" "reverb vibrato" "noise tremolo" "rhythm rhythm";
+  background-color: white;
+  color: black;
+  .id {
+    grid-area: id;
+    padding: 5px;
+  }
+  .soundfont {
+    grid-area: soundfont;
+    padding: 5px;
+  }
+  .tremolo {
+    grid-area: tremolo;
+    padding: 5px;
+  }
+  .vibrato {
+    grid-area: vibrato;
+    padding: 5px;
+  }
+  .tools {
+    grid-area: tools;
+    padding: 5px;
+  }
+  .rhythm {
+    grid-area: rhythm;
+    padding: 5px;
+  }
+  .noise {
+    grid-area: noise;
+    padding: 5px;
+  }
+  .reverb {
+    grid-area: reverb;
+    padding: 5px;
+  }
+  .table {
+    grid-area: table;
+    padding: 5px;
+  }
+}
 
 .algorithmic-table {
   display: grid;
@@ -930,8 +948,54 @@ ul:after {
     }
   }
 }
-hr {height:2px;border-width:0;color:gray;background-color:gray}
-label {padding: 5px; }
+.control-content {
+  position: fixed;
+  z-index: 2;
+  top: 5%;
+  left: 5%;
+  background-color: #fefefe;
+  margin: auto;
+  padding: 0;
+  border: 1px solid #888;
+  width: 80%;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  animation-name: animateleft;
+  animation-duration: 0.4s;
+  cursor: inherit;
+  display: grid;
+  grid-template-rows: 20px 1fr auto;
+  grid-template-areas: "header" "body" "footer";
+  .control-header {
+    grid-area: header;
+    background-color: #5c75b8;
+    color: white;
+  }
+  .control-body {
+    grid-area: body;
+    background-color: white;
+    color: black;
+  }
+  .control-footer {
+    grid-area: footer;
+    background-color: #5c75b8;
+  }
+}
+.control-button {
+  padding: 0px;
+  width: 30px;
+  height: 30px;
+  border: none;
+  fill:none;
+}
+hr {
+  height: 2px;
+  border-width: 0;
+  color: gray;
+  background-color: gray;
+}
+label {
+  padding: 5px;
+}
 table,
 th,
 td {
@@ -1086,7 +1150,7 @@ td {
     background-color: lightskyblue;
     grid-area: footer;
     display: grid;
-    grid-template-columns: 1fr 800px 800px 300px 300px 300px 40px;
+    grid-template-columns: 1fr 250px 250px 300px 300px 300px 40px;
     grid-template-areas: "status leftSignal rightSignal reverb compressor equalizer volume";
     .status {
       grid-area: status;

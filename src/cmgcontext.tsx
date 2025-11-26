@@ -22,6 +22,7 @@ import {
   RawSourceData,
   TimelineInterval
 } from "./types";
+import { Control } from "classes/control";
 
 // the elements of this application that are used at many levels
 interface CMGContextType {
@@ -75,6 +76,12 @@ interface CMGContextType {
   setStatus: Dispatch<SetStateAction<string>>;
   timeLine: TimeLine | null;
   setTimeLine: Dispatch<SetStateAction<TimeLine | null>>;
+  // controls: Control[];
+  // setControls: Dispatch<SetStateAction<Control[]>>;
+  controlNew: Control | null;
+  setControlNew: Dispatch<SetStateAction<Control| null>>;
+  displayControlDialog: boolean;
+  setDisplayControlDialog: Dispatch<SetStateAction<boolean>>;
   playing: MutableRefObject<boolean>;
   mode: PLAYMODE;
   setMode: Dispatch<SetStateAction<PLAYMODE>>;
@@ -138,6 +145,9 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
   const [fileContents, setFileContents] = useState<CMGFile>(new CMGFile());
   const [status, setStatus] = useState<string>("");
   const [timeLine, setTimeLine] = useState<TimeLine | null>(null);
+  // const [controls, setControls] = useState<Control[]>([]);
+  const [controlNew, setControlNew] = useState<Control|null>(null);
+  const [displayControlDialog, setDisplayControlDialog] = useState<boolean>(false);
   const [fileName, setFileName] = useState<string>("");
   const playing = useRef<boolean>(false);
   const [mode, setMode] = useState<PLAYMODE>(PLAYMODE.idle);
@@ -214,6 +224,12 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     setStatus,
     timeLine,
     setTimeLine,
+    // controls,
+    // setControls,
+    controlNew,
+    setControlNew,
+    displayControlDialog,
+    setDisplayControlDialog,
     playing,
     mode,
     setMode,

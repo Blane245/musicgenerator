@@ -76,11 +76,13 @@ export default class Equalizer {
   #enable(enabled: boolean) {
     if (!this.#filterHead || !this.effectIn || !this.effectOut) return;
     if (enabled) {
+      console.log('enabling room equalizer');
       try {
         softDisconnect(this.effectIn, this.effectOut);
       } catch (e) {}
       this.effectIn.connect(this.#filterHead);
     } else {
+      console.log('disabling room equalizer');
       try {
         softDisconnect(this.effectIn, this.#filterHead);
       } catch (e) {}
@@ -123,7 +125,8 @@ export default class Equalizer {
 
   getXML(fcElem: Element, _version: string): void {
     try {
-      const eElement: Element = getElementElement(fcElem, "equalizer");
+      const eElement: Element | null = getElementElement(fcElem, "equalizer");
+    if (!eElement) throw new Error (`Equalizer getXML missing compressor element`)
       try {
         this.enabled =
           (getAttributeValue(eElement, "enabled", "string") as string) ==
