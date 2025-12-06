@@ -1,20 +1,23 @@
 // base class for all generator types
 
 import CMGFile from "classes/cmgfile";
+import Track from "classes/track";
 import { GENERATORTYPE } from "types";
 import { getAttributeValueWithDefault } from "utils/xmlfunctions";
 
 // contains properties used all generators
 export default class Silent {
   name: string; // the unique name of the generator
+  parent: Track; // owner of the generator
   startTime: number; // time (seconds) that the generator starts
   stopTime: number; // time (seconds) that the generator stops
   type: GENERATORTYPE;
   mute: boolean;
   position: number; // the vertical location of the generator icon on the track timeline
 
-  constructor(nextGenerator: number) {
+  constructor(nextGenerator: number, parent: Track) {
     this.name = "G".concat(nextGenerator.toString());
+    this.parent = parent;
     this.startTime = 0;
     this.stopTime = 0;
     this.type = GENERATORTYPE.Silent;
@@ -22,8 +25,8 @@ export default class Silent {
     this.position = 0;
   }
 
-  copy(): Silent {
-    const newCMG = new Silent(0);
+  copy(parent: Track): Silent {
+    const newCMG = new Silent(0, parent);
     newCMG.name = this.name;
     newCMG.startTime = this.startTime;
     newCMG.stopTime = this.stopTime;
@@ -37,7 +40,7 @@ export default class Silent {
       case "name":
         this.name = value;
         return true;
-      case "type":
+        case "type":
         this.type = GENERATORTYPE.Silent;
         return true;
       case "startTime":
@@ -73,9 +76,9 @@ export default class Silent {
     }
   }
 
-  static async getXML(elem: Element, _version: string): Promise<Silent> {
+  static async getXML(elem: Element, _version: string, parent: Track): Promise<Silent> {
     try {
-      const g: Silent = new Silent(0);
+      const g: Silent = new Silent(0, parent);
       g.name = getAttributeValueWithDefault(elem, "name", "string", "") as string;
       g.startTime = getAttributeValueWithDefault(elem, "startTime", "float", 0) as number;
       g.stopTime = getAttributeValueWithDefault(elem, "stopTime", "float", 0) as number;

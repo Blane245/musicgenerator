@@ -93,7 +93,7 @@ export default function DisplayControls(
     return (position - 15).toString().concat("px");
   };
   const controlCaret = (): string => {
-    return (headerHeight / 2).toString().concat("px");
+    return (2*headerHeight / 3).toString().concat("px");
   };
   return (
     <>

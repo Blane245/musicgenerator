@@ -6,6 +6,7 @@ import { SEQUENCEATTRIBUTE, SequenceName, SequenceType } from "types";
 import { loadSequenceItems } from "utils/loadsequenceitems";
 import { loadValidSequenceNames } from "utils/loadvalidsequencenames";
 import toTitleCase from "utils/totitlecase";
+import { toNote } from "sfcomponents/util";
 
 type SequencerProperitesBoxProps = {
   attributeType: SEQUENCEATTRIBUTE;
@@ -132,6 +133,38 @@ export default function SequencerPropertiesBox(
             value={values.transpose}
           />
         </label>
+      </div>
+      <div className="transform">
+        <label>
+          &nbsp;Reverse Sequence:&nbsp;
+          <input
+            name={name + ".reverseSequence"}
+            type="checkbox"
+            onChange={(e)=>handleChange(e)}
+            checked={values.reverseSequence}
+          />
+        </label>
+        <label>
+          &nbsp;Reflect Sequence:&nbsp;
+          <input
+            name={name + ".reflectSequence"}
+            type="checkbox"
+            onChange={(e)=>handleChange(e)}
+            checked={values.reflectSequence}
+          />
+        </label>
+        <label>
+          &nbsp;Reflect Pitch (0-127):&nbsp;
+          <input
+            name={name + ".reflectPitch"}
+            type="number"
+            min={0}
+            max={127}
+            onChange={(e)=>handleChange(e)}
+            value={values.reflectPitch}
+          />
+        </label>
+        <span>&nbsp;{toNote(values.reflectPitch)}</span>
       </div>
     </div>
   );

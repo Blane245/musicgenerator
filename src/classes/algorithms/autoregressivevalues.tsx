@@ -8,8 +8,8 @@ export default class AutoregressiveValues extends AlgorithmValues {
   constructor(
     values: AutoregressiveType = {
       initialValue: 0,
-      seed: "seed",
-      rn: new RandomNumber("seed"),
+      seed: "",
+      rn: new RandomNumber(""),
       alpha: 0,
       sigma: 0,
       lo: 0,
@@ -152,7 +152,6 @@ export default class AutoregressiveValues extends AlgorithmValues {
 
   static override validate(algorithm: AutoregressiveValues): string[] {
     const errors: string[] = [];
-    if (algorithm.values.seed == "") errors.push("Seed must not be blank");
     if (
       algorithm.values.initialValue < algorithm.values.lo ||
       algorithm.values.initialValue > algorithm.values.hi

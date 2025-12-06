@@ -718,7 +718,7 @@ ul:after {
     .sequencer {
       display: grid;
       grid-template-columns: 3fr 1fr 1fr 1fr 7fr;
-      grid-template-areas: "name reload view transpose .";
+      grid-template-areas: "name reload view transpose transform";
       .name {
         grid-area: name;
       }
@@ -731,10 +731,13 @@ ul:after {
       .transpose {
         grid-area: transpose;
       }
+      .transform {
+        grid-area: transform;
+      }
     }
     .constant {
       display: grid;
-      grid-template-columns: 1fr 1fr 10fr;
+      grid-template-columns: 1fr 1fr 8fr;
       grid-template-areas: "valuetitle value .";
       gap: 0;
       .valuetitle {

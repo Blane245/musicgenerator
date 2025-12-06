@@ -139,7 +139,7 @@ export default function TrackControls(props: TrackControlsProps) {
     if (playing.current) return;
     event.preventDefault();
     event.stopPropagation();
-    setMenu({x:controlWidth / 2, y: 100 / 2 + trackIndex * 100});
+    setMenu({x:controlWidth / 4 , y: 100 / 3 + trackIndex * 100});
     setMenuEnabled(true);
   }
 
@@ -147,7 +147,7 @@ export default function TrackControls(props: TrackControlsProps) {
     if (playing.current) return;
     event.preventDefault();
     event.stopPropagation();
-    setTool({x:controlWidth / 2, y: 100 * 2 / 3 + trackIndex * 100});
+    setTool({x:controlWidth / 4, y: 100 * 2 / 3 + trackIndex * 100});
     setToolsEnabled(true);
   }
 

@@ -18,15 +18,15 @@ export default function TrackEffectDialog(
   const { effect, list, tracks, handleChange, handleListChange } = props;
   return (
     <>
-      <label style={{ display: "inline-block", textAlign: "center" }}>
+      <label style={{ display: "inline-grid", textAlign: "center" }}>
         Track List
         <select
           id={"tracklist"}
           name="list"
           multiple={true}
+          size={5}
           value={list}
           onChange={(e) => handleListChange(e)}
-          style={{ display: "inline-block" }}
         >
           {tracks.map((t) => (
             <option key={`tracks-${t.name}`} value={t.name}>
@@ -36,22 +36,35 @@ export default function TrackEffectDialog(
         </select>
       </label>
       <label>
-        &nbsp;Volume Ramp (dB/sec) &nbsp;
+        &nbsp;Start Volume(dB):&nbsp;
         <input
-          name="volumeRamp"
+          name="volumeStart"
           type="number"
-          value={effect.volumeRamp}
+          min={-10}
+          max={10}
+          value={effect.volumeStart}
           onChange={(e) => handleChange(e)}
         />
       </label>
       <label>
-        &nbsp;Volume Limit (dB)&nbsp;
+        &nbsp;End Volume(dB):&nbsp;
         <input
-          name="volumeLimit"
+          name="volumeStop"
           type="number"
           min={-10}
           max={10}
-          value={effect.volumeLimit}
+          value={effect.volumeStop}
+          onChange={(e) => handleChange(e)}
+        />
+      </label>
+      <label>
+        &nbsp;Duration (sec)&nbsp;
+        <input
+          name="volumeDuration"
+          type="number"
+          min={0}
+          max={1000}
+          value={effect.volumeDuration}
           onChange={(e) => handleChange(e)}
         />
       </label>

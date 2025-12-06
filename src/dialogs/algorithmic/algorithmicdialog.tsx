@@ -7,6 +7,7 @@ import AlgorithmicTable from "./algorithmictable";
 import MidiFrequencyDialog from "../midifrequencydialog";
 import PresetDialog from "./presetdialog";
 import { MODULATOR } from "types";
+import { generateRandomString } from "utils/randomstring";
 
 // provides the form fields and validators for the algorithmic generator
 
@@ -24,6 +25,11 @@ export default function AlgorithmicDialog(
   const { formData, handleChange } = props;
   const [open, setOpen] = useState<boolean>(false);
   const [viewPreset, setViewPreset] = useState<boolean>(false);
+  function getSeed(): void {
+    const newSeed:string = generateRandomString(15);
+    const event:{} = {target: {name:"noiseSeed", value:newSeed, type:'string'}}
+    handleChange(event as ChangeEvent<HTMLInputElement>);
+  }
   return (
     <>
       <div className="algorithmic-preamble">
@@ -138,7 +144,6 @@ export default function AlgorithmicDialog(
               name="vibrato.speed"
               type="number"
               min={0}
-              max={10000}
               step={1}
               value={formData.vibrato.values.speed}
               onChange={handleChange}
@@ -239,6 +244,9 @@ export default function AlgorithmicDialog(
           </label>
         </div>
         <div className="noise">
+        <button type="button" onClick={()=>getSeed()} style={{fontSize:'10px'}}>
+          New Seed
+        </button>
           <label>
             Noise Seed:&nbsp;
             <input
@@ -266,9 +274,9 @@ export default function AlgorithmicDialog(
             <input
               name="noiseAmplitude"
               type="number"
-              min={0}
-              max={1}
-              step={0.001}
+              min={-10}
+              max={10}
+              step={1}
               onChange={handleChange}
               value={formData.noiseAmplitude}
             />

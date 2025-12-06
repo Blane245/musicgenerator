@@ -3,9 +3,13 @@
 // are currently playing are maintained in the graph to keep the load on the
 
 import CMGFile from "classes/cmgfile";
-import { Control, EFFECTTYPE } from "classes/control";
+import { Control } from "classes/control";
 import TimeLine from "classes/timeline";
-import { activateGlobalControl, processGlobalControl } from "playfunctions/controls/globalcontrol";
+import {
+  activateRealtimeControls,
+  processActiveSources,
+  processGlobalControls
+} from "playfunctions/controls/realtimecontrols";
 import { realizeSource } from "playfunctions/realizesource";
 import { ActiveSource, GENERATORTYPE, RawSourceData } from "types";
 
@@ -29,7 +33,7 @@ export default function scheduler(
   redrawSource: Function,
   setActiveSourcesCount: Function,
   fileContents: CMGFile,
-  activeControl: React.MutableRefObject<Control | null>,
+  realtimeControls: React.MutableRefObject<Control[]>
 ): void {
   // if (paused.current) {
   if (paused.current) {
@@ -60,7 +64,7 @@ export default function scheduler(
       redrawSource,
       setActiveSourcesCount,
       fileContents,
-      activeControl,
+      realtimeControls
     );
   } else {
     if (audioContext.state !== "closed") {
@@ -77,17 +81,15 @@ export default function scheduler(
   if (playing.current && previewTimeline.current) {
     const aheadTime = audioContext.currentTime + SCHEDULEAHEADTIME;
 
-    // activate a global control that occurs between currentTime + offsetTime and aheadTime + offsetTime
-    const ctl:Control| undefined = fileContents.controls.find((c)=> (c.time - offsetTime > audioContext.currentTime && c.time - offsetTime <aheadTime && c.type == EFFECTTYPE.Global));
-    if (ctl) {
-      console.log('activating control at time with offset', ctl.name, audioContext.currentTime, offsetTime);
-      activeControl.current = ctl;
-      activateGlobalControl(audioContext.currentTime + offsetTime, ctl, fileContents);
-    }
-    if (activeControl.current) {
-      console.log('processing control at time with offset', activeControl, audioContext.currentTime, offsetTime);
-      processGlobalControl(audioContext.currentTime + offsetTime, activeControl.current, fileContents);
-    }
+    // activate a global and instrument reverb controls that occurs between currentTime + offsetTime and aheadTime + offsetTime
+    realtimeControls.current = activateRealtimeControls(
+      realtimeControls.current,
+      audioContext.currentTime + offsetTime, aheadTime + offsetTime, fileContents);
+      processGlobalControls(
+        audioContext.currentTime + offsetTime,
+        realtimeControls.current,
+        fileContents
+      );
 
     let nStarted: number = 0;
     let nStopped: number = 0;
@@ -110,6 +112,7 @@ export default function scheduler(
           aheadTime <= s.source.startTime + s.source.duration - offsetTime &&
           !s.source.started
         ) {
+
           const activeSource: ActiveSource = realizeSource(
             audioContext,
             s,
@@ -178,6 +181,9 @@ export default function scheduler(
           return false;
         } else return true;
       });
+          // handle the source's reverb settings for all active sources
+          processActiveSources(newActiveSources, realtimeControls.current);
+
       // advance to the next scheduled time
       nextTime += SCHEDULEAHEADTIME;
     }

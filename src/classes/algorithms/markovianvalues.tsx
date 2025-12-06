@@ -8,8 +8,8 @@ export default class MarkovianValues extends AlgorithmValues {
 
   constructor(
     values: MarkovianType = {
-      seed: "seed",
-      rn: new RandomNumber("seed"),
+      seed: "",
+      rn: new RandomNumber(""),
       currentState: MARKOVSTATE.same,
       currentValue: 0,
       startValue: 0,
@@ -279,7 +279,6 @@ export default class MarkovianValues extends AlgorithmValues {
 
   static override validate(algorithm: MarkovianValues): string[] {
     const errors: string[] = [];
-    if (algorithm.values.seed == "") errors.push("Seed must not be blank");
     // validate cumulative probabilities
     let cum: number = 0;
     cum =

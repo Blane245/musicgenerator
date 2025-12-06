@@ -54,7 +54,7 @@ export default function changeTimerState(
   redrawSource: Function,
   onExit: Function,
   fileContents: CMGFile,
-  activeControl:  React.MutableRefObject<Control | null>,
+  realtimeControls:  React.MutableRefObject<Control[]>,
 ) {
   tick(
     paused,
@@ -118,6 +118,6 @@ export default function changeTimerState(
     redrawSource,
     setActiveSourcesCount,
     fileContents,
-    activeControl,
+    realtimeControls,
   );
 }

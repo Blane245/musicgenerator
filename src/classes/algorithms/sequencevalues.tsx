@@ -1,8 +1,8 @@
 import {
-    ALGORITHMTYPE,
-    SEQUENCEATTRIBUTE,
-    SequenceItem,
-    SequenceType,
+  ALGORITHMTYPE,
+  SEQUENCEATTRIBUTE,
+  SequenceItem,
+  SequenceType,
 } from "types";
 import { beatsToIndex } from "utils/beatstoindex";
 import { loadSequenceItems } from "utils/loadsequenceitems";
@@ -11,9 +11,6 @@ import { AlgorithmValues } from "./algorithmvalues";
 
 export default class SequenceValues extends AlgorithmValues {
   override values: SequenceType;
-  reverseSequence: boolean;
-  reflectSequence: boolean;
-  reflectPitch: number;
   constructor(sequenceAttribute: SEQUENCEATTRIBUTE) {
     super(ALGORITHMTYPE.Sequencer);
     this.values = {
@@ -21,19 +18,19 @@ export default class SequenceValues extends AlgorithmValues {
       transpose: 0,
       name: "",
       items: [],
+      reverseSequence: false,
+      reflectSequence: false,
+      reflectPitch: 0,
     };
-    this.reverseSequence = false;
-    this.reflectSequence = false;
-    this.reflectPitch = 0;
   }
   override copy(): SequenceValues {
     const n: SequenceValues = new SequenceValues(this.values.sequenceAttribute);
     n.values.name = this.values.name;
     n.values.transpose = this.values.transpose;
     n.values.items = [...this.values.items];
-    n.reverseSequence = this.reverseSequence;
-    n.reflectPitch = this.reflectPitch;
-    n.reflectSequence = this.reflectSequence;
+    n.values.reverseSequence = this.values.reverseSequence;
+    n.values.reflectPitch = this.values.reflectPitch;
+    n.values.reflectSequence = this.values.reflectSequence;
     return n;
   }
 
@@ -42,7 +39,10 @@ export default class SequenceValues extends AlgorithmValues {
     return (
       newAlgorithm.values.sequenceAttribute == this.values.sequenceAttribute &&
       newAlgorithm.values.name == this.values.name &&
-      newAlgorithm.values.transpose == this.values.transpose
+      newAlgorithm.values.transpose == this.values.transpose &&
+      newAlgorithm.values.reflectSequence == this.values.reflectSequence &&
+      newAlgorithm.values.reverseSequence == this.values.reverseSequence &&
+      newAlgorithm.values.reflectPitch == this.values.reflectPitch
     );
   }
 
@@ -69,30 +69,42 @@ export default class SequenceValues extends AlgorithmValues {
       case "transpose":
         this.values.transpose = parseFloat(value);
         return true;
-      default:
+      case "reverseSequence":
+        this.values.reverseSequence = value == "true";
         return true;
+      case "reflectSequence":
+        this.values.reflectSequence = value == "true";
+        return true;
+      case "reflectPitch":
+        this.values.reflectPitch = parseFloat(value);
+        return true;
+      default:
+        return false;
     }
   }
-
 
   // these methods are used by generator controls to reverse and reflect
   // the note sequence. They only apply to note sequences
-  setReverse (reverse: boolean) {
-    this.reverseSequence = reverse;
-    if (reverse) {
+  setReverse() {
+    if (this.values.reverseSequence) {
       this.values.items.reverse();
     }
   }
-  setReflect (reflect: boolean) {
-    this.reflectSequence = reflect;
-  }
-
-  setReflectPitch (pitch: number) {
-    this.reflectPitch = pitch;
-    if (this.reflectSequence) {
+  setReflect() {
+    if (this.values.reflectSequence) {
+      console.log(
+        "Sequencer: reflect ",
+        this.values.reflectPitch,
+        this.values.items
+      );
       this.values.items = this.values.items.map((item: SequenceItem) => {
-        return {beats: item.beats, value: this.reflectPitch-(item.value - this.reflectPitch)}
-      })
+        return {
+          id: item.id,
+          beats: item.beats,
+          value: 2 * this.values.reflectPitch - item.value,
+        };
+      });
+      console.log("new sequence", this.values.items);
     }
   }
 
@@ -116,6 +128,18 @@ export default class SequenceValues extends AlgorithmValues {
       if (this.values.transpose != undefined) {
         returnElem.setAttribute("transpose", this.values.transpose.toString());
       }
+      returnElem.setAttribute(
+        "reverseSequence",
+        this.values.reverseSequence ? "true" : "false"
+      );
+      returnElem.setAttribute(
+        "reflectSequence",
+        this.values.reflectSequence ? "true" : "false"
+      );
+      returnElem.setAttribute(
+        "reflectPitch",
+        this.values.reflectPitch.toString()
+      );
 
       return Promise.resolve(returnElem);
     } catch (e: any) {
@@ -152,9 +176,38 @@ export default class SequenceValues extends AlgorithmValues {
       "float",
       0
     ) as number;
+    s.values.reverseSequence = getAttributeValueWithDefault(
+      elem,
+      "reverseSequence",
+      "boolean",
+      true
+    ) as boolean;
+    s.values.reflectSequence = getAttributeValueWithDefault(
+      elem,
+      "reflectSequence",
+      "boolean",
+      true
+    ) as boolean;
+    s.values.reflectPitch = getAttributeValueWithDefault(
+      elem,
+      "reflectPitch",
+      "float",
+      0,
+    ) as number;
     return Promise.resolve(s);
   }
-  static override validate(_algorithm: SequenceValues): string[] {
-    return [];
+  static override validate(algorithm: SequenceValues): string[] {
+    // if reflecting, not pitch should reflect outside of the
+    // range [0-127]
+    if (!algorithm.values.reflectSequence) return [];
+    const errors: string[] = [];
+    algorithm.values.items.forEach((item: SequenceItem) => {
+      const newPitch: number = algorithm.values.reflectPitch * 2 - item.value;
+      if (newPitch < 0 || newPitch > 127)
+        errors.push(
+          `The pitch ${item.value} is reflected by the pitch ${algorithm.values.reflectPitch} outside of the range [0-127].`
+        );
+    });
+    return errors;
   }
 }

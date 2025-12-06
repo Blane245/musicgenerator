@@ -7,7 +7,8 @@
 export default class RandomNumber {
     #seed: number[] = [];
     constructor(seed: string) {
-      this.#seed = this.#cyrb128(seed);
+      const theSeed: string = seed == ""? Date.now().toString(): seed;
+      this.#seed = this.#cyrb128(theSeed);
       // do a little early sequence mixing
       for (let i = 0; i < 1000; i++) this.rand();
     }

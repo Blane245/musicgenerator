@@ -15,49 +15,62 @@ export default function GlobalEffectDialog(
   return (
     <>
       <label>
-        &nbsp;Enable Reverb&nbsp;
+        &nbsp;Enable Reverb:&nbsp;
         <input
           name="reverbEnable"
           type="checkbox"
-          checked={(effect as GlobalEffect).reverbEnable}
+          checked={effect.reverbEnable}
           onChange={(e) => handleChange(e)}
         />
       </label>
       <label>
-        &nbsp;Enable Compressor&nbsp;
+        &nbsp;Enable Compressor:&nbsp;
         <input
           name="compressorEnable"
           type="checkbox"
-          checked={(effect as GlobalEffect).compressorEnable}
+          checked={effect.compressorEnable}
           onChange={(e) => handleChange(e)}
         />
       </label>
       <label>
-        &nbsp;Enable Equalizer&nbsp;
+        &nbsp;Enable Equalizer:&nbsp;
         <input
           name="equalizerEnable"
           type="checkbox"
-          checked={(effect as GlobalEffect).equalizerEnable}
+          checked={effect.equalizerEnable}
           onChange={(e) => handleChange(e)}
         />
       </label>
       <label>
-        &nbsp;Volume Ramp (dB/sec) &nbsp;
+        &nbsp;Start Volume(dB):&nbsp;
         <input
-          name="volumeRamp"
-          type="number"
-          value={(effect as GlobalEffect).volumeRamp}
-          onChange={(e) => handleChange(e)}
-        />
-      </label>
-      <label>
-        &nbsp;Volume Limit (dB)&nbsp;
-        <input
-          name="volumeLimit"
+          name="volumeStart"
           type="number"
           min={-10}
           max={10}
-          value={(effect as GlobalEffect).volumeLimit}
+          value={effect.volumeStart}
+          onChange={(e) => handleChange(e)}
+        />
+      </label>
+      <label>
+        &nbsp;End Volume(dB):&nbsp;
+        <input
+          name="volumeStop"
+          type="number"
+          min={-10}
+          max={10}
+          value={effect.volumeStop}
+          onChange={(e) => handleChange(e)}
+        />
+      </label>
+      <label>
+        &nbsp;Duration (sec)&nbsp;
+        <input
+          name="volumeDuration"
+          type="number"
+          min={0}
+          max={1000}
+          value={effect.volumeDuration}
           onChange={(e) => handleChange(e)}
         />
       </label>

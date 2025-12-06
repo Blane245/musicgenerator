@@ -2,14 +2,10 @@ import { AlgorithmValues } from "classes/algorithms/algorithmvalues";
 import SequenceValues from "classes/algorithms/sequencevalues";
 import CMGFile from "classes/cmgfile";
 import Algorithmic from "classes/generators/algorithmic";
-import Track from "classes/track";
 import { getPresetNote } from "playfunctions/presetProcessing/getpresetnote";
 import { ALGORITHMTYPE, RawSourceData, SequenceItem } from "types";
-import findGeneratorParent from "utils/findgeneratorparent";
 import RandomNumber from "../classes/randomnumber";
-import {
-  activatePriorControls
-} from "./controls/dspcontrols";
+import { activatePriorControls } from "./controls/dspcontrols";
 
 export function getBufferSourceNodesFromAlgorithmic(
   fileContents: CMGFile,
@@ -19,7 +15,6 @@ export function getBufferSourceNodesFromAlgorithmic(
   const { startTime, stopTime, preset } = gen;
   if (!preset)
     throw new Error(`Preset not defined for generator '${gen.name}'`);
-      const track:Track | null = findGeneratorParent(gen.name, fileContents);
 
   let time: number = startTime;
   const sourceData: RawSourceData[] = [];
@@ -68,7 +63,6 @@ export function getBufferSourceNodesFromAlgorithmic(
       pan,
     } = gen.getCurrentValues(time - startTime, 0);
 
-
     while (time < stopTime) {
       const interval: number = Math.min(60.0 / speed, stopTime - time);
 
@@ -78,7 +72,6 @@ export function getBufferSourceNodesFromAlgorithmic(
         const connections: RawSourceData[] = getPresetNote(
           fileContents,
           gen,
-          track,
           preset,
           interval,
           duration,
@@ -93,7 +86,7 @@ export function getBufferSourceNodesFromAlgorithmic(
         nextSource += connections.length;
       }
       time += interval;
-      // initialize any track control that occurs  
+      // initialize any track control that occurs
       ({
         beat: hitBeat,
         note,
@@ -107,19 +100,24 @@ export function getBufferSourceNodesFromAlgorithmic(
 
     return sourceData;
   } else {
-    // sequencing based on note beats
 
+    // sequencing based on note beats
     let time: number = startTime;
     activatePriorControls(gen, fileContents);
-    // and initialze them
-    const track:Track | null = findGeneratorParent(gen.name, fileContents);
+    
 
+    // and initialze them
+    const noteP: SequenceValues = gen.noteP as SequenceValues;
     let beats: number = 1;
-    const items: SequenceItem[] = (gen.noteP as SequenceValues).values.items;
-    const transpose: number = (gen.noteP as SequenceValues).values.transpose;
-    for (let iItem = 0; iItem < items.length && time <= stopTime; iItem++) {
-      const note = items[iItem].value > 0 ? items[iItem].value + transpose : -1;
-      let beat: number = items[iItem].beats;
+    const transpose: number = noteP.values.transpose;
+    // hold the original items so they can be restored
+    const items: SequenceItem[] = [...noteP.values.items];
+    noteP.setReverse();
+    noteP.setReflect();
+
+    for (let iItem = 0; iItem < noteP.values.items.length && time <= stopTime; iItem++) {
+      const note = noteP.values.items[iItem].value > 0 ? noteP.values.items[iItem].value + transpose : -1;
+      let beat: number = noteP.values.items[iItem].beats;
       let {
         speed,
         duration: noteDuration,
@@ -135,7 +133,6 @@ export function getBufferSourceNodesFromAlgorithmic(
         const connections: RawSourceData[] = getPresetNote(
           fileContents,
           gen,
-          track,
           preset,
           interval,
           duration,
@@ -154,6 +151,8 @@ export function getBufferSourceNodesFromAlgorithmic(
       beats += beat;
     }
 
+    // restore the sequencer items
+    noteP.values.items = [...items];
     return sourceData;
   }
 }

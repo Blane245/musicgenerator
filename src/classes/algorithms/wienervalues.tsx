@@ -9,7 +9,7 @@ export default class WienerValues extends AlgorithmValues {
 
   constructor(
     values: WienerType = {
-      seed: "seed",
+      seed: "",
       rn: new RandomNumber(""),
       initialValue: 0,
       alpha: 0,
@@ -158,7 +158,6 @@ export default class WienerValues extends AlgorithmValues {
   static override validate(algorithm: WienerValues): string[] {
     const errors: string[] = [];
     const values: WienerType = algorithm.values;
-    if (values.seed == "") errors.push("Seed must not be blank");
     if (values.sigma < 0) errors.push("Sigma must be nonnegative");
     if (values.lo < -10 || values.hi <= values.lo)
       errors.push("Lo greater than -10 and hi must be greater than lo");

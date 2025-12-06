@@ -44,7 +44,6 @@ export function buildSources(params: buildSourcesProps): {
 
     AudioFileGenerators.forEach((g) => {
       const AudioFileData: RawSourceData[] = getBufferSourceNodesFromAudioFile(
-        fileContents,
         g,
         sourceCount
       );

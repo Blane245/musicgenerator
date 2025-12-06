@@ -183,6 +183,7 @@ export const Attributes: SEQUENCEATTRIBUTE[] = [
   SEQUENCEATTRIBUTE.pan,
 ];
 export type SequenceItem = {
+  id: string;
   value: number;
   beats: number;
 };
@@ -191,6 +192,9 @@ export type SequenceType = {
   sequenceAttribute: SEQUENCEATTRIBUTE;
   transpose: number;
   items: SequenceItem[];
+  reverseSequence: boolean;
+  reflectSequence: boolean;
+  reflectPitch: number;
 };
 
 export enum NOISETYPE {

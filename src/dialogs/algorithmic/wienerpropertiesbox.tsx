@@ -1,5 +1,6 @@
 import { ChangeEvent } from "react";
 import { WienerType } from "types";
+import { generateRandomString } from "utils/randomstring";
 
 export interface WienerPropertiesBoxProps {
   name: string;
@@ -14,6 +15,12 @@ export interface WienerPropertiesBoxProps {
 }
 export default function WienerPropertiesBox(props: WienerPropertiesBoxProps) {
   const { name, values, min, max, step, valueSuffix, handleChange } = props;
+    function getSeed(): void {
+      const newSeed:string = generateRandomString(15);
+      const event:{} = {target: {name:name.concat(".seed"), value:newSeed, type:'string'}}
+      handleChange(event as ChangeEvent<HTMLInputElement>);
+    }
+  
   return (
     <div className="wiener">
       <div className="seedtitle">Seed</div>
@@ -24,6 +31,9 @@ export default function WienerPropertiesBox(props: WienerPropertiesBoxProps) {
       <div className="hititle">Hi</div>
       <br />
       <div className="seed">
+        <button type="button" onClick={()=>getSeed()} style={{fontSize:'10px'}}>
+          New Seed
+        </button>
         <input
           name={name.concat(".seed")}
           type="string"

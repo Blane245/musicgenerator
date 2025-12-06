@@ -92,7 +92,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
   );
   const activeSources = useRef<ActiveSource[]>([]);
   const [activeSourcesCount, setActiveSourcesCount] = useState<number>(0);
-  const activeControl = useRef<Control | null>(null);
+  const realtimeControls = useRef<Control[]>([]);
   const [signalLevels, setSignalLevels] = useState<SignalLevelsType>({
     leftVolume: 0,
     leftMax: 0,
@@ -306,7 +306,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
       redrawSource,
       onExit,
       fileContents,
-      activeControl
+      realtimeControls
     );
   }
 
@@ -372,7 +372,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
       redrawSource,
       onExit,
       fileContents,
-      activeControl
+      realtimeControls
     );
   }
 

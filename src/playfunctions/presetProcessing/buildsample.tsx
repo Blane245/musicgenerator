@@ -1,6 +1,5 @@
 import CMGFile from "classes/cmgfile";
 import Algorithmic from "classes/generators/algorithmic";
-import Track from "classes/track";
 import { activateDSPControls } from "playfunctions/controls/dspcontrols";
 import { dBToGain, midiToFrequency } from "sfcomponents/util";
 import { GainEnvelope } from "types";
@@ -21,7 +20,6 @@ import { getSampleWithNoise } from "./applynoise";
 export default function buildSampleArray(
   sampleStartTime: number,
   generator: Algorithmic,
-  track: Track | null,
   fileContents: CMGFile,
   pitchValue: number,
   inputSample: Float32Array,
@@ -35,7 +33,7 @@ export default function buildSampleArray(
   envelope: GainEnvelope,
   attenuation: number
 ): Float32Array {
-  console.log("building sample with envelope", envelope);
+  // console.log("building sample with envelope", envelope);
   const basePlaybackRate = 1.0 * Math.pow(2, inputCents / 1200);
   const inputCount: number = Math.ceil(inputRate * totalTime);
   const result: Float32Array = new Float32Array(inputCount);
@@ -76,8 +74,7 @@ export default function buildSampleArray(
     // first apply noise
     if (
       generator.noiseEnabled &&
-      generator.noiseFrequency != 0 &&
-      generator.noiseAmplitude != 0
+      generator.noiseFrequency != 0
     ) {
       value += getSampleWithNoise(
         value,
@@ -104,12 +101,10 @@ export default function buildSampleArray(
     value *= envelopeGain;
 
     // apply the generator volume, track volume, and instrument attenuation
-    value = track
-      ? value *
+    value *= 
         volumeGain *
         attenuation *
-        dBToGain(track.getVolume(t + sampleStartTime))
-      : value * volumeGain * attenuation;
+        dBToGain(generator.parent.getVolume(t + sampleStartTime));
 
     // apply tremolo
     if (

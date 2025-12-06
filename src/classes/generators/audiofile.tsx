@@ -3,6 +3,7 @@ import Silent from "./silent";
 import { compressAndConvertToString, convertFromJsonAndDecompress } from "utils/gzip";
 import { getAttributeValueWithDefault } from "utils/xmlfunctions";
 import CMGFile from "classes/cmgfile";
+import Track from "classes/track";
 
 // this class represents an audio file that can be used as a generator source
 export default class AudioFile extends Silent {
@@ -12,8 +13,8 @@ export default class AudioFile extends Silent {
   duration: number;
   volume: number;
 
-  constructor(nextGenerator: number) {
-    super(nextGenerator);
+  constructor(nextGenerator: number, parent: Track) {
+    super(nextGenerator, parent);
     this.type = GENERATORTYPE.AudioFile;
     this.fileName = "";
     this.samples = [];
@@ -22,8 +23,8 @@ export default class AudioFile extends Silent {
     this.volume = 0;
   }
 
-  override copy(): AudioFile {
-    const n = new AudioFile(0);
+  override copy(parent: Track): AudioFile {
+    const n = new AudioFile(0, parent);
     n.name = this.name;
     n.startTime = this.startTime;
     n.stopTime = this.stopTime;
@@ -102,11 +103,12 @@ export default class AudioFile extends Silent {
 
   static override async getXML(
     elem: Element,
-    version: string
+    version: string,
+    parent: Track,
   ): Promise<AudioFile> {
     try {
-      const CMGgen: Silent = await Silent.getXML(elem, version);
-      const g: AudioFile = new AudioFile(0);
+      const CMGgen: Silent = await Silent.getXML(elem, version, parent);
+      const g: AudioFile = new AudioFile(0, parent);
 
       g.fileName = getAttributeValueWithDefault(elem, "fileName", "string","") as string;
       g.volume = getAttributeValueWithDefault(elem, "volume", "float",0) as number;

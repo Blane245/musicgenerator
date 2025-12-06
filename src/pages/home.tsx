@@ -77,7 +77,7 @@ export default function Home() {
   const movement = useRef<MouseLocation>({ X: 0, Y: 0, dX: 0, dY: 0 });
 
   useEffect(() => {
-    setAppName("Computer Music Generator");
+    setAppName("CMG");
     setAppVersion(import.meta.env.VERSION);
     const handleResize = () => {
       const root: HTMLElement | null = document.getElementById("root");

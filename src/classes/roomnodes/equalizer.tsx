@@ -48,7 +48,7 @@ export default class Equalizer {
         newFilter.type = "highshelf";
         const ratio: number = BANDS[1] / BANDS[0];
         newFilter.Q.value = Math.sqrt(ratio);
-        if (this.enabled) this.#filterHead.connect(newFilter);
+        this.#filterHead.connect(newFilter);
       } else if (i == BANDCOUNT - 1) {
         newFilter.type = "lowshelf";
         if (lastFilter) lastFilter.connect(newFilter);
@@ -74,15 +74,19 @@ export default class Equalizer {
   // enabled - connect the effectIn to the filters, disconnect effectIn from effectOut
   // disabled - disconnect effectIn from the filters, connect effectIn to effectOut
   #enable(enabled: boolean) {
-    if (!this.#filterHead || !this.effectIn || !this.effectOut) return;
+    if (
+      !this.#filterHead ||
+      !this.effectIn ||
+      !this.effectOut ||
+      !this.#context
+    )
+      return;
     if (enabled) {
-      console.log('enabling room equalizer');
       try {
         softDisconnect(this.effectIn, this.effectOut);
       } catch (e) {}
       this.effectIn.connect(this.#filterHead);
     } else {
-      console.log('disabling room equalizer');
       try {
         softDisconnect(this.effectIn, this.#filterHead);
       } catch (e) {}
@@ -118,7 +122,7 @@ export default class Equalizer {
     switch (name) {
       case "equalizer.enabled":
         this.enabled = value == "true";
-        this.#enable(this.enabled);
+        if (this.#context) this.#enable(this.enabled);
         break;
     }
   }
@@ -126,7 +130,8 @@ export default class Equalizer {
   getXML(fcElem: Element, _version: string): void {
     try {
       const eElement: Element | null = getElementElement(fcElem, "equalizer");
-    if (!eElement) throw new Error (`Equalizer getXML missing compressor element`)
+      if (!eElement)
+        throw new Error(`Equalizer getXML missing compressor element`);
       try {
         this.enabled =
           (getAttributeValue(eElement, "enabled", "string") as string) ==

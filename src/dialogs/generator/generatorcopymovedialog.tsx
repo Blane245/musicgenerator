@@ -8,14 +8,14 @@ import { getGeneratorUID } from "utils/getgeneratoruid";
 export interface GeneratorCopyMoveProps {
   mode: string;
   trackName: string;
-  generatorName: string;
+  generator: GeneratorType;
   setDialogVisible: Function;
   setMenuVisible: Function;
 }
 
 // handles copy and move generator between tracks.
 export default function GeneratorCopyMoveDialog(props: GeneratorCopyMoveProps) {
-  const { mode, trackName, generatorName, setDialogVisible, setMenuVisible } =
+  const { mode, trackName, generator, setDialogVisible, setMenuVisible } =
     props;
   const { fileContents, setFileContents, setStatus } = useCMGContext();
   const [selectedTrackName, setSelectedTrackName] = useState<string>(trackName);
@@ -43,23 +43,20 @@ export default function GeneratorCopyMoveDialog(props: GeneratorCopyMoveProps) {
     );
     if (!currentTrack) return;
 
-    const targetGenerator: GeneratorType | undefined =
-      currentTrack.generators.find((g) => g.name == generatorName);
-    if (!targetGenerator) return;
-
-    const newG: GeneratorType = targetGenerator.copy();
+    const targetGenerator: GeneratorType = generator;
+    const newG: GeneratorType = targetGenerator.copy(targetTrack);
     if (mode == "copy") {
       const next: number = getGeneratorUID(fileContents.tracks);
       newG.name = "G".concat(next.toString());
     }
-    addGenerator(targetTrack, newG, setFileContents);
+    addGenerator(newG, setFileContents);
 
     // if in move mode, delete the target generator from the current track
     if (mode == "move") {
-      deleteGenerator(currentTrack, generatorName, setFileContents);
+      deleteGenerator(targetGenerator, setFileContents);
     }
     setStatus(
-      `Generator '${generatorName}' ${
+      `Generator '${generator.name}' ${
         mode == "copy" ? " copied" : " moved"
       } to track '${targetTrack.name}' with name '${newG.name}'`
     );
@@ -72,8 +69,8 @@ export default function GeneratorCopyMoveDialog(props: GeneratorCopyMoveProps) {
         </span>
         <h2>
           {mode == "copy"
-            ? "Select track to receive a copy of '" + generatorName + "'"
-            : "Select track to move '" + generatorName + "'"}
+            ? "Select track to receive a copy of '" + generator.name + "'"
+            : "Select track to move '" + generator.name + "'"}
         </h2>
       </div>
       <div className="modal-body">

@@ -1,6 +1,5 @@
 import CMGFile from "classes/cmgfile";
 import Algorithmic from "classes/generators/algorithmic";
-import Track from "classes/track";
 import { samplePool } from "sfcomponents/samplepool";
 import { Preset } from "sfcomponents/types";
 import {
@@ -17,7 +16,6 @@ import getActiveZones from "./getactivezones";
 export const getPresetNote = (
   fileContents: CMGFile,
   gen: Algorithmic,
-  track: Track | null,
   preset: Preset,
   interval: number, // the note's time interval
   duration: number, // the note's duration with that interval
@@ -153,7 +151,6 @@ export const getPresetNote = (
     let sample: Float32Array = buildSampleArray(
       time,
       gen,
-      track,
       fileContents,
       pitchValue,
       instrumentSample,

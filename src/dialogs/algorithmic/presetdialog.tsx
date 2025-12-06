@@ -71,12 +71,11 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
     vol: number,
     attackEnabled: boolean
   ) {
-    const aGen: Algorithmic = generator.copy();
+    const aGen: Algorithmic = generator.copy(generator.parent);
     aGen.attackEnabled = attackEnabled;
     const result: RawSourceData[] = getPresetNote(
       fileContents,
       aGen,
-      null,
       preset,
       interval,
       (interval * duration) / 100.0,

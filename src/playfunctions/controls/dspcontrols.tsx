@@ -1,7 +1,6 @@
 // activate and process controls that affect signal processing of the
 // sources
 
-import SequenceValues from "classes/algorithms/sequencevalues";
 import CMGFile from "classes/cmgfile";
 import {
   Control,
@@ -14,8 +13,8 @@ import Track from "classes/track";
 import { ALGORITHMTYPE } from "types";
 import findGeneratorParent from "utils/findgeneratorparent";
 
-// activate and process last track or generator control that that proceeds
-// the generator startTime. Done when generator processing starts
+// activate and process last track or generator control that proceeds
+// the generator startTime. Done when generator processing starts source processing
 export function activatePriorControls(
   generator: Algorithmic,
   fileContents: CMGFile
@@ -70,55 +69,14 @@ export function activatePriorControls(
       generator.noiseEnabled = (
         generatorControl.effect as GeneratorEffect
       ).noiseEnable;
+      generator.setReverbEnabled(
+        (generatorControl.effect as GeneratorEffect).reverbEnable
+      );
       if (generator.noteP.algorithmType == ALGORITHMTYPE.Sequencer) {
-        const noteP: SequenceValues = generator.noteP as SequenceValues;
-        noteP.setReverse(
-          (generatorControl.effect as GeneratorEffect).reverseSequence
-        );
-        noteP.setReflect(
-          (generatorControl.effect as GeneratorEffect).reflectSequence
-        );
-        noteP.setReflectPitch(
-          (generatorControl.effect as GeneratorEffect).reflectPitch
-        );
       }
     }
   }
 }
-
-// find out if there is a sequence control for the current generator that occurs on or before the
-// generator's stop time and then set the sequence for reversal and or reflection
-// this only finds the first such control in time. Others are ignored
-// export function processSequenceControls(
-//   time: number,
-//   fileContents: CMGFile,
-//   generator: GeneratorType
-// ) {
-//   let control: Control | undefined = fileContents.controls.find((c) => {
-//     if (c.time <= time + generator.stopTime && c.type == EFFECTTYPE.Generator) {
-//       if (
-//         c.list.findIndex(
-//           (name) =>
-//             name == generator.name &&
-//             generator.type == GENERATORTYPE.Algorithmic &&
-//             (generator as Algorithmic).noteP.algorithmType ==
-//               ALGORITHMTYPE.Sequencer
-//         )
-//       ) {
-//         return true;
-//       }
-//     }
-//     return false;
-//   });
-
-//   if (control) {
-//     const noteP: SequenceValues = (generator as Algorithmic)
-//       .noteP as SequenceValues;
-//     noteP.setReverse((control.effect as GeneratorEffect).reverseSequence);
-//     noteP.setReflect((control.effect as GeneratorEffect).reflectSequence);
-//     noteP.setReflectPitch((control.effect as GeneratorEffect).reflectPitch);
-//   }
-// }
 
 // called during envelop processing to change the state of DSP processing
 // during sample processing
@@ -140,31 +98,38 @@ export function activateDSPControls(
       control.type != EFFECTTYPE.Global
     )
       controls.push(control);
-  };
+  }
 
   // if there are none quite;
   if (controls.length == 0) return;
-  console.log('activateDSPControls:', controls);
+  console.log(
+    "activateDSPControls: activating controls at time",
+    controls,
+    time
+  );
 
-  // activate the track volume and/or tremolo
-  const track: Track | null = findGeneratorParent(generator.name, fileContents);
+  // activate the track volume
+  const track: Track = generator.parent;
 
-  if (track) {
-    for (let i = 0; i < controls.length; i++) {
-      const control: Control = controls[i];
-      if (
-        control.type == EFFECTTYPE.Track &&
-        control.list.findIndex((name) => name == track.name) >= 0
-      ) {
-        const effect: TrackEffect = control.effect as TrackEffect;
-        track.initializeVolumeRamp(control.time, effect);
-      }
-    };
+  for (let i = 0; i < controls.length; i++) {
+    const control: Control = controls[i];
+    if (
+      control.type == EFFECTTYPE.Track &&
+      control.list.findIndex((name) => name == track.name) >= 0
+    ) {
+      const effect: TrackEffect = control.effect as TrackEffect;
+      track.initializeVolumeRamp(control.time, effect);
+      console.log(
+        "activateDSPControls: track volume initialized for track at time ",
+        track.name,
+        time
+      );
+    }
   }
 
-  // activate the tremolo effect control
-    for (let i = 0; i < controls.length; i++) {
-      const control: Control = controls[i];
+  // activate the generator controls
+  for (let i = 0; i < controls.length; i++) {
+    const control: Control = controls[i];
     if (
       control.type == EFFECTTYPE.Generator &&
       control.list.findIndex((name) => name == generator.name) >= 0
@@ -175,65 +140,12 @@ export function activateDSPControls(
       generator.vibratoEnabled = (
         control.effect as GeneratorEffect
       ).vibratoEnable;
-      generator.noiseEnabled = (
-        control.effect as GeneratorEffect
-      ).noiseEnable;
+      generator.noiseEnabled = (control.effect as GeneratorEffect).noiseEnable;
+      console.log(
+        "activateDSPControls: generator controls changed for generator at time ",
+        generator,
+        time
+      );
     }
-  };
+  }
 }
-
-// // 
-// export function activateSampleControls (
-
-// ): void {
-
-// }
-// // get the track volume, and generator noise, tremolo, and vibrato flags
-// // from any active controller that addresses them
-// // the volume ramp is when current time matches the track control's time
-// export function processDSPControls(
-//   time: number,
-//   generator: GeneratorType,
-//   activeControls: Control[],
-//   fileContents: CMGFile
-// ): void {
-//   if (activeControls.length == 0) return;
-
-//   // process a track volume control if there is one
-//   const track: Track | null = findGeneratorParent(generator.name, fileContents);
-//   if (track) {
-//     const trackControl: Control | undefined = activeControls.find(
-//       (c) =>
-//         c.type == EFFECTTYPE.Track &&
-//         c.list.findIndex((name) => name == track.name) >= 0
-//     );
-//     if (trackControl != undefined) {
-//       if (trackControl.time <= time) {
-//         // this will set the start time for the ramp at every time interval
-//         // until the time bypasses the control's start time
-//         track.initializeVolumeRamp(
-//           trackControl.time,
-//           trackControl.effect as TrackEffect
-//         );
-//       }
-//     }
-//   }
-
-//   // process the DSP controls for the generator.
-//   // all active controls are processed as they all have times
-//   // less than the generators stopTime
-//   activeControls.forEach((control) => {
-//     if (
-//       generator.type == GENERATORTYPE.Algorithmic &&
-//       control.type == EFFECTTYPE.Generator &&
-//       control.list.findIndex((name) => name == generator.name) >= 0
-//     ) {
-//       const effect: GeneratorEffect = control.effect as GeneratorEffect;
-//       (generator as Algorithmic).setControlState(
-//         effect.noiseEnable,
-//         effect.tremoloEnable,
-//         effect.vibratoEnable
-//       );
-//     }
-//   });
-// }

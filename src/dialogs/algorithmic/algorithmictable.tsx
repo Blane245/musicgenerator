@@ -86,7 +86,9 @@ export default function AlgorithmicTable(
   return (
     <>
       <div className="algorithmic-table">
-        <div className="attribute"><label>Note (pitch)</label></div>
+        <div className="attribute">
+          <label>Note (pitch)</label>
+        </div>
         <div className="gentype">
           <label>
             Algorithm:&nbsp;
@@ -95,9 +97,9 @@ export default function AlgorithmicTable(
               onChange={handleChange}
               value={formData.noteP.algorithmType}
             >
-              {Object.values(ALGORITHMTYPE).map((p) => {
+              {Object.values(ALGORITHMTYPE).map((p: ALGORITHMTYPE) => {
                 return (
-                  <option key={`notePmodulator-${p}`} value={p}>
+                  <option key={`attackPmodulator-${p}`} value={p}>
                     {p}
                   </option>
                 );
@@ -114,7 +116,7 @@ export default function AlgorithmicTable(
                 value: (formData.noteP as OscillatorValues).values.center,
                 lo: 0,
                 hi: 127,
-                step: 0.001,
+                step: 0.0001,
                 suffix: "(pitch)",
               }}
               centerSuffix={(value: number) => {
@@ -204,7 +206,9 @@ export default function AlgorithmicTable(
       </div>
       <hr />
       <div className="algorithmic-table">
-        <div className="attribute"><label>Attack (velocity)</label></div>
+        <div className="attribute">
+          <label>Attack (velocity)</label>
+        </div>
         <div className="gentype">
           <label>
             Algorithm:&nbsp;
@@ -217,13 +221,16 @@ export default function AlgorithmicTable(
                   : ALGORITHMTYPE.None
               }
             >
-              {Object.values(ALGORITHMTYPE).map((p) => {
-                return (
-                  <option key={`attackPmodulator-${p}`} value={p}>
-                    {p}
-                  </option>
-                );
-              })}
+              {Object.values(ALGORITHMTYPE)
+                .map((p) => {
+                  if (p != ALGORITHMTYPE.Sequencer)
+                    return (
+                      <option key={`attackPmodulator-${p}`} value={p}>
+                        {p}
+                      </option>
+                    );
+                })
+                .filter((p) => p)}
             </select>
           </label>
         </div>
@@ -236,7 +243,7 @@ export default function AlgorithmicTable(
                 value: (formData.attackP as OscillatorValues).values.center,
                 lo: 0,
                 hi: 127,
-                step: 1,
+                step: 0.0001,
                 suffix: "(0-127)",
               }}
               centerSuffix={(value: number) => {
@@ -316,19 +323,13 @@ export default function AlgorithmicTable(
               valueSuffix={() => "(0-127)"}
             />
           )}
-          {!!(formData.attackP.algorithmType == ALGORITHMTYPE.Sequencer) && (
-            <SequencerPropertiesBox
-              attributeType={SEQUENCEATTRIBUTE.attack}
-              name="attackP"
-              values={(formData.attackP as SequenceValues).values}
-              handleChange={handleChange}
-            />
-          )}
         </div>
       </div>
       <hr />
       <div className="algorithmic-table">
-        <div className="attribute"><label>Speed (BPM)</label></div>
+        <div className="attribute">
+          <label>Speed (BPM)</label>
+        </div>
         <div className="gentype">
           <label>
             Algorithm:&nbsp;
@@ -341,13 +342,16 @@ export default function AlgorithmicTable(
                   : ALGORITHMTYPE.None
               }
             >
-              {Object.values(ALGORITHMTYPE).map((p) => {
-                return (
-                  <option key={`speedPmodulator-${p}`} value={p}>
-                    {p}
-                  </option>
-                );
-              })}
+              {Object.values(ALGORITHMTYPE)
+                .map((p) => {
+                  if (p != ALGORITHMTYPE.Sequencer)
+                    return (
+                      <option key={`attackPmodulator-${p}`} value={p}>
+                        {p}
+                      </option>
+                    );
+                })
+                .filter((p) => p)}
             </select>
           </label>
         </div>
@@ -361,7 +365,7 @@ export default function AlgorithmicTable(
                 value: (formData.speedP as OscillatorValues).values.center,
                 lo: 0,
                 hi: 1000,
-                step: 0.01,
+                step: 0.0001,
                 suffix: "(BPM)",
               }}
               centerSuffix={() => "BPM"}
@@ -423,7 +427,7 @@ export default function AlgorithmicTable(
               handleChange={handleNoteSpeedChange}
               min={1}
               max={1000}
-              step={1}
+              step={0.1}
               valueSuffix={() => "BPM"}
             />
           ) : null}
@@ -440,20 +444,13 @@ export default function AlgorithmicTable(
               valueSuffix={() => "BPM"}
             />
           ) : null}
-          {formData.speedP &&
-          formData.speedP.algorithmType == ALGORITHMTYPE.Sequencer ? (
-            <SequencerPropertiesBox
-              attributeType={SEQUENCEATTRIBUTE.speed}
-              name="speedP"
-              values={(formData.speedP as SequenceValues).values}
-              handleChange={handleNoteSpeedChange}
-            />
-          ) : null}
         </div>
       </div>
       <hr />
       <div className="algorithmic-table">
-        <div className="attribute"><label>Duration (sec)</label></div>
+        <div className="attribute">
+          <label>Duration (sec)</label>
+        </div>
         <div className="gentype">
           <label>
             Algorithm:&nbsp;
@@ -466,13 +463,16 @@ export default function AlgorithmicTable(
                   : ALGORITHMTYPE.None
               }
             >
-              {Object.values(ALGORITHMTYPE).map((p) => {
-                return (
-                  <option key={`durationPmodulator-${p}`} value={p}>
-                    {p}
-                  </option>
-                );
-              })}
+              {Object.values(ALGORITHMTYPE)
+                .map((p) => {
+                  if (p != ALGORITHMTYPE.Sequencer)
+                    return (
+                      <option key={`attackPmodulator-${p}`} value={p}>
+                        {p}
+                      </option>
+                    );
+                })
+                .filter((p) => p)}
             </select>
           </label>
         </div>
@@ -486,7 +486,7 @@ export default function AlgorithmicTable(
                 value: (formData.durationP as OscillatorValues).values.center,
                 lo: 1,
                 hi: 100,
-                step: 1,
+                step: 0.0001,
                 suffix: "(%)",
               }}
               centerSuffix={() => "%"}
@@ -566,20 +566,13 @@ export default function AlgorithmicTable(
               valueSuffix={() => "%"}
             />
           ) : null}
-          {formData.durationP &&
-          formData.durationP.algorithmType == ALGORITHMTYPE.Sequencer ? (
-            <SequencerPropertiesBox
-              attributeType={SEQUENCEATTRIBUTE.duration}
-              name="durationP"
-              values={(formData.durationP as SequenceValues).values}
-              handleChange={handleChange}
-            />
-          ) : null}
         </div>
       </div>
       <hr />
       <div className="algorithmic-table">
-        <div className="attribute"><label>Volume (dB)</label></div>
+        <div className="attribute">
+          <label>Volume (dB)</label>
+        </div>
         <div className="gentype">
           <label>
             Algorithm:&nbsp;
@@ -592,13 +585,16 @@ export default function AlgorithmicTable(
                   : ALGORITHMTYPE.None
               }
             >
-              {Object.values(ALGORITHMTYPE).map((p) => {
-                return (
-                  <option key={`volumePmodulator-${p}`} value={p}>
-                    {p}
-                  </option>
-                );
-              })}
+              {Object.values(ALGORITHMTYPE)
+                .map((p) => {
+                  if (p != ALGORITHMTYPE.Sequencer)
+                    return (
+                      <option key={`attackPmodulator-${p}`} value={p}>
+                        {p}
+                      </option>
+                    );
+                })
+                .filter((p) => p)}
             </select>
           </label>
         </div>
@@ -612,7 +608,7 @@ export default function AlgorithmicTable(
                 value: (formData.volumeP as OscillatorValues).values.center,
                 lo: -10,
                 hi: 10,
-                step: 1,
+                step: 0.0001,
                 suffix: "(dB)",
               }}
               centerSuffix={() => "dB"}
@@ -690,20 +686,13 @@ export default function AlgorithmicTable(
               valueSuffix={() => "dB"}
             />
           ) : null}
-          {formData.volumeP &&
-          formData.volumeP.algorithmType == ALGORITHMTYPE.Sequencer ? (
-            <SequencerPropertiesBox
-              attributeType={SEQUENCEATTRIBUTE.volume}
-              name="volumeP"
-              values={(formData.volumeP as SequenceValues).values}
-              handleChange={handleChange}
-            />
-          ) : null}
         </div>
       </div>
       <hr />
       <div className="algorithmic-table">
-        <div className="attribute"><label>{"Pan (left<->right)"}</label></div>
+        <div className="attribute">
+          <label>{"Pan (left-right)"}</label>
+        </div>
         <div className="gentype">
           <label>
             Algorithm:&nbsp;
@@ -714,13 +703,16 @@ export default function AlgorithmicTable(
                 formData.panP ? formData.panP.algorithmType : ALGORITHMTYPE.None
               }
             >
-              {Object.values(ALGORITHMTYPE).map((p) => {
-                return (
-                  <option key={`panPmodulator-${p}`} value={p}>
-                    {p}
-                  </option>
-                );
-              })}
+              {Object.values(ALGORITHMTYPE)
+                .map((p) => {
+                  if (p != ALGORITHMTYPE.Sequencer)
+                    return (
+                      <option key={`attackPmodulator-${p}`} value={p}>
+                        {p}
+                      </option>
+                    );
+                })
+                .filter((p) => p)}
             </select>
           </label>
         </div>
@@ -734,7 +726,7 @@ export default function AlgorithmicTable(
                 value: (formData.panP as OscillatorValues).values.center,
                 lo: -1,
                 hi: 1,
-                step: 0.1,
+                step: 0.0001,
                 suffix: "[-1,1]",
               }}
               centerSuffix={() => "[-1,1]"}
@@ -810,15 +802,6 @@ export default function AlgorithmicTable(
               max={1}
               step={0.1}
               valueSuffix={() => "[-1,+1]"}
-            />
-          ) : null}
-          {formData.panP &&
-          formData.panP.algorithmType == ALGORITHMTYPE.Sequencer ? (
-            <SequencerPropertiesBox
-              attributeType={SEQUENCEATTRIBUTE.pan}
-              name="panP"
-              values={(formData.panP as SequenceValues).values}
-              handleChange={handleChange}
             />
           ) : null}
         </div>

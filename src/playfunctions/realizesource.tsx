@@ -41,14 +41,15 @@ export function realizeSource(
     panner.pan.value = rawSourceData.panner.value;
     // connect everything
     source.connect(vol).connect(panner).connect(destination);
-    // connect the reverb if implemented
+    // connect the instrument reverb
     if (rawSourceData.gen.type == GENERATORTYPE.Algorithmic) {
       const gen = rawSourceData.gen as Algorithmic;
-      if (gen.reverbDecay > 0 && gen.reverbDuration > 0) {
         gen.setContext(ctx);
-        gen.connect(panner, destination);
+        if (gen.effectIn)
+        panner.connect(gen.effectIn);
+        gen.connectReverb(destination);
       }
-    }
+    
     return {
       gen: rawSourceData.gen,
       source,

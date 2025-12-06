@@ -38,7 +38,6 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
   const [copyMoveMode, setCopyMoveMode] = useState<string>("");
   const [copyMoveDialogVisible, setCopyMoveDialogVisible] =
     useState<boolean>(false);
-  const [generatorName, setGeneratorName] = useState<string>("");
   const [deleteModal, setDeleteModal] = useState<boolean>(false);
 
   function onPreviewClick() {
@@ -63,16 +62,12 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
     setStatus(``);
   }
   function onCopyClick() {
-    const gName: string = generator.name;
     setCopyMoveMode("copy");
-    setGeneratorName(gName);
     setCopyMoveDialogVisible(true);
     setStatus(``);
   }
   function onMoveClick() {
-    const gName: string = generator.name;
     setCopyMoveMode("move");
-    setGeneratorName(gName);
     setCopyMoveDialogVisible(true);
     setStatus(``);
   }
@@ -88,8 +83,6 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
   }
 
   function onDeleteClick() {
-    const gName: string = generator.name;
-    setGeneratorName(gName);
     setDeleteModal(true);
     setStatus(``);
   }
@@ -187,7 +180,7 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
         <GeneratorCopyMoveDialog
           mode={copyMoveMode}
           trackName={track.name}
-          generatorName={generatorName}
+          generator={generator}
           setDialogVisible={setCopyMoveDialogVisible}
           setMenuVisible={setMenuVisible}
         />
@@ -195,7 +188,7 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
       {deleteModal ? (
         <GeneratorDeleteDialog
           trackName={track.name}
-          generatorName={generatorName}
+          generator={generator}
           setDialogVisible={setDeleteModal}
           setMenuVisible={setMenuVisible}
         />

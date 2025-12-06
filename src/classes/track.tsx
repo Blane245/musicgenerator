@@ -14,18 +14,14 @@ export default class Track {
   solo: boolean;
   volume: number;
   generators: GeneratorType[];
-  volumeRamp: number;
-  volumeLimit: number;
-  #startTime: number;
+  volumeEffect: TrackEffect | null;
   constructor(nextTrack: number) {
     this.name = "T".concat(nextTrack.toString());
     this.mute = false;
     this.solo = false;
     this.volume = 0;
     this.generators = [];
-    this.volumeRamp = 0;
-    this.volumeLimit = 0;
-    this.#startTime = -1;
+    this.volumeEffect = null;
   }
 
   copy(): Track {
@@ -36,37 +32,27 @@ export default class Track {
     t.volume = this.volume;
     t.generators = [];
     this.generators.forEach((g) => {
-      const ng = g.copy();
+      const ng = g.copy(t);
       t.generators.push(ng);
     });
-    t.volumeLimit = this.volumeLimit;
-    t.volumeRamp = this.volumeRamp;
-    t.#startTime = this.#startTime;
+    t.volumeEffect = this.volumeEffect;
     return t;
   }
 
-  initializeVolumeRamp(time:number, effect:TrackEffect ) {
-    console.log('track volume control name, time, effect', this.name, time, effect);
-    this.#startTime = time;
-    this.volumeRamp = effect.volumeRamp;
-    this.volumeLimit = effect.volumeLimit;
+  initializeVolumeRamp(time: number, effect: TrackEffect) {
+    console.log(
+      "track volume control name, time, effect",
+      this.name,
+      time,
+      effect
+    );
+    this.volumeEffect = effect;
+    effect.initializeVolumeRamp(time);
   }
 
   getVolume(time: number): number {
-    if (this.volumeRamp == 0 || this.#startTime < 0 || time < this.#startTime)
-      return this.volume;
-    else if (this.volumeRamp < 0)
-      return Math.max(
-        -10,
-        this.volumeLimit,
-        this.volume + (time - this.#startTime) * this.volumeRamp
-      );
-    else
-      return Math.min(
-        10,
-        this.volumeLimit,
-        this.volume + (time - this.#startTime) * this.volumeRamp
-      );
+    if (this.volumeEffect) return this.volumeEffect.getCurrentValues(time).volume;
+    else return this.volume;
   }
   async appendXML(doc: XMLDocument, elem: Element): Promise<Element> {
     // request a promose from each of the generators in the track
@@ -136,7 +122,8 @@ export default class Track {
             {
               const generatorPromise: Promise<Silent> = Silent.getXML(
                 child,
-                version
+                version,
+                this
               );
               generatorPromises.push(generatorPromise);
             }
@@ -145,7 +132,8 @@ export default class Track {
             {
               const generatorPromise: Promise<AudioFile> = AudioFile.getXML(
                 child,
-                version
+                version,
+                this
               );
               generatorPromises.push(generatorPromise);
             }
@@ -154,7 +142,8 @@ export default class Track {
             {
               const generatorPromise: Promise<Algorithmic> = Algorithmic.getXML(
                 child,
-                version
+                version,
+                this
               );
               generatorPromises.push(generatorPromise);
             }

@@ -48,7 +48,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
   const [previewVisible, setPreviewVisible] = useState<boolean>(false);
   const [oldName, setOldName] = useState<string>("");
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [formData, setFormData] = useState<GeneratorType>(new Silent(0));
+  const [formData, setFormData] = useState<GeneratorType>(new Silent(0, track));
   const [soundFontData, setSoundFontData] = useState<SFDataType>({
     soundFont: undefined,
     presets: [],
@@ -56,7 +56,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     presetName: "",
   });
   const [audioFileData, setAudioFileData] = useState<AudioFile>(
-    new AudioFile(0)
+    new AudioFile(0, track)
   );
   const [locked, setLocked] = useState<boolean>(false);
 
@@ -68,21 +68,21 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
       switch (generatorType) {
         case GENERATORTYPE.Silent:
           {
-            const g = new Silent(next);
+            const g = new Silent(next, track);
             setFormData(g);
             setOldName(g.name);
           }
           break;
         case GENERATORTYPE.Algorithmic:
           {
-            const g = new Algorithmic(next);
+            const g = new Algorithmic(next, track);
             setFormData(g);
             setOldName(g.name);
           }
           break;
         case GENERATORTYPE.AudioFile:
           {
-            const g = new AudioFile(next);
+            const g = new AudioFile(next, track);
             setFormData(g);
             setOldName(g.name);
           }
@@ -111,7 +111,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
   // when the soundfont data has been loaded, update the algorithmic generator form
   useEffect(() => {
     setFormData((prev: GeneratorType) => {
-      const n: Algorithmic = (prev as Algorithmic).copy();
+      const n: Algorithmic = (prev as Algorithmic).copy(prev.parent);
       n.soundFont = soundFontData.soundFont;
       n.preset = soundFontData.preset;
       n.presetName = soundFontData.presetName;
@@ -124,7 +124,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
   // when the audio file is loaded, update the form to reveal its properties
   useEffect(() => {
     setFormData((prev: GeneratorType) => {
-      const n: AudioFile = (prev as AudioFile).copy();
+      const n: AudioFile = (prev as AudioFile).copy(prev.parent);
       return n;
     });
     setLocked(false);
@@ -143,7 +143,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           ? event.target["value"]
           : event.target.checked.toString();
 
-      if (!eventName || !eventValue) return prev;
+      if (eventName == undefined || eventValue == undefined) return prev;
 
       function measureBeatToTime (measure: number, beat: number, measureLength: number, beatsPerMeasure: number): number {
         return (measure - 1 + (beat - 1) / beatsPerMeasure) * measureLength;
@@ -197,12 +197,12 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
       // select the proper generator type
       switch (formData.type) {
         case GENERATORTYPE.Silent: {
-          const newFormData: Silent = (prev as Silent).copy();
+          const newFormData: Silent = (prev as Silent).copy(prev.parent);
           newFormData.setAttribute(eventName, eventValue);
           return newFormData;
         }
         case GENERATORTYPE.Algorithmic: {
-          const newFormData: Algorithmic = (prev as Algorithmic).copy();
+          const newFormData: Algorithmic = (prev as Algorithmic).copy(prev.parent);
           const isSet: boolean = newFormData.setAttribute(eventName, eventValue);
           if (!isSet) console.log('value not set eventname, eventvalue', eventName, eventValue);
 
@@ -213,7 +213,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           return newFormData;
         }
         case GENERATORTYPE.AudioFile: {
-          const newFormData: AudioFile = (prev as AudioFile).copy();
+          const newFormData: AudioFile = (prev as AudioFile).copy(prev.parent);
           newFormData.setAttribute(eventName, eventValue);
           // when the filename is given, the stop time will been to update
           if (newFormData.fileName != "") {
@@ -280,13 +280,13 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     if (msgs.length == 0) {
       if (newGenerator) {
         // add a new generator to the current track
-        addGenerator(track, formData, setFileContents);
+        addGenerator(formData, setFileContents);
         setStatus(
           `Generator '${formData.name}' added to track '${track.name}'`
         );
       } else {
         // this is a modify. change the generator on the active track
-        modifyGenerator(track, formData, oldName, setFileContents);
+        modifyGenerator(formData, oldName, setFileContents);
         setStatus(
           `Generator '${formData.name}' modified on track '${track.name}'`
         );
@@ -429,9 +429,9 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                     name="startTime"
                     type="number"
                     min={0}
-                    step={0.01}
+                    step={0.0001}
                     onChange={handleChange}
-                    value={precision(formData.startTime, 2)}
+                    value={precision(formData.startTime, 4)}
                   />
                   <span> (sec) </span>
                 </label>
@@ -441,9 +441,9 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                     name="stopTime"
                     type="number"
                     min={0}
-                    step={0.01}
+                    step={0.0001}
                     onChange={handleChange}
-                    value={precision(formData.stopTime, 2)}
+                    value={precision(formData.stopTime, 4)}
                   />
                   <span> (sec) </span>
                 </label>

@@ -228,58 +228,50 @@ export function moveTrack(
   });
 }
 
+function findGeneratorParent (generator:GeneratorType, fileContents: CMGFile) :Track {
+    const trackIndex: number = fileContents.tracks.findIndex((t: Track)=> generator.parent.name == t.name);
+    if (trackIndex < 0) throw new Error (`Add generator '${generator.name}' parent '${generator.parent.name}' could not be located`);
+    return fileContents.tracks[trackIndex];
+
+}
+function findGeneratorIndex (track:Track, name:string): number {
+  const index: number  = track.generators.findIndex(
+      (g) => g.name == name
+    );
+    if (index < 0) {
+      throw new Error (
+        `Generator couldn't find generator '${name}' on track '${track.name}' in file.`
+      );
+    }
+    return index;
+
+}
 export function addGenerator(
-  track: Track,
   generator: GeneratorType,
   setFileContents: Function
 ) {
   setFileContents((prev: CMGFile) => {
     const newF: CMGFile = prev.copy();
-    const thisTrack: Track | undefined = newF.tracks.find(
-      (t) => t.name == track.name
-    );
-    if (!thisTrack) {
-      console.log(`add generator couldn't find track ${track.name} in file.`);
-      return prev;
-    }
-
-    thisTrack.generators.push(generator.copy());
+    const track:Track = findGeneratorParent (generator, newF);
+    track.generators.push(generator);
     newF.dirty = true;
     return newF;
   });
 }
 
 export function modifyGenerator(
-  track: Track,
   generator: GeneratorType,
   oldName: string,
   setFileContents: Function
 ) {
   setFileContents((prev: CMGFile) => {
     const newF: CMGFile = prev.copy();
-    const thisTrack: Track | undefined = newF.tracks.find(
-      (t) => t.name == track.name
-    );
-    if (!thisTrack) {
-      console.log(
-        `modify generator couldn't find track ${track.name} in file.`
-      );
-      return prev;
-    }
-
-    const newGIndex: number = thisTrack.generators.findIndex(
-      (g) => g.name == oldName
-    );
-    if (newGIndex < 0) {
-      console.log(
-        `modify generator couldn't find generator ${oldName} on track ${track.name} in file.`
-      );
-      return prev;
-    }
+    const track: Track = findGeneratorParent (generator, newF);
+    const index: number = findGeneratorIndex (track, oldName);
+    track.generators[index] = generator;
 
     // update the controls that mention this generator
-    newF.controls = renameDeleteControlList (EFFECTTYPE.Generator, oldName, thisTrack.generators[newGIndex].name, newF.controls);
-    thisTrack.generators[newGIndex] = generator.copy();
+    newF.controls = renameDeleteControlList (EFFECTTYPE.Generator, oldName, generator.name, newF.controls);
     newF.dirty = true;
 
     return newF;
@@ -287,35 +279,17 @@ export function modifyGenerator(
 }
 
 export function deleteGenerator(
-  track: Track,
-  name: string,
+  generator: GeneratorType,
   setFileContents: Function
 ) {
   setFileContents((prev: CMGFile) => {
     const newF: CMGFile = prev.copy();
-    const thisTrack: Track | undefined = newF.tracks.find(
-      (t) => t.name == track.name
-    );
-    if (!thisTrack) {
-      console.log(
-        `delete generator couldn't find track ${track.name} in file.`
-      );
-      return prev;
-    }
-    const gIndex: number = thisTrack.generators.findIndex(
-      (g) => g.name == name
-    );
-    if (gIndex < 0) {
-      console.log(
-        `delete generator couldn't find generator ${name} on track ${track.name} in file.`
-      );
-      return prev;
-    }
+    const track:Track = findGeneratorParent (generator, newF);
+    const index: number = findGeneratorIndex (track, generator.name);
+    track.generators.splice(index, 1);
 
     // update the controls that mention this generator
-    newF.controls = renameDeleteControlList (EFFECTTYPE.Generator, thisTrack.generators[gIndex].name, "", newF.controls);
-
-    thisTrack.generators.splice(gIndex, 1);
+    newF.controls = renameDeleteControlList (EFFECTTYPE.Generator, generator.name, "", newF.controls);
 
     newF.dirty = true;
     return newF;

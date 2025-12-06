@@ -107,7 +107,7 @@ export function TrackShiftDialog(props: ToolsProps): JSX.Element {
       (t) => t.name == track.name
     );
     track.generators.forEach((g) => {
-      const n: GeneratorType = g.copy();
+      const n: GeneratorType = g.copy(track);
       n.startTime = n.startTime + timeAmount;
       n.stopTime = n.stopTime + timeAmount;
       newGens.push(n);

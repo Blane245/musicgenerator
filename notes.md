@@ -32,6 +32,7 @@ The following React Icons are used throughout the application:
 - **PiEnvelopeThin** (Envelope) - Envelope processing
 
 # things to do
+- add button to generate random seeds
 - add measure timing and use measure length as beats/measure in sequencer algorithm. Use preferences as default when sequencer selected. On beats stays as is.
 - add a control mechanism that will affect parameters of the entire composition, individual tracks, or individual generators. A control has a specific time. Its effects are active until they are canceled. Some effects to consider. Each may be applied to the entire composition or a specific set of tracks and/or generators.
     - Measure length. Overrides preference setting. Affects generators that use pitch sequencer. This unfortunately affects the duration of a generator so that how it is 
@@ -67,9 +68,7 @@ The following React Icons are used throughout the application:
 - measure lengths are not constant in time when the speed attribute is changed. Now, I have a measure length in seconds in preferences and that is what is used to draw the timeline. This is incorrect and in fact I'm not sure that the conversion from time to measures makes sense when generators can all run at their own speeds. The sequencers conversion is particularly bad. Maybe I should abandon measure display and data entry unless I can think of a solution. (haven't thought of one yet)
  # Bugs
  - ControlDialog: check boxes have to be changed twice to change them
- - room equalizer enable by control causes silence. manual change works fine other room controls are working.
  - when a note sequence id reloaded, the duration of the generator should be recalculated.
- - viewing a sequence needs to be a scrollable list
 - when previewing in the generator dialog, changes made to the parameters are lost after the preview. Somehow the dialog has to be reactivated after a preview with these changes but not update the fileContents with the formData. This is a result of the use of the .copy() method which signals a change similar to the stop time calculation method above
 - preference editor throws error message about soundfont not in directory every time it is started
 # Enhancements
@@ -80,8 +79,10 @@ The following React Icons are used throughout the application:
 - give user control of spectrum parameters and implement sonogram. The option is selectable from the Edit Preferences menu. The sonogram has the time scale of the entire preview, like the volume graphic. The frequency scale is logrithmic, with maximum frequency being samplerate/2, and resolution being samplerate/(2*FFTSIZE). e.g. samplerate =44.1Khz, FFTSIZE=4098, max freq = 22.05Khz, resolution 5.38. Better to use FFTSIZE=1024, resolution=21.53. Amplitude from FFT varies from 0-255 and will set the gray scale if the dot being drawn in the sonogram.
 
 # 5.0.0 Updates
+- added button to generate random seeds for noise and algorithms
+- implemented global, track, and generator controls
 - implemented tremolo and vibrato for algorithmic generators
-- implemented sequencing
+- implemented sequencing, including reversing and reflecting
 - added a generator flag to bypass the attack envelope as an option. The attack part of the envelope seems to be overemphasizing signals that already have a lot of attack in them.
 - rebalanced the various gains used throughout the application
 - added an option to start the CMG Sequence Editor to the Tools menu

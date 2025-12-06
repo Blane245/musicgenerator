@@ -200,7 +200,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
       timeLine.startTime,
       timeLine.startTime + TimeLineScales[timeLine.currentZoomLevel].extent
     );
-    console.log(`generator move ${edgeSelected} time to ${newTime}`);
+    // console.log(`generator move ${edgeSelected} time to ${newTime}`);
     // modify the moveto point based on the timeline mode
     // move to the closest time or measure tick if in snap mode
     moveGeneratorTime(

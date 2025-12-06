@@ -30,6 +30,8 @@ import {
 } from "utils/xmlfunctions";
 import Silent from "./silent";
 import Tremolo from "classes/algorithms/tremolo";
+import Track from "classes/track";
+import { softDisconnect } from "utils/softdisconnect";
 
 export default class Algorithmic extends Silent {
   soundFontFile: string;
@@ -49,7 +51,12 @@ export default class Algorithmic extends Silent {
   noiseFrequency: number; // frequency of the modulation moise
   noiseAmplitude: number; // noise gain
   noiseEnabled: boolean;
-  reverb: ConvolverNode | undefined;
+  #reverbHead: GainNode | undefined;
+  #convolution: ConvolverNode | undefined;
+  #halfGain1: GainNode | undefined;
+  #halfGain2: GainNode | undefined;
+  effectIn: GainNode | undefined;
+  #effectOut: GainNode | undefined;
   context: AudioContext | OfflineAudioContext | undefined;
   reverbDuration: number;
   reverbDecay: number;
@@ -61,13 +68,16 @@ export default class Algorithmic extends Silent {
   volumeP: AlgorithmType;
   panP: AlgorithmType;
   tremolo: Tremolo;
+  reverbEnabled: boolean;
   tremeloEnabled: boolean;
   vibrato: Tremolo;
   vibratoEnabled: boolean;
+  
 
-  constructor(nextGenerator: number) {
-    super(nextGenerator);
+  constructor(nextGenerator: number, parent: Track) {
+    super(nextGenerator, parent);
     this.type = GENERATORTYPE.Algorithmic;
+    this.context = undefined;
     this.soundFontFile = "";
     this.soundFont = undefined;
     this.presetName = "";
@@ -84,8 +94,12 @@ export default class Algorithmic extends Silent {
     this.rn = new RandomNumber(this.noiseSeed);
     this.noiseFrequency = 0;
     this.noiseAmplitude = 0;
-    this.reverb = undefined;
-    this.context = undefined;
+    this.effectIn = undefined;
+    this.#reverbHead = undefined;
+    this.#convolution = undefined;
+    this.#halfGain1 = undefined;
+    this.#halfGain2 = undefined;
+    this.#effectOut = undefined;
     this.reverbDecay = 0;
     this.reverbDuration = 0;
     this.attackEnabled = true;
@@ -97,21 +111,41 @@ export default class Algorithmic extends Silent {
     this.panP = new ConstantValues(0);
     this.tremolo = new Tremolo();
     this.vibrato = new Tremolo();
+    this.reverbEnabled = true;
     this.noiseEnabled = true;
     this.tremeloEnabled = true;
     this.vibratoEnabled = true;
   }
 
+  // the context defines the reverb network
   setContext(context: AudioContext | OfflineAudioContext) {
     this.context = context;
+
+    // setup the reverb network
+    this.effectIn = this.context.createGain();
+    this.#effectOut = this.context.createGain();
     const impulse: AudioBuffer | undefined = this.#impulseResponse(
       this.reverbDuration,
       this.reverbDecay
     );
     if (impulse) {
-      this.reverb = this.context.createConvolver();
-      this.reverb.buffer = impulse;
+      // create the reverb network if impulse is defined
+      this.#reverbHead = this.context.createGain();
+      this.#halfGain1 = this.context.createGain();
+      this.#halfGain1.gain.value = 0.5;
+      this.#halfGain2 = this.context.createGain();
+      this.#halfGain2.gain.value = 0.5;
+      this.#convolution = this.context.createConvolver();
+      this.#convolution.buffer = impulse;
+      this.#reverbHead
+        .connect(this.#convolution)
+        .connect(this.#halfGain2)
+        .connect(this.#effectOut);
+      this.#reverbHead.connect(this.#halfGain1).connect(this.#effectOut);
     }
+
+    // handle reverb enabling
+    this.#enable(this.reverbEnabled);
   }
   #impulseResponse(duration: number, decay: number): AudioBuffer | undefined {
     if (this.context && duration > 0 && decay > 0) {
@@ -131,26 +165,47 @@ export default class Algorithmic extends Silent {
     }
   }
 
-  connect(source: AudioNode, destination: AudioNode) {
-    if (
-      this.reverb &&
-      this.context &&
-      this.reverbDuration > 0 &&
-      this.reverbDecay > 0
-    ) {
-      const gain: GainNode = this.context.createGain();
-      gain.gain.value = 1.0;
-      source.connect(gain).connect(this.reverb).connect(destination);
-    }
+  // this connect is only for the reverb effect
+  connectReverb(destination: AudioNode) {
+    if (!this.#effectOut) return;
+    this.#effectOut.connect(destination);
+    this.#enable(this.reverbEnabled);
   }
 
-  override copy(): Algorithmic {
-    const n = new Algorithmic(0);
+  #enable(enabled: boolean) {
+    if (
+      !this.#reverbHead ||
+      !this.effectIn ||
+      !this.#effectOut ||
+      !this.context
+    )
+      return;
+      // console.log('generator reverb enable', this.name, enabled);
+    if (enabled) {
+      try {
+        softDisconnect(this.effectIn, this.#effectOut);
+      } catch (e) {}
+      this.effectIn.connect(this.#reverbHead);
+    } else {
+      try {
+        softDisconnect(this.effectIn, this.#reverbHead);
+      } catch (e) {}
+      this.effectIn.connect(this.#effectOut);
+    }
+  }
+  
+  setReverbEnabled(enabled:boolean) {
+    this.#enable(enabled);
+  }
+
+  override copy(parent: Track): Algorithmic {
+    const n = new Algorithmic(0, parent);
     n.name = this.name;
     n.startTime = this.startTime;
     n.stopTime = this.stopTime;
     n.mute = this.mute;
     n.position = this.position;
+    n.context = this.context;
     n.attackEnabled = this.attackEnabled;
     n.soundFontFile = this.soundFontFile;
     n.soundFont = this.soundFont;
@@ -168,8 +223,12 @@ export default class Algorithmic extends Silent {
     n.rn = this.rn;
     n.noiseAmplitude = this.noiseAmplitude;
     n.noiseFrequency = this.noiseFrequency;
-    n.reverb = this.reverb;
-    n.context = this.context;
+    n.effectIn = this.effectIn;
+    n.#effectOut = this.#effectOut;
+    n.#reverbHead = this.#reverbHead;
+    n.#convolution = this.#convolution;
+    n.#halfGain1 = this.#halfGain1;
+    n.#halfGain2 = this.#halfGain2;
     n.reverbDuration = this.reverbDuration;
     n.reverbDecay = this.reverbDecay;
     n.attackEnabled = this.attackEnabled;
@@ -425,9 +484,12 @@ export default class Algorithmic extends Silent {
     }
   }
 
-  setControlState(noiseEnabled: boolean, tremoloEnabled: boolean, vibratoEnabled: boolean) {
-    this.noiseEnabled = noiseEnabled,
-    this.tremeloEnabled = tremoloEnabled;
+  setControlState(
+    noiseEnabled: boolean,
+    tremoloEnabled: boolean,
+    vibratoEnabled: boolean
+  ) {
+    (this.noiseEnabled = noiseEnabled), (this.tremeloEnabled = tremoloEnabled);
     this.vibratoEnabled = vibratoEnabled;
   }
 
@@ -584,11 +646,12 @@ export default class Algorithmic extends Silent {
 
   static override async getXML(
     elem: Element,
-    version: string
+    version: string,
+    parent: Track
   ): Promise<Algorithmic> {
     try {
-      const CMGgen: Silent = await Silent.getXML(elem, version);
-      const g: Algorithmic = new Algorithmic(0);
+      const CMGgen: Silent = await Silent.getXML(elem, version, parent);
+      const g: Algorithmic = new Algorithmic(0, parent);
       g.name = CMGgen.name;
       g.startTime = CMGgen.startTime;
       g.stopTime = CMGgen.stopTime;
@@ -687,18 +750,18 @@ export default class Algorithmic extends Silent {
       } catch (e) {
         g.noiseFrequency = 0;
       }
-        g.reverbDuration = getAttributeValueWithDefault(
-          elem,
-          "reverbDuration",
-          "float",
-          0
-        ) as number;
-        g.reverbDecay = getAttributeValueWithDefault(
-          elem,
-          "reverbDecay",
-          "float",
-          0
-        ) as number;
+      g.reverbDuration = getAttributeValueWithDefault(
+        elem,
+        "reverbDuration",
+        "float",
+        0
+      ) as number;
+      g.reverbDecay = getAttributeValueWithDefault(
+        elem,
+        "reverbDecay",
+        "float",
+        0
+      ) as number;
       g.attackEnabled = getAttributeValueWithDefault(
         elem,
         "attackEnabled",
@@ -708,8 +771,14 @@ export default class Algorithmic extends Silent {
       [g.noteP, g.speedP, g.attackP, g.durationP, g.volumeP, g.panP].forEach(
         async (algorithm: AlgorithmType, i) => {
           let newAlgorithm: AlgorithmType = algorithm.copy();
-          const pElem: Element | null = getElementElement(elem, parameterNames[i]);
-          if (!pElem) throw new Error(`Algorithmic getXML missing attribute ${parameterNames[i]}`);
+          const pElem: Element | null = getElementElement(
+            elem,
+            parameterNames[i]
+          );
+          if (!pElem)
+            throw new Error(
+              `Algorithmic getXML missing attribute ${parameterNames[i]}`
+            );
 
           const pType: ALGORITHMTYPE = getAttributeValueWithDefault(
             pElem,
@@ -792,22 +861,24 @@ export default class Algorithmic extends Silent {
           }
 
           // get the tremolo and vibrator effects
-          [g.tremolo, g.vibrato].forEach(async (_effect:Tremolo, i) => {
+          [g.tremolo, g.vibrato].forEach(async (_effect: Tremolo, i) => {
             try {
-              const eElem: Element | null = getElementElement(elem, effectNames[i]);
-              if (!eElem) throw new Error(`Algorithmic getXML missing effect ${effectNames[i]}`);
+              const eElem: Element | null = getElementElement(
+                elem,
+                effectNames[i]
+              );
+              if (!eElem)
+                throw new Error(
+                  `Algorithmic getXML missing effect ${effectNames[i]}`
+                );
 
               const promise: Promise<Tremolo> = Tremolo.getXML(eElem, version);
               const tResult: Tremolo[] = await Promise.all([promise]);
-              if (effectNames[i] == 'tremolo')
-                g.tremolo = tResult[0];  
-              else
-                g.vibrato = tResult[0];
+              if (effectNames[i] == "tremolo") g.tremolo = tResult[0];
+              else g.vibrato = tResult[0];
             } catch (e) {
-              if (effectNames[i] == 'tremolo')
-                g.tremolo = new Tremolo();  
-              else
-                g.vibrato = new Tremolo();
+              if (effectNames[i] == "tremolo") g.tremolo = new Tremolo();
+              else g.vibrato = new Tremolo();
             }
           });
         }
@@ -831,7 +902,6 @@ export default class Algorithmic extends Silent {
       );
     if (values.offsetSequence >= values.measureLength)
       result.push("Beat shift amount must be less than the measurement length");
-    if (values.noiseSeed == "") result.push("Seed must not be blank");
     const noteP: AlgorithmType = values.noteP;
     const speedP: AlgorithmType = values.speedP;
     const attackP: AlgorithmType = values.attackP;
@@ -891,7 +961,7 @@ export default class Algorithmic extends Silent {
 
     [values.tremolo, values.vibrato].forEach((effect: Tremolo) => {
       result.push(...Tremolo.validate(effect));
-    })
+    });
     return result;
   }
 }

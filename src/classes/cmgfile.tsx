@@ -45,7 +45,7 @@ export default class CMGFile {
       const newTrack: Track = t.copy();
       const newGenerators: GeneratorType[] = [];
       t.generators.forEach((g: GeneratorType) => {
-        const newGenerator: GeneratorType = g.copy();
+        const newGenerator: GeneratorType = g.copy(newTrack);
         newGenerators.push(newGenerator);
       });
       newTracks.push(newTrack);

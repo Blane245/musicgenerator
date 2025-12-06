@@ -1,5 +1,6 @@
 import { ChangeEvent } from "react";
 import { MarkovianType } from "types";
+import { generateRandomString } from "utils/randomstring";
 
 export type MarkovianPropertiesBoxProps = {
   name: string;
@@ -18,14 +19,22 @@ export default function MarkovianPropertiesBox(
 ): JSX.Element {
   const { name, values, min, max, step, valueSuffix, handleChange } =
     props;
+  function getSeed(): void {
+    const newSeed:string = generateRandomString(15);
+    const event:{} = {target: {name:name.concat(".seed"), value:newSeed, type:'string'}}
+    handleChange(event as ChangeEvent<HTMLInputElement>);
+  }
   return (
     <div className="markovian">
       <div className="seed">
+        <button type="button" onClick={()=>getSeed()} style={{fontSize:'10px'}}>
+          New Seed
+        </button>
         <label>
           Seed:&nbsp;
           <input
             name={name.concat(".seed")}
-            type="string"
+            type="text"
             onChange={handleChange}
             value={values.seed}
           />
