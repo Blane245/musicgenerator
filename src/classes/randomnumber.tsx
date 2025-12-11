@@ -7,7 +7,12 @@
 export default class RandomNumber {
     #seed: number[] = [];
     constructor(seed: string) {
-      const theSeed: string = seed == ""? Date.now().toString(): seed;
+      let theSeed: string = seed;
+      if (theSeed == "") {
+        const now:string[] = new Date().toISOString().split("");
+        // randomly shuffle the characters of now
+        theSeed = now.sort(() => 0.5 - Math.random()).join("");
+      }
       this.#seed = this.#cyrb128(theSeed);
       // do a little early sequence mixing
       for (let i = 0; i < 1000; i++) this.rand();

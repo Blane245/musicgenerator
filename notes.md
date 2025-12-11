@@ -1,3 +1,19 @@
+# development of stochastic generator
+when sound event have been placed in cells, allow user manipulation (permutation of rows and columns)
+- create generator class
+    - definitions for cell counts for time and each attribute
+    - cell distribution versions
+- create stochastic attribute classes
+    - by grain define modulation scheme. one scheme for each interval. (this may be overkill. May a single modulation scheme for each attribute)
+- define constants
+    - sine sampling curve
+- write utilities
+- create dialog
+    - should be come graphics to show cell distributions with user manipulation (and saving) of cell matrix for 
+    each attributes over time. Source generation will use the version selected. 
+- create sample channel buffers: (stochasticnodes.tsx)
+- do preview logic - simple like audiofile
+- to record logic - simple like audiofile
 # things to know    
 for match conditional statements in HTML
 /\{g\.(.*)\?.*\n(.*).*\n.*\).*/
@@ -33,6 +49,7 @@ The following React Icons are used throughout the application:
 
 # things to do
 - add button to generate random seeds
+- blank seed uses current time as a seed
 - add measure timing and use measure length as beats/measure in sequencer algorithm. Use preferences as default when sequencer selected. On beats stays as is.
 - add a control mechanism that will affect parameters of the entire composition, individual tracks, or individual generators. A control has a specific time. Its effects are active until they are canceled. Some effects to consider. Each may be applied to the entire composition or a specific set of tracks and/or generators.
     - Measure length. Overrides preference setting. Affects generators that use pitch sequencer. This unfortunately affects the duration of a generator so that how it is 

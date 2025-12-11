@@ -390,6 +390,14 @@ export default function TrackControls(props: TrackControlsProps) {
                 >
                   AudioFile
                 </div>
+                <div
+                  className="dItem"
+                  onClick={(e) =>
+                    handleSelectGenerator(e, GENERATORTYPE.Stochastic)
+                  }
+                >
+                  Stochastic
+                </div>
                 <div className="dItem" onClick={() => setMenuEnabled(false)}>
                   Exit
                 </div>

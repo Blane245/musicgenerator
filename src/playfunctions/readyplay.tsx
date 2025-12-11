@@ -10,6 +10,7 @@ import {
 } from "../types";
 import AudioFile from "classes/generators/audiofile";
 import Silent from "classes/generators/silent";
+import Stochastic from "classes/generators/stochastic";
 
 // timeline interval selector
 function isSelected(
@@ -33,12 +34,14 @@ export default function ReadyPlay(props: ReadyPlayProps): {
   AlgorithmicGenerators: Algorithmic[];
   AudioFileGenerators: AudioFile[];
   SilentGenerators: Silent[];
+  StochasticGenerators: Stochastic[];
   error: string;
 } {
   const { mode, generator, fileContents, timeInterval } = props;
   let AlgorithmicGenerators: Algorithmic[] = [];
   let AudioFileGenerators: AudioFile[] = [];
   let SilentGenerators: Silent[] = [];
+  let StochasticGenerators: Stochastic[] = [];
   let error: string = "";
 
   // get the active generators for the entire rendering
@@ -61,6 +64,8 @@ export default function ReadyPlay(props: ReadyPlayProps): {
               AudioFileGenerators.push(g as AudioFile);
             if (g.type == GENERATORTYPE.Silent)
               SilentGenerators.push(g as Silent);
+            if (g.type == GENERATORTYPE.Stochastic)
+              StochasticGenerators.push(g as Stochastic);
           }
         });
       });
@@ -82,6 +87,9 @@ export default function ReadyPlay(props: ReadyPlayProps): {
                 }
                 if (g.type == GENERATORTYPE.AudioFile) {
                   AudioFileGenerators.push(g as AudioFile);
+                }
+                if (g.type == GENERATORTYPE.Stochastic) {
+                  StochasticGenerators.push(g as Stochastic);
                 }
                 if (g.type == GENERATORTYPE.Silent) {
                   SilentGenerators.push(g as Silent);
@@ -117,6 +125,7 @@ export default function ReadyPlay(props: ReadyPlayProps): {
     AlgorithmicGenerators,
     AudioFileGenerators,
     SilentGenerators,
+    StochasticGenerators,
     error,
   };
 }

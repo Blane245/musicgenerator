@@ -6,6 +6,8 @@ import AlgorithmicDialog from "dialogs/algorithmic/algorithmicdialog";
 import AudioFileDialog from "dialogs/audiofiledialog";
 import Algorithmic from "classes/generators/algorithmic";
 import AudioFile from "classes/generators/audiofile";
+import StochasticDialog from "../stochastic/stochasticdialog";
+import Stochastic from "classes/generators/stochastic";
 
 export interface GeneratorTypeFormProps {
   formData: GeneratorType;
@@ -29,6 +31,12 @@ export default function GeneratorTypeForm(
       {formData.type == GENERATORTYPE.AudioFile ? (
         <AudioFileDialog
           formData={formData as AudioFile}
+          handleChange={handleChange}
+        />
+      ) : null}
+      {formData.type == GENERATORTYPE.Stochastic ? (
+        <StochasticDialog
+          formData={formData as Stochastic}
           handleChange={handleChange}
         />
       ) : null}

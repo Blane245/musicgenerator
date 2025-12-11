@@ -7,9 +7,11 @@ import ConstantValues from "classes/algorithms/constantvalues";
 import MarkovianValues from "classes/algorithms/markovianvalues";
 import OscillatorValues from "classes/algorithms/oscillatorvalues";
 import SequenceValues from "classes/algorithms/sequencevalues";
+import Tremolo from "classes/algorithms/tremolo";
 import WienerValues from "classes/algorithms/wienervalues";
 import CMGFile from "classes/cmgfile";
 import RandomNumber from "classes/randomnumber";
+import Track from "classes/track";
 import { Preset } from "sfcomponents/types";
 import { presetNameToPreset } from "sfcomponents/util";
 import { SoundFont2 } from "soundfont2";
@@ -24,14 +26,12 @@ import {
   SoundFontGeneratorsType,
 } from "types";
 import { euclideanRhythm } from "utils/euclidean-rhythm";
+import { softDisconnect } from "utils/softdisconnect";
 import {
   getAttributeValueWithDefault,
   getElementElement,
 } from "utils/xmlfunctions";
 import Silent from "./silent";
-import Tremolo from "classes/algorithms/tremolo";
-import Track from "classes/track";
-import { softDisconnect } from "utils/softdisconnect";
 
 export default class Algorithmic extends Silent {
   soundFontFile: string;

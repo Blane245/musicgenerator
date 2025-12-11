@@ -31,6 +31,17 @@ import OscillatorValues from "classes/algorithms/oscillatorvalues";
 import MarkovianValues from "classes/algorithms/markovianvalues";
 import WienerValues from "classes/algorithms/wienervalues";
 import SequenceValues from "classes/algorithms/sequencevalues";
+import Timbre from "classes/stochastic/timbre";
+import { AlgorithmValues } from "classes/algorithms/algorithmvalues";
+import Sustained from "classes/stochastic/sustained";
+import Percussion from "classes/stochastic/percussion";
+import Pizzicato from "classes/stochastic/pizzicato";
+import Glissando from "classes/stochastic/glissando";
+import Stochastic from "classes/generators/stochastic";
+import SustainedCloud from "classes/stochastic/sustainedcloud";
+import PizzicatoCloud from "classes/stochastic/pizzicatocloud";
+import GlissandoCloud from "classes/stochastic/glissandocloud";
+import PercussionCloud from "classes/stochastic/percussioncloud";
 
 export const SAMPLERATE: number = 44100;
 
@@ -53,7 +64,7 @@ export type MouseLocation = {
   dY: number;
 };
 
-export type GeneratorType = Silent | Algorithmic | AudioFile;
+export type GeneratorType = Silent | Algorithmic | AudioFile | Stochastic;
 
 export type EditGenerator = {
   track: Track | null;
@@ -66,6 +77,7 @@ export enum GENERATORTYPE {
   "Silent" = "Silent",
   "Algorithmic" = "Algorithmic",
   "AudioFile" = "AudioFile",
+  "Stochastic" = "Stochastic",
 }
 
 export type AlgorithmType =
@@ -354,7 +366,7 @@ export enum PLAYMODE {
 export type GainEnvelope = {
   t: number;
   g: number;
-}[]
+}[];
 // the data that is needed to realize a source and manage it during preview and record
 export type RawSourceData = {
   gen: GeneratorType;
@@ -426,6 +438,7 @@ export enum SectionType {
   "Instrument" = "Instrument",
   "Percussion" = "Percussion",
   "AudioFile" = "AudioFile",
+  "Stochastic" = "Stochastic",
   "None" = "None",
 }
 export type DrawingSection = {
@@ -439,7 +452,6 @@ export type SourceToDrawingSectionEntry = {
   sourceIndex: number;
   sectionIndex: number;
 };
-
 
 export type SignalLevelsType = {
   leftVolume: number;
@@ -523,3 +535,84 @@ export type DbResponseType =
   | DbErrorType
   | DbSequenceValidNamesType
   | DbSequenceType;
+
+// stochastic generator types
+
+// timbre object type names
+export enum TIMBRE {
+  "None" = "None",
+  "Sustained" = "Sustained",
+  "Pizzicato" = "Pizzicato",
+  "Percussion" = "Percussion",
+  "Glissando" = "Glissando",
+}
+// the collection of timbres making up a composition
+export type Ensemble = Timbre[];
+
+export type CompositionCell = {
+  mean: number; // the mean number of in a cell
+  type: CloudType | null; // the type of cloud (based on the timbre)
+};
+// the event count and cloud type matrix of the composition
+export type Composition = {
+  cell: CompositionCell;
+}[][]; // time cell by ensemble cell
+
+export type StochasticValues = {
+  length: number; // the number of measures in the composition
+  Tc: number; // length of composition (seconds)
+  B: number; // measure speed (measures/minute)
+  deltaT: number; // time cell length (seconds)
+  Nm: number; // number of measures per time cell
+  cellCount: number; // the total number cells in the composition
+  Nt: number; // the number of time columns
+  Ne: number; // the number of ensembleRows
+  pizzDuration: number; // the duration used by pizzaccato timbre
+  percDuration: number; // the curation used by percussion timbre
+
+  timbres: TIMBRE[];
+  
+  composition: Composition; // the composition matrix (Nt X ensemble size)
+
+  lambda: number; // the average number of events (clouds) per unit
+  delta: number; // sound density (sounds/second)
+
+  cellDistribution: number[]; // the distribution of events (Nt * ensembleSize * P(i))
+};
+// the collection of compsition versions
+export type CompositionVersionEntry = {
+  comment: string;
+  dateCreated: Date;
+  dateUpdated: Date;
+  values: StochasticValues;
+};
+export type CompositionVersions = Map<string, CompositionVersionEntry>;
+export type CompositionVersionList = {
+  name: string;
+  comment: string;
+  dateCreated: Date;
+  dateUpdated: Date;
+};
+
+export type Range = {
+  lo: number;
+  hi: number;
+}
+export type DensityAttribute = {
+  mean: number;
+  unit: number;
+  range: Range;
+};
+
+export type CloudType =
+  | SustainedCloud
+  | PercussionCloud
+  | PizzicatoCloud
+  | GlissandoCloud;
+export type TimbreType = Sustained | Percussion | Pizzicato | Glissando;
+
+export type ElementBuffer = {
+  time: number; // seconds
+  buffer: number[]; // a single channel buffer
+
+}

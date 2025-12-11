@@ -1,4 +1,7 @@
 // provides CRUD for all types of generators
+import Algorithmic from "classes/generators/algorithmic";
+import AudioFile from "classes/generators/audiofile";
+import Silent from "classes/generators/silent";
 import Track from "classes/track";
 import { useCMGContext } from "cmgcontext";
 import { buildSources } from "playfunctions/buildsources";
@@ -13,9 +16,7 @@ import { GeneratorType, GENERATORTYPE, PLAYMODE, TIMELINETYPE } from "types";
 import { addGenerator, modifyGenerator } from "utils/cmfiletransactions";
 import { getGeneratorUID } from "utils/getgeneratoruid";
 import GeneratorTypeForm from "./generatortypeform";
-import Silent from "classes/generators/silent";
-import AudioFile from "classes/generators/audiofile";
-import Algorithmic from "classes/generators/algorithmic";
+import Stochastic from "classes/generators/stochastic";
 
 // The icon starts at the generator's start time and ends at the generators endtime
 export interface GeneratorDialogProps {
@@ -25,7 +26,7 @@ export interface GeneratorDialogProps {
   newGenerator: boolean;
 }
 
-export default function GeneratorDialog(props: GeneratorDialogProps) {
+export default function generatorDialog(props: GeneratorDialogProps) {
   const { track, generatorType, generator, newGenerator } = props;
   type SFDataType = {
     soundFont: SoundFont2 | undefined;
@@ -83,6 +84,13 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
         case GENERATORTYPE.AudioFile:
           {
             const g = new AudioFile(next, track);
+            setFormData(g);
+            setOldName(g.name);
+          }
+          break;
+        case GENERATORTYPE.Stochastic:
+          {
+            const g = new Stochastic(next, track);
             setFormData(g);
             setOldName(g.name);
           }
@@ -221,6 +229,12 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           }
           return newFormData;
         }
+        case GENERATORTYPE.Stochastic: {
+          const newFormData: Stochastic = (prev as Stochastic).copy(prev.parent);
+          newFormData.setAttribute(eventName, eventValue);
+          // when the filename is given, the stop time will been to update
+          return newFormData;
+        }
         default:
           console.log(
             `generator dialog: improper generator type ${formData.type}`
@@ -259,6 +273,17 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
         {
           const newMessages = AudioFile.validate(
             formData as AudioFile,
+            fileContents,
+            oldName
+          );
+          msgs.push(...newMessages);
+          setErrorMessages(msgs);
+        }
+        break;
+      case GENERATORTYPE.AudioFile:
+        {
+          const newMessages = Stochastic.validate(
+            formData as Stochastic,
             fileContents,
             oldName
           );

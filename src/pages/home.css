@@ -951,6 +951,27 @@ ul:after {
     }
   }
 }
+.stochastic-preamble {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-areas: 'ensemble lambda delta' 'length speed count';
+  .ensemble {grid-area: ensemble}
+  .lambda {grid-area: lambda;}
+  .delta {grid-area: delta;}
+  .length {grid-area: length;}
+  .speed {grid-area: speed;}
+  .count {grid-area: count;}
+}
+.stochastic-ensemble {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-areas: 'name frequency duration other';
+  .name { grid-area: name;}
+  .frequency { grid-area: frequency;}
+  .duration { grid-area: duration;}
+  .other { grid-area: other;}
+
+}
 .control-content {
   position: fixed;
   z-index: 2;
