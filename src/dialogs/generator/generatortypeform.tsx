@@ -11,15 +11,17 @@ import Stochastic from "classes/generators/stochastic";
 
 export interface GeneratorTypeFormProps {
   formData: GeneratorType;
+  setFormData: Function;
   handleChange: (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
+  setMessages: Function;
 }
 
 export default function GeneratorTypeForm(
   props: GeneratorTypeFormProps
 ): JSX.Element {
-  const { formData, handleChange} = props;
+  const { formData, setFormData, handleChange, setMessages} = props;
   return (
     <>
       {formData.type == GENERATORTYPE.Algorithmic ? (
@@ -38,6 +40,7 @@ export default function GeneratorTypeForm(
         <StochasticDialog
           formData={formData as Stochastic}
           handleChange={handleChange}
+          setMessages={setMessages}
         />
       ) : null}
     </>

@@ -1,11 +1,17 @@
 import Algorithmic from "classes/generators/algorithmic";
-import { DrawingSection, GENERATORTYPE, RawSourceData, SectionType, SourceToDrawingSectionEntry } from "types";
-  let nInstrument = -1;
-  let nPercussion = -1;
-  let nAudioFiles = 0;
+import {
+  DrawingSection,
+  GENERATORTYPE,
+  RawSourceData,
+  SectionType,
+  SourceToDrawingSectionEntry,
+} from "types";
+let nInstrument = -1;
+let nPercussion = -1;
+let nAudio = 0;
 
 export default function drawingSetup(
-        sourceData: RawSourceData[],
+  sourceData: RawSourceData[],
 
   previewHeight: number,
   setDrawingSections: (value: React.SetStateAction<DrawingSection[]>) => void,
@@ -24,21 +30,21 @@ export default function drawingSetup(
 // and preset bank
 // heights and vertical offsets are determined after all sections are known
 function mapSourcesToSections(
-    sourceData: RawSourceData[],
- ): [DrawingSection[], SourceToDrawingSectionEntry[]] {
+  sourceData: RawSourceData[]
+): [DrawingSection[], SourceToDrawingSectionEntry[]] {
   const newDrawingSections: DrawingSection[] = [];
   const newSourceToDrawingSectionMap: SourceToDrawingSectionEntry[] = [];
   nInstrument = -1;
   nPercussion = -1;
-  nAudioFiles = 0;
+  nAudio = 0;
   sourceData.forEach((s: RawSourceData) => {
     const sectionType = getSectionType(s);
     switch (sectionType) {
-      case SectionType.AudioFile:
+      case SectionType.Audio:
         {
           const iSection: number = newDrawingSections.length;
           newDrawingSections.push({
-            type: SectionType.AudioFile,
+            type: SectionType.Audio,
             height: 0,
             verticalOffset: 0,
             loValue: -1,
@@ -48,7 +54,7 @@ function mapSourcesToSections(
             sectionIndex: iSection,
             sourceIndex: s.index,
           });
-          nAudioFiles++;
+          nAudio++;
           // console.log(
           //   "source",
           //   s.index,
@@ -142,7 +148,7 @@ function mapSourcesToSections(
 // No instrument, percussion, n AF - 70% to percussion, 30% to audiofile
 // 4. Instrument + percussion + n AF - 70% to instrument, 25% to percussion, 10% to all AFs split 10%/N each
 function setupSections(
-    sourceData: RawSourceData[],
+  sourceData: RawSourceData[],
   drawingSections: DrawingSection[],
   map: SourceToDrawingSectionEntry[],
   height: number
@@ -155,9 +161,9 @@ function setupSections(
 
   // only one section
   if (
-    (nInstrument != -1 && nPercussion == -1 && nAudioFiles == 0) ||
-    (nInstrument == -1 && nPercussion != -1 && nAudioFiles == 0) ||
-    (nInstrument == -1 && nPercussion == -1 && nAudioFiles == 1)
+    (nInstrument != -1 && nPercussion == -1 && nAudio == 0) ||
+    (nInstrument == -1 && nPercussion != -1 && nAudio == 0) ||
+    (nInstrument == -1 && nPercussion == -1 && nAudio == 1)
   ) {
     // console.log("one drawing section");
     drawingSections[0].height = height;
@@ -166,7 +172,7 @@ function setupSections(
   // only n audiofiles
   else if (nInstrument == -1 && nPercussion == -1) {
     // console.log(nAudioFiles, "audiofile sections");
-    const sectionSize: number = height / nAudioFiles;
+    const sectionSize: number = height / nAudio;
     let offset: number = 0;
     drawingSections.forEach((section) => {
       section.height = sectionSize;
@@ -175,7 +181,7 @@ function setupSections(
     });
   }
   // instrument + percussion, no audiofiles
-  else if (nInstrument > -1 && nPercussion > -1 && nAudioFiles == 0) {
+  else if (nInstrument > -1 && nPercussion > -1 && nAudio == 0) {
     // console.log("instrument and percussion sections");
     // there are two sections. first wil be instrument at 75%, then percussion at 25%
     const sectionSize: number = height * 0.75;
@@ -188,8 +194,8 @@ function setupSections(
   // instrument, no percussion, n audiofiles
   // no instrument, percussion, n audiofiles
   else if (
-    (nInstrument > -1 && nPercussion == -1 && nAudioFiles > 0) ||
-    (nInstrument == -1 && nPercussion > -1 && nAudioFiles > 0)
+    (nInstrument > -1 && nPercussion == -1 && nAudio > 0) ||
+    (nInstrument == -1 && nPercussion > -1 && nAudio > 0)
   ) {
     // console.log(
     //   "either 1 instrument or percussion, and",
@@ -205,17 +211,17 @@ function setupSections(
       drawingSections[nPercussion].height = section1;
     }
     // process each audiofile section
-    const subsectionHeight = section2 / nAudioFiles;
+    const subsectionHeight = section2 / nAudio;
     let offset: number = section1;
     drawingSections.forEach((section) => {
-      if (section.type != SectionType.AudioFile) return;
+      if (section.type != SectionType.Audio) return;
       section.height = subsectionHeight;
       section.verticalOffset = offset;
       offset += subsectionHeight;
     });
   }
   // instrument + percussion + n audioFiles
-  else if (nInstrument > -1 && nPercussion > -1 && nAudioFiles > 0) {
+  else if (nInstrument > -1 && nPercussion > -1 && nAudio > 0) {
     // console.log(
     //   "1 instrument and percussion, and",
     //   nAudioFiles,
@@ -229,10 +235,10 @@ function setupSections(
     drawingSections[nPercussion].height = section2;
     drawingSections[nPercussion].verticalOffset = section1;
     // process each audiofile section
-    const subsectionHeight = section3 / nAudioFiles;
+    const subsectionHeight = section3 / nAudio;
     let offset: number = section2;
     drawingSections.forEach((section) => {
-      if (section.type != SectionType.AudioFile) return;
+      if (section.type != SectionType.Audio) return;
       section.height = subsectionHeight;
       section.verticalOffset = offset;
       offset += subsectionHeight;
@@ -244,8 +250,8 @@ function setupSections(
       nInstrument,
       "nPercussion",
       nPercussion,
-      "nAudioFiles",
-      nAudioFiles
+      "nAudio",
+      nAudio
     );
   }
 
@@ -263,23 +269,26 @@ function setupSections(
       // );
       return;
     }
-    if (section.type != SectionType.AudioFile) {
+    if (section.type != SectionType.Audio) {
       section.loValue = Math.min(source.source.note, section.loValue);
       section.hiValue = Math.max(source.source.note, section.hiValue);
     }
   });
 }
 
-  // get the type of the drawing section based on the source type
-  function getSectionType(s: RawSourceData): SectionType {
-    if (s.gen.type == GENERATORTYPE.AudioFile) {
-      return SectionType.AudioFile;
-    } else if (s.gen.type == GENERATORTYPE.Algorithmic) {
-      const gen: Algorithmic = s.gen as Algorithmic;
-      if (gen.preset != undefined) {
-        if (gen.preset.header.bank == 128) {
-          return SectionType.Percussion;
-        } else return SectionType.Instrument;
-      } else return SectionType.None;
+// get the type of the drawing section based on the source type
+function getSectionType(s: RawSourceData): SectionType {
+  if (
+    s.gen.type == GENERATORTYPE.AudioFile ||
+    s.gen.type == GENERATORTYPE.Stochastic
+  ) {
+    return SectionType.Audio;
+  } else if (s.gen.type == GENERATORTYPE.Algorithmic) {
+    const gen: Algorithmic = s.gen as Algorithmic;
+    if (gen.preset != undefined) {
+      if (gen.preset.header.bank == 128) {
+        return SectionType.Percussion;
+      } else return SectionType.Instrument;
     } else return SectionType.None;
-  }
+  } else return SectionType.None;
+}

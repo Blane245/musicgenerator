@@ -90,8 +90,8 @@ export default class Algorithmic extends Silent {
     this.noteCount = 12;
     this.offsetNotes = 0;
     this.#activeNotes = euclideanRhythm(this.noteCount, 12, this.offsetNotes);
-    this.noiseSeed = "seed";
-    this.rn = new RandomNumber(this.noiseSeed);
+    this.noiseSeed = '';
+    this.rn = new RandomNumber('');
     this.noiseFrequency = 0;
     this.noiseAmplitude = 0;
     this.effectIn = undefined;
@@ -676,14 +676,14 @@ export default class Algorithmic extends Silent {
       // correct soundFont, presets, and preset
       // the latter is done in the file handler afer all tracks have been read
       const foundSoundFont: SoundFontGeneratorsType | undefined =
-        SoundFontGenerators.find((s) => s.name == g.soundFontFile);
+        SoundFontGenerators.get(g.soundFontFile);
       if (foundSoundFont == undefined) {
-        SoundFontGenerators.push({
-          name: g.soundFontFile,
-          generators: [g],
+        SoundFontGenerators.set(g.soundFontFile, {
+          type: GENERATORTYPE.Algorithmic,
+          users: [{generator:g, voiceNumber: 0}],
         });
       } else {
-        foundSoundFont.generators.push(g);
+        foundSoundFont.users.push({generator: g, voiceNumber: 0});
       }
       g.isLooping =
         (getAttributeValueWithDefault(

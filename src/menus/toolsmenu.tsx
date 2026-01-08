@@ -177,10 +177,10 @@ function MeasureDurationDialog(props: MeasureDurationDialogProps): JSX.Element {
 
   return (
     <div className="modal-content" style={{ display: "block" }}>
-      <div className="modal-header">
+      <div className="header">
         <h2>{"Measure Duration Calculator"}</h2>
       </div>
-      <div className="modal-body">
+      <div className="body">
         <label>
           Number of Beats:
           <input
@@ -208,7 +208,7 @@ function MeasureDurationDialog(props: MeasureDurationDialogProps): JSX.Element {
           <text> {length.toFixed(3)} (sec)</text>
         </label>
       </div>
-      <div className="modal-footer">
+      <div className="footer">
         <button onClick={() => setOpen(false)}>Close</button>
       </div>
     </div>
@@ -242,10 +242,10 @@ function OscillatorFrequencyDialog(
 
   return (
     <div className="modal-content" style={{ display: "block" }}>
-      <div className="modal-header">
+      <div className="header">
         <h2>{"Oscillator Frequency Calculator"}</h2>
       </div>
-      <div className="modal-body">
+      <div className="body">
         <label>
           Amplitude:
           <input
@@ -273,7 +273,7 @@ function OscillatorFrequencyDialog(
           <text> {freq.toFixed(3)} (mHz)</text>
         </label>
       </div>
-      <div className="modal-footer">
+      <div className="footer">
         <button onClick={() => setOpen(false)}>Close</button>
       </div>
     </div>

@@ -12,6 +12,16 @@ export type TimeLinePreferences = {
 export type OscillatorBoxProperties = {};
 
 import { Buffer } from "buffer";
+import AutoregressiveValues from "classes/algorithms/autoregressivevalues";
+import ConstantValues from "classes/algorithms/constantvalues";
+import MarkovianValues from "classes/algorithms/markovianvalues";
+import OscillatorValues from "classes/algorithms/oscillatorvalues";
+import SequenceValues from "classes/algorithms/sequencevalues";
+import WienerValues from "classes/algorithms/wienervalues";
+import Algorithmic from "classes/generators/algorithmic";
+import AudioFile from "classes/generators/audiofile";
+import Silent from "classes/generators/silent";
+import Stochastic from "classes/generators/stochastic";
 import Track from "classes/track";
 import RandomNumber from "../classes/randomnumber";
 import {
@@ -22,26 +32,7 @@ import {
   triangleModulator,
 } from "../modulators";
 import { SoundFont2 } from "../soundfont2";
-import Silent from "classes/generators/silent";
-import Algorithmic from "classes/generators/algorithmic";
-import AudioFile from "classes/generators/audiofile";
-import ConstantValues from "classes/algorithms/constantvalues";
-import AutoregressiveValues from "classes/algorithms/autoregressivevalues";
-import OscillatorValues from "classes/algorithms/oscillatorvalues";
-import MarkovianValues from "classes/algorithms/markovianvalues";
-import WienerValues from "classes/algorithms/wienervalues";
-import SequenceValues from "classes/algorithms/sequencevalues";
-import Timbre from "classes/stochastic/timbre";
-import { AlgorithmValues } from "classes/algorithms/algorithmvalues";
-import Sustained from "classes/stochastic/sustained";
-import Percussion from "classes/stochastic/percussion";
-import Pizzicato from "classes/stochastic/pizzicato";
-import Glissando from "classes/stochastic/glissando";
-import Stochastic from "classes/generators/stochastic";
-import SustainedCloud from "classes/stochastic/sustainedcloud";
-import PizzicatoCloud from "classes/stochastic/pizzicatocloud";
-import GlissandoCloud from "classes/stochastic/glissandocloud";
-import PercussionCloud from "classes/stochastic/percussioncloud";
+import { Preset } from "sfcomponents/types";
 
 export const SAMPLERATE: number = 44100;
 
@@ -209,6 +200,211 @@ export type SequenceType = {
   reflectPitch: number;
 };
 
+// Stochastic generator types
+export const RMSFACTOR: number = 0.75; // speed standard devision factor
+
+// the number of clouds in each cell
+export type Composition = number[][];
+export const INTENSITY = {
+  pppp: 'pppp',
+  ppp: 'ppp',
+  pp: 'pp',
+  p: 'p',
+  mp: 'mp',
+  mf: 'mf',
+  f: 'f',
+  ff: 'ff', 
+  fff: 'fff',
+  ffff: 'ffff',
+}
+
+export type Intensity = (typeof INTENSITY)[keyof typeof INTENSITY];
+
+// map of intensity names to dB and velocity
+// velocity mapping from SmartScore 64 dynamics (wikipedia music dynamics)
+export const IntensityProfile = new Map<Intensity, {dB: number, velocity: number}> ([
+  [INTENSITY.pppp, {dB: 3, velocity: 30}],
+  [INTENSITY.ppp, {dB: 4, velocity: 40}],
+  [INTENSITY.pp, {dB:5, velocity: 50}],
+  [INTENSITY.p, {dB:6, velocity: 60}],
+  [INTENSITY.mp, {dB:7, velocity: 70}],
+  [INTENSITY.mf, {dB:8, velocity: 80}],
+  [INTENSITY.f, {dB:9, velocity: 90}],
+  [INTENSITY.ff, {dB:10, velocity: 100}],
+  [INTENSITY.fff, {dB:11, velocity: 110}],
+  [INTENSITY.ffff, {dB:12, velocity: 120}]
+]);
+
+export type IntensityTransition = {
+  start: Intensity;
+  middle?: Intensity;
+  end: Intensity;
+}
+
+// transition forms taken from Xenakis, p.143
+// to be drawn at random
+export const IntensityTransitions: IntensityTransition[] = [
+  {start: INTENSITY.ppp, end:INTENSITY.ppp},
+  {start: INTENSITY.ppp, end:INTENSITY.p},
+  {start: INTENSITY.ppp, middle: INTENSITY.p, end:INTENSITY.ppp},
+  {start: INTENSITY.ppp, end:INTENSITY.f},
+  {start: INTENSITY.ppp, middle: INTENSITY.f, end:INTENSITY.ppp},
+  {start: INTENSITY.ppp, end:INTENSITY.ff},
+  {start: INTENSITY.ppp, middle: INTENSITY.ff, end:INTENSITY.ppp},
+  {start: INTENSITY.ppp, middle: INTENSITY.f, end:INTENSITY.p},
+  {start: INTENSITY.ppp, middle: INTENSITY.ff, end:INTENSITY.p},
+  {start: INTENSITY.p, end:INTENSITY.ppp},
+  {start: INTENSITY.p, middle: INTENSITY.f, end:INTENSITY.ppp},
+  {start: INTENSITY.p, middle: INTENSITY.ppp, end:INTENSITY.f},
+  {start: INTENSITY.p, middle: INTENSITY.ppp, end:INTENSITY.ff},
+  {start: INTENSITY.p, middle: INTENSITY.ff, end:INTENSITY.ppp},
+  {start: INTENSITY.p, end:INTENSITY.p},
+  {start: INTENSITY.p, middle: INTENSITY.ppp, end:INTENSITY.p},
+  {start: INTENSITY.p, end:INTENSITY.f},
+  {start: INTENSITY.p, middle: INTENSITY.f, end:INTENSITY.p},
+  {start: INTENSITY.p, end:INTENSITY.ff},
+  {start: INTENSITY.p, middle: INTENSITY.ff, end:INTENSITY.p},
+  {start: INTENSITY.p, middle: INTENSITY.ff, end:INTENSITY.f},
+  {start: INTENSITY.f, end:INTENSITY.ppp},
+  {start: INTENSITY.f, middle: INTENSITY.ppp, end:INTENSITY.p},
+  {start: INTENSITY.f, end:INTENSITY.p},
+  {start: INTENSITY.f, middle: INTENSITY.ppp, end:INTENSITY.ff},
+  {start: INTENSITY.f, middle: INTENSITY.ff, end:INTENSITY.ppp},
+  {start: INTENSITY.f, middle: INTENSITY.p, end:INTENSITY.ff},
+  {start: INTENSITY.f, middle: INTENSITY.ff, end:INTENSITY.p},
+  {start: INTENSITY.f, end:INTENSITY.f},
+  {start: INTENSITY.f, middle: INTENSITY.ppp, end:INTENSITY.f},
+  {start: INTENSITY.f, middle: INTENSITY.p, end:INTENSITY.f},
+  {start: INTENSITY.f, middle: INTENSITY.ff, end:INTENSITY.f},
+  {start: INTENSITY.f, end:INTENSITY.ff},
+  {start: INTENSITY.ff, end:INTENSITY.ppp},
+  {start: INTENSITY.ff, middle: INTENSITY.ppp, end:INTENSITY.p},
+  {start: INTENSITY.ff, middle: INTENSITY.ppp, end:INTENSITY.f},
+  {start: INTENSITY.ff, middle: INTENSITY.p, end:INTENSITY.f},
+  {start: INTENSITY.ff, end:INTENSITY.f},
+  {start: INTENSITY.ff, end:INTENSITY.ff},
+  {start: INTENSITY.ff, middle: INTENSITY.ppp, end:INTENSITY.ff},
+  {start: INTENSITY.ff, middle: INTENSITY.p, end:INTENSITY.ff},
+  {start: INTENSITY.ff, middle: INTENSITY.f, end:INTENSITY.ff},
+]
+
+export const INTENSITYOPTION = {
+  none: 'none',
+  composition: 'composition',
+  voice: 'voice',
+  cloud: 'cloud'
+}
+export type IntensityOption = (typeof INTENSITY)[keyof typeof INTENSITY];
+
+export const INTENSITYTRANSITIONOPTION = {
+  none: 'none',
+  random: 'random', 
+  persistent: 'persistent'
+}
+export type IntensityTransitionOption = 
+(typeof INTENSITYTRANSITIONOPTION)[keyof typeof INTENSITYTRANSITIONOPTION]
+
+export type IntensityParameters = {
+  cycleTime: number; // average length of intensity transitions over the sample
+}
+export const DELTAPAN: number = 0.3; // step size for pan random walk
+export const PANOPTION = {
+  none: 'none',
+  composition: 'composition',
+  voice: 'voice',
+  cloud: 'cloud'
+}
+export type PanOption = (typeof PANOPTION)[ keyof typeof PANOPTION];
+
+export const PANALGORITHM = {none: 'none', glide: 'glide', walk: 'walk'};
+export type PanAlgorithm = (typeof PANALGORITHM)[keyof typeof PANALGORITHM];
+
+export type PanParameters = {
+  cycleTime: number; // the length of time of a pan cycle
+}
+
+export type StochasticValues = {
+  // user definition of composition
+  ensemble: EnsembleType | null;
+  ensembleName: string;
+  Tc: number; // length of composition (seconds)
+  Nt: number; // the number of time rows
+  lambda: number; // the average number of events (clouds) per time cell
+  delta: number; // sounds / second
+  voices: Voices; // the voices that make up the ensemble
+  muted: boolean[]; // voice muted flags
+  intensityOption: IntensityOption; // none, composition, voice, cloud
+  intensityTransitionOption: IntensityTransitionOption; // random, persistent
+  intensityParameters: IntensityParameters; // averge duration of transition
+  panOption: PanOption; // none, voice, cloud
+  panAlgorithm: PanAlgorithm; // constant, walk, glide
+  panParameters: PanParameters; // cycle time for pan sequences
+  seed: string;
+  rN: RandomNumber;
+  composition: Composition;
+};
+
+/**
+ * Sustained hold the same pitch during the sound
+ * Glissando changes the pitch during the sound. The next sound starts at the
+ * previous ending pitch
+ */
+export const TIMBRE = {
+  Sustained: "sustained",
+  Glissando: "glissando",
+} as const;
+
+export type TIMBRETYPE = (typeof TIMBRE)[keyof typeof TIMBRE];
+
+export type durationProperties = {
+  mean: number; // the mean duration of sustained and glissando (elements/second) (0 for pizz and perc)
+  fixed: number; // the fixed duration for pizz and perc (sec;0 for sust and glis)
+  noiseFrequency: number; // for percussion, the frequency of added noise (Hz)
+  noiseAmplitude: number; // the amplitude of added noise (dB)
+};
+
+  /**
+   * name - the unique name of the voice
+   * type - the type of timbre
+ * register - the lo and hi pitches
+ * duration - the duration of the sound (secs), 0 means the full interval
+ * noiseFrequency - the frequency of added noise (Hz)
+ * noiseAmplitude - the amplitude of added noise (dB)
+   */
+export type Voice = {
+  name: string; // the unique name of the voice
+  description: string;
+  soundFontFile: string;
+  presetName: string;
+  preset: Preset | undefined;
+  timbre: TIMBRETYPE;
+  registerLo: number;
+  registerHi: number;
+  duration: number;
+}
+
+export type Voices = Voice[];
+
+/**
+ * offset time (sec) of first sound for the cloud and its pitch (midi)
+ */
+export type CloudState = {
+  offset: number;
+  pitch: number;
+}
+
+/**
+ * dimension is max # clouds in voice
+ */
+export type CloudStates = CloudState[];
+
+export type EnsembleType = {
+    name: string;
+    description: string;
+    voices: string;
+}
+
+
 export enum NOISETYPE {
   white = "white",
   gaussian = "gaussian",
@@ -253,13 +449,13 @@ export enum TIMEFORMATTYPE {
 
 // place to hold the soundfont file and the presets in it
 export type SoundFontGeneratorsType = {
-  name: string; // the name of the soundfont file
-  generators: Algorithmic[]; // the generators that are using this soundfont
+  type: GENERATORTYPE;
+  users: {generator:(Algorithmic | Stochastic), voiceNumber: number}[]; // the generators/voices that are using this soundfont
 };
 
 // the soundfont file collection for algorithmic generators
 // used during loading a CMG file
-export const SoundFontGenerators: SoundFontGeneratorsType[] = [];
+export const SoundFontGenerators = new Map<string, SoundFontGeneratorsType> ([]);
 
 export type TimeFormat = {
   value: string;
@@ -374,7 +570,7 @@ export type RawSourceData = {
   source: {
     note: number; // pitch number of the source
     sample: Float32Array[]; // the sf instrument sample converted to float32 or noise as float32 - length is sampleRate * totalTime * playbackRate
-    // or the audiofile samples
+    // or the audiofile or Stochastic samples
     sampleRate: number; // hz/sec (includes the playbackRate sampleRate (instrument sample) * playbackRate (as calcuated) )
     playbackRate: number; // sf playback rate or 1 for noise (will always be one)
     startTime: number; // start time of the source within the generator
@@ -437,8 +633,7 @@ export type ActiveSource = {
 export enum SectionType {
   "Instrument" = "Instrument",
   "Percussion" = "Percussion",
-  "AudioFile" = "AudioFile",
-  "Stochastic" = "Stochastic",
+  "Audio" = "Audio",
   "None" = "None",
 }
 export type DrawingSection = {
@@ -508,6 +703,10 @@ export enum DBRESPONSETYPE {
   "durationequencevalue" = "durationequencevalue",
   "volumesequencevalue" = "volumesequencevalue",
   "pansequencevalue" = "pansequencevalue",
+  "ensemblelist" = "ensemblelist",
+  "ensemble" = "ensemble",
+  "voicelist" = "voicelist",
+  "voice" = "voice",
 }
 export type SequenceName = {
   name: string;
@@ -531,88 +730,38 @@ export type DbSequenceType = {
   value: DbSequenceItem;
 };
 
+export type DbEnsembleListType = {
+  type: DBRESPONSETYPE;
+  value: EnsembleType[];
+};
+
+export type DbEnsembleType = {
+  type: DBRESPONSETYPE;
+  value: EnsembleType;
+};
+
+export type DbVoiceListType = {
+  type: DBRESPONSETYPE;
+  value: Voice[];
+};
+export type dBVoiceType = {
+  type: DBRESPONSETYPE;
+  value: Voice;
+};
+export type dBMessageType = {
+  type: DBRESPONSETYPE;
+  message: string;
+};
+
 export type DbResponseType =
   | DbErrorType
   | DbSequenceValidNamesType
-  | DbSequenceType;
+  | DbSequenceType
+  | DbEnsembleType
+  | DbEnsembleListType
+  | dBVoiceType
+  | DbVoiceListType
+  | dBMessageType;
 
-// stochastic generator types
-
-// timbre object type names
-export enum TIMBRE {
-  "None" = "None",
-  "Sustained" = "Sustained",
-  "Pizzicato" = "Pizzicato",
-  "Percussion" = "Percussion",
-  "Glissando" = "Glissando",
-}
-// the collection of timbres making up a composition
-export type Ensemble = Timbre[];
-
-export type CompositionCell = {
-  mean: number; // the mean number of in a cell
-  type: CloudType | null; // the type of cloud (based on the timbre)
-};
-// the event count and cloud type matrix of the composition
-export type Composition = {
-  cell: CompositionCell;
-}[][]; // time cell by ensemble cell
-
-export type StochasticValues = {
-  length: number; // the number of measures in the composition
-  Tc: number; // length of composition (seconds)
-  B: number; // measure speed (measures/minute)
-  deltaT: number; // time cell length (seconds)
-  Nm: number; // number of measures per time cell
-  cellCount: number; // the total number cells in the composition
-  Nt: number; // the number of time columns
-  Ne: number; // the number of ensembleRows
-  pizzDuration: number; // the duration used by pizzaccato timbre
-  percDuration: number; // the curation used by percussion timbre
-
-  timbres: TIMBRE[];
-  
-  composition: Composition; // the composition matrix (Nt X ensemble size)
-
-  lambda: number; // the average number of events (clouds) per unit
-  delta: number; // sound density (sounds/second)
-
-  cellDistribution: number[]; // the distribution of events (Nt * ensembleSize * P(i))
-};
-// the collection of compsition versions
-export type CompositionVersionEntry = {
-  comment: string;
-  dateCreated: Date;
-  dateUpdated: Date;
-  values: StochasticValues;
-};
-export type CompositionVersions = Map<string, CompositionVersionEntry>;
-export type CompositionVersionList = {
-  name: string;
-  comment: string;
-  dateCreated: Date;
-  dateUpdated: Date;
-};
-
-export type Range = {
-  lo: number;
-  hi: number;
-}
-export type DensityAttribute = {
-  mean: number;
-  unit: number;
-  range: Range;
-};
-
-export type CloudType =
-  | SustainedCloud
-  | PercussionCloud
-  | PizzicatoCloud
-  | GlissandoCloud;
-export type TimbreType = Sustained | Percussion | Pizzicato | Glissando;
-
-export type ElementBuffer = {
-  time: number; // seconds
-  buffer: number[]; // a single channel buffer
-
-}
+export type ErrorMessage = string;
+export type ErrorMessages = ErrorMessage[];

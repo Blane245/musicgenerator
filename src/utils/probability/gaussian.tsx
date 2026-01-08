@@ -1,7 +1,6 @@
-import RandomNumber from "classes/randomnumber";
 
 // Standard Normal variate using Box-Muller transform.
-export function gaussianRandom(mean: number = 0, stdev: number = 1, rN: RandomNumber): number {
+export function gaussian(mean: number = 0, stdev: number = 1): number {
   if (stdev == 0) return mean;
   const u: number = 1 - rN.rand(); // Converting [0,1) to (0,1]
   const v: number = rN.rand();

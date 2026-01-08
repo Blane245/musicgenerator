@@ -1,173 +1,51 @@
 import CMGFile from "classes/cmgfile";
-import GlissandoCloud from "classes/stochastic/glissandocloud";
-import PercussionCloud from "classes/stochastic/percussioncloud";
-import PizzicatoCloud from "classes/stochastic/pizzicatocloud";
-import SustainedCloud from "classes/stochastic/sustainedcloud";
+import RandomNumber from "classes/randomnumber";
 import Track from "classes/track";
 import {
-  CloudType,
-  Composition,
-  CompositionVersionEntry,
-  CompositionVersionList,
-  CompositionVersions,
   GENERATORTYPE,
+  INTENSITYOPTION,
+  INTENSITYTRANSITIONOPTION,
+  PANALGORITHM,
+  PANOPTION,
+  SoundFontGenerators,
+  SoundFontGeneratorsType,
   StochasticValues,
-  TIMBRE,
+  TIMBRETYPE,
+  Voice,
 } from "types";
-import poisson from "utils/probability/poisson";
+import {
+  getAttributeValueWithDefault,
+  getElementElement,
+} from "utils/xmlfunctions";
 import Silent from "./silent";
-import continuousProbability from "utils/probability/continuousprobability";
 
 export default class Stochastic extends Silent {
-  values: StochasticValues = 
-{
-    length: 0,
-    Tc: 0,
-    B: 0,
-    deltaT: 0,
-    Nm: 0,
-    cellCount: 0,
-    Nt: 0,
-    Ne: 0,
-    timbres: [],
+  values: StochasticValues = {
+    ensemble: null,
+    ensembleName: "",
+    Tc: 100, // seconds
+    Nt: 10, // cells
+    lambda: 0.6,
+    delta: 2.2,
+    voices: [],
+    muted: [],
+    intensityOption: INTENSITYOPTION.none,
+    intensityTransitionOption: INTENSITYTRANSITIONOPTION.none,
+    intensityParameters: { cycleTime: 0 },
+    panOption: PANOPTION.voice,
+    panAlgorithm: PANALGORITHM.glide,
+    panParameters: { cycleTime: 5 },
+    seed: "0s00ty50o3",
+    rN: new RandomNumber("0s00ty50o3"),
     composition: [],
-    lambda: 0,
-    delta: 0,
-    cellDistribution: [],
-    pizzDuration: 0,
-    percDuration: 0,
   };
-  compositionVersions: CompositionVersions; // the saved conpositions
-  #durationDistribution: number[] = []; // the duration probability table based on linear density
+  #deltaT: number = this.values.Nt != 0 ? this.values.Tc / this.values.Nt : 0;
+  #Ne: number = 0;
 
   constructor(nextGenerator: number, parent: Track) {
     super(nextGenerator, parent);
     this.type = GENERATORTYPE.Stochastic;
-    this.compositionVersions = new Map();
-  }
-
-  // construct the composition matrix and set up the various probability tables
-  // the cell distribution for the time and timbre matrix
-  // the continuous probability with mean linear density and unit of 0.1 of a measure for use by duration
-  // the interval probability with length as DeltaT, the time cell length for use by pitch
-  build(): string[] {
-    const e: string[] = Stochastic.validate(this, null, "");
-    if (e.length > 0) return e;
-    this.values.Nt = this.values.length / this.values.Nm; // number of time cells
-    this.values.deltaT = (this.values.Nm * this.values.B) / 60; // cell length (secs)
-    this.values.Tc = this.values.deltaT * this.values.length; // composition length (sec)
-    this.stopTime = this.startTime + this.values.Tc;
-    this.values.Ne = this.values.timbres.length; // number of timbres
-
-    // get the cell count distribution with mean density lambda
-    this.values.cellDistribution = [];
-    this.values.cellCount = this.values.Nt * this.values.Ne;
-    let cellCount: number = Math.round(
-      poisson(0, this.values.lambda) * this.values.cellCount
-    );
-    let k: number = 0;
-    while (cellCount > 0) {
-      this.values.cellDistribution.push(cellCount);
-      k++;
-      cellCount = Math.round(poisson(k, this.values.lambda) * this.values.cellCount);
-    }
-
-    // create the composition matrix
-    this.values.composition = [];
-    for (let i: number = 0; i < this.values.Nt; i++) {
-      this.values.composition[i] = [];
-      for (let j: number = 0; j < this.values.Ne; j++) {
-        this.values.composition[i][j] = { cell: { mean: 0, type: null } };
-      }
-    }
-
-    // distribute the events to the composition randomly, without replacement
-    for (let i: number = 1; i < this.values.cellDistribution.length; i++) {
-      // get a random cell index
-      for (let j: number = 0; j < this.values.cellDistribution[i]; j++) {
-        let row: number = Math.round(Math.random() * (this.values.Nt - 1));
-        let column: number = Math.round(Math.random() * (this.values.Ne - 1));
-        while (this.values.composition[row][column].cell.mean != 0) {
-          console.log("stochastic build: occupied cell skipped", row, column);
-          row = Math.round(Math.random() * (this.values.Nt - 1));
-          column = Math.round(Math.random() * (this.values.Ne - 1));
-        }
-
-        // determine the number of sounds/cell based on the cell event count
-        // and the sound density
-        const deltaCell: number = // sounds/cell
-          this.values.delta * // sounds/sec
-          this.values.deltaT * // sec / cell
-          (i / (this.values.cellDistribution.length - 1)); // portion allocated
-        this.values.composition[row][column].cell.mean = deltaCell;
-
-        const timbre: TIMBRE = TIMBRE[row];
-        switch (timbre) {
-          case TIMBRE.Glissando:
-            this.values.composition[row][column].cell.type = new GlissandoCloud();
-            break;
-          case TIMBRE.Percussion:
-            this.values.composition[row][column].cell.type = new PercussionCloud();
-            break;
-          case TIMBRE.Pizzicato:
-            this.values.composition[row][column].cell.type = new PizzicatoCloud();
-            break;
-          case TIMBRE.Sustained:
-            this.values.composition[row][column].cell.type = new SustainedCloud(row * this.values.deltaT);
-            break;
-        }
-      }
-    }
-    this.#durationDistribution = continuousProbability(
-      this.values.delta, // sounds / second
-      0.01 *this.values.deltaT / this.values.Nm); // 1/10th of a measure
-    
-    return [];
-  }
-
-  // save the current composition matrix
-  saveCompositionVersion(name: string, comment: string): void {
-    const now: Date = new Date();
-    this.compositionVersions[name] = {
-      comment: comment,
-      dateCreated: now,
-      dateUpdated: now,
-      Composition: this.values,
-    };
-  }
-
-  // update one of the saved composition matrices
-  updateCompositionVersion(
-    name: string,
-    comment: string,
-    object: Stochastic
-  ) {
-    const thisVersion: CompositionVersionEntry = {
-      ...this.compositionVersions[name],
-    };
-    thisVersion.comment = comment;
-    thisVersion.values = object.values;
-    thisVersion.dateUpdated = new Date();
-    this.compositionVersions[name] = thisVersion;
-  }
-
-  // delete one of the saved composition matrices
-  deleteCompositionVersion(name: string) {
-    this.compositionVersions[name].delete();
-  }
-
-  // list all of the composition matrices
-  listCompositionVersions(): CompositionVersionList[] {
-    return Array.from(this.compositionVersions, ([key, value]) => ({
-      name: key,
-      comment: value.comment,
-      dateCreated: value.dateCreated,
-      dateUpdated: value.dateUpdated,
-    })).sort((a, b) => (a.name < b.name ? -1 : 1));
-  }
-
-  activateCompositionVersion(name: string) {
-    this.values = this.compositionVersions[name];
+    this.values.voices = [];
   }
 
   override copy(parent: Track): Stochastic {
@@ -175,103 +53,453 @@ export default class Stochastic extends Silent {
     n.name = this.name;
     n.startTime = this.startTime;
     n.stopTime = this.stopTime;
-    n.values = {...this.values};
+    n.values = { ...this.values };
+    n.#deltaT = this.#deltaT;
+    n.#Ne = this.#Ne;
     return n;
   }
 
   override setAttribute(name: string, value: string): boolean {
-    if (super.setAttribute(name, value)) return true;
+    if (typeof value == "string") {
+      if (super.setAttribute(name, value)) return true;
+    }
+    const stringValue: string = value;
+    // handle muted first since the name contains a number
+    if (name.startsWith("muted")) {
+      const muteParts = name.split("-");
+      if (muteParts.length == 2) {
+        const muteNumber: number = parseInt(muteParts[1]);
+        this.values.muted[muteNumber] = stringValue == "true";
+        return true;
+      }
+    }
+
     switch (name) {
-      case "length":
-        this.values.length = parseFloat(value);
+      case "Tc":
+        this.values.Tc = parseFloat(stringValue);
+        if (this.values.Nt != 0) this.#deltaT = this.values.Tc / this.values.Nt;
         return true;
-      case "Nm":
-        this.values.Nm = parseFloat(value);
+      case "ensembleName":
+        this.values.ensembleName = stringValue;
         return true;
-      case "B":
-        this.values.B = parseFloat(value);
+      case "Nt":
+        this.values.Nt = parseFloat(stringValue);
+        if (this.values.Nt != 0) this.#deltaT = this.values.Tc / this.values.Nt;
         return true;
       case "lambda":
-        this.values.lambda = parseFloat(value);
+        this.values.lambda = parseFloat(stringValue);
         return true;
       case "delta":
-        this.values.delta = parseFloat(value);
+        this.values.delta = parseFloat(stringValue);
         return true;
-      case "pizzDuration":
-        this.values.pizzDuration = parseFloat(value);
+      case "seed":
+        this.values.seed = stringValue;
+        this.values.rN = new RandomNumber(stringValue);
         return true;
-      case "percDuration":
-        this.values.percDuration = parseFloat(value);
+      case "intensityOption":
+        this.values.intensityOption = stringValue;
         return true;
-      case "timbres":
-        this.values.timbres = value.split(",") as TIMBRE[];
+      case "intensityTransitionOption":
+        this.values.intensityTransitionOption = stringValue;
         return true;
+      case "panParameters.cycleTime":
+        this.values.panParameters.cycleTime = parseFloat(stringValue);
+        return true;
+      case "intensityParameters.cycleTime":
+        this.values.intensityParameters.cycleTime = parseFloat(stringValue);
+        return true;
+      case "panOption":
+        this.values.panOption = stringValue;
+        return true;
+      case "panAlgorithm":
+        this.values.panAlgorithm = stringValue;
+        return true;
+      case "composition": {
+        const valueStrings: string[] = stringValue.split(",");
+        let count: number = 0;
+        this.values.composition = [];
+        for (let i = 0; i < this.values.Nt; i++) {
+          this.values.composition.push(Array<number>(this.#Ne).fill(0));
+          for (let j = 0; j < this.#Ne; j++) {
+            this.values.composition[i][j] = parseInt(valueStrings[count]);
+            count++;
+          }
+        }
+        return true;
+      }
+      case "voices":
+        this.#Ne = parseInt(stringValue);
+        return true; // the Stochastic dialog has already set the value if the voices property
+      case "ensembleList":
+        return true; // the Stochastic dialog has already set the value of this property
+      default:
+        return false;
     }
-    return false;
   }
 
-  //TODO write all the values and the versions
-  override async appendXML(doc: XMLDocument, elem: Element): Promise<Element> {
-    return Promise.resolve(elem);
+  static override validate(
+    g: Stochastic,
+    fileContent?: CMGFile,
+    oldName?: string
+  ): string[] {
+    const e: string[] = [];
+    if (fileContent != undefined && oldName != undefined)
+      e.concat(Silent.validate(g, fileContent, oldName));
+    if (g.values.ensemble == null) e.push("Ensemble must be provided.");
+    if (g.values.Tc <= 0) e.push("Composition length must be positive.");
+    if (g.values.Nt <= 0) e.push("Time cell count must be positive.");
+    if (g.values.lambda <= 0) e.push("Event density must be positive.");
+    if (g.values.voices.length == 0) e.push("Ensemble has not been defined.");
+    if (
+      g.values.panOption != PANOPTION.none &&
+      g.values.panAlgorithm != PANALGORITHM.none &&
+      g.values.panParameters.cycleTime <= 0
+    )
+      e.push("Pan Cycle Time must be positive.");
+    if (
+      g.values.intensityOption != INTENSITYOPTION.none &&
+      g.values.intensityTransitionOption != INTENSITYTRANSITIONOPTION.none &&
+      g.values.intensityParameters.cycleTime <= 0
+    )
+      e.push("Intensity Cycle Time must be positive.");
+    if (g.values.composition.length == 0)
+      e.push("Composition has not yet been defined.");
+    return e;
   }
-  //TODO read all of the values and the versions
+
+  getNe(): number {
+    return this.#Ne;
+  }
+
+  getDeltaT(): number {
+    return this.#deltaT;
+  }
+
+  override async appendXML(doc: XMLDocument, elem: Element): Promise<Element> {
+    try {
+      const returnElem: Element = elem;
+      await super.appendXML(doc, returnElem);
+      if (this.values.ensemble) {
+        const ensembleElem: Element = doc.createElement("ensemble");
+        returnElem.appendChild(ensembleElem);
+        ensembleElem.setAttribute("name", this.values.ensemble.name);
+        ensembleElem.setAttribute(
+          "description",
+          this.values.ensemble.description
+        );
+        const voicesElem: Element = doc.createElement("voices");
+        ensembleElem.appendChild(voicesElem);
+        this.values.voices.forEach((voice: Voice, iVoice) => {
+          const voiceElem: Element = doc.createElement("voice");
+          voicesElem.appendChild(voiceElem);
+          voiceElem.setAttribute("name", voice.name);
+          voiceElem.setAttribute("presetName", voice.presetName);
+          voiceElem.setAttribute("description", voice.description);
+          voiceElem.setAttribute("duration", voice.duration.toString());
+          voiceElem.setAttribute("registerHi", voice.registerHi.toString());
+          voiceElem.setAttribute("registerLo", voice.registerLo.toString());
+          voiceElem.setAttribute("soundFontFile", voice.soundFontFile);
+          voiceElem.setAttribute("timbre", voice.timbre);
+          voiceElem.setAttribute(
+            "muted",
+            this.values.muted[iVoice] ? "true" : "false"
+          );
+        });
+      }
+
+      returnElem.setAttribute("Tc", this.values.Tc.toString());
+      returnElem.setAttribute("Nt", this.values.Nt.toString());
+      returnElem.setAttribute("lambda", this.values.lambda.toString());
+      returnElem.setAttribute("delta", this.values.delta.toString());
+      returnElem.setAttribute("seed", this.values.seed);
+
+      const intensityElem: Element = doc.createElement("intensity");
+      returnElem.appendChild(intensityElem);
+      intensityElem.setAttribute(
+        "intensityOption",
+        this.values.intensityOption
+      );
+      intensityElem.setAttribute(
+        "intensityTransitionOption",
+        this.values.intensityTransitionOption
+      );
+      intensityElem.setAttribute(
+        "cycleTime",
+        this.values.intensityParameters.cycleTime.toString()
+      );
+
+      const panElem: Element = doc.createElement("pan");
+      returnElem.appendChild(panElem);
+      panElem.setAttribute("panOption", this.values.panOption);
+      panElem.setAttribute("panAlgorithm", this.values.panAlgorithm);
+      panElem.setAttribute(
+        "cycleTime",
+        this.values.panParameters.cycleTime.toString()
+      );
+
+      // add the composition as a string in row/column order
+      let compositionString: string = "";
+      this.values.composition.forEach((row: number[]) => {
+        row.forEach((value: number) => {
+          compositionString += value.toString() + ",";
+        });
+      });
+      returnElem.setAttribute("composition", compositionString);
+
+      return Promise.resolve(returnElem);
+    } catch (e: any) {
+      return Promise.reject(e);
+    }
+  }
+
   static override async getXML(
     elem: Element,
     version: string,
     parent: Track
   ): Promise<Stochastic> {
     try {
-      const n: Stochastic = new Stochastic(0, parent);
-      return Promise.resolve(n);
+      const CMGgen: Silent = await Silent.getXML(elem, version, parent);
+      const g: Stochastic = new Stochastic(0, parent);
+      g.name = CMGgen.name;
+      g.startTime = CMGgen.startTime;
+      g.stopTime = CMGgen.stopTime;
+      g.mute = CMGgen.mute;
+      g.position = CMGgen.position;
+
+      const ensembleElement: Element | null = getElementElement(
+        elem,
+        "ensemble"
+      );
+      if (!ensembleElement)
+        throw new Error(`Stochastic getXML missing ensemble attribute`);
+      g.values.ensemble = { name: "", description: "", voices: "" };
+      g.values.ensemble.name = getAttributeValueWithDefault(
+        ensembleElement,
+        "name",
+        "string",
+        ""
+      ) as string;
+      g.values.ensembleName = g.values.ensemble.name;
+      g.values.ensemble.description = getAttributeValueWithDefault(
+        ensembleElement,
+        "description",
+        "string",
+        ""
+      ) as string;
+      g.values.voices = [];
+      const voicesElement: Element | null = getElementElement(
+        ensembleElement,
+        "voices"
+      );
+      if (!voicesElement) {
+        g.values.voices = [];
+      } else {
+        let voiceList: string[] = [];
+        g.values.muted = [];
+        const voicesChildren: HTMLCollection = voicesElement.children;
+        for (let child of voicesChildren) {
+          const name: string = getAttributeValueWithDefault(
+            child,
+            "name",
+            "string",
+            ""
+          ) as string;
+          voiceList.push(name);
+          const description: string = getAttributeValueWithDefault(
+            child,
+            "description",
+            "string",
+            ""
+          ) as string;
+          const soundFontFile: string = getAttributeValueWithDefault(
+            child,
+            "soundFontFile",
+            "string",
+            ""
+          ) as string;
+          const presetName: string = getAttributeValueWithDefault(
+            child,
+            "presetName",
+            "string",
+            ""
+          ) as string;
+          const timbre: TIMBRETYPE = getAttributeValueWithDefault(
+            child,
+            "timbre",
+            "string",
+            ""
+          ) as TIMBRETYPE;
+          const registerLo: number = getAttributeValueWithDefault(
+            child,
+            "registerLo",
+            "float",
+            ""
+          ) as number;
+          const registerHi: number = getAttributeValueWithDefault(
+            child,
+            "registerHi",
+            "float",
+            ""
+          ) as number;
+          const duration: number = getAttributeValueWithDefault(
+            child,
+            "duration",
+            "float",
+            ""
+          ) as number;
+          const muted: boolean = getAttributeValueWithDefault(
+            child,
+            "muted",
+            "boolean",
+            ""
+          ) as boolean;
+          g.values.voices.push({
+            name,
+            description,
+            soundFontFile,
+            presetName,
+            preset: undefined,
+            timbre,
+            registerLo,
+            registerHi,
+            duration,
+          });
+          g.values.muted.push(muted);
+
+          // notify file handler that some soundfonts need to be loaded
+          // and preset set for this voice
+          const foundSoundFont: SoundFontGeneratorsType | undefined =
+            SoundFontGenerators.get(soundFontFile);
+          if (foundSoundFont == undefined) {
+            SoundFontGenerators.set(soundFontFile, {
+              type: GENERATORTYPE.Stochastic,
+              users: [{generator:g, voiceNumber: g.values.voices.length - 1}],
+            });
+          } else {
+            foundSoundFont.users.push({generator:g, voiceNumber: g.values.voices.length - 1});
+          }
+        }
+        g.values.ensemble.voices = voiceList.join(",");
+        g.values.Tc = getAttributeValueWithDefault(
+          elem,
+          "Tc",
+          "float",
+          0
+        ) as number;
+        g.values.Nt = getAttributeValueWithDefault(
+          elem,
+          "Nt",
+          "float",
+          0
+        ) as number;
+        g.values.lambda = getAttributeValueWithDefault(
+          elem,
+          "lambda",
+          "float",
+          0
+        ) as number;
+        g.values.delta = getAttributeValueWithDefault(
+          elem,
+          "delta",
+          "float",
+          0
+        ) as number;
+        g.values.seed = getAttributeValueWithDefault(
+          elem,
+          "seed",
+          "string",
+          0
+        ) as string;
+        const intensityElem: Element | null = getElementElement(
+          elem,
+          "intensity"
+        );
+        if (!intensityElem) {
+          g.values.intensityOption = INTENSITYOPTION.none;
+          g.values.intensityTransitionOption = INTENSITYTRANSITIONOPTION.none;
+          g.values.intensityParameters.cycleTime = 0;
+        } else {
+          g.values.intensityOption = getAttributeValueWithDefault(
+            intensityElem,
+            "intensityOption",
+            "string",
+            INTENSITYOPTION.none
+          ) as string;
+          g.values.intensityTransitionOption = getAttributeValueWithDefault(
+            intensityElem,
+            "intensityTransitionOption",
+            "string",
+            INTENSITYTRANSITIONOPTION.none
+          ) as string;
+          g.values.intensityParameters.cycleTime = getAttributeValueWithDefault(
+            intensityElem,
+            "cycleTime",
+            "float",
+            0
+          ) as number;
+        }
+        const panElem: Element | null = getElementElement(elem, "pan");
+        if (!panElem) {
+          g.values.panOption = PANOPTION.none;
+          g.values.panAlgorithm = PANALGORITHM.none;
+          g.values.panParameters.cycleTime = 0;
+        } else {
+          g.values.panOption = getAttributeValueWithDefault(
+            panElem,
+            "panOption",
+            "string",
+            PANOPTION.none
+          ) as string;
+          g.values.panAlgorithm = getAttributeValueWithDefault(
+            panElem,
+            "panAlgorithm",
+            "string",
+            PANALGORITHM.none
+          ) as string;
+          g.values.panParameters.cycleTime = getAttributeValueWithDefault(
+            panElem,
+            "cycleTime",
+            "float",
+            0
+          ) as number;
+        }
+        g.values.composition = [];
+        const compositionString: string = getAttributeValueWithDefault(
+          elem,
+          "composition",
+          "string",
+          ""
+        ) as string;
+        if (compositionString != "") {
+          const nVoices: number = g.values.voices.length;
+          const Nt: number = g.values.Nt;
+          const compositionList: string[] = compositionString.split(",");
+          g.values.composition = [];
+          if (compositionList.length < Nt * nVoices) {
+            alert(
+              `loaded composition is ill formed. Length is ${
+                compositionList.length
+              } and should be ${Nt * nVoices}. Composition reset.`
+            );
+          } else {
+            let counter: number = 0;
+            for (let i = 0; i < Nt; i++) {
+              g.values.composition.push(Array<number>(nVoices).fill(0));
+              for (let j = 0; j < nVoices; j++) {
+                g.values.composition[i][j] = parseInt(compositionList[counter]);
+                counter++;
+              }
+            }
+          }
+        }
+        // set the private properties
+        g.#Ne = g.values.voices.length;
+        if (g.values.Nt != 0) g.#deltaT = g.values.Tc / g.values.Nt;
+      }
+
+      return Promise.resolve(g);
     } catch (e) {
       return Promise.reject(e);
     }
   }
-
-  static override validate(
-    g: Stochastic,
-    _fileContents: CMGFile | null,
-    _oldName: string
-  ): string[] {
-    const e: string[] = [];
-    if (g.values.length <= 0) e.push("Composition length must be positive");
-    if (g.values.B <= 0) e.push("Measurement speed must be positive.");
-    if (g.values.Nm <= 0) e.push("Measure count must be positive.");
-    if (g.values.lambda <= 0) e.push("Event density must be positive.");
-    if (g.values.delta <= 0) e.push("Sound density must be positive");
-    if (g.values.timbres.length == 0) e.push("At least one timbre must be specified.");
-    return [];
-  }
 }
-// lowIntensity: number = 0; // (phons >= 0)
-// highIntensity: number = 100; // (phons <= 120)
-// Ni: number = 10;
-// phons: number[] = [0, 100, 200, 300, 400, 500, 600, 700, 800, 900]; // low value of phon cell
-
-// lowPitch: number = 20; // (Hz) (>= 20)
-// highPitch: number = 15000; // (Hz) (<= 22,000)
-// Nf: number = 10; // number of frequency cells (highPitch - lowPitch)
-// pitches: number[] = []; // low value of frequency cell (cells sizes distributed logrithmic)
-
-// lowDuration: number = 0.05; // (sec > 20-50 ms)
-// highDuration: number = 3.05; // (sec < deltaT)
-// Nd: number = 3;
-// durations: number[] = [0.05, 1.05, 2.05]; // low value of duration cell
-
-// lowPan: number = -90; // deg >= -90
-// highPan: number = +90; // deg <= 90
-// Np: number = 9; // number of pan cells
-// pans: number[] = [-90, -70, -50, -30, -10, +10, +30, +50, +70];
-
-// Nc: number = 6 * 10 * 10 * 3 * 9; // Nt * ni * nf * nd * np = 16,200
-
-// lambda: number = 0.6; // sound event mean density (events/deltaT);
-// Ne: number[] = []; // cell counts (Possion distribution)
-// cellDistribution:[][][][][][] = []; // cell distribution versions.
-// // dimensions are
-// // 1. time
-// // 2. pitch
-// // 3. intensity
-// // 4. duration
-// // 5. pan
-// // 6. version

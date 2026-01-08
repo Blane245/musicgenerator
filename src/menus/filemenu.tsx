@@ -340,17 +340,16 @@ export default function FileMenu() {
           className="modal-content"
         >
           <div className="modal-header">
-            <span className="close">&times;</span>
             {open == "new" || open == "open" ? (
               <h2>Confirm {open} file</h2>
             ) : null}
             {open == "exit" ? <h2>Confirm exit</h2> : null}
           </div>
           <div className="modal-body">
-            <p>
+            <h3>
               The current file has not been saved. Do you wish to delete its
               contents without saving?
-            </p>
+            </h3>
           </div>
           <div className="modal-footer">
             <button id={"file-delete:" + fileContents.name} onClick={handleOK}>
@@ -363,13 +362,12 @@ export default function FileMenu() {
       {fileExists ? (
         <div className="modal-content">
           <div className="modal-header">
-            <span className="close">&times;</span>
             <h2>Confirm file overwrite</h2>
           </div>
           <div className="modal-body">
-            <p>
+            <h3>
               {`File ${fileName} already exists. Do you wish to overwrite it`}
-            </p>
+            </h3>
           </div>
           <div className="modal-footer">
             <button

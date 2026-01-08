@@ -110,6 +110,8 @@ export default function ReadyPlay(props: ReadyPlayProps): {
         AudioFileGenerators.push(generator as AudioFile);
       } else if (generator.type == GENERATORTYPE.Silent) {
         SilentGenerators.push(generator as Silent);
+      } else if (generator.type == GENERATORTYPE.Stochastic) {
+        StochasticGenerators.push(generator as Stochastic);
       }
     }
   }
@@ -117,6 +119,7 @@ export default function ReadyPlay(props: ReadyPlayProps): {
     AlgorithmicGenerators.length == 0 &&
     AudioFileGenerators.length == 0 &&
     SilentGenerators.length == 0 &&
+    StochasticGenerators.length == 0 &&
     error == ""
   ) {
     error = "No generators are available to produce any sound";

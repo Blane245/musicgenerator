@@ -1,6 +1,6 @@
 import RandomNumber from "classes/randomnumber";
 import { ALGORITHMTYPE, WienerType } from "types";
-import { gaussianRandom } from "utils/gaussianrandom";
+import { gaussianRandom } from "utils/probability/gaussianrandom";
 import { getAttributeValueWithDefault } from "utils/xmlfunctions";
 import { AlgorithmValues } from "./algorithmvalues";
 

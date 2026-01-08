@@ -9,54 +9,107 @@ html {
 body {
   margin: 0;
 }
+hr {
+  height: 2px;
+  border-width: 0;
+  color: gray;
+  background-color: gray;
+}
+table,
+th,
+td {
+  border: 1px solid black;
+}
+label {
+  padding: 5px;
+	font-size: var(--small-font-size);
+}
+input {
+	font-size: var(--small-font-size);
+}
+textarea {
+	font-size: var(--small-font-size);
+}
+div {
+	font-size: var(--small-font-size);
+}
+h1 {
+	font-size: var(--large-font-size);
+}
+p {
+	font-size: var(--small-font-size);
+	margin: 0;
+}
+a {
+	font-weight: 500;
+	background-color: var(--submit-background-color);
+	color: var(--submit-text-color);
+	text-decoration: inherit;
+	margin: 5px;
+}
+a:hover {
+	color: #535bf2;
+}
+
 #root {
   max-width: 2800px;
   margin: 0;
-  padding: 0;
   text-align: left;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.waiting * {
-  cursor: wait;
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+	padding: 2rem;
+	text-align: center;
+	--layout-background-color: lightgray;
+	--header-background-color: white;
+	--header-text-color: black;
+	--menu-background-color: green;
+	--menu-text-color: white;
+	--body--background-color: white;
+	--body-text-color: black;
+	--edit-background-color: white;
+	--edit-header-background-color: green;
+	--edit-body-background-color: white;
+	--edit-footer-background-color: white;
+	--edit-header-text-color: white;
+	--edit-body-text-color: black;
+	--edit-footer-text-color: black;
+	--footer-background-color: white;
+	--footer-text-color: black;
+	--add-background-color: green;
+	--add-text-color: white;
+	--modify-background-color: blue;
+	--modify-text-color: black;
+	--delete-background-color: red;
+	--delete-text-color: white;
+	--rename-background-color: rgb(0, 255, 85);
+	--rename-text-color: black;
+	--duplicate-background-color: rgb(0, 255, 85);
+	--dupicate-text-color: black;
+	--list-background-color: yellow;
+	--list-text-color: black;
+	--inactive-background-color: rgb(122, 122, 122);
+	--inactive-text-color: black;
+	--large-font-size: 24pt;
+	--small-font-size: 12pt;
+	--error-background-color: red;
+	--info-background-color: white;
+	--error-text-color: white;
+	--info-info-color: black;
+	--yes-background-color: green;
+	--yes-text-color: white;
+	--no-background-color: red;
+	--no-text-color: white;
+	--submit-background-color: green;
+	--submit-text-color: white;
+	--ok-background-color: green;
+	--ok-text-color: white;
+	--cancel-background-color: red;
+	--cancel-text-color: white;
+	--modal-background-color: white;
+	--modal-header-background-color: rgb(49, 175, 49);
+	--modal-header-color: white;
+	--modal-body-background-color: white;
+	--modal-body-color: black;
+	--modal-footer-background-color: rgb(49, 175, 49);
+	--modal-footer-color: white;
 }
 
 .navbar {
@@ -144,73 +197,6 @@ body {
   background-color: #ddd;
 }
 
-ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  background: #1bc2a2;
-}
-
-ul li {
-  display: block;
-  position: relative;
-  float: left;
-  background: #1bc2a2;
-}
-
-li ul {
-  display: none;
-}
-
-ul li a {
-  display: block;
-  padding: 1em;
-  text-decoration: none;
-  white-space: nowrap;
-  color: #fff;
-}
-
-ul li a:hover {
-  background: #2c3e50;
-}
-
-li:hover > ul {
-  display: block;
-  position: absolute;
-}
-
-li:hover li {
-  float: none;
-}
-
-li:hover a {
-  background: #1bc2a2;
-}
-
-li:hover li a:hover {
-  background: #2c3e50;
-}
-
-.main-navigation li ul li {
-  border-top: 0;
-}
-
-ul ul ul {
-  left: 100%;
-  top: 0;
-}
-
-ul:before,
-ul:after {
-  content: " ";
-  /* 1 */
-  display: table;
-  /* 2 */
-}
-
-ul:after {
-  clear: both;
-}
 .page {
   padding: 0;
   margin: 0;
@@ -545,16 +531,6 @@ ul:after {
     }
   }
 }
-.body-control {
-  grid-area: body-control;
-  border: 1px black solid;
-  margin: 0px;
-}
-.body-display {
-  grid-area: body-display;
-  border: 1px black solid;
-  margin: 0;
-}
 
 .track-button {
   padding: 1px;
@@ -573,29 +549,6 @@ ul:after {
   cursor: inherit;
 }
 
-.modal-header {
-  padding: 2px 16px;
-  background-color: #5cb85c;
-  text-align: left;
-  color: white;
-  cursor: inherit;
-}
-
-/* Modal Body */
-.modal-body {
-  padding: 2px 16px;
-  cursor: inherit;
-  text-align: left;
-}
-
-/* Modal Footer */
-.modal-footer {
-  padding: 2px 16px;
-  background-color: #5cb85c;
-  color: white;
-  cursor: inherit;
-}
-
 /* Modal Content */
 .modal-content {
   position: absolute;
@@ -610,8 +563,37 @@ ul:after {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   animation-name: animatetop;
   animation-duration: 0.4s;
-  cursor: inherit;
+  grid-template-rows: auto auto auto;
+  grid-template-areas: 'header' 'body' 'footer';
+  .modal-header {
+    grid-area: header;
+    padding: 2px 16px;
+    display: block;
+    background-color: #5cb85c;
+    text-align: left;
+    color: white;
+  }
+
+  /* Modal Body */
+  .modal-body {
+    grid-area: body;
+    padding: 2px 16px;
+    text-align: left;
+    display: block;
+    background-color: white;
+    color: black;
+  }
+
+  /* Modal Footer */
+  .modal-footer {
+    grid-area: footer;
+    display:block;
+    padding: 2px 16px;
+    background-color: #5cb85c;
+    color: white;
+  }
 }
+
 .generator-selected {
   fill: rgba(255, 169, 203, 0.418);
 }
@@ -621,41 +603,46 @@ ul:after {
 }
 
 .generator-content {
-  position: fixed;
   z-index: 2;
-  top: 5%;
-  left: 5%;
+  top: 0;
+  left: 0;
+  position:fixed;
   background-color: #fefefe;
   margin: auto;
   padding: 0;
   border: 1px solid #888;
-  width: 90%;
+  width: 100%;
+  height: 100%;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   animation-name: animateleft;
   animation-duration: 0.4s;
   cursor: inherit;
-  display: grid;
-  grid-template-rows: 20px 1fr auto;
-  grid-template-areas: "header" "body" "footer";
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
   .header {
-    grid-area: header;
+    flex-shrink: 0;
     background-color: #5c75b8;
     color: white;
   }
   .body {
-    grid-area: body;
+    flex-grow: 1;
     background-color: white;
+    overflow: auto;
     color: black;
   }
   .footer {
-    grid-area: footer;
     background-color: #5c75b8;
+    color: white;
+    flex-shrink: 0;
   }
 }
+
 .id {
   padding: 5px;
 }
-.algorithmic-preamble {
+
+/* .algorithmic-preamble {
   display: grid;
   grid-area: body;
   grid-template-columns: 1fr 1fr;
@@ -698,7 +685,7 @@ ul:after {
     grid-area: table;
     padding: 5px;
   }
-}
+} */
 
 .algorithmic-table {
   display: grid;
@@ -951,27 +938,11 @@ ul:after {
     }
   }
 }
-.stochastic-preamble {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-areas: 'ensemble lambda delta' 'length speed count';
-  .ensemble {grid-area: ensemble}
-  .lambda {grid-area: lambda;}
-  .delta {grid-area: delta;}
-  .length {grid-area: length;}
-  .speed {grid-area: speed;}
-  .count {grid-area: count;}
-}
-.stochastic-ensemble {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  grid-template-areas: 'name frequency duration other';
-  .name { grid-area: name;}
-  .frequency { grid-area: frequency;}
-  .duration { grid-area: duration;}
-  .other { grid-area: other;}
 
+.stochastic-preamble {
+  display: block;
 }
+
 .control-content {
   position: fixed;
   z-index: 2;
@@ -989,19 +960,20 @@ ul:after {
   display: grid;
   grid-template-rows: 20px 1fr auto;
   grid-template-areas: "header" "body" "footer";
-  .control-header {
+  .header {
     grid-area: header;
     background-color: #5c75b8;
     color: white;
   }
-  .control-body {
+  .body {
     grid-area: body;
     background-color: white;
     color: black;
   }
-  .control-footer {
+  .footer {
     grid-area: footer;
     background-color: #5c75b8;
+    color: white;
   }
 }
 .control-button {
@@ -1009,22 +981,80 @@ ul:after {
   width: 30px;
   height: 30px;
   border: none;
-  fill:none;
+  fill: none;
 }
-hr {
-  height: 2px;
-  border-width: 0;
-  color: gray;
-  background-color: gray;
+.addbutton {
+	background-color: var(--add-background-color);
+	color: var(--add-text-color);
+	font-size: var(--large-font-size);
 }
-label {
-  padding: 5px;
+.editbutton {
+	background-color: var(--modify-background-color);
+	color: var(--modify-text-color);
+	background-color: lightgreen;
+	font-size: var(--large-font-size);
 }
-table,
-th,
-td {
-  border: 1px solid black;
+.deletebutton {
+	background-color: var(--delete-background-color);
+	color: var(--delete-text-color);
+	font-size: var(--large-font-size);
 }
+.renamebutton {
+	background-color: var(--rename-background-color);
+	color: var(--delete-rename-color);
+	font-size: var(--large-font-size);
+}
+.duplicatebutton {
+	background-color: var(--duplicate-background-color);
+	color: var(--delete-duplicate-color);
+	font-size: var(--large-font-size);
+}
+.listbutton {
+	background-color: var(--list-background-color);
+	color: var(--list-text-color);
+	font-size: var(--large-font-size);
+}
+.inactivebutton {
+	background-color: var(--inactive-background-color);
+	color: var(--inactive-text-color);
+	font-size: var(--large-font-size);
+}
+.yesbutton {
+	background-color: var(--yes-background-color);
+	color: var(--yes-text-color);
+	font-size: var(--large-font-size);
+}
+.nobutton {
+	background-color: var(--no-background-color);
+	color: var(--no-text-color);
+	font-size: var(--large-font-size);
+}
+.okbutton {
+	background-color: var(--ok-background-color);
+	color: var(--ok-text-color);
+	font-size: var(--small-font-size);
+}
+.submitbutton {
+	background-color: var(--submit-background-color);
+	color: var(--submit-text-color);
+	font-size: var(--small-font-size);
+}
+.cancelbutton {
+	background-color: var(--cancel-background-color);
+	color: var(--cancel-text-color);
+	font-size: var(--small-font-size);
+}
+.errormessage {
+	background-color: var(--error-background-color);
+	color: var(--error-text-color);
+	font-size: var(--small-font-size);
+}
+.infomessage {
+	background-color: var(--info-background-color);
+	color: var(--info-text-color);
+	font-size: var(--small-font-size);
+}
+
 .track-control {
   display: grid;
   grid-template-columns: auto auto auto;
@@ -1051,58 +1081,6 @@ td {
   background: rgba(219, 215, 208, 1);
   cursor: inherit;
   overflow: visible;
-}
-
-.cursor-default {
-  cursor: default;
-}
-
-.cursor-all-scroll {
-  cursor: all-scroll;
-}
-
-.cursor-ew-resize {
-  cursor: ew-resize;
-}
-
-.cursor-ns-resize {
-  cursor: ns-resize;
-}
-
-.cursor-context-menu {
-  cursor: context-menu;
-}
-
-.cursor-col-resize {
-  cursor: col-resize;
-}
-
-.cursor-context-menu {
-  cursor: context-menu;
-}
-
-.progress-container {
-  height: 20;
-  width: 100%;
-  background-color: #e0e0de;
-  border-radius: 50;
-  margin: 50;
-  cursor: inherit;
-}
-
-.progress-filler {
-  height: 100%;
-  background-color: #00695c;
-  border-radius: inherit;
-  text-align: right;
-  cursor: inherit;
-}
-
-.progress-labels {
-  padding: 5;
-  color: white;
-  font-weight: bold;
-  cursor: inherit;
 }
 
 .intervalbox {
@@ -1135,16 +1113,19 @@ td {
     "drawing"
     "footer";
   gap: 0px;
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
   background-color: lightblue;
-  .header {
+  .preview-header {
     grid-area: header;
     display: grid;
-    grid-template-columns: 50px 250px 1fr 150px 150px;
-    grid-template-rows: 40px;
-    grid-template-areas: "icon buttons title left right";
+    grid-template-columns: 30px 110px 1fr 140px;
+    grid-template-rows: 30px;
+    grid-template-areas: "icon buttons title .";
     .icon {
       grid-area: icon;
+      padding-left: 2px;
     }
     .buttons {
       grid-area: buttons;
@@ -1152,12 +1133,6 @@ td {
     .title {
       grid-area: title;
       text-align: center;
-    }
-    .left {
-      grid-area: left;
-    }
-    .right {
-      grid-area: right;
     }
   }
   .timeline {
@@ -1168,7 +1143,7 @@ td {
     grid-area: drawing;
     background-color: white;
   }
-  .footer {
+  .preview-footer {
     position: fixed;
     top: auto;
     background-color: lightskyblue;
@@ -1461,12 +1436,17 @@ td {
   top: 100px;
   left: 100px;
   width: 75%;
-  grid-template-rows: 70px 320px 100px;
+  grid-template-rows: 70px 320px 125px;
   grid-template-areas: "header" "body" "footer";
-  .filedialogheader {
+  z-index: 99;
+  .header {
     display: grid;
+    top: 0;
+    left: 0;
+    width:100%;
     background-color: lightskyblue;
     grid-area: header;
+    grid-template-columns: 1fr;
     grid-template-rows: 35px 35px;
     grid-template-areas:
       "titlerow"
@@ -1505,9 +1485,14 @@ td {
       }
     }
   }
-  .filedialogbody {
+  .body {
     grid-area: body;
     display: grid;
+    position: absolute;
+    top: 0px;
+    left: 0;
+    width: 100%;
+    grid-template-columns: 1fr;
     grid-template-rows: 320px;
     grid-template-areas: "searchtable";
     background-color: white;
@@ -1516,7 +1501,7 @@ td {
       grid-area: searchtable;
       display: grid;
       grid-template-areas: "filesystemlist directorylist";
-      grid-template-columns: 1fr 2fr;
+      grid-template-columns: 1fr 1fr;
       .filesystemlist {
         resize: horizontal;
         display: block;
@@ -1538,7 +1523,7 @@ td {
       }
     }
   }
-  .filedialogfooter {
+  .footer {
     background-color: lightgray;
     position: fixed;
     top: auto;
@@ -1546,13 +1531,15 @@ td {
     width: inherit;
     grid-area: footer;
     display: grid;
-    grid-template-rows: 50px 50px;
+    grid-template-columns: 1fr;;
+    grid-template-rows: 50px 75px;
     grid-template-areas: "filerow" "status";
     .filerow {
       display: grid;
       grid-template-areas: "filename" "filetypes";
       grid-template-rows: 1fr 1fr;
       grid-area: filerow;
+      margin-top: 2px;;
       .filename {
         grid-area: filename;
         display: block;

@@ -16,11 +16,14 @@ import CMGFile from "./classes/cmgfile";
 import TimeLine from "./classes/timeline";
 import {
   EditGenerator,
+  EnsembleType,
   GeneratorType,
   MouseLocation,
   PLAYMODE,
   RawSourceData,
-  TimelineInterval
+  TimelineInterval,
+  Voice,
+  Voices
 } from "./types";
 import { Control } from "classes/control";
 
@@ -68,6 +71,8 @@ interface CMGContextType {
   setRecentRecordDirectory: Dispatch<SetStateAction<string>>;
   SFFileList: string[];
   setSFFileList: Dispatch<SetStateAction<string[]>>;
+  ensembleList: EnsembleType[];
+  setEnsembleList: Dispatch<SetStateAction<EnsembleType[]>>;
   fileName: string;
   setFileName: Dispatch<SetStateAction<string>>;
   fileContents: CMGFile;
@@ -135,11 +140,13 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
 
   // items stored in local storage
   const [SFLocalDirectory, setSFLocalDirectory] = useState<string>("");
+  const [ensembleList, setEnsembleList] = useState<EnsembleType[]>([]);
   const [recordFormat, setRecordFormat] = useState<string>("mp3");
   const [recentFiles, setRecentFiles] = useState<string[]>([]);
   const [recentCMGDirectory, setRecentCMGDirectory] = useState<string>("");
   const [recentRecordDirectory, setRecentRecordDirectory] = useState<string>("");
   const [SFFileList, setSFFileList] = useState<string[]>([]);
+  
 
   // items used to define the UI and mode of operation
   const [fileContents, setFileContents] = useState<CMGFile>(new CMGFile());
@@ -216,6 +223,8 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     setRecentRecordDirectory,
     SFFileList,
     setSFFileList,
+    ensembleList,
+    setEnsembleList,
     fileName,
     setFileName,
     fileContents,

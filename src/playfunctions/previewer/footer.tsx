@@ -43,7 +43,7 @@ export default function Footer(props: FooterProps): JSX.Element {
   const volumeOffset: number = spectrumHeight;
   return (
     <div
-      className="footer"
+      className="preview-footer"
       style={{ width: displayWidth, height: footerHeight }}
     >
       <div className="status">

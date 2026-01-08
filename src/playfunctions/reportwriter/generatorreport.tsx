@@ -1,14 +1,20 @@
 import SequenceValues from "classes/algorithms/sequencevalues";
-import  AutoregressiveValues from "classes/algorithms/autoregressivevalues";
+import AutoregressiveValues from "classes/algorithms/autoregressivevalues";
 import ConstantValues from "classes/algorithms/constantvalues";
 import MarkovianValues from "classes/algorithms/markovianvalues";
-import  OscillatorValues from "classes/algorithms/oscillatorvalues"
-import   WienerValues from "classes/algorithms/wienervalues";
+import OscillatorValues from "classes/algorithms/oscillatorvalues";
+import WienerValues from "classes/algorithms/wienervalues";
 import CMGFile from "classes/cmgfile";
 import Algorithmic from "classes/generators/algorithmic";
 import AudioFile from "classes/generators/audiofile";
-import { ALGORITHMTYPE, GENERATORTYPE, GeneratorType } from "types";
+import {
+  ALGORITHMTYPE,
+  GENERATORTYPE,
+  GeneratorType,
+  StochasticValues,
+} from "types";
 import SourceReport from "./sourcereport";
+import Stochastic from "classes/generators/stochastic";
 
 export interface GeneratorReportProps {
   generator: GeneratorType;
@@ -46,20 +52,134 @@ export default function GeneratorReport(
           <td>{generator.stopTime}</td>
         </tbody>
       </table>
-      {generator.type == GENERATORTYPE.Algorithmic ? (
+      {!!(generator.type == GENERATORTYPE.Algorithmic) && (
         <AlgorithmicReport generator={generator as Algorithmic} />
-      ) : null}
-      {generator.type == GENERATORTYPE.AudioFile ? (
+      )}
+      {!!(generator.type == GENERATORTYPE.AudioFile) && (
         <AudioFileReport generator={generator as AudioFile} />
-      ) : null}
+      )}
+      {!!(generator.type == GENERATORTYPE.AudioFile) && (
+        <AudioFileReport generator={generator as AudioFile} />
+      )}
+      {!!(generator.type == GENERATORTYPE.Stochastic) && (
+        <StochasticReport generator={generator as Stochastic} />
+      )}
       <SourceReport generator={generator} fileContents={fileContents} />
+    </>
+  );
+}
+interface StochasticReportProps {
+  generator: Stochastic;
+}
+function StochasticReport(props: StochasticReportProps): JSX.Element {
+  const { generator: g } = props;
+  const v: StochasticValues = g.values;
+  const deltaT: number = v.Tc / v.Nt;
+  return (
+    <>
+      <table>
+        <thead>
+          <tr>
+            <th colSpan={5}>Composition Parameters</th>
+            <th colSpan={3}>Dynamic Parameters</th>
+          </tr>
+          <tr>
+            <th>Ensemble</th>
+            <th>Length(sec)</th>
+            <th>Time Cells</th>
+            <th>Events/Cell</th>
+            <th>Random Seed</th>
+            <th>Sound/sec</th>
+            <th>Pan Controls</th>
+            <th>Intensity Controls</th>
+          </tr>
+        </thead>
+        <tbody>
+          <td>
+            {!!v.ensemble && `${v.ensemble.name}:${v.ensemble.description}`}
+          </td>
+          <td>{v.Tc}</td>
+          <td>{v.Nt}</td>
+          <td>{v.lambda}</td>
+          <td>{v.delta}</td>
+          <td>
+            {`Scope: ${v.panOption} Method: ${v.panAlgorithm} Cycle Time (sec) 
+            ${v.panParameters.cycleTime}`}
+          </td>
+          <td>
+            {`Scope: ${v.intensityOption} Method: ${v.intensityTransitionOption}{" "}
+            Cycle Time (sec) ${v.intensityParameters.cycleTime}`}
+          </td>
+        </tbody>
+      </table>
+      <table>
+        <thead>
+          <tr>
+            <th colSpan={8}>Voices</th>
+          </tr>
+          <tr>
+            <th>Muted</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Timbre</th>
+            <th>Register (lo,hi) (midi)</th>
+            <th>Duration (sec)</th>
+            <th>SoundFont</th>
+            <th>Preset</th>
+          </tr>
+        </thead>
+        <tbody>
+          {v.voices.map((voice, i) => (
+            <tr>
+              <td>{v.muted[i] ? "Yes" : "No"}</td>
+              <td>{voice.name}</td>
+              <td>{voice.description}</td>
+              <td>{voice.timbre}</td>
+              <td>{`(${voice.registerLo},${voice.registerHi})`}</td>
+              <td>{voice.duration}</td>
+              <td>{voice.soundFontFile}</td>
+              <td>{voice.presetName}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <table>
+        <thead>
+          <tr>
+            <th colSpan={v.voices.length + 2}>Composition</th>
+          </tr>
+          <tr>
+            <th>Time (sec)</th>
+            {v.voices.map((voice) => (
+              <th>{voice.name}</th>
+            ))}
+            <th>Sum</th>
+          </tr>
+        </thead>
+        <tbody>
+          {v.composition.map((row, i) => (
+            <tr>
+              <td>{deltaT * i}</td>
+              {row.map((v) => (
+                <td>{v}</td>
+              ))}
+              <td>
+                {row
+                  .reduce(function (x, y) {
+                    return x + y;
+                  }, 0)
+                  .toFixed(0)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </>
   );
 }
 interface AlgorithmicReportProps {
   generator: Algorithmic;
 }
-
 function AlgorithmicReport(props: AlgorithmicReportProps): JSX.Element {
   const { generator: g } = props;
   return (

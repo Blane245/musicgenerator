@@ -30,18 +30,22 @@ import { presetNameToPreset } from "../sfcomponents/util";
 import { SoundFont2 } from "../soundfont2";
 import {
   FSResponse,
+  GENERATORTYPE,
   SFPromiseType,
   SoundFontGenerators,
   SoundFontGeneratorsType,
+  Voice,
 } from "../types";
 import { getDocElement, getElementElement } from "../utils/xmlfunctions";
+import Algorithmic from "classes/generators/algorithmic";
+import Stochastic from "classes/generators/stochastic";
 
 //
 export async function writeCMGFile(
   fileName: string,
   overWrite: boolean,
   fileContents: CMGFile,
-  timeLine: TimeLine | null,
+  timeLine: TimeLine | null
 ): Promise<string | undefined> {
   // create the XML document and file element
   const doc: XMLDocument = document.implementation.createDocument("", "", null);
@@ -59,7 +63,6 @@ export async function writeCMGFile(
 
   // wait for all of the track promises to resolve, if there are any
   try {
-
     // add the timeline
     if (timeLine) {
       const timeLineElem: Element = doc.createElement("timeLine");
@@ -103,7 +106,7 @@ export async function writeCMGFile(
 export async function readCMGFile(
   fileName: string,
   width: number,
-  height: number,
+  height: number
 ): Promise<{ fileContents: CMGFile | null; timeLine: TimeLine | null }> {
   try {
     const uri: string = `/file/read?name=${fileName}`;
@@ -156,11 +159,9 @@ export async function readCMGFile(
       // retrieve all of the soundfont files that are needed by the composition
 
       const soundFontPromises: Promise<SFPromiseType>[] = [];
-      SoundFontGenerators.forEach(async (sff) => {
+      Array.from(SoundFontGenerators.keys()).forEach(async (name) => {
         try {
-          const soundFontPromise: Promise<SFPromiseType> = SFPool(
-            sff.name
-          );
+          const soundFontPromise: Promise<SFPromiseType> = SFPool(name);
           soundFontPromises.push(soundFontPromise);
         } catch (e: any) {
           throw new Error(e);
@@ -175,18 +176,36 @@ export async function readCMGFile(
 
       data.forEach((d) => {
         const thisOne: SoundFontGeneratorsType | undefined =
-          SoundFontGenerators.find((sff) => sff.name == d.name);
+          SoundFontGenerators.get(d.name);
         if (thisOne != undefined) {
-          thisOne.generators.forEach((g) => {
-            g.soundFont = d.soundFont;
-            g.presets = (d.soundFont.presets as Preset[]).sort((a, b) => {
-              if (a.header.bank < b.header.bank) return -1;
-              if (a.header.bank > b.header.bank) return 1;
-              return a.header.preset - b.header.preset;
+          if (thisOne.type == GENERATORTYPE.Algorithmic) {
+            thisOne.users.forEach((user) => {
+              const g: Algorithmic = user.generator as Algorithmic;
+              g.soundFont = d.soundFont;
+              g.presets = (
+                d.soundFont.presets as Preset[]
+              ).sort((a, b) => {
+                if (a.header.bank < b.header.bank) return -1;
+                if (a.header.bank > b.header.bank) return 1;
+                return a.header.preset - b.header.preset;
+              });
+              const { preset } = presetNameToPreset(
+                (g as Algorithmic).presetName,
+                (g as Algorithmic).presets
+              );
+              (g as Algorithmic).preset = preset;
             });
-            const { preset } = presetNameToPreset(g.presetName, g.presets);
-            g.preset = preset;
-          });
+          } else if (thisOne.type == GENERATORTYPE.Stochastic) {
+            thisOne.users.forEach((user) => {
+              const g: Stochastic = user.generator as Stochastic;
+              const voice: Voice = g.values.voices[user.voiceNumber];
+              voice.soundFontFile = d.name;
+              const soundFont: SoundFont2 = d.soundFont;
+              const {preset} = 
+              presetNameToPreset(voice.presetName, soundFont.presets as Preset[])
+              voice.preset = preset;
+            })
+          }
         }
       });
       return Promise.resolve({ fileContents, timeLine });

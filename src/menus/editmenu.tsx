@@ -111,6 +111,7 @@ export default function EditMenu() {
 
   function handleEditPreferences() {
     if (!timeLine) return;
+    setErrorMsgs([]);
     setFormData(timeLine.copy());
     setPreferencesModal(true);
   }

@@ -357,7 +357,7 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
     <div
       className="filedialog" /* style={{border:'thin solid black', borderRadius: '20px'}} */
     >
-      <div className="filedialogheader">
+      <div className="header">
         <div className="titlerow">
           <div className="icon">
             <img
@@ -407,7 +407,7 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
           </div>
         </div>
       </div>
-      <div className="filedialogbody">
+      <div className="body">
         <div className="searchtable">
           <div className="filesystemlist" id="filesystem">
             {filesystemDirectory.map(
@@ -461,7 +461,7 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
           </div>
         </div>
       </div>
-      <div className="filedialogfooter">
+      <div className="footer">
         <div className="filerow">
           <div className="filename">
             <label htmlFor="selectedfile">FileName:&nbsp;</label>

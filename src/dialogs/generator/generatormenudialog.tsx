@@ -91,6 +91,7 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
       AlgorithmicGenerators,
       AudioFileGenerators,
       SilentGenerators,
+      StochasticGenerators,
       error,
     } = ReadyPlay({
       mode: PLAYMODE.solo,
@@ -105,6 +106,7 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
       AlgorithmicGenerators,
       AudioFileGenerators,
       SilentGenerators,
+      StochasticGenerators,
     });
 
     // catch any errors during build

@@ -12,8 +12,9 @@ export function realizeSource(
 ): ActiveSource {
   // build source
   const source: AudioBufferSourceNode = ctx.createBufferSource();
-  // the source will either Silent, Algorithmic, or AudioFile
-  if (rawSourceData.gen.type == GENERATORTYPE.Algorithmic) {
+  // the source will either Silent, Algorithmic, Stochastic, or AudioFile
+  if (rawSourceData.gen.type == GENERATORTYPE.Algorithmic ||
+    rawSourceData.gen.type == GENERATORTYPE.Stochastic  ) {
     source.buffer = ctx.createBuffer(
       rawSourceData.source.sample.length,
       rawSourceData.source.sample[0].length,

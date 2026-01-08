@@ -40,6 +40,7 @@ export default function Play(props: PlayProps) {
       AlgorithmicGenerators,
       AudioFileGenerators,
       SilentGenerators,
+      StochasticGenerators,
       error,
     } = ReadyPlay({
       mode,
@@ -58,6 +59,7 @@ export default function Play(props: PlayProps) {
       AlgorithmicGenerators,
       AudioFileGenerators,
       SilentGenerators,
+      StochasticGenerators,
     });
 
     // catch any errors during build

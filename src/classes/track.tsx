@@ -8,6 +8,7 @@ import Silent from "./generators/silent";
 import AudioFile from "./generators/audiofile";
 import Algorithmic from "./generators/algorithmic";
 import { TrackEffect } from "./control";
+import Stochastic from "./generators/stochastic";
 export default class Track {
   name: string;
   mute: boolean;
@@ -141,6 +142,16 @@ export default class Track {
           case GENERATORTYPE.Algorithmic:
             {
               const generatorPromise: Promise<Algorithmic> = Algorithmic.getXML(
+                child,
+                version,
+                this
+              );
+              generatorPromises.push(generatorPromise);
+            }
+            break;
+          case GENERATORTYPE.Stochastic:
+            {
+              const generatorPromise: Promise<Stochastic> = Stochastic.getXML(
                 child,
                 version,
                 this

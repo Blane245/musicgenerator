@@ -1,5 +1,5 @@
 import RandomNumber from "classes/randomnumber";
-import { gaussianRandom } from "utils/gaussianrandom";
+import { gaussianRandom } from "utils/probability/gaussianrandom";
 
 // export default function applyNoise(
 //   sample: Float32Array,

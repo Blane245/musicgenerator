@@ -181,7 +181,6 @@ export default function DrawSources(
   // time line
   sources.forEach((s: RawSourceData, i) => {
     const { startTime, duration, note } = s.source;
-    // const soundStopTime: number = loop?stopTime + offsetTime: startTime + sample.length / sampleRate;
 
     // determine if any part of the source appears in the time line
     const lineStart = Math.min(Math.max(timelineStart, startTime), timelineEnd);
@@ -224,7 +223,7 @@ export default function DrawSources(
     if (
       type == SectionType.Instrument ||
       type == SectionType.Percussion ||
-      type == SectionType.AudioFile
+      type == SectionType.Audio
     ) {
       const yMidi: number = getOffsetFromMidi(
         note,

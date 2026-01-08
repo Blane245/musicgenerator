@@ -11,6 +11,7 @@ import {
   PLAYMODE,
   RawSourceData,
 } from "../../types";
+import Stochastic from "classes/generators/stochastic";
 
 export interface SourceReportProps {
   generator: GeneratorType | undefined; // undefined if for all generators
@@ -25,17 +26,21 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
     const AlgorithmicGenerators: Algorithmic[] = [];
     const AudioFileGenerators: AudioFile[] = [];
     const SilentGenerators: Silent[] = [];
+    const StochasticGenerators: Stochastic[] = [];
     if (generator.type == GENERATORTYPE.Silent)
       SilentGenerators.push(generator as Silent);
     else if (generator.type == GENERATORTYPE.Algorithmic)
       AlgorithmicGenerators.push(generator as Algorithmic);
     else if (generator.type == GENERATORTYPE.AudioFile)
       AudioFileGenerators.push(generator as AudioFile);
+    else if (generator.type == GENERATORTYPE.Stochastic)
+      StochasticGenerators.push(generator as Stochastic);
     const result = buildSources({
       fileContents,
       AlgorithmicGenerators,
       AudioFileGenerators,
       SilentGenerators,
+      StochasticGenerators
     });
     sources = result.sources;
     error = result.error;
@@ -44,6 +49,7 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
       AlgorithmicGenerators,
       AudioFileGenerators,
       SilentGenerators,
+      StochasticGenerators,
     } = ReadyPlay({
       mode: PLAYMODE.preview,
       generator: null,
@@ -55,6 +61,7 @@ export default function SourceReport(props: SourceReportProps): JSX.Element {
       AlgorithmicGenerators,
       AudioFileGenerators,
       SilentGenerators,
+      StochasticGenerators,
     });
     sources = result.sources;
     error = result.error;

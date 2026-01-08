@@ -190,13 +190,13 @@ export default function ControlDialog(props: ControlDialogProps): JSX.Element {
   return (
     <>
       <div className="control-content" aria-modal="true">
-        <div className="control-header">
+        <div className="header">
           <span className="close" onClick={handleCancelClick}>
             &times;
           </span>
           <span>&nbsp;{controlNew ? "Add Control" : "Modify Control"}</span>
         </div>
-        <div className="control-body">
+        <div className="body">
           <form name="control_CRUD" id="control_CRUD" onSubmit={handleSubmit}>
             <label>
               Name:&nbsp;
@@ -259,7 +259,7 @@ export default function ControlDialog(props: ControlDialogProps): JSX.Element {
             <hr />
             <input type="submit" value={controlNew ? "Add" : "Modify"} />
           </form>
-          <div className="control-footer">
+          <div className="footer">
             <button onClick={handleDeleteClick}>Delete</button>
             <button onClick={handleCancelClick}>Cancel</button>
             {!!showDelete && (

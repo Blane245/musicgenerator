@@ -2,6 +2,7 @@
 import Algorithmic from "classes/generators/algorithmic";
 import AudioFile from "classes/generators/audiofile";
 import Silent from "classes/generators/silent";
+import Stochastic from "classes/generators/stochastic";
 import Track from "classes/track";
 import { useCMGContext } from "cmgcontext";
 import { buildSources } from "playfunctions/buildsources";
@@ -16,7 +17,6 @@ import { GeneratorType, GENERATORTYPE, PLAYMODE, TIMELINETYPE } from "types";
 import { addGenerator, modifyGenerator } from "utils/cmfiletransactions";
 import { getGeneratorUID } from "utils/getgeneratoruid";
 import GeneratorTypeForm from "./generatortypeform";
-import Stochastic from "classes/generators/stochastic";
 
 // The icon starts at the generator's start time and ends at the generators endtime
 export interface GeneratorDialogProps {
@@ -110,7 +110,7 @@ export default function generatorDialog(props: GeneratorDialogProps) {
       if (oldName == "") setOldName(generator.name);
     } else {
       setStatus(
-        "Generator dialog entered with wron mode. newGenerator is false and generator is null"
+        "Generator dialog entered with wrong mode. newGenerator is false and generator is null"
       );
     }
     setErrorMessages([]);
@@ -232,7 +232,10 @@ export default function generatorDialog(props: GeneratorDialogProps) {
         case GENERATORTYPE.Stochastic: {
           const newFormData: Stochastic = (prev as Stochastic).copy(prev.parent);
           newFormData.setAttribute(eventName, eventValue);
-          // when the filename is given, the stop time will been to update
+
+          // any change to the form except the composition causes the 
+          // composition to clear
+          // if (eventName != 'composition') newFormData.values.composition = [];
           return newFormData;
         }
         default:
@@ -280,7 +283,7 @@ export default function generatorDialog(props: GeneratorDialogProps) {
           setErrorMessages(msgs);
         }
         break;
-      case GENERATORTYPE.AudioFile:
+      case GENERATORTYPE.Stochastic:
         {
           const newMessages = Stochastic.validate(
             formData as Stochastic,
@@ -332,6 +335,7 @@ export default function generatorDialog(props: GeneratorDialogProps) {
       AlgorithmicGenerators,
       AudioFileGenerators,
       SilentGenerators,
+      StochasticGenerators,
       error,
     } = ReadyPlay({
       mode: PLAYMODE.solo,
@@ -346,6 +350,7 @@ export default function generatorDialog(props: GeneratorDialogProps) {
       AlgorithmicGenerators,
       AudioFileGenerators,
       SilentGenerators,
+      StochasticGenerators,
     });
     if (buildError != "") {
       setStatus(
@@ -426,7 +431,7 @@ export default function generatorDialog(props: GeneratorDialogProps) {
           <span>
             {newGenerator
               ? "  Add " + formData.type + " Generator"
-              : "  Generator: " + formData.name}
+              : "  Modify " + formData.type + " Generator: " + formData.name}
           </span>
         </div>
         <div className="body">
@@ -531,13 +536,13 @@ export default function generatorDialog(props: GeneratorDialogProps) {
             </div>
             <GeneratorTypeForm
               formData={formData}
+              setFormData={setFormData}
               handleChange={handleChange}
+              setMessages={setErrorMessages}
             />
             <hr />
             <input type="submit" value={newGenerator ? "Add" : "Modify"} />
           </form>
-        </div>
-        <div className="footer">
           <button
             type="button"
             id={"generator-preview:" + formData.name}
@@ -551,6 +556,8 @@ export default function generatorDialog(props: GeneratorDialogProps) {
           >
             Cancel
           </button>
+        </div>
+        <div className="footer">
           {errorMessages.map((m, i) => (
             <h3 style={{color:"white"}} key={`error-${i}`}>
               {m}

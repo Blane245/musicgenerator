@@ -19,7 +19,7 @@ export default function Header(props: HeaderProps): JSX.Element {
   const {appName, appVersion, displayWidth, headerHeight, fileContents, fileName } = useCMGContext();
   return (
     <div
-      className="header"
+      className="preview-header"
       style={{ width: displayWidth, height: headerHeight }}
     >
       <div className="icon">

@@ -22,6 +22,7 @@ import { getDirectoryList } from "utils/getdirectorylist";
 import setCursor from "utils/setcursor";
 import { useCMGContext } from "../cmgcontext";
 import "./home.css";
+import loadEnsembleList from "utils/loadEnsembleList";
 export default function Home() {
   const {
     appName,
@@ -44,6 +45,7 @@ export default function Home() {
     setSFLocalDirectory,
     setSFFileList,
     SFFileList,
+    setEnsembleList,
     setRecordFormat,
     setRecentFiles,
     setRecentCMGDirectory,
@@ -114,6 +116,10 @@ export default function Home() {
     };
     handleResize();
     window.addEventListener("resize", handleResize);
+
+    // load the ensemble list at startup
+    loadEnsembleList(setEnsembleList);
+    
     return () => {
       window.removeEventListener("resize", handleResize);
     };

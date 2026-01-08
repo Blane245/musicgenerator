@@ -82,6 +82,7 @@ export default function PlayMenu() {
       AlgorithmicGenerators,
       AudioFileGenerators,
       SilentGenerators,
+      StochasticGenerators,
       error,
     } = ReadyPlay({
       mode: playMode,
@@ -102,6 +103,7 @@ export default function PlayMenu() {
       AlgorithmicGenerators,
       AudioFileGenerators,
       SilentGenerators,
+      StochasticGenerators,
     });
 
     // catch any errors during build
