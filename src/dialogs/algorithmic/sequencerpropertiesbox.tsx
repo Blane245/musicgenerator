@@ -70,102 +70,113 @@ export default function SequencerPropertiesBox(
   }
 
   return (
-    <div className="sequencer">
-      <div className="name">
-        <label>
-          Sequence Name:&nbsp;
-          <select
-            name={name.concat(".name")}
-            onChange={(e) => handleSequenceNameClick(e)}
-            value={values.name}
-          >
-            <option>&nbsp;</option>
-            {validSequences.map((s) => {
-              return (
-                <option key={name.concat("-").concat(s.name.toString())}>
-                  {s.name}
-                </option>
-              );
-            })}
-          </select>
-        </label>
-      </div>
-      {!!(sequenceItems.length > 0) && (
-        <>
-          <div className="reload">
-            <button
-              style={{ fontSize: "12px", paddingLeft: "5px" }}
-              onClick={(e) => reloadItems(e, values.name)}
+    <table>
+      <thead>
+        <tr>
+          <th>Sequence Name</th>
+          <th>View</th>
+          <th>Reload</th>
+          <th>Transposition</th>
+          <th>Reverse Sequence?</th>
+          <th>Reflect Sequence?</th>
+          <th>Reflect Pitch (0-127)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <select
+              name={name.concat(".name")}
+              onChange={(e) => handleSequenceNameClick(e)}
+              value={values.name}
             >
-              Reload
-            </button>
-          </div>
-          <div className="view">
-            <button
-              style={{ fontSize: "12px", paddingLeft: "5px" }}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setShowItems(true);
-              }}
-            >
-              View
-            </button>
-            <DraggablePopup
-              isOpen={showItems}
-              onClose={() => setShowItems(false)}
-              headerText={`Items for ${toTitleCase(attributeType)} sequence '${
-                values.name
-              }' `}
-            >
-              <ItemTable attributeType={attributeType} items={sequenceItems} />
-            </DraggablePopup>
-          </div>
-        </>
-      )}
-      <div className="transpose">
-        <label>
-          &nbsp;Transpositon:&nbsp;
-          <input
-            name={name + ".transpose"}
-            type="number"
-            onChange={handleChange}
-            value={values.transpose}
-          />
-        </label>
-      </div>
-      <div className="transform">
-        <label>
-          &nbsp;Reverse Sequence:&nbsp;
-          <input
-            name={name + ".reverseSequence"}
-            type="checkbox"
-            onChange={(e)=>handleChange(e)}
-            checked={values.reverseSequence}
-          />
-        </label>
-        <label>
-          &nbsp;Reflect Sequence:&nbsp;
-          <input
-            name={name + ".reflectSequence"}
-            type="checkbox"
-            onChange={(e)=>handleChange(e)}
-            checked={values.reflectSequence}
-          />
-        </label>
-        <label>
-          &nbsp;Reflect Pitch (0-127):&nbsp;
-          <input
-            name={name + ".reflectPitch"}
-            type="number"
-            min={0}
-            max={127}
-            onChange={(e)=>handleChange(e)}
-            value={values.reflectPitch}
-          />
-        </label>
-        <span>&nbsp;{toNote(values.reflectPitch)}</span>
-      </div>
-    </div>
+              <option>&nbsp;</option>
+              {validSequences.map((s) => {
+                return (
+                  <option key={name.concat("-").concat(s.name.toString())}>
+                    {s.name}
+                  </option>
+                );
+              })}
+            </select>
+          </td>
+
+          {sequenceItems.length > 0 ? (
+            <>
+              <td>
+                <button
+                  style={{ fontSize: "12px", paddingLeft: "5px" }}
+                  onClick={(e) => reloadItems(e, values.name)}
+                >
+                  Reload
+                </button>
+              </td>
+              <td>
+                <button
+                  style={{ fontSize: "12px", paddingLeft: "5px" }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowItems(true);
+                  }}
+                >
+                  View
+                </button>
+                <DraggablePopup
+                  isOpen={showItems}
+                  onClose={() => setShowItems(false)}
+                  headerText={`Items for ${toTitleCase(
+                    attributeType
+                  )} sequence '${values.name}' `}
+                >
+                  <ItemTable
+                    attributeType={attributeType}
+                    items={sequenceItems}
+                  />
+                </DraggablePopup>
+              </td>
+            </>
+          ) : (
+            <>
+              <td></td>
+            </>
+          )}
+          <td>
+            <input
+              name={name + ".transpose"}
+              type="number"
+              onChange={handleChange}
+              value={values.transpose}
+            />
+          </td>
+          <td>
+            <input
+              name={name + ".reverseSequence"}
+              type="checkbox"
+              onChange={(e) => handleChange(e)}
+              checked={values.reverseSequence}
+            />
+          </td>
+          <td>
+            <input
+              name={name + ".reflectSequence"}
+              type="checkbox"
+              onChange={(e) => handleChange(e)}
+              checked={values.reflectSequence}
+            />
+          </td>
+          <td>
+            <input
+              name={name + ".reflectPitch"}
+              type="number"
+              min={0}
+              max={127}
+              onChange={(e) => handleChange(e)}
+              value={values.reflectPitch}
+            />
+          </td>
+        </tr>
+      </tbody>
+    </table>
   );
 }

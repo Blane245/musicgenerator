@@ -29,75 +29,85 @@ export default function OscillatorPropertiesBox(
     handleChange,
   } = props;
   return (
-    <div className="oscillator">
-      <div className="typetitle">Modulator</div>
-      <div className="centertitle">Center</div>
-      <div className="frequencytitle">Frequency</div>
-      <div className="amplitudetitle">Amplitude</div>
-      <div className="phasetitle">Phase</div>
-      <div className="type">
-        <select
-          name={name.concat(".type")}
-          onChange={handleChange}
-          value={type}
-        >
-          {Object.keys(MODULATOR).map((t) => {
-            return (
-              <option key={name.concat("-").concat(t.toString())}>{t}</option>
-            );
-          })}
-        </select>
-      </div>
-      <div className="center">
-        <input
-          name={name.concat(".center")}
-          type="number"
-          min={center.lo}
-          max={center.hi}
-          step={center.step}
-          onChange={handleChange}
-          value={center.value}
-        />
-        <span style={{ fontSize: "small" }}>
-          &nbsp;{centerSuffix(center.value)}
-        </span>
-      </div>
-      <div className="frequency">
-        <input
-          name={name.concat(".frequency")}
-          type="number"
-          min={frequency.lo}
-          max={frequency.hi}
-          step={frequency.step}
-          onChange={handleChange}
-          value={frequency.value}
-        />
-        <span style={{ fontSize: "small" }}>&nbsp;{frequency.suffix}</span>
-      </div>
-      <div className="amplitude">
-        <input
-          name={name.concat(".amplitude")}
-          type="number"
-          min={amplitude.lo}
-          max={amplitude.hi}
-          step={amplitude.step}
-          onChange={handleChange}
-          value={amplitude.value}
-        />
-        <span style={{ fontSize: "small" }}>&nbsp;{amplitude.suffix}</span>
-      </div>
-      <div className="phase">
-        <input
-          name={name.concat(".phase")}
-          type="number"
-          min={phase.lo}
-          max={phase.hi}
-          step={phase.step}
-          onChange={handleChange}
-          value={phase.value}
-        />
-        <span style={{ fontSize: "small" }}>&nbsp;{phase.suffix}</span>
-      </div>
-    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Modulator</th>
+          <th>Center</th>
+          <th>Frequency</th>
+          <th>Amplitude</th>
+          <th>Phase</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <select
+              name={name.concat(".type")}
+              onChange={handleChange}
+              value={type}
+            >
+              {Object.keys(MODULATOR).map((t) => {
+                return (
+                  <option key={name.concat("-").concat(t.toString())}>
+                    {t}
+                  </option>
+                );
+              })}
+            </select>
+          </td>
+          <td>
+            <input
+              name={name.concat(".center")}
+              type="number"
+              min={center.lo}
+              max={center.hi}
+              step={center.step}
+              onChange={handleChange}
+              value={center.value}
+            />
+            <span style={{ fontSize: "small" }}>
+              &nbsp;{centerSuffix(center.value)}
+            </span>
+          </td>
+          <td>
+            <input
+              name={name.concat(".frequency")}
+              type="number"
+              min={frequency.lo}
+              max={frequency.hi}
+              step={frequency.step}
+              onChange={handleChange}
+              value={frequency.value}
+            />
+            <span style={{ fontSize: "small" }}>&nbsp;{frequency.suffix}</span>
+          </td>
+          <td>
+            <input
+              name={name.concat(".amplitude")}
+              type="number"
+              min={amplitude.lo}
+              max={amplitude.hi}
+              step={amplitude.step}
+              onChange={handleChange}
+              value={amplitude.value}
+            />
+            <span style={{ fontSize: "small" }}>&nbsp;{amplitude.suffix}</span>
+          </td>
+          <td>
+            <input
+              name={name.concat(".phase")}
+              type="number"
+              min={phase.lo}
+              max={phase.hi}
+              step={phase.step}
+              onChange={handleChange}
+              value={phase.value}
+            />
+            <span style={{ fontSize: "small" }}>&nbsp;{phase.suffix}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   );
 }

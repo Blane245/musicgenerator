@@ -20,12 +20,16 @@ th,
 td {
   border: 1px solid black;
 }
+table { width: 100%;}
+td { text-align: left;}
+th { text-align: center;}
 label {
   padding: 5px;
 	font-size: var(--small-font-size);
 }
 input {
 	font-size: var(--small-font-size);
+  background-color: lightgray;
 }
 textarea {
 	font-size: var(--small-font-size);
