@@ -66,8 +66,7 @@ export function getBufferSourceNodesFromAlgorithmic(
     while (time < stopTime) {
       const interval: number = Math.min(60.0 / speed, stopTime - time);
 
-      const duration =
-        noteDuration == 100 ? interval : (interval * noteDuration) / 100;
+      const duration = (interval * noteDuration) / 100;
       if (hitBeat) {
         const connections: RawSourceData[] = getPresetNote(
           fileContents,
@@ -100,11 +99,9 @@ export function getBufferSourceNodesFromAlgorithmic(
 
     return sourceData;
   } else {
-
     // sequencing based on note beats
     let time: number = startTime;
     activatePriorControls(gen, fileContents);
-    
 
     // and initialze them
     const noteP: SequenceValues = gen.noteP as SequenceValues;
@@ -115,8 +112,15 @@ export function getBufferSourceNodesFromAlgorithmic(
     noteP.setReverse();
     noteP.setReflect();
 
-    for (let iItem = 0; iItem < noteP.values.items.length && time <= stopTime; iItem++) {
-      const note = noteP.values.items[iItem].value > 0 ? noteP.values.items[iItem].value + transpose : -1;
+    for (
+      let iItem = 0;
+      iItem < noteP.values.items.length && time <= stopTime;
+      iItem++
+    ) {
+      const note =
+        noteP.values.items[iItem].value > 0
+          ? noteP.values.items[iItem].value + transpose
+          : -1;
       let beat: number = noteP.values.items[iItem].beats;
       let {
         speed,

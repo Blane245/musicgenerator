@@ -42,7 +42,7 @@ export async function fetchDBData(
   body?: object | string
 ): Promise<DbResponseType> {
   try {
-    const url: string = `http://localhost:${import.meta.env.DBPORT}`;
+    const url: string = `${import.meta.env.DBSERVER}:${import.meta.env.DBPORT}`;
     let thisBody: string | null = null;
     if (body && typeof body === "object") {
       thisBody = JSON.stringify(body);
@@ -54,7 +54,7 @@ export async function fetchDBData(
       headers: {
         Accept: "*/*",
         "X-Content-Type-Options": "nosniff",
-        "Access-Control-Allow-Origin": `http://localhost:${
+        "Access-Control-Allow-Origin": `${import.meta.env.DBSERVER}:${
           import.meta.env.PORT
         }`,
       },

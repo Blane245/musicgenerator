@@ -49,14 +49,16 @@ export class SF2Chunk extends RIFFChunk {
       throw new ParseError(`Missing required 'ifil' sub-chunk`);
     }
 
-    if (!info.INAM) {
-      throw new ParseError(`Missing required 'INAM' sub-chunk`);
-    }
+    // Repaired so that INAM is not required. Some soundfonts don't have them.
+    const name: string = (info.INAM)? info.INAM: "";
+    // if (!info.INAM) {
+    //   throw new ParseError(`Missing required 'INAM' sub-chunk`);
+    // }
 
     return {
       version: info.ifil,
       soundEngine: info.isng || 'EMU8000',
-      name: info.INAM,
+      name: name,
       rom: info.irom,
       romVersion: info.iver,
       creationDate: info.ICRD,

@@ -964,17 +964,17 @@ a:hover {
   display: grid;
   grid-template-rows: 20px 1fr auto;
   grid-template-areas: "header" "body" "footer";
-  .header {
+  .content-header {
     grid-area: header;
     background-color: #5c75b8;
     color: white;
   }
-  .body {
+  .content-body {
     grid-area: body;
     background-color: white;
     color: black;
   }
-  .footer {
+  .content-footer {
     grid-area: footer;
     background-color: #5c75b8;
     color: white;
@@ -1153,7 +1153,7 @@ a:hover {
     background-color: lightskyblue;
     grid-area: footer;
     display: grid;
-    grid-template-columns: 1fr 250px 250px 300px 300px 300px 40px;
+    grid-template-columns: 1fr 300px 300px 300px 300px 300px 40px;
     grid-template-areas: "status leftSignal rightSignal reverb compressor equalizer volume";
     .status {
       grid-area: status;

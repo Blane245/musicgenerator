@@ -112,7 +112,7 @@ export default function StochasticComposition(
           };
           // only reset the composition of the number of voices loaded
           // do not agree with the dimenion of the composition
-          if (formData.values.composition.length >= 0 && voices.length != formData.values.composition[1].length)
+          if (formData.values.composition.length > 0 && voices.length != formData.values.composition[1].length)
             formData.values.composition = [];
           handleChange(event as ChangeEvent<HTMLInputElement>);
         }
@@ -236,7 +236,7 @@ export default function StochasticComposition(
       <thead>
         <tr>
           <th>Reload</th>
-          <th colSpan={7} align="left">
+          <th colSpan={4} align="left">
             {formData.values.voices.length != 0 ? "Voices" : ""}
           </th>
         </tr>
@@ -271,7 +271,7 @@ export default function StochasticComposition(
             </button>
           </td>
           {!!(formData.values.voices.length > 0) && (
-            <td colSpan={7}>
+            <td colSpan={4}>
               <table border={1}>
                 <thead>
                   <tr>
@@ -312,13 +312,11 @@ export default function StochasticComposition(
         </tr>
         {!!(formData.values.composition.length > 0) && (
           <tr>
-            <td colSpan={8}>
+            <td colSpan={5}>
               <table border={1}>
                 <thead>
                   <tr>
-                    <th></th>
-                    <th></th>
-                    <th colSpan={formData.values.voices.length}>Composition</th>
+                    <th colSpan={formData.values.voices.length + 3}>Composition</th>
                   </tr>
                   <tr>
                     <th>Move</th>

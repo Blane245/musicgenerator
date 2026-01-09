@@ -137,6 +137,11 @@ export async function readCMGFile(
     if (timeLineElem) timeLine.getXML(timeLineElem, fileName);
 
     const fileContents = new CMGFile();
+
+    // clear the SoundFontGenerators map so only generators loaded by this
+    // file are retrieved
+    SoundFontGenerators.clear();
+
     if (fcElem) {
       await fileContents.getXML(fcElem, fileName);
 

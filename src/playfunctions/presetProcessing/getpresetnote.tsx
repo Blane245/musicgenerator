@@ -165,20 +165,6 @@ export const getPresetNote = (
       attenuation
     );
 
-    // // apply any noise is present
-    // if (noiseFrequency != 0)
-    //   sample = applyNoise(
-    //     sample,
-    //     sampleRate,
-    //     midiToFrequency(pitchValue),
-    //     noiseFrequency,
-    //     dBToGain(noiseAmplitude),
-    //     gen.rn
-    //   );
-
-    //   // modify the sample using the gain envelope
-    // sample = applyEnvelope(sample, sampleRate, envelope);
-
     const aResult: RawSourceData = {
       gen,
       index: sourceCount,

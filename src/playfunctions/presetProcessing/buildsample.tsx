@@ -70,7 +70,6 @@ export default function buildSampleArray(
       );
     }
 
-    // TODO the miracle of envelope, track volume, tremolo, and noise occurs here
     // first apply noise
     if (
       generator.noiseEnabled &&
@@ -118,10 +117,6 @@ export default function buildSampleArray(
       value *= tremoloGain;
     }
     result[iSample] = value;
-    // } else {
-    //   if (iSample == 0) result[iSample] = 0;
-    //   else result[iSample] = result[iSample - 1]* volumeGain * attenuation;
-    // }
 
     // increment to next sample index and time, modifying the playback rate with the vibrato if present
     if (

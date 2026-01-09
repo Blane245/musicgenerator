@@ -6,6 +6,7 @@ interface ImportMetaEnv {
     readonly BUILD_DATE:string;
     readonly FSPORT:string;
     readonly DBPORT:string;
+    readonly DBSERVER: string;
     readonly PORT:string;
     readonly SEQUENCEEDITORURL: string;
 }
