@@ -30,14 +30,14 @@ import { bufferToWav } from "utils/buffertowav";
 import { buildRoomNodes } from "./buildroomnodes";
 import { restoreControlledState } from "./controlledstate";
 import { realizeSource } from "./realizesource";
-// import { Control } from "classes/control";
+// import Control from "classes/control";
 
-export interface RecordProps {
+interface RecordProps {
   recordHandle: FileSystemFileHandle;
   sourceData: RawSourceData[];
   sampleRate: number;
-  setMode: Function;
-  setRecordHandle: Function;
+  setMode: React.Dispatch<React.SetStateAction<PLAYMODE>>;
+  setRecordHandle: React.Dispatch<React.SetStateAction<FileSystemFileHandle | null>>;
   recordFormat: string;
 }
 
@@ -88,14 +88,13 @@ export default function Record(params: RecordProps) {
     }[]
   >([]);
   const activeContexts = useRef<OfflineAudioContext[]>([]);
-  let startTime: Date = new Date();
+  const startTime: Date = new Date();
 
   // what is happening is that dev is activating the effect twice and recording
   // happening twice. This is prevented by the recording active reference variable
   useEffect(() => {
     if (playing.current && !recordingActive.current) {
       try {
-        startTime = new Date();
         // zeroize all counters and data
         recordingActive.current = true;
         totalBatchCount.current = 0;
@@ -123,11 +122,11 @@ export default function Record(params: RecordProps) {
 
         // wait for all batches to be completed
         waitForCompletion();
-      } catch (e: any) {
+      } catch (e) {
         console.error(e);
         setMode(PLAYMODE.idle);
         setRecordHandle(null);
-        setStatus(`Error during recording: '${e.description}`);
+        setStatus(`Error during recording: '${(e as Error).message}`);
         playing.current = false;
       }
     }
@@ -162,7 +161,7 @@ export default function Record(params: RecordProps) {
             setMode(PLAYMODE.idle);
             setRecordHandle(null);
             playing.current = false;
-            completeTimerId.current && clearTimeout(completeTimerId.current);
+            if(completeTimerId.current) clearTimeout(completeTimerId.current);
             recordingActive.current = false;
 
             // restore the controlled state
@@ -180,7 +179,7 @@ export default function Record(params: RecordProps) {
         );
       }
     } else {
-      completeTimerId.current && clearTimeout(completeTimerId.current);
+      if(completeTimerId.current) clearTimeout(completeTimerId.current);
       recordingActive.current = false;
       setMode(PLAYMODE.idle);
       setRecordHandle(null);
@@ -215,7 +214,7 @@ export default function Record(params: RecordProps) {
         // assemble the next batch
         let batchStart: number = Number.MAX_VALUE;
         let batchEnd: number = 0;
-        let sourceStart: number = nextSource.current;
+        const sourceStart: number = nextSource.current;
         let sourceCount: number = 0;
         while (
           sourceCount < BATCHSIZE &&
@@ -321,7 +320,7 @@ export default function Record(params: RecordProps) {
       totalBatchCount.current == completedBatches.current ||
       !playing.current
     ) {
-      groupTimerId.current && clearTimeout(groupTimerId.current);
+      if (groupTimerId.current) clearTimeout(groupTimerId.current);
     } else {
       //otherwise we need to check to see if it is time to start another group
       groupTimerId.current = window.setTimeout(dispatchGroup, 1000);

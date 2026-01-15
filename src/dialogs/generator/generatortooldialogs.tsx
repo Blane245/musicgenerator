@@ -1,7 +1,7 @@
 import CMGFile from "classes/cmgfile";
 import TimeLine from "classes/timeline";
 import Track from "classes/track";
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, Dispatch, FormEvent, SetStateAction, useEffect, useState } from "react";
 import { GeneratorType, TIMELINETYPE } from "types";
 
 function extractTrackGenerator(
@@ -29,8 +29,8 @@ function extractTrackGenerator(
 // provides the form fields and validators for the sfperiodic generator
 export interface ToolsProps {
   fileContents: CMGFile;
-  setFileContents: Function;
-  enabled: Function;
+  setFileContents: Dispatch<SetStateAction<CMGFile>>;
+  enabled: React.Dispatch<React.SetStateAction<boolean>>;
   timeLine?: TimeLine | null;
 }
 

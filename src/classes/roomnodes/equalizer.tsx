@@ -1,6 +1,9 @@
-import { softDisconnect } from "utils/softdisconnect";
-import { getAttributeValue, getElementElement } from "utils/xmlfunctions";
 import { dBToGain } from "sfcomponents/util";
+import { softDisconnect } from "utils/softdisconnect";
+import {
+  getAttributeValueWithDefault,
+  getElementElement
+} from "utils/xmlfunctions";
 
 // This is a 10 octave equalizer made of lowshelf, peaking, and highshelf filter
 const BANDS: number[] = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 15000];
@@ -82,14 +85,10 @@ export default class Equalizer {
     )
       return;
     if (enabled) {
-      try {
-        softDisconnect(this.effectIn, this.effectOut);
-      } catch (e) {}
+      softDisconnect(this.effectIn, this.effectOut);
       this.effectIn.connect(this.#filterHead);
     } else {
-      try {
-        softDisconnect(this.effectIn, this.#filterHead);
-      } catch (e) {}
+      softDisconnect(this.effectIn, this.#filterHead);
       this.effectIn.connect(this.effectOut);
     }
   }
@@ -128,25 +127,26 @@ export default class Equalizer {
   }
 
   getXML(fcElem: Element, _version: string): void {
-    try {
-      const eElement: Element | null = getElementElement(fcElem, "equalizer");
-      if (!eElement)
-        throw new Error(`Equalizer getXML missing compressor element`);
-      try {
-        this.enabled =
-          (getAttributeValue(eElement, "enabled", "string") as string) ==
-          "true";
-      } catch (e) {
-        this.enabled = true;
-      }
+    const eElement: Element | null = getElementElement(fcElem, "equalizer");
+    if (!eElement) {
+      this.enabled = true;
+      this.gains = Array(this.frequencies.length).fill(0);
+    } else {
+      this.enabled = getAttributeValueWithDefault(
+        eElement,
+        "enabled",
+        "boolean",
+        true
+      ) as boolean;
       for (let i = 0; i < BANDCOUNT; i++) {
-        this.gains[i] = getAttributeValue(
+        this.gains[i] = getAttributeValueWithDefault(
           eElement,
           `gain${i}`,
-          "float"
+          "float",
+          0
         ) as number;
       }
-    } catch {}
+    }
   }
 
   appendXML(doc: XMLDocument, elem: Element): void {

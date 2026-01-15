@@ -8,7 +8,7 @@ export interface WienerPropertiesBoxProps {
   min: number;
   max: number;
   step: number;
-  valueSuffix: Function;
+  valueSuffix: (value?:number | undefined)=>string;
   handleChange: (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
@@ -17,7 +17,7 @@ export default function WienerPropertiesBox(props: WienerPropertiesBoxProps) {
   const { name, values, min, max, step, valueSuffix, handleChange } = props;
   function getSeed(): void {
     const newSeed: string = generateRandomString(15);
-    const event: {} = {
+    const event = {
       target: { name: name.concat(".seed"), value: newSeed, type: "string" },
     };
     handleChange(event as ChangeEvent<HTMLInputElement>);

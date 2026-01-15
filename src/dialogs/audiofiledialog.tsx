@@ -41,7 +41,7 @@ export default function AudioFileDialog(
         sampleRate: null,
         length: null,
       });
-  }, [formData.fileName]);
+  }, [formData.fileName, formData.sampleRate, formData.duration, formData.samples.length]);
 
   // ask the user for an audio file
   // read the file

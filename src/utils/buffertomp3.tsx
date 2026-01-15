@@ -26,6 +26,7 @@ export function bufferToMp3(
   }
   const buffer: Uint8Array = encoder.flush();
   if (buffer.length) mp3Data.push(buffer);
+  // @ts-expect-error arraybufferlike and arraybuffer are not the same thing
   const blob = new Blob(mp3Data, { type: "audio/mp3" });
   return blob;
 }

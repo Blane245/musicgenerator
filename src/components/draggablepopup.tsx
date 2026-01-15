@@ -74,7 +74,7 @@ export default function DraggablePopup(props: DraggablePopupProps) {
       <div
         className="popup"
         ref={popupRef}
-        onClick={(e) => {e.stopPropagation(), e.preventDefault();}} // to prevent event delegation to the overlay
+        onClick={(e) => {e.stopPropagation(); e.preventDefault();}} // to prevent event delegation to the overlay
         style={{ transform: `translate(${position.x}px, ${position.y}px)` }} //to move out popup
       >
         <div className="popup-header" onMouseDown={onMouseDown}>

@@ -3,13 +3,14 @@ import {
   DbResponseType,
   DbSequenceValidNamesType,
   SEQUENCEATTRIBUTE,
+  SequenceName,
 } from "types";
 import { fetchDBData } from "./fetchdata";
 
 //ginve the name and sequence type, get the sequenceitsm from the database
 export function loadValidSequenceNames(
   sequenceType: SEQUENCEATTRIBUTE,
-  setValidSequenceNames: Function
+  setValidSequenceNames: React.Dispatch<React.SetStateAction<SequenceName[]>>
 ) {
   const load = async () => {
     const response: DbResponseType = await fetchDBData(

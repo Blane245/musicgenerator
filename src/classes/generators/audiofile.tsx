@@ -49,7 +49,7 @@ export default class AudioFile extends Silent {
       this.sampleRate
     );
     for (let i = 0; i < numberOfChannels; i++) {
-      // @ts-ignore
+      // @ts-expect-error arraybufferlike and array buffer are not the same thing
       source.buffer.copyToChannel(this.samples[i], i);
     }
   }
@@ -72,7 +72,7 @@ export default class AudioFile extends Silent {
       const audioPromises: Promise<string>[] = [];
       this.samples.forEach((sample: Float32Array) => {
         const samplePromise: Promise<string> = compressAndConvertToString(
-          // @ts-ignore
+          // @ts-expect-error arraybufferlike and arraybuffer are not the same thing?
           sample.buffer
         );
         audioPromises.push(samplePromise);
@@ -96,7 +96,7 @@ export default class AudioFile extends Silent {
         });
       }
       return Promise.resolve(returnElem);
-    } catch (e: any) {
+    } catch (e) {
       return Promise.reject(e);
     }
   }

@@ -40,7 +40,7 @@ export default class ConstantValues extends AlgorithmValues {
       elem.setAttribute("algorithmType", ALGORITHMTYPE.Constant);
       elem.setAttribute("value", this.values.value.toString());
       return Promise.resolve(elem);
-    } catch (e: any) {
+    } catch (e) {
       return Promise.reject(e);
     }
   }

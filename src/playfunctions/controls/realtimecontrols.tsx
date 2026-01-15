@@ -1,8 +1,7 @@
 // activate a globalcontrol for review and record
 
 import CMGFile from "classes/cmgfile";
-import {
-  Control,
+import Control, {
   EFFECTTYPE,
   GeneratorEffect,
   GlobalEffect,
@@ -54,7 +53,7 @@ export function activateRealtimeControls(
             "equalizer.enabled",
             equalizerEnable.toString()
           );
-          fileContents.volume.setVolume(volume);
+          if (volume != undefined) fileContents.volume.setVolume(volume);
           break;
         }
         case EFFECTTYPE.Track: {
@@ -94,10 +93,14 @@ export function activateRealtimeControls(
                     c.list[generatorIndex] == generator.name
                 );
                 if (currentIndex < 0) {
-                  console.log('added new generator control', control)
+                  console.log("added new generator control", control);
                   result.push(control);
                 } else {
-                  console.log('replaced generator control with new one', result[currentIndex], control);
+                  console.log(
+                    "replaced generator control with new one",
+                    result[currentIndex],
+                    control
+                  );
                   result.splice(currentIndex, 0, control);
                 }
                 // only generator reverb is processed in realtime
@@ -126,7 +129,7 @@ export function processGlobalControls(
       const { volume } = (controls[i].effect as GlobalEffect).getCurrentValues(
         time
       );
-      fileContents.volume.setVolume(volume);
+      if (volume != undefined) fileContents.volume.setVolume(volume);
     }
   }
 }
@@ -149,10 +152,10 @@ export function processActiveSources(
         const gen: Algorithmic = source.gen as Algorithmic;
         if (gen.reverbEnabled != effect.reverbEnable) {
           gen.setReverbEnabled(effect.reverbEnable);
-            // console.log(
-            //   "processActiveSources: generator reverb enable changed",
-            //   gen
-            // );
+          // console.log(
+          //   "processActiveSources: generator reverb enable changed",
+          //   gen
+          // );
         }
       }
     }

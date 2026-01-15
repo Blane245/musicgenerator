@@ -4,7 +4,7 @@ import { getStringFromBuffer } from '../utils';
 /**
  * A utility class to quickly iterate over a buffer.
  */
-export class ChunkIterator<T = any> {
+export class ChunkIterator<T> {
   public readonly target: T[] = [];
   private readonly chunk: RIFFChunk;
   private position: number = 0;

@@ -101,7 +101,7 @@ export default class WienerValues extends AlgorithmValues {
       returnElem.setAttribute("lo", this.values.lo.toString());
       returnElem.setAttribute("hi", this.values.hi.toString());
       return Promise.resolve(returnElem);
-    } catch (e: any) {
+    } catch (e) {
       return Promise.reject(e);
     }
   }

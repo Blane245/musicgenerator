@@ -3,11 +3,11 @@ import { useCMGContext } from "cmgcontext";
 import ToolsMenu from "menus/toolsmenu";
 import { ChangeEvent, useState } from "react";
 import { bankPresettoName } from "sfcomponents/util";
-import AlgorithmicTable from "./algorithmictable";
-import MidiFrequencyDialog from "../midifrequencydialog";
-import PresetDialog from "./presetdialog";
 import { MODULATOR } from "types";
 import { generateRandomString } from "utils/randomstring";
+import MidiFrequencyDialog from "../midifrequencydialog";
+import AlgorithmicTable from "./algorithmictable";
+import PresetDialog from "./presetdialog";
 
 // provides the form fields and validators for the algorithmic generator
 
@@ -27,7 +27,7 @@ export default function AlgorithmicDialog(
   const [viewPreset, setViewPreset] = useState<boolean>(false);
   function getSeed(): void {
     const newSeed: string = generateRandomString(15);
-    const event: {} = {
+    const event = {
       target: { name: "noiseSeed", value: newSeed, type: "string" },
     };
     handleChange(event as ChangeEvent<HTMLInputElement>);

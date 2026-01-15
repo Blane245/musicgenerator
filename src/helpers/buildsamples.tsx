@@ -80,7 +80,7 @@ export default function buildSamples(props: BuildSampleProps): number[][] {
 		if (maxCloud != 0) {
 			let sampleStart: number = 0;
 			for (let iTime = 0; iTime < Nt; iTime++) {
-				let nClouds: number = composition[iTime][iVoice];
+				const nClouds: number = composition[iTime][iVoice];
 				for (let iCloud = 0; iCloud < nClouds; iCloud++) {
 					const { cloud, cloudState } = cloudSample({
 						delta,
@@ -147,22 +147,22 @@ export default function buildSamples(props: BuildSampleProps): number[][] {
 }
 function normalize(stereo: number[][]): number[][] {
 	let max: number = 0;
-	let rms: number = 0;
-	let sum: number = 0;
-	let count: number = 0;
+	// let rms: number = 0;
+	// let sum: number = 0;
+	// let count: number = 0;
 	for (let i = 0; i < stereo[0].length; i++) {
 		if (stereo[0][i] != 0 || stereo[1][i] != 0) {
-			count++;
+			// count++;
 			max = Math.max(max, Math.abs(stereo[0][i]), Math.abs(stereo[1][i]));
 			if (Number.isNaN(max)) {
 				throw new Error(`buffer processing error in normalize at sample ${i}`);
 			}
-			sum += Math.abs(stereo[0][i]) + Math.abs(stereo[1][i]);
-			rms += stereo[0][i] * stereo[0][i] + stereo[1][i] * stereo[1][i];
+			// sum += Math.abs(stereo[0][i]) + Math.abs(stereo[1][i]);
+			// rms += stereo[0][i] * stereo[0][i] + stereo[1][i] * stereo[1][i];
 		}
 	}
-	const average: number = sum / (2 * count);
-	rms = Math.sqrt(rms / (2 * count));
+	// const average: number = sum / (2 * count);
+	// rms = Math.sqrt(rms / (2 * count));
 	for (let i = 0; i < stereo[0].length; i++) {
 		stereo[0][i] /= max;
 		stereo[1][i] /= max;

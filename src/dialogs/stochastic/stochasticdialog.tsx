@@ -7,7 +7,7 @@ export interface StochasticDialogProps {
   handleChange: (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
-  setMessages: Function;
+  setMessages: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 export default function StochasticDialog(

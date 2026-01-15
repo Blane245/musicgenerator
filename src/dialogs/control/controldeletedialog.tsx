@@ -4,7 +4,7 @@ import { deleteControl } from "utils/cmfiletransactions";
 
 export interface ControlDeleteProps {
   controlName: string;
-  setDialogVisible: Function;
+  setDialogVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 // handles copy and move generator between tracks.
@@ -14,7 +14,7 @@ export default function ControlDeleteDialog(props:ControlDeleteProps) {
 
   function onCancel() {
     setDialogVisible(false);
-    setStatus("");
+    setStatus("Delete Control canceled");
   }
   function onOK(event: FormEvent<Element>) {
     event.preventDefault();
@@ -26,7 +26,7 @@ export default function ControlDeleteDialog(props:ControlDeleteProps) {
     );
     if (index < 0) return;
     deleteControl(index, setFileContents);
-    setStatus(`control '${controlName}' deleted.`);
+    setStatus(`Control '${controlName}' deleted.`);
   }
   return (
     <div className="modal-content">

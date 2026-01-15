@@ -73,7 +73,7 @@ export default class AutoregressiveValues extends AlgorithmValues {
       this.values.currentValue = this.values.initialValue;
       return this.values.initialValue;
     } else epsilon = (this.values.rn.rand() - 0.5) * this.values.sigma;
-    let newValue: number = Math.min(
+    const newValue: number = Math.min(
       Math.max(
         (this.values.currentValue - this.values.initialValue) *
           this.values.alpha +
@@ -96,7 +96,7 @@ export default class AutoregressiveValues extends AlgorithmValues {
       elem.setAttribute("lo", this.values.lo.toString());
       elem.setAttribute("hi", this.values.hi.toString());
       return Promise.resolve(elem);
-    } catch (e: any) {
+    } catch (e) {
       return Promise.reject(e);
     }
   }

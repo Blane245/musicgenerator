@@ -7,7 +7,7 @@ export interface ConstantBoxProps {
   min: number;
   max: number;
   step: number;
-  valueSuffix: Function;
+  valueSuffix: (value?:number | undefined)=>string;
   handleChange: (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;

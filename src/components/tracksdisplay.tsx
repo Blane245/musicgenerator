@@ -2,10 +2,9 @@
 // the time line contains the visible generator icons
 import Track from "classes/track";
 import { useCMGContext } from "cmgcontext";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import GeneratorIcons from "./generatoricons";
 import TrackControls from "./trackcontrols";
-import React from "react";
 
 export default function TracksDisplay() {
   const { fileContents, timelineWidth, controlWidth, setTrackIndex } =
@@ -15,7 +14,7 @@ export default function TracksDisplay() {
   useEffect(() => {
     setTracks(fileContents.tracks);
     setTrackIndex(-1);
-  }, [fileContents.tracks]);
+  }, [fileContents.tracks, setTrackIndex]);
 
   return (
     <>

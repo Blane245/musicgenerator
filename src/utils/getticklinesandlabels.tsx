@@ -93,7 +93,7 @@ export default function getTickLinesandLabels(
           />
         );
         // add the label
-        let tAnchor: string = "start";
+        const tAnchor: string = "start";
 
         result.push(
           <text

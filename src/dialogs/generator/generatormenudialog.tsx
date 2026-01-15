@@ -13,7 +13,7 @@ import GeneratorDeleteDialog from "./generatordeletedialog";
 export interface GeneratorMenuProps {
   track: Track;
   generator: GeneratorType;
-  setMenuVisible: Function;
+  setMenuVisible: React.Dispatch<React.SetStateAction<Track | null>>;
   menuX: number;
   menuY: number;
 }
@@ -46,7 +46,6 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
     setPreviewVisible(true);
     setMenuVisible(null);
     setMode(PLAYMODE.solo);
-    setStatus(``);
   }
   function onEditClick() {
     setTrackIndex(-1);
@@ -59,17 +58,14 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
     setGeneratorDialogVisible(true);
     setMenuVisible(null);
     setCursor("default");
-    setStatus(``);
   }
   function onCopyClick() {
     setCopyMoveMode("copy");
     setCopyMoveDialogVisible(true);
-    setStatus(``);
   }
   function onMoveClick() {
     setCopyMoveMode("move");
     setCopyMoveDialogVisible(true);
-    setStatus(``);
   }
   function onMuteClick() {
     const index: number = track.generators.findIndex(
@@ -79,12 +75,11 @@ export default function GeneratorMenuDialog(props: GeneratorMenuProps) {
     flipGeneratorMute(track, index, setFileContents);
     setMenuVisible(null);
     setCursor("default");
-    setStatus(``);
+    setStatus(`Generator mute toggled`);
   }
 
   function onDeleteClick() {
     setDeleteModal(true);
-    setStatus(``);
   }
   function handleReadySolo() {
     const {

@@ -1,7 +1,7 @@
 // modify the parameters of a control
 
+import Control from "classes/control";
 import {
-  Control,
   EFFECTTYPE,
   GeneratorEffect,
   GlobalEffect,
@@ -11,10 +11,10 @@ import Track from "classes/track";
 import { useCMGContext } from "cmgcontext";
 import { ChangeEvent, FormEvent, MouseEvent, useEffect, useState } from "react";
 import { addControl, modifyControl } from "utils/cmfiletransactions";
+import ControlDeleteDialog from "./controldeletedialog";
 import GeneratorEffectDialog from "./generatoreffectdialog";
 import GlobalEffectDialog from "./globaleffectdialog";
 import TrackEffectDialog from "./trackeffectdialog";
-import ControlDeleteDialog from "./controldeletedialog";
 
 export interface ControlDialogProps {
   control: Control | null;
@@ -96,7 +96,7 @@ export default function ControlDialog(props: ControlDialogProps): JSX.Element {
       case EFFECTTYPE.Track:
         msgs.push(...TrackEffect.validate(formData.effect as TrackEffect));
         break;
-      case EFFECTTYPE.Global:
+      case EFFECTTYPE.Generator:
         msgs.push(
           ...GeneratorEffect.validate(formData.effect as GeneratorEffect)
         );
@@ -115,7 +115,7 @@ export default function ControlDialog(props: ControlDialogProps): JSX.Element {
       addControl(formData, setFileContents);
       setControlNew(null);
       setDisplayControlDialog(false);
-      setStatus(`Control '${formData.name} added.`);
+      setStatus(`Control '${formData.name}' added.`);
     } else {
       const index: number = fileContents.controls.findIndex(
         (c) => c.name == oldName
@@ -153,8 +153,8 @@ export default function ControlDialog(props: ControlDialogProps): JSX.Element {
     event.preventDefault();
     event.stopPropagation();
     setFormData((f: Control) => {
-      let eventName: string | null = event.target["name"];
-      let eventValue: string =
+      const eventName: string | null = event.target["name"];
+      const eventValue: string =
         event.target["type"] != "checkbox"
           ? event.target["value"]
           : event.target["checked"].toString();

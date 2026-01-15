@@ -2,7 +2,7 @@ import Stochastic from "classes/generators/stochastic";
 import RandomNumber from "classes/randomnumber";
 import { useCMGContext } from "cmgcontext";
 import buildComposition from "helpers/buildcomposition";
-import { ChangeEvent, MouseEvent, useEffect } from "react";
+import { ChangeEvent, MouseEvent, useEffect, useState } from "react";
 import {
   AiFillCaretDown,
   AiFillCaretLeft,
@@ -22,16 +22,17 @@ import {
   StochasticValues,
   TIMBRETYPE,
   Voice,
+  Voices,
 } from "types";
 import { fetchDBData } from "utils/fetchdata";
 import loadEnsembleList from "utils/loadEnsembleList";
 
-export interface StochasticCompostionProps {
+interface StochasticCompostionProps {
   formData: Stochastic;
   handleChange: (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
-  setMessages: Function;
+  setMessages: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 export default function StochasticComposition(
@@ -39,6 +40,8 @@ export default function StochasticComposition(
 ): JSX.Element {
   const { formData, handleChange, setMessages } = props;
   const { setEnsembleList, setStatus } = useCMGContext();
+  const [composition, setComposition] = useState<Composition>([]);
+  const [selectedVoices, setSelectedVoices] = useState<Voices>([]);
 
   // when a new ensemble is selected, load the ensemble and its voices
   useEffect(() => {
@@ -52,6 +55,37 @@ export default function StochasticComposition(
     loadVoices(formData.values.ensembleName);
   }, [formData.values.ensembleName]);
 
+  // if the composition on the form is different than the
+  // one on the GUI, update the GUI
+  useEffect(() => {
+    const formComposition: Composition = formData.values.composition;
+    if (composition.length != formComposition.length) {
+      setComposition(formComposition);
+      return;
+    }
+    for (let iTime = 0; iTime < formComposition.length; iTime++) {
+      if (composition[iTime].length != formComposition[iTime].length) {
+        setComposition(formComposition);
+        return;
+      }
+      for (let iVoice = 0; iVoice < composition[iTime].length; iVoice++) {
+        if (composition[iTime][iVoice] != formComposition[iTime][iVoice]) {
+          setComposition(formComposition);
+          return;
+        }
+      }
+    }
+  }, [formData.values.composition]);
+
+  useEffect(() => {
+    const newSelected: Voices = [];
+    for (let i = 0; i < formData.values.muted.length; i++) {
+      if (!formData.values.muted[i])
+        newSelected.push(formData.values.voices[i]);
+    }
+    setSelectedVoices(newSelected);
+  }, [formData]);
+
   function reloadEnsembleList() {
     loadEnsembleList(setEnsembleList);
   }
@@ -61,7 +95,7 @@ export default function StochasticComposition(
     loadVoices(ensemble.name);
   }
 
-  function loadVoices(ensembleName: string) {
+  const loadVoices = (ensembleName: string) => {
     try {
       loadEnsembleandVoices(ensembleName);
       async function loadEnsembleandVoices(name: string) {
@@ -85,8 +119,11 @@ export default function StochasticComposition(
             if (voiceData.type == DBRESPONSETYPE.voice) {
               const vData: dBVoiceType = voiceData as dBVoiceType;
               // get the preset for this voice
-              const {soundFont} = await SFPool(vData.value.soundFontFile);
-              const {preset} = presetNameToPreset(vData.value.presetName, soundFont.presets as Preset[]);
+              const { soundFont } = await SFPool(vData.value.soundFontFile);
+              const { preset } = presetNameToPreset(
+                vData.value.presetName,
+                soundFont.presets as Preset[]
+              );
               const nv: Voice = {
                 name: vData.value.name,
                 description: vData.value.description,
@@ -103,7 +140,8 @@ export default function StochasticComposition(
           }
           // load the voices onto the form and trigger a change event
           formData.values.voices = [...voices];
-          let event: {} = {
+          // formData.values.muted = Array(voices.length).fill(false);
+          const event = {
             target: {
               name: "voices",
               value: voices.length.toString(),
@@ -112,15 +150,23 @@ export default function StochasticComposition(
           };
           // only reset the composition of the number of voices loaded
           // do not agree with the dimenion of the composition
-          if (formData.values.composition.length > 0 && voices.length != formData.values.composition[1].length)
+          if (
+            formData.values.composition.length > 0 &&
+            voices.length != formData.values.composition[1].length
+          )
             formData.values.composition = [];
+          setComposition(formData.values.composition);
           handleChange(event as ChangeEvent<HTMLInputElement>);
         }
       }
     } catch (e) {
-      setStatus(`Error while loading ensemble ${ensembleName} voices`);
+      setStatus(
+        `Error while loading ensemble ${ensembleName} voices: ${
+          (e as Error).message
+        }`
+      );
     }
-  }
+  };
 
   // create a new composition from the stochastic parameters on the form
   function createComposition() {
@@ -137,30 +183,36 @@ export default function StochasticComposition(
     setMessages([]);
     // reset the random number seed before building the composition
     const rN = new RandomNumber(formData.values.seed);
+
     const composition: Composition = buildComposition({
-      nColumns: formData.getNe(),
+      nColumns: formData.values.voices.length,
       nRows: formData.values.Nt,
       lambda: formData.values.lambda,
       rN: rN,
     });
 
+    // update the composition on the GUI
+    setComposition(composition);
+
     // sneak in an update to the stop time
     formData.stopTime = formData.startTime + formData.values.Tc;
     updateComposition(composition);
+
   }
 
   function updateComposition(composition: Composition) {
     // get the composition back to the updated form
     let compositionString: string = "";
-    for (let row of composition) {
-      for (let value of row) {
+    for (const row of composition) {
+      for (const value of row) {
         compositionString += value + ",";
       }
     }
-    let event: {} = {
+    const event = {
       target: { name: "composition", value: compositionString, type: "string" },
     };
     handleChange(event as ChangeEvent<HTMLInputElement>);
+    // setComposition(composition); // update the GUI image of the composition
   }
 
   // swap a composition column wiht the one to teh left or right of it
@@ -235,7 +287,7 @@ export default function StochasticComposition(
     <>
       <thead>
         <tr>
-          <th>Reload</th>
+          <th></th>
           <th colSpan={4} align="left">
             {formData.values.voices.length != 0 ? "Voices" : ""}
           </th>
@@ -310,54 +362,60 @@ export default function StochasticComposition(
             </td>
           )}
         </tr>
-        {!!(formData.values.composition.length > 0) && (
+        {!!(composition.length > 0) && (
           <tr>
             <td colSpan={5}>
               <table border={1}>
                 <thead>
                   <tr>
-                    <th colSpan={formData.values.voices.length + 3}>Composition</th>
+                    <th colSpan={selectedVoices.length + 3}>Composition</th>
+                  </tr>
+                  <tr>
+                    <th></th>
+                    <th>Time (sec)</th>
+                    <>
+                      {selectedVoices
+                        .map((v: Voice, i) => (
+                            <th key={`cheader1-${i}`}>{v.name}</th>
+                        ))}
+                    </>
+                    <th>Sum</th>
                   </tr>
                   <tr>
                     <th>Move</th>
-                    <th>Time (sec)</th>
-                    <>
-                      {formData.values.voices.map((v: Voice, i) => (
-                        <th key={`cheader1-${i}`}>{v.name}</th>
-                      ))}
-                    </>
-                    <th>Sum</th>
-                  </tr>
-                  <tr>
-                    <th></th>
                     <th></th>
                     <>
-                      {formData.values.voices.map((_v: Voice, i) => (
-                        <th key={`cheader2-${i}`}>
-                          <button
-                            className="submitbutton"
-                            hidden={i == 0}
-                            key={"time-left:" + i}
-                            onClick={(e) => handleVoiceLeftRight(e, "left", i)}
-                          >
-                            <AiFillCaretLeft />
-                          </button>
-                          <button
-                            hidden={i == formData.values.voices.length - 1}
-                            className="submitbutton"
-                            key={"time-right:" + i}
-                            onClick={(e) => handleVoiceLeftRight(e, "right", i)}
-                          >
-                            <AiFillCaretRight />
-                          </button>
-                        </th>
-                      ))}
+                      {selectedVoices
+                        .map((_v: Voice, i) => (
+                            <th key={`cheader2-${i}`}>
+                              <button
+                                className="submitbutton"
+                                hidden={i == 0}
+                                key={"time-left:" + i}
+                                onClick={(e) =>
+                                  handleVoiceLeftRight(e, "left", i)
+                                }
+                              >
+                                <AiFillCaretLeft />
+                              </button>
+                              <button
+                                hidden={i == selectedVoices.length - 1}
+                                className="submitbutton"
+                                key={"time-right:" + i}
+                                onClick={(e) =>
+                                  handleVoiceLeftRight(e, "right", i)
+                                }
+                              >
+                                <AiFillCaretRight />
+                              </button>
+                            </th>
+                        ))}
                     </>
-                    <th>Sum</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {formData.values.composition.map((row, i) => (
+                  {composition.map((row, i) => (
                     <tr key={`crow-${i}`}>
                       <td>
                         <button
@@ -370,7 +428,7 @@ export default function StochasticComposition(
                           <AiFillCaretUp />
                         </button>
                         <button
-                          hidden={i == formData.values.composition.length - 1}
+                          hidden={i == composition.length - 1}
                           className="submitbutton"
                           id={"time-down:" + i}
                           key={"time-down:" + i}
@@ -382,18 +440,23 @@ export default function StochasticComposition(
                       <td style={{ textAlign: "center" }}>
                         {precision(formData.getDeltaT() * i, 2)}
                       </td>
-                      {row.map((value, i) => (
-                        <td
-                          key={`voice-${value}-${i}`}
-                          style={{ textAlign: "center" }}
-                        >
-                          {value}
-                        </td>
-                      ))}
+                      {row
+                        .map((value, i) =>
+                          !formData.values.muted[i] ? (
+                            <td
+                              key={`voice-${value}-${i}`}
+                              style={{ textAlign: "center" }}
+                            >
+                              {value}
+                            </td>
+                          ) : null
+                        )
+                        .filter((v) => v)}
                       <td style={{ textAlign: "center" }}>
                         {row
-                          .reduce(function (x, y) {
-                            return x + y;
+                          .reduce(function (x, y, i) {
+                            if (!formData.values.muted[i]) return x + y;
+                            else return x;
                           }, 0)
                           .toFixed(0)}
                       </td>

@@ -1,21 +1,23 @@
 // Update various parts of the CMGFile based
 // various transactions within the system
 import CMGFile from "classes/cmgfile";
-import { Control, EFFECTTYPE } from "classes/control";
+import Control from "classes/control"
+import { EFFECTTYPE } from "classes/control";
 import Compressor from "classes/roomnodes/compressor";
 import Equalizer from "classes/roomnodes/equalizer";
 import Reverb from "classes/roomnodes/reverb";
 import Volume from "classes/roomnodes/volume";
 import Track from "classes/track";
+import { Dispatch, SetStateAction } from "react";
 import { GeneratorType } from "types";
 
-export function newFile(contents: CMGFile, setFileContents: Function): void {
+export function newFile(contents: CMGFile, setFileContents: Dispatch<SetStateAction<CMGFile>>): void {
   setFileContents(contents);
 }
 
 export function setFileComment(
   comment: string,
-  setFileContents: Function
+  setFileContents: Dispatch<SetStateAction<CMGFile>>
 ): void {
   setFileContents((prev: CMGFile) => {
     const n: CMGFile = prev.copy();
@@ -28,7 +30,7 @@ export function setFileComment(
 export function setDirty(
   state: boolean,
   fileContents: CMGFile,
-  setFileContents: Function
+  setFileContents: Dispatch<SetStateAction<CMGFile>>
 ) {
   if (fileContents.dirty != state) {
     setFileContents((c: CMGFile) => {
@@ -41,7 +43,7 @@ export function setDirty(
 
 export function setEqualizer(
   newEqualizer: Equalizer,
-  setFileContents: Function
+  setFileContents: Dispatch<SetStateAction<CMGFile>>
 ): void {
   setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
@@ -53,7 +55,7 @@ export function setEqualizer(
 
 export function setCompressor(
   newCompressor: Compressor,
-  setFileContents: Function
+  setFileContents: Dispatch<SetStateAction<CMGFile>>
 ): void {
   setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
@@ -63,7 +65,7 @@ export function setCompressor(
   });
 }
 
-export function setReverb(newReverb: Reverb, setFileContents: Function): void {
+export function setReverb(newReverb: Reverb, setFileContents: Dispatch<SetStateAction<CMGFile>>): void {
   setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
     nc.dirty = true;
@@ -72,7 +74,7 @@ export function setReverb(newReverb: Reverb, setFileContents: Function): void {
   });
 }
 
-export function setVolume(newVolume: Volume, setFileContents: Function): void {
+export function setVolume(newVolume: Volume, setFileContents: Dispatch<SetStateAction<CMGFile>>): void {
   setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
     nc.dirty = true;
@@ -81,7 +83,7 @@ export function setVolume(newVolume: Volume, setFileContents: Function): void {
   });
 }
 
-export function addTrack(newTrack: Track, setFileContents: Function) {
+export function addTrack(newTrack: Track, setFileContents: Dispatch<SetStateAction<CMGFile>>) {
   setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
     nc.dirty = true;
@@ -90,7 +92,7 @@ export function addTrack(newTrack: Track, setFileContents: Function) {
   });
 }
 
-export function deleteTrack(index: number, setFileContents: Function) {
+export function deleteTrack(index: number, setFileContents: Dispatch<SetStateAction<CMGFile>>) {
   setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
 
@@ -106,7 +108,7 @@ export function deleteTrack(index: number, setFileContents: Function) {
 export function renameTrack(
   index: number,
   newName: string,
-  setFileContents: Function
+  setFileContents: Dispatch<SetStateAction<CMGFile>>
 ) {
   setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
@@ -121,7 +123,7 @@ export function renameTrack(
   });
 }
 
-export function addControl (newControl: Control, setFileContents: Function) {
+export function addControl (newControl: Control, setFileContents: Dispatch<SetStateAction<CMGFile>>) {
     setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
     nc.dirty = true;
@@ -131,7 +133,7 @@ export function addControl (newControl: Control, setFileContents: Function) {
   });
 }
 
-export function deleteControl (index: number, setFileContents: Function) {
+export function deleteControl (index: number, setFileContents: Dispatch<SetStateAction<CMGFile>>) {
     setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
     nc.dirty = true;
@@ -142,7 +144,7 @@ export function deleteControl (index: number, setFileContents: Function) {
 
 }
 
-export function renameControl (index: number, newName: string, setFileContents: Function) {
+export function renameControl (index: number, newName: string, setFileContents: Dispatch<SetStateAction<CMGFile>>) {
     setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
     nc.dirty = true;
@@ -151,7 +153,7 @@ export function renameControl (index: number, newName: string, setFileContents: 
   });
 
 }
-export function modifyControl(index: number, control: Control, setFileContents: Function) {
+export function modifyControl(index: number, control: Control, setFileContents: Dispatch<SetStateAction<CMGFile>>) {
   setFileContents((c:CMGFile)=> {
     const newC: CMGFile = c.copy();
     newC.controls[index] = control.copy();
@@ -161,7 +163,7 @@ export function modifyControl(index: number, control: Control, setFileContents: 
 
 }
 
-export function modifyTrackGenerators (index: number, gens: GeneratorType[], setFileContents: Function) {
+export function modifyTrackGenerators (index: number, gens: GeneratorType[], setFileContents: Dispatch<SetStateAction<CMGFile>>) {
   setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
     nc.tracks[index].generators = [...gens];
@@ -173,7 +175,7 @@ export function modifyTrackGenerators (index: number, gens: GeneratorType[], set
 export function flipTrackAttribute(
   index: number,
   attribute: string,
-  setFileContents: Function
+  setFileContents: Dispatch<SetStateAction<CMGFile>>
 ) {
   setFileContents((c: CMGFile) => {
     const newC: CMGFile = c.copy();
@@ -187,7 +189,7 @@ export function flipTrackAttribute(
   });
 }
 
-export function modifyTrack(index: number, track: Track, setFileContents: Function) {  
+export function modifyTrack(index: number, track: Track, setFileContents: Dispatch<SetStateAction<CMGFile>>) {  
   setFileContents((c:CMGFile)=> {
     const newC: CMGFile = c.copy();
     newC.tracks[index] = track;
@@ -199,7 +201,7 @@ export function modifyTrack(index: number, track: Track, setFileContents: Functi
 export function moveTrack(
   trackName: string,
   direction: string,
-  setFileContents: Function
+  setFileContents: Dispatch<SetStateAction<CMGFile>>
 ) {
   setFileContents((prev: CMGFile) => {
     const newF: CMGFile = prev.copy();
@@ -248,7 +250,7 @@ function findGeneratorIndex (track:Track, name:string): number {
 }
 export function addGenerator(
   generator: GeneratorType,
-  setFileContents: Function
+  setFileContents: Dispatch<SetStateAction<CMGFile>>
 ) {
   setFileContents((prev: CMGFile) => {
     const newF: CMGFile = prev.copy();
@@ -262,7 +264,7 @@ export function addGenerator(
 export function modifyGenerator(
   generator: GeneratorType,
   oldName: string,
-  setFileContents: Function
+  setFileContents: Dispatch<SetStateAction<CMGFile>>
 ) {
   setFileContents((prev: CMGFile) => {
     const newF: CMGFile = prev.copy();
@@ -280,7 +282,7 @@ export function modifyGenerator(
 
 export function deleteGenerator(
   generator: GeneratorType,
-  setFileContents: Function
+  setFileContents: Dispatch<SetStateAction<CMGFile>>
 ) {
   setFileContents((prev: CMGFile) => {
     const newF: CMGFile = prev.copy();
@@ -299,7 +301,7 @@ export function deleteGenerator(
 export function flipGeneratorMute(
   track: Track,
   index: number,
-  setFileContents: Function
+  setFileContents: Dispatch<SetStateAction<CMGFile>>
 ) {
   setFileContents((prev: CMGFile) => {
     const newF: CMGFile = prev.copy();
@@ -319,7 +321,7 @@ export function moveGeneratorBodyPosition(
   track: Track,
   index: number,
   position: number,
-  setFileContents: Function
+  setFileContents: Dispatch<SetStateAction<CMGFile>>
 ) {
   setFileContents((prev: CMGFile) => {
     const newF: CMGFile = prev.copy();
@@ -340,7 +342,7 @@ export function moveGeneratorTime(
   index: number,
   newValue: number,
   edge: string,
-  setFileContents: Function
+  setFileContents: Dispatch<SetStateAction<CMGFile>>
 ) {
   setFileContents((prev: CMGFile) => {
     const newF: CMGFile = prev.copy();
@@ -349,13 +351,10 @@ export function moveGeneratorTime(
     );
     if (!thisTrack) return prev;
     const newG: GeneratorType = thisTrack.generators[index];
-    const dT: number = newG.stopTime - newG.startTime;
     if (edge == 'start') {
     newG.startTime = newValue;
-    newG.stopTime = newValue + dT;
     } else {
       newG.stopTime = newValue;
-      newG.startTime = newValue - dT;
     }
     newF.dirty = true;
     return newF;

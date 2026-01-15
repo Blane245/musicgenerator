@@ -14,7 +14,7 @@ import { signalLevel } from "utils/signallevel";
 import Algorithmic from "classes/generators/algorithmic";
 export interface PresetDialogProps {
   generator: Algorithmic;
-  setViewPreset: Function;
+  setViewPreset: React.Dispatch<React.SetStateAction<boolean>>;
 }
 export default function PresetDialog(props: PresetDialogProps): JSX.Element {
   const { generator, setViewPreset } = props;

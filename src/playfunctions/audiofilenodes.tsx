@@ -18,9 +18,9 @@ export function getBufferSourceNodesFromAudioFile(
   const theseSamples: Float32Array[] = [];
   samples.forEach((c: Float32Array) => {
     const thisSample: Float32Array = new Float32Array(c);
-    thisSample.forEach((s) => {
-      s = s * volumeGain;
-    });
+    for (let i = 0; i < thisSample.length; i++) {
+      thisSample[i]*=volumeGain;
+    }
     theseSamples.push(thisSample);
   });
   sourceData.push({

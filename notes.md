@@ -1,53 +1,18 @@
-# development of stochastic generator
-when sound event have been placed in cells, allow user manipulation (permutation of rows and columns)
-- create generator class
-    - definitions for cell counts for time and each attribute
-    - cell distribution versions
-- create stochastic attribute classes
-    - by grain define modulation scheme. one scheme for each interval. (this may be overkill. May a single modulation scheme for each attribute)
-- define constants
-    - sine sampling curve
-- write utilities
-- create dialog
-    - should be come graphics to show cell distributions with user manipulation (and saving) of cell matrix for 
-    each attributes over time. Source generation will use the version selected. 
-- create sample channel buffers: (stochasticnodes.tsx)
-- do preview logic - simple like audiofile
-- to record logic - simple like audiofile
-# things to know    
-for match conditional statements in HTML
-/\{g\.(.*)\?.*\n(.*).*\n.*\).*/
-
-<img src="./docs/images/icons/arrow-left.svg" width=16 height=16 alt="Left-pointing arrow" />
-
-![alt text](./docs/images/icons/arrow-left.svg){width=16 height=16}
-# React Icons Used in CMG
-The following React Icons are used throughout the application:
-
-## Timeline Controls
-- **CiPlay1** (Play) - Start playback
-- **CiPause1** (Pause) - Pause playback  
-- **CiStop1** (Stop) - Stop playback
-- **CiFastForward** (Fast Forward) - Speed up playback
-- **CiRewind** (Rewind) - Rewind playback
-
-## Track Controls  
-- **AiFillDelete** (Delete) - Remove track
-- **AiOutlineEdit** (Edit) - Edit track properties
-- **CgRename** (Rename) - Rename track
-- **IoPerson/IoPersonOutline** (Person) - User/person indicator
-- **FaTools** (Tools) - Access tools menu
-- **RiAiGenerate** (Generate) - AI generation functions
-
-## Navigation
-- **GoArrowLeft** (←) - Navigate left/back
-- **GoArrowRight** (→) - Navigate right/forward  
-- **GoArrowUp** (↑) - Navigate up
-
-## Processing
-- **PiEnvelopeThin** (Envelope) - Envelope processing
+# Bugs
+- preview hangs up at the final few seconds and finally releases with a React error: [Violation] Forced reflow while  executing JavaScript took 30ms
+- getting a lot of popping during stochastic playback. tries an attack ramp of 50ms but no difference
+ - ControlDialog: check boxes have to be changed twice to change them
+ - when a note sequence id reloaded, the duration of the generator should be recalculated.
+- when previewing in the generator dialog, changes made to the parameters are lost after the preview. Somehow the dialog has to be reactivated after a preview with these changes but not update the fileContents with the formData. This is a result of the use of the .copy() method which signals a change similar to the stop time calculation method above
+# Enhancements
+- add volume control to stochastic voices. Some of the soundfonts do not have good balance. Maybe preprocessing the samples and coming up with a mutual balancing scheme would be better. 
+- display channel signals for stochastic and audiofile preview
+- consider using slow time line scrolling during preview
+- pipe dream - add a video producer that takes hints from the composer and does drawings based on the sounds and those hints. See the ChatGPT chat on scribble for some guidance on structural hints from the composer. 
+- implement soundfont modulators - (probably not) this is very complicated and adds a lot of controls to each instrument. It would give me better control over attenuation, which is currently problematic. 
 
 # things to do
+- update user guide
 - implement voice muting in stochastic
 - add measure timing and use measure length as beats/measure in sequencer algorithm. Use preferences as default when sequencer selected. On beats stays as is.
 - add a control mechanism that will affect parameters of the entire composition, individual tracks, or individual generators. A control has a specific time. Its effects are active until they are canceled. Some effects to consider. Each may be applied to the entire composition or a specific set of tracks and/or generators.
@@ -82,18 +47,6 @@ The following React Icons are used throughout the application:
         -during source generation at the sample level and are always in effect unless the control track or the control is disabled. Thus, when a time interval is defined selecting a set of generators, controls are processed from t0 and their states at the time of the start of preview or record are as if the entire timeline has been selected. 
 
 - measure lengths are not constant in time when the speed attribute is changed. Now, I have a measure length in seconds in preferences and that is what is used to draw the timeline. This is incorrect and in fact I'm not sure that the conversion from time to measures makes sense when generators can all run at their own speeds. The sequencers conversion is particularly bad. Maybe I should abandon measure display and data entry unless I can think of a solution. (haven't thought of one yet)
- # Bugs
- - pan is handled differently by algorithmic and stochastic generators. Adopt the stochastic method. 
-- control volume ramp up is going past end level
- - update status messages more regularly
- - ControlDialog: check boxes have to be changed twice to change them
- - when a note sequence id reloaded, the duration of the generator should be recalculated.
-- when previewing in the generator dialog, changes made to the parameters are lost after the preview. Somehow the dialog has to be reactivated after a preview with these changes but not update the fileContents with the formData. This is a result of the use of the .copy() method which signals a change similar to the stop time calculation method above
-# Enhancements
-- display channel signals for stochastic and audiofile preview
-- consider using slow time line scrolling during preview
-- pipe dream - add a video producer that takes hints from the composer and does drawings based on the sounds and those hints. See the ChatGPT chat on scribble for some guidance on structural hints from the composer. 
-- implement soundfont modulators - (probably not) this is very complicated and adds a lot of controls to each instrument. It would give me better control over attenuation, which is currently problematic. 
 
 # 5.0.0 Updates
 - added button to generate random seeds for noise and algorithms
@@ -149,3 +102,36 @@ The preferences will change. Rather than a measure length in seconds, the meter 
     - As these effects are modification of existing attributes, they could be implemented a properties of these attributes. The effects would be realized as modifications to the samples generated when the instrument sample is being processed.
         - in the case of pitch variation vibrato, this is realized by modifying the playback rate during the conversion of the instrument sample into the final sample. The playback rate is calculated each time interval.
         - in the case of tremolo, the volume envelope processing will be changed. This will put modulations on the volume envelope thus creating many more points. Linear interpolation is used to determine gain values between envelope points. 
+# things to know    
+for match conditional statements in HTML
+/\{g\.(.*)\?.*\n(.*).*\n.*\).*/
+
+<p align="center">
+  <img src="./docs/images/icons/arrow-left.svg" width="10%" height: auto; alt="description">
+</p>
+# React Icons Used in CMG
+The following React Icons are used throughout the application:
+
+## Timeline Controls
+- **CiPlay1** (Play) - Start playback
+- **CiPause1** (Pause) - Pause playback  
+- **CiStop1** (Stop) - Stop playback
+- **CiFastForward** (Fast Forward) - Speed up playback
+- **CiRewind** (Rewind) - Rewind playback
+
+## Track Controls  
+- **AiFillDelete** (Delete) - Remove track
+- **AiOutlineEdit** (Edit) - Edit track properties
+- **CgRename** (Rename) - Rename track
+- **IoPerson/IoPersonOutline** (Person) - User/person indicator
+- **FaTools** (Tools) - Access tools menu
+- **RiAiGenerate** (Generate) - AI generation functions
+
+## Navigation
+- **GoArrowLeft** (←) - Navigate left/back
+- **GoArrowRight** (→) - Navigate right/forward  
+- **GoArrowUp** (↑) - Navigate up
+
+## Processing
+- **PiEnvelopeThin** (Envelope) - Envelope processing
+

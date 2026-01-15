@@ -87,7 +87,7 @@ export default class Track {
       }
       trackElem.appendChild(generatorsElem);
       return Promise.resolve(trackElem);
-    } catch (e: any) {
+    } catch (e) {
       console.log("XML file writing error on track", this.name);
       return Promise.reject(e);
     }
@@ -115,7 +115,7 @@ export default class Track {
         throw new Error(`Track getXML missing generators element`);
       const generatorChildren: HTMLCollection = generatorsElem.children;
       const generatorPromises: Promise<GeneratorType>[] = [];
-      for (let child of generatorChildren) {
+      for (const child of generatorChildren) {
         // read ahead the type to identify the XML loader
         const type = child.getAttribute("type") as GENERATORTYPE;
         switch (type) {

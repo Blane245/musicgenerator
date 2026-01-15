@@ -43,11 +43,12 @@ export default class Silent {
         case "type":
         this.type = GENERATORTYPE.Silent;
         return true;
-      case "startTime":
+      case "startTime": {
         const interval: number = this.stopTime - this.startTime;
         this.startTime = parseFloat(value);
         this.stopTime = this.startTime + interval;
         return true;
+      }
       case "stopTime":
         this.stopTime = parseFloat(value);
         return true;
@@ -71,7 +72,7 @@ export default class Silent {
       returnElem.setAttribute("mute", this.mute.toString());
       returnElem.setAttribute("position", this.position.toString());
       return Promise.resolve(returnElem);
-    } catch (e: any) {
+    } catch (e) {
       return Promise.reject(e);
     }
   }

@@ -17,61 +17,61 @@ export default function GeneratorEffectDialog(
 ): JSX.Element {
   const { effect, list, tracks, handleChange, handleListChange } = props;
   return (
-             <>
-                  <label style={{display:"inline-grid"}}>
-                    &nbsp;Generator List&nbsp;
-                    <select
-                      name="list"
-                      multiple
-                      size={5}
-                      value={list}
-                      onChange={(e) => handleListChange(e)}
-                    >
-                      {tracks.map((t) =>
-                        t.generators.map((g) => (
-                          <option key={`generators-${g.name}`} value={g.name}>
-                            {g.name}
-                          </option>
-                        ))
-                      )}
-                    </select>
-                  </label>
-                <label>
-                  &nbsp;Enable Noise&nbsp;
-                  <input
-                    name="noiseEnable"
-                    type="checkbox"
-                    checked={effect.noiseEnable}
-                    onChange={(e) => handleChange(e)}
-                  />
-                </label>
-                <label>
-                  &nbsp;Enable Reverb&nbsp;
-                  <input
-                    name="reverbEnable"
-                    type="checkbox"
-                    checked={effect.reverbEnable}
-                    onChange={(e) => handleChange(e)}
-                  />
-                </label>
-                <label>
-                  &nbsp;Enable Tremelo&nbsp;
-                  <input
-                    name="tremoloEnable"
-                    type="checkbox"
-                    checked={effect.tremoloEnable}
-                    onChange={(e) => handleChange(e)}
-                  />
-                </label>
-                <label>
-                  &nbsp;Enable Vibrato&nbsp;
-                  <input
-                    name="vibratoEnable"
-                    type="checkbox"
-                    checked={effect.vibratoEnable}
-                    onChange={(e) => handleChange(e)}
-                  />
-                </label>
-              </>
+    <>
+      <label style={{ display: "inline-grid" }}>
+        &nbsp;Generator List&nbsp;
+        <select
+          name="list"
+          multiple
+          size={5}
+          value={list}
+          onChange={(e) => handleListChange(e)}
+        >
+          {tracks.map((t) =>
+            t.generators.map((g) => (
+              <option key={`generators-${g.name}`} value={g.name}>
+                {g.name}
+              </option>
+            ))
+          )}
+        </select>
+      </label>
+      <label>
+        &nbsp;Enable Noise&nbsp;
+        <input
+          name="noiseEnable"
+          type="checkbox"
+          checked={effect.noiseEnable}
+          onChange={(e) => handleChange(e)}
+        />
+      </label>
+      <label>
+        &nbsp;Enable Reverb&nbsp;
+        <input
+          name="reverbEnable"
+          type="checkbox"
+          checked={effect.reverbEnable}
+          onChange={(e) => handleChange(e)}
+        />
+      </label>
+      <label>
+        &nbsp;Enable Tremelo&nbsp;
+        <input
+          name="tremoloEnable"
+          type="checkbox"
+          checked={effect.tremoloEnable}
+          onChange={(e) => handleChange(e)}
+        />
+      </label>
+      <label>
+        &nbsp;Enable Vibrato&nbsp;
+        <input
+          name="vibratoEnable"
+          type="checkbox"
+          checked={effect.vibratoEnable}
+          onChange={(e) => handleChange(e)}
+        />
+      </label>
+    </>
   );
 }

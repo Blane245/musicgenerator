@@ -26,7 +26,7 @@ export default function signalMonitor(
 
   if (paused.current) {
     // console.log("signalMonitor paused");
-    signalId && clearTimeout(signalId);
+    if (signalId != 0) clearTimeout(signalId);
     return;
   }
   if (!audioContext) return;
@@ -101,7 +101,7 @@ export default function signalMonitor(
        
     );
   } else {
-    signalId && clearTimeout(signalId);
+    if (signalId != 0) clearTimeout(signalId);
     setSignalLevels({
       leftVolume: 0,
       leftMax: 0,

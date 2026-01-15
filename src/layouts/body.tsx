@@ -2,13 +2,8 @@
 // information is a scrollable
 import { useCMGContext } from "cmgcontext";
 import TracksDisplay from "components/tracksdisplay";
-import { useEffect } from "react";
 export default function Body() {
-  const { bodyHeight, displayWidth, setStatus } = useCMGContext();
-
-  useEffect(() => {
-    setStatus("");
-  }, []);
+  const { bodyHeight, displayWidth} = useCMGContext();
 
   return (
     <div className="body" style={{ width: displayWidth, height: bodyHeight }}>

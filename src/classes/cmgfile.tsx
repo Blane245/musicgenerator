@@ -5,7 +5,7 @@ import Track from "classes/track";
 import { GeneratorType } from "types";
 import { getAttributeValue, getElementElement } from "utils/xmlfunctions";
 import Volume from "./roomnodes/volume";
-import { Control } from "./control";
+import Control from "./control";
 export default class CMGFile {
   dirty: boolean; // if the contents of the file has been changed since loaded, it is marked dirty
   name: string; // the name of the file on the disk or null if not saved
@@ -21,7 +21,6 @@ export default class CMGFile {
   constructor() {
     this.dirty = false;
     this.name = "";
-    // @ts-ignore
     this.version = import.meta.env.VERSION;
     this.compressor = new Compressor();
     this.equalizer = new Equalizer();
@@ -104,7 +103,7 @@ export default class CMGFile {
     controlsElem = getElementElement(fcElem, "controls");
     if (controlsElem) {
       const controlsChildren: HTMLCollection = controlsElem.children;
-      for (let child of controlsChildren) {
+      for (const child of controlsChildren) {
         const control: Control = Control.getXml(child, this.version);
         newControls.push(control);
       }

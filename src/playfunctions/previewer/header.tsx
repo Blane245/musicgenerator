@@ -4,9 +4,9 @@ import { useCMGContext } from "cmgcontext";
 interface HeaderProps {
   running: boolean;
   isPaused: boolean;
-  onExit: Function;
-  OnStartStop: Function;
-  onPauseResume: Function;
+  onExit: ()=>void;
+  OnStartStop: ()=>void;
+  onPauseResume: ()=>void;
 }
 export default function Header(props: HeaderProps): JSX.Element {
   const {

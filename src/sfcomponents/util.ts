@@ -1,37 +1,38 @@
 import { Preset } from "./types";
-export const tokenizeNote = (note: any) => {
+export const tokenizeNote = (note: string): [string | undefined, string | undefined, number| undefined] | [] => {
   if (typeof note !== "string") {
     return [];
   }
-  const [pc, acc = "", oct] =
-    note.match(/^([a-gA-G])([#bs]*)([0-9])?$/)?.slice(1) || [];
+  const matchResult: RegExpMatchArray | null = note.match(/^([a-gA-G])([#bs]*)([0-9])?$/);
+  const [pc, acc='', oct] = matchResult && matchResult.length >=2?[...matchResult[1]]:[undefined, undefined, undefined];
+
+  // const [pc, acc = "", oct] =
+  //   note.match(/^([a-gA-G])([#bs]*)([0-9])?$/)?.slice(1) || [];
   if (!pc) {
     return [];
   }
-  return [pc, acc, oct ? Number(oct) : undefined];
+  return [pc, acc, oct ? parseInt(oct) : undefined];
 };
 const accs = { "#": 1, b: -1, s: 1 };
+
 // turns the given note into its pitch number representation
-export const toMidi = (note: any) => {
-  if (typeof note === "number") {
-    return note;
-  }
+export const toMidi = (note: string): number | undefined => {
   const [pc, acc, oct] = tokenizeNote(note);
-  if (!pc) {
-    throw new Error('not a note: "' + note + '"');
+  if (pc == undefined || oct == undefined) {
+    return undefined;
   }
-  const chroma = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 }[
-    (pc as string).toLowerCase()
+
+  const chroma: number | undefined = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 }[
+    pc.toLowerCase()
   ];
-  const offset =
-    (acc as string)
-      ?.split("")
-      .reduce((o, char) => o + (accs as any)[char], 0) || 0;
-  return (Number(oct) + 1) * 12 + (chroma as number) + offset;
+  if (chroma == undefined) { return undefined};
+
+  const offset = (acc != undefined)?accs[acc]:0;
+  return (oct + 1) * 12 + chroma + offset;
 };
 
 // timecents to seconds
-export const tc2s = (timecents: number) => {
+export const tc2s = (timecents: number): number => {
   const result = (timecents == -32768 ? 0: Math.max(0.01, Math.pow(2, timecents / 1200)));
   return result;
 }

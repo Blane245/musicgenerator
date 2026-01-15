@@ -1,7 +1,8 @@
-import { DbEnsembleListType, DbResponseType } from "types";
+import { Dispatch, SetStateAction } from "react";
+import { DbEnsembleListType, DbResponseType, EnsembleType } from "types";
 import { fetchDBData } from "./fetchdata";
 
-  export default async function loadEnsembleList(setEnsembleList: Function) {
+  export default async function loadEnsembleList(setEnsembleList: Dispatch<SetStateAction<EnsembleType[]>>) {
     const value: DbResponseType = await fetchDBData("/ensembles", "GET");
     if (value.type == "ensemblelist") {
       setEnsembleList((value as DbEnsembleListType).value);

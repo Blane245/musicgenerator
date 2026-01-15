@@ -6,7 +6,7 @@ import { ALGORITHMTYPE } from "types";
 // The user interface should take care to check that these have been specified
 export class AlgorithmValues {
   algorithmType: ALGORITHMTYPE = ALGORITHMTYPE.None; // the type of algorithm
-  values: {} = {};
+  values = {};
 
   constructor(algorithmType: ALGORITHMTYPE) {
     this.algorithmType = algorithmType;

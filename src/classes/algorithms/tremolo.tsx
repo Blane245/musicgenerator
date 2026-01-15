@@ -58,7 +58,7 @@ getCurrentValue(time: number, _beat?: number): number {
       elem.setAttribute("speed", this.values.speed.toString());
       elem.setAttribute("depth", this.values.depth.toString());
       return Promise.resolve(elem);
-    } catch (e: any) {
+    } catch (e) {
       return Promise.reject(e);
     }
   }

@@ -30,34 +30,34 @@ export default function buildPresetSample(props: {
 			sampleRate: instrumentSampleRate,
 		} = header;
 		const {
-			// @ts-ignore
+			// @ts-expect-error cannot find name? 
 			overridingRootKey,
-			// @ts-ignore
+			// @ts-expect-error cannot find name? 
 			fineTune = 0,
-			// @ts-ignore
+			// @ts-expect-error cannot find name? 
 			startloopAddrsOffset = 0,
-			// @ts-ignore
+			// @ts-expect-error cannot find name? 
 			startloopAddrsCoarseOffset = 0,
-			// @ts-ignore
+			// @ts-expect-error cannot find name? 
 			endloopAddrsOffset = 0,
-			// @ts-ignore
+			// @ts-expect-error cannot find name? 
 			endloopAddrsCoarseOffset = 0,
-			// @ts-ignore
-			delayVolEnv = -12000,
-			// @ts-ignore
-			attackVolEnv = -12000,
-			// @ts-ignore
-			holdVolEnv = -12000,
-			// @ts-ignore
-			decayVolEnv = -12000,
-			// @ts-ignore
-			sustainVolEnv = -12000,
-			// @ts-ignore
-			releaseVolEnv = -12000,
-			// @ts-ignore
+			// @ts-expect-error cannot find name? 
+			_delayVolEnv = -12000,
+			// @ts-expect-error cannot find name? 
+			_attackVolEnv = -12000,
+			// @ts-expect-error cannot find name? 
+			_holdVolEnv = -12000,
+			// @ts-expect-error cannot find name? 
+			_decayVolEnv = -12000,
+			// @ts-expect-error cannot find name? 
+			_sustainVolEnv = -12000,
+			// @ts-expect-error cannot find name? 
+			_releaseVolEnv = -12000,
+			// @ts-expect-error cannot find name? 
 			sampleModes = 0,
-			// @ts-ignore
-			initialAttenuation = 0,
+			// @ts-expect-error cannot find name? 
+			_initialAttenuation = 0,
 		} = zone.mergedGenerators;
 
 		// get the starting playback rate

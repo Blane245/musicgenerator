@@ -2,5 +2,10 @@
 export function softDisconnect (source: AudioNode, destination: AudioNode) {
     try {
         source.disconnect(destination);
-    } catch (e) {}
+    } catch (e) {
+        // Ignore errors when nodes are not connected
+        if (typeof e != typeof DOMException && (e as DOMException).name != "InvalidAccessError") {
+            throw new Error (`Unexpected error while disconnecting source from a destination: ${(e as Error).message}`);
+        }
+    }
 }

@@ -30,7 +30,7 @@ export async function fetchFSData(
     // return either a response from the filesystem or from the database
       const json: FSResponse = await response.json();
       return json;
-  } catch (e: any) {
+  } catch (e) {
     console.log(`fetch exception ${e} on port ${import.meta.env.FSPORT}`);
       return { error: true, status: `${e}` };
   }
@@ -65,7 +65,7 @@ export async function fetchDBData(
     // return either a response from the filesystem or from the database
       const json: DbResponseType = await response.json();
       return json;
-  } catch (e: any) {
+  } catch (e) {
     console.log(`fetch exception ${e} on port ${import.meta.env.DBPORT}`);
       return { type: DBRESPONSETYPE.error, message: `${e}` };
   }

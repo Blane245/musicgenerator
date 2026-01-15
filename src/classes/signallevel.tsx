@@ -36,7 +36,7 @@ export default class SignalLevel {
 
   #getAverage(analyser: AnalyserNode, dataArray: Float32Array): {average: number, max: number} {
     if (dataArray.length > 0) {
-      // @ts-ignore
+      // @ts-expect-error arraybufferlike and array buffer are not the same thing
       analyser.getFloatTimeDomainData(dataArray);
       let average: number = 0;
       let max: number = 0;

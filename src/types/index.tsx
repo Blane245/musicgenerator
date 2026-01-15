@@ -1,15 +1,3 @@
-// Preferenences that are composition related
-export enum TIMELINETYPE {
-  "Time" = "Time",
-  "Measure" = "Measure",
-}
-export type TimeLinePreferences = {
-  TimeSnappingEnabled: boolean;
-  TimeLineSetting: TIMELINETYPE;
-  MeasureSubdivisions: number;
-};
-
-export type OscillatorBoxProperties = {};
 
 import { Buffer } from "buffer";
 import AutoregressiveValues from "classes/algorithms/autoregressivevalues";
@@ -33,6 +21,17 @@ import {
 } from "../modulators";
 import { SoundFont2 } from "../soundfont2";
 import { Preset } from "sfcomponents/types";
+
+// Preferences that are composition related
+export enum TIMELINETYPE {
+  "Time" = "Time",
+  "Measure" = "Measure",
+}
+export type TimeLinePreferences = {
+  TimeSnappingEnabled: boolean;
+  TimeLineSetting: TIMELINETYPE;
+  MeasureSubdivisions: number;
+};
 
 export const SAMPLERATE: number = 44100;
 
@@ -201,7 +200,8 @@ export type SequenceType = {
 };
 
 // Stochastic generator types
-export const RMSFACTOR: number = 0.75; // speed standard devision factor
+// export const RMSFACTOR: number = 0.75; // speed standard devision factor
+export const RMSFACTOR: number = 2; // speed standard devision factor
 
 // the number of clouds in each cell
 export type Composition = number[][];
@@ -625,7 +625,6 @@ export type ActiveSource = {
   gen: GeneratorType;
   source: AudioBufferSourceNode;
   sourceIndex: number;
-  panner: StereoPannerNode;
   vol: GainNode;
   stopTime: number;
 };

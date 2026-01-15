@@ -80,7 +80,7 @@ export default class OscillatorValues extends AlgorithmValues {
       elem.setAttribute("amplitude", this.values.amplitude.toString());
       elem.setAttribute("phase", this.values.phase.toString());
       return Promise.resolve(elem);
-    } catch (e: any) {
+    } catch (e) {
       return Promise.reject(e);
     }
   }

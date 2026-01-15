@@ -3,6 +3,7 @@
 // and add generator
 import Track from "classes/track";
 import { useCMGContext } from "cmgcontext";
+import { TrackDuplicateDialog, TrackShiftDialog, TrackVolumeDialog } from "dialogs/tracktooldialogs";
 import { ChangeEvent, FormEvent, MouseEvent, useState } from "react";
 import {
   AiFillCaretDown,
@@ -12,8 +13,8 @@ import {
   AiOutlineMuted,
 } from "react-icons/ai";
 import { CgRename } from "react-icons/cg";
-import { IoPerson, IoPersonOutline } from "react-icons/io5";
 import { FaTools } from "react-icons/fa";
+import { IoPerson, IoPersonOutline } from "react-icons/io5";
 import { RiAiGenerate } from "react-icons/ri";
 import { GENERATORTYPE } from "types";
 import {
@@ -22,7 +23,6 @@ import {
   moveTrack,
   renameTrack,
 } from "utils/cmfiletransactions";
-import { TrackDuplicateDialog, TrackShiftDialog, TrackVolumeDialog } from "dialogs/tracktooldialogs";
 
 export interface TrackControlsProps {
   tracks: Track[];
@@ -56,7 +56,6 @@ export default function TrackControls(props: TrackControlsProps) {
 
   function handleDeleteTrack(): void {
     setDeleteModal(true);
-    setStatus(``);
   }
   function handleDeleteOK(): void {
     const thisIndex = fileContents.tracks.findIndex(
@@ -70,18 +69,16 @@ export default function TrackControls(props: TrackControlsProps) {
 
   function handleDeleteCancel(): void {
     setDeleteModal(false);
-    setStatus(``);
+    setStatus(`Delete Track canceled`);
   }
 
   function handleRenameTrack(): void {
     setTrackName(track.name);
     setRenameModal(true);
-    setStatus(``);
   }
 
   function handleNewTrackName(event: ChangeEvent<HTMLInputElement>): void {
     setTrackName(event.target.value);
-    setStatus(``);
   }
 
   function handleRenameOK(event: FormEvent<Element>): void {
@@ -103,7 +100,7 @@ export default function TrackControls(props: TrackControlsProps) {
   function handleRenameCancel(): void {
     setRenameModal(false);
     setTrackName("");
-    setStatus(``);
+    setStatus(`Track rename canceled`);
   }
 
   // check that the new name for the track is not already being used

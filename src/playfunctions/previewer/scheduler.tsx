@@ -3,12 +3,12 @@
 // are currently playing are maintained in the graph to keep the load on the
 
 import CMGFile from "classes/cmgfile";
-import { Control } from "classes/control";
+import Control from "classes/control";
 import TimeLine from "classes/timeline";
 import {
   activateRealtimeControls,
   processActiveSources,
-  processGlobalControls
+  processGlobalControls,
 } from "playfunctions/controls/realtimecontrols";
 import { realizeSource } from "playfunctions/realizesource";
 import { ActiveSource, GENERATORTYPE, RawSourceData } from "types";
@@ -21,30 +21,29 @@ export default function scheduler(
   paused: React.MutableRefObject<boolean>,
   playing: React.MutableRefObject<boolean>,
   timerID: number,
-  audioContext: AudioContext,
+  audioContext: AudioContext | null,
   playbackLength: number,
-  onExit: Function,
+  onExit: () => void,
   concentrator: GainNode | null,
   activeSources: React.MutableRefObject<ActiveSource[]>,
   previewTimeline: React.MutableRefObject<TimeLine | null>,
   nextTime: number,
   pendingSourceData: React.MutableRefObject<RawSourceData[]>,
   offsetTime: number,
-  redrawSource: Function,
-  setActiveSourcesCount: Function,
+  redrawSource: (s: RawSourceData) => void,
+  setActiveSourcesCount: React.Dispatch<React.SetStateAction<number>>,
   fileContents: CMGFile,
   realtimeControls: React.MutableRefObject<Control[]>
 ): void {
   // if (paused.current) {
   if (paused.current) {
     // console.log("scheduler paused");
-    timerID && clearTimeout(timerID);
+    if (timerID != 0) clearTimeout(timerID);
     return;
   }
-  if (!audioContext) return;
   // check if done or stopped
   // const done: boolean = audioContext.currentTime > playbackLength + reflectionDelay;
-  const done: boolean = audioContext.currentTime > playbackLength;
+  const done: boolean = (!audioContext || audioContext.currentTime > playbackLength);
   if (!done && playing.current) {
     timerID = window.setTimeout(
       scheduler,
@@ -67,32 +66,36 @@ export default function scheduler(
       realtimeControls
     );
   } else {
-    if (audioContext.state !== "closed") {
+    if (audioContext && audioContext.state !== "closed") {
       audioContext.suspend();
       audioContext.close();
     }
-    // console.log("completed preview at ", playbackLength);
+    if (timerID != 0) window.clearTimeout(timerID);
+    console.log("completed preview at ", playbackLength);
     onExit();
     return;
   }
 
-  if (!concentrator) return;
+  if (!concentrator || !audioContext) return;
   let newActiveSources: ActiveSource[] = [...activeSources.current];
+    let nStarted: number = 0;
+    let nStopped: number = 0;
   if (playing.current && previewTimeline.current) {
     const aheadTime = audioContext.currentTime + SCHEDULEAHEADTIME;
 
     // activate a global and instrument reverb controls that occurs between currentTime + offsetTime and aheadTime + offsetTime
     realtimeControls.current = activateRealtimeControls(
       realtimeControls.current,
-      audioContext.currentTime + offsetTime, aheadTime + offsetTime, fileContents);
-      processGlobalControls(
-        audioContext.currentTime + offsetTime,
-        realtimeControls.current,
-        fileContents
-      );
+      audioContext.currentTime + offsetTime,
+      aheadTime + offsetTime,
+      fileContents
+    );
+    processGlobalControls(
+      audioContext.currentTime + offsetTime,
+      realtimeControls.current,
+      fileContents
+    );
 
-    let nStarted: number = 0;
-    let nStopped: number = 0;
     while (nextTime < aheadTime) {
       // console.log(activeSources.length,'active sources at time ', nextTime);
       // assuming the pending sorces are sorted in starttime order ...
@@ -106,13 +109,12 @@ export default function scheduler(
         // pendingSourceData.current.forEach((s: RawSourceData) => {
         // add any sources that are ready to start and are not already started
         // if (!s.source.started)
-        //   console.log('source candidate for starting at time',aheadTime,s.source.startTime, s.source.duration);
+          // console.log('source candidate for starting at time',aheadTime,s.source.startTime, s.source.duration);
         if (
           aheadTime >= s.source.startTime - offsetTime &&
           aheadTime <= s.source.startTime + s.source.duration - offsetTime &&
           !s.source.started
         ) {
-
           const activeSource: ActiveSource = realizeSource(
             audioContext,
             s,
@@ -127,7 +129,7 @@ export default function scheduler(
               s.source.duration
             );
           }
-          // console.log("source", s.index, "started at ", s.source.startTime, 'duration', s.source.duration);
+          console.log("source", s.index, "started at ", s.source.startTime, 'duration', s.source.duration);
           newActiveSources.push(activeSource);
           s.source.started = true;
           redrawSource(s);
@@ -147,10 +149,10 @@ export default function scheduler(
             (s) => s.index == activeSource.sourceIndex
           );
         if (thisSource == undefined) {
-          // console.log(
-          //   "could not find active source with index",
-          //   activeSource.sourceIndex
-          // );
+          console.log(
+            "could not find active source with index",
+            activeSource.sourceIndex
+          );
           return;
         }
         // const stopTime: number =
@@ -160,43 +162,41 @@ export default function scheduler(
         //     ? 0
         //     : reflectionDelay / 1000 + thisSource.source.duration);
         const stopTime: number = activeSource.stopTime - offsetTime;
-        // console.log('source stop candidate stoptime, audioContext', stopTime, ctx.currentTime);
+        // console.log('source stop candidate stoptime, audioContext', stopTime, audioContext.currentTime);
         if (audioContext.currentTime > stopTime) {
           if (activeSource.gen.type != GENERATORTYPE.Silent) {
             activeSource.source.disconnect();
             activeSource.vol.disconnect();
-            activeSource.panner.disconnect();
-            // console.log('source stopped at', audioContext.currentTime);
+            console.log('source stopped at', audioContext.currentTime);
           }
-          thisSource.source.started = false;
           if (activeSource.gen.type != GENERATORTYPE.Silent)
             redrawSource(thisSource);
-          // console.log(
-          //   "source",
-          //   activeSource.sourceIndex,
-          //   "stopped at",
-          //   stopTime
-          // );
+          console.log(
+            "source",
+            activeSource.sourceIndex,
+            "stopped at",
+            stopTime
+          );
           nStopped++;
           return false;
         } else return true;
       });
-          // handle the source's reverb settings for all active sources
-          processActiveSources(newActiveSources, realtimeControls.current);
+      // handle the source's reverb settings for all active sources
+      processActiveSources(newActiveSources, realtimeControls.current);
 
       // advance to the next scheduled time
       nextTime += SCHEDULEAHEADTIME;
     }
+  }
     // notify the display engine of the sources currently playing
     if (nStarted > 0 || nStopped > 0) {
-      // console.log(
-      //   "activesources has changed",
-      //   newActiveSources.length,
-      //   "pendingSources",
-      //   pendingSourceData.current.length
-      // );
+      console.log(
+        "activesources has changed",
+        newActiveSources.length,
+        "pendingSources",
+        pendingSourceData.current.length
+      );
       activeSources.current = newActiveSources;
       setActiveSourcesCount(newActiveSources.length);
     }
-  }
 }

@@ -72,7 +72,6 @@ export default class Algorithmic extends Silent {
   tremeloEnabled: boolean;
   vibrato: Tremolo;
   vibratoEnabled: boolean;
-  
 
   constructor(nextGenerator: number, parent: Track) {
     super(nextGenerator, parent);
@@ -90,8 +89,8 @@ export default class Algorithmic extends Silent {
     this.noteCount = 12;
     this.offsetNotes = 0;
     this.#activeNotes = euclideanRhythm(this.noteCount, 12, this.offsetNotes);
-    this.noiseSeed = '';
-    this.rn = new RandomNumber('');
+    this.noiseSeed = "";
+    this.rn = new RandomNumber("");
     this.noiseFrequency = 0;
     this.noiseAmplitude = 0;
     this.effectIn = undefined;
@@ -180,21 +179,17 @@ export default class Algorithmic extends Silent {
       !this.context
     )
       return;
-      // console.log('generator reverb enable', this.name, enabled);
+    // console.log('generator reverb enable', this.name, enabled);
     if (enabled) {
-      try {
-        softDisconnect(this.effectIn, this.#effectOut);
-      } catch (e) {}
+      softDisconnect(this.effectIn, this.#effectOut);
       this.effectIn.connect(this.#reverbHead);
     } else {
-      try {
-        softDisconnect(this.effectIn, this.#reverbHead);
-      } catch (e) {}
+      softDisconnect(this.effectIn, this.#reverbHead);
       this.effectIn.connect(this.#effectOut);
     }
   }
-  
-  setReverbEnabled(enabled:boolean) {
+
+  setReverbEnabled(enabled: boolean) {
     this.#enable(enabled);
   }
 
@@ -258,11 +253,12 @@ export default class Algorithmic extends Silent {
         }
         return true;
       }
-      case "presetName":
+      case "presetName": {
         this.presetName = value;
         const { preset } = presetNameToPreset(this.presetName, this.presets);
         this.preset = preset;
         return true;
+      }
       case "isLooping":
         this.isLooping = value == "true";
         return true;
@@ -489,7 +485,8 @@ export default class Algorithmic extends Silent {
     tremoloEnabled: boolean,
     vibratoEnabled: boolean
   ) {
-    (this.noiseEnabled = noiseEnabled), (this.tremeloEnabled = tremoloEnabled);
+    this.noiseEnabled = noiseEnabled;
+    this.tremeloEnabled = tremoloEnabled;
     this.vibratoEnabled = vibratoEnabled;
   }
 
@@ -639,7 +636,7 @@ export default class Algorithmic extends Silent {
       this.tremolo.appendXML(doc, tremeloElem);
       this.vibrato.appendXML(doc, vibratoElem);
       return Promise.resolve(returnElem);
-    } catch (e: any) {
+    } catch (e) {
       return Promise.reject(e);
     }
   }
@@ -680,10 +677,10 @@ export default class Algorithmic extends Silent {
       if (foundSoundFont == undefined) {
         SoundFontGenerators.set(g.soundFontFile, {
           type: GENERATORTYPE.Algorithmic,
-          users: [{generator:g, voiceNumber: 0}],
+          users: [{ generator: g, voiceNumber: 0 }],
         });
       } else {
-        foundSoundFont.users.push({generator: g, voiceNumber: 0});
+        foundSoundFont.users.push({ generator: g, voiceNumber: 0 });
       }
       g.isLooping =
         (getAttributeValueWithDefault(
@@ -717,16 +714,12 @@ export default class Algorithmic extends Silent {
         "int",
         1
       ) as number;
-      try {
-        g.offsetNotes = getAttributeValueWithDefault(
-          elem,
-          "offsetNotes",
-          "int",
-          1
-        ) as number;
-      } catch (e) {
-        g.offsetNotes = 0;
-      }
+      g.offsetNotes = getAttributeValueWithDefault(
+        elem,
+        "offsetNotes",
+        "int",
+        0
+      ) as number;
       g.#activeNotes = euclideanRhythm(g.noteCount, 12, g.offsetNotes);
       g.noiseSeed = getAttributeValueWithDefault(
         elem,
@@ -740,16 +733,12 @@ export default class Algorithmic extends Silent {
         "float",
         0
       ) as number;
-      try {
-        g.noiseFrequency = getAttributeValueWithDefault(
-          elem,
-          "noiseFrequency",
-          "float",
-          0
-        ) as number;
-      } catch (e) {
-        g.noiseFrequency = 0;
-      }
+      g.noiseFrequency = getAttributeValueWithDefault(
+        elem,
+        "noiseFrequency",
+        "float",
+        0
+      ) as number;
       g.reverbDuration = getAttributeValueWithDefault(
         elem,
         "reverbDuration",
@@ -862,23 +851,18 @@ export default class Algorithmic extends Silent {
 
           // get the tremolo and vibrator effects
           [g.tremolo, g.vibrato].forEach(async (_effect: Tremolo, i) => {
-            try {
-              const eElem: Element | null = getElementElement(
-                elem,
-                effectNames[i]
-              );
-              if (!eElem)
-                throw new Error(
-                  `Algorithmic getXML missing effect ${effectNames[i]}`
-                );
-
+            const eElem: Element | null = getElementElement(
+              elem,
+              effectNames[i]
+            );
+            if (!eElem) {
+              if (effectNames[i] == "tremolo") g.tremolo = new Tremolo();
+              else g.vibrato = new Tremolo();
+            } else {
               const promise: Promise<Tremolo> = Tremolo.getXML(eElem, version);
               const tResult: Tremolo[] = await Promise.all([promise]);
               if (effectNames[i] == "tremolo") g.tremolo = tResult[0];
               else g.vibrato = tResult[0];
-            } catch (e) {
-              if (effectNames[i] == "tremolo") g.tremolo = new Tremolo();
-              else g.vibrato = new Tremolo();
             }
           });
         }

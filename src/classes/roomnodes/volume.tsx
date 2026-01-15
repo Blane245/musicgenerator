@@ -1,5 +1,7 @@
 import { dBToGain } from "sfcomponents/util";
-import { getAttributeValue } from "utils/xmlfunctions";
+import {
+  getAttributeValueWithDefault
+} from "utils/xmlfunctions";
 
 // room volume
 export default class Volume {
@@ -35,12 +37,13 @@ export default class Volume {
     return n;
   }
 
-  getXML(fcElem: Element, _version:string): void {
-    try {
-      this.volume = getAttributeValue(fcElem, "volume", "float") as number;
-    } catch {
-      this.volume = 0;
-    }
+  getXML(fcElem: Element, _version: string): void {
+    this.volume = getAttributeValueWithDefault(
+      fcElem,
+      "volume",
+      "float",
+      0
+    ) as number;
   }
 
   appendXML(_: XMLDocument, elem: Element): void {

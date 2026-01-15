@@ -88,7 +88,7 @@ export class RIFFChunk {
    *
    * @param {number} [start] - The position where to start iterating. Defaults to 0.
    */
-  public iterator<T = any>(start: number = 0): ChunkIterator<T> {
+  public iterator<T>(start: number = 0): ChunkIterator<T> {
     return new ChunkIterator<T>(this, start);
   }
 
@@ -100,7 +100,7 @@ export class RIFFChunk {
    *   specified return type
    * @param {number} [start] - The optional index where to start iterating over the chunk
    */
-  public iterate<T = any>(callback: (iterator: ChunkIterator) => T | null, start: number = 0): T[] {
+  public iterate<T>(callback: (iterator: ChunkIterator<T>) => T | null, start: number = 0): T[] {
     const iterator = new ChunkIterator<T>(this, start);
     iterator.iterate(callback);
     return iterator.target;

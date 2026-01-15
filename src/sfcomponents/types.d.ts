@@ -37,7 +37,7 @@ declare type Generator = RangeGenerator | ValueGenerator;
 declare interface Zone {
   keyRange?: RangeGenerator | undefined;
   velRange?: RangeGenerator | undefined;
-  modulators?: {};
+  modulators?;
   generators: {
     [key: number]: Generator;
   };

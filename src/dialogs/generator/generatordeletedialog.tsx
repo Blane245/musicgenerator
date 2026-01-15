@@ -7,8 +7,8 @@ import { GeneratorType } from "types";
 export interface GeneratorDeleteProps {
   trackName: string;
   generator: GeneratorType;
-  setDialogVisible: Function;
-  setMenuVisible: Function;
+  setDialogVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  setMenuVisible: React.Dispatch<React.SetStateAction<Track | null>>;
 }
 
 // handles copy and move generator between tracks.
@@ -18,7 +18,7 @@ export default function GeneratorDeleteDialog(props: GeneratorDeleteProps) {
 
   function onCancel() {
     setDialogVisible(false);
-    setStatus("");
+    setStatus("Generator Delte canceled");
     setMenuVisible(null);
   }
   function onOK(event: FormEvent<Element>) {

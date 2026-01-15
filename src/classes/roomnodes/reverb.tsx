@@ -1,6 +1,10 @@
 import { dBToGain } from "sfcomponents/util";
 import { softDisconnect } from "utils/softdisconnect";
-import { getAttributeValue, getElementElement } from "utils/xmlfunctions";
+import {
+  getAttributeValue,
+  getAttributeValueWithDefault,
+  getElementElement,
+} from "utils/xmlfunctions";
 
 export default class Reverb {
   enabled: boolean;
@@ -131,14 +135,10 @@ export default class Reverb {
     )
       return;
     if (enabled) {
-      try {
-        softDisconnect(this.effectIn, this.effectOut);
-      } catch (e) {}
+      softDisconnect(this.effectIn, this.effectOut);
       this.effectIn.connect(this.#reverbHead);
     } else {
-      try {
-        softDisconnect(this.effectIn, this.#reverbHead);
-      } catch (e) {}
+      softDisconnect(this.effectIn, this.#reverbHead);
       this.effectIn.connect(this.effectOut);
     }
   }
@@ -152,11 +152,19 @@ export default class Reverb {
         break;
       case "reverb.duration":
         this.duration = parseFloat(value);
-        if (this.#efNode) this.#efNode.buffer = this.#impulseResponse(this.duration, this.decay);
+        if (this.#efNode)
+          this.#efNode.buffer = this.#impulseResponse(
+            this.duration,
+            this.decay
+          );
         break;
       case "reverb.decay":
         this.decay = parseFloat(value);
-        if (this.#efNode) this.#efNode.buffer = this.#impulseResponse(this.duration, this.decay);
+        if (this.#efNode)
+          this.#efNode.buffer = this.#impulseResponse(
+            this.duration,
+            this.decay
+          );
         break;
       case "reverb.leftwall.delay":
         this.leftWall.delay = parseFloat(value) / 1000;
@@ -164,7 +172,8 @@ export default class Reverb {
         break;
       case "reverb.leftwall.gain":
         this.leftWall.gain = parseFloat(value);
-        if (this.#lwGain) this.#lwGain.gain.value = dBToGain(this.leftWall.delay);
+        if (this.#lwGain)
+          this.#lwGain.gain.value = dBToGain(this.leftWall.delay);
         break;
       case "reverb.rightwall.delay":
         this.rightWall.delay = parseFloat(value) / 1000;
@@ -172,7 +181,8 @@ export default class Reverb {
         break;
       case "reverb.rightwall.gain":
         this.rightWall.gain = parseFloat(value);
-        if (this.#rwGain) this.#rwGain.gain.value = dBToGain(this.rightWall.gain);
+        if (this.#rwGain)
+          this.#rwGain.gain.value = dBToGain(this.rightWall.gain);
         break;
       case "reverb.ceiling.delay":
         this.ceiling.delay = parseFloat(value) / 1000;
@@ -209,9 +219,9 @@ export default class Reverb {
   reset() {
     this.duration = 1.0;
     this.decay = 2.0;
-    this.leftWall = { delay: 0, gain: 0}
-    this.rightWall = { delay: 0, gain: 0}
-    this.ceiling = { delay: 0, gain: 0}
+    this.leftWall = { delay: 0, gain: 0 };
+    this.rightWall = { delay: 0, gain: 0 };
+    this.ceiling = { delay: 0, gain: 0 };
     if (this.#efNode) {
       this.#efNode.buffer = this.#impulseResponse(this.duration, this.decay);
     }
@@ -230,48 +240,8 @@ export default class Reverb {
   }
 
   getXML(fcElem: Element, _version: string): void {
-    try {
-      const cElem: Element | null = getElementElement(fcElem, "reverb");
-    if (!cElem) throw new Error (`Reverb getXML missing reverb element`)
-      try {
-        this.enabled =
-          (getAttributeValue(cElem, "enabled", "string") as string) == "true";
-      } catch (e) {
-        this.enabled = true;
-      }
-      this.duration = getAttributeValue(cElem, "duration", "float") as number;
-      this.decay = getAttributeValue(cElem, "decay", "float") as number;
-      this.leftWall.delay = (getAttributeValue(
-        cElem,
-        "leftwalldelay",
-        "float"
-      ) as number) / 1000;
-      this.leftWall.gain = getAttributeValue(
-        cElem,
-        "leftwallgain",
-        "float"
-      ) as number;
-      this.rightWall.delay = (getAttributeValue(
-        cElem,
-        "rightwalldelay",
-        "float"
-      ) as number) / 1000;
-      this.rightWall.gain = getAttributeValue(
-        cElem,
-        "rightwallgain",
-        "float"
-      ) as number;
-      this.ceiling.delay = (getAttributeValue(
-        cElem,
-        "ceilingdelay",
-        "float"
-      ) as number) / 1000;
-      this.ceiling.gain = getAttributeValue(
-        cElem,
-        "ceilinggain",
-        "float"
-      ) as number;
-    } catch {
+    const cElem: Element | null = getElementElement(fcElem, "reverb");
+    if (!cElem) {
       this.duration = 0.0;
       this.decay = 0.0;
       this.leftWall.delay = 0;
@@ -280,8 +250,67 @@ export default class Reverb {
       this.rightWall.gain = 0;
       this.ceiling.delay = 0;
       this.ceiling.gain = 0;
+      this.enabled = true;
+    } else {
+      this.enabled = getAttributeValueWithDefault(
+        cElem,
+        "enabled",
+        "boolean",
+        true
+      ) as boolean;
+      this.duration = getAttributeValueWithDefault(
+        cElem,
+        "duration",
+        "float",
+        0
+      ) as number;
+      this.decay = getAttributeValueWithDefault(
+        cElem,
+        "decay",
+        "float",
+        0
+      ) as number;
+      this.leftWall.delay =
+        (getAttributeValueWithDefault(
+          cElem,
+          "leftwalldelay",
+          "float",
+          0
+        ) as number) / 1000;
+      this.leftWall.gain = getAttributeValueWithDefault(
+        cElem,
+        "leftwallgain",
+        "float",
+        0
+      ) as number;
+      this.rightWall.delay =
+        (getAttributeValueWithDefault(
+          cElem,
+          "rightwalldelay",
+          "float",
+          0
+        ) as number) / 1000;
+      this.rightWall.gain = getAttributeValue(
+        cElem,
+        "rightwallgain",
+        "float"
+      ) as number;
+      this.ceiling.delay =
+        (getAttributeValueWithDefault(
+          cElem,
+          "ceilingdelay",
+          "float",
+          0
+        ) as number) / 1000;
+      this.ceiling.gain = getAttributeValueWithDefault(
+        cElem,
+        "ceilinggain",
+        "float",
+        0
+      ) as number;
     }
   }
+
   appendXML(doc: XMLDocument, elem: Element): void {
     const cElement: Element = doc.createElement("reverb");
     cElement.setAttribute("enabled", this.enabled ? "true" : "false");

@@ -3,14 +3,13 @@
 
 import CMGFile from "classes/cmgfile";
 import {
-  Control,
   EFFECTTYPE,
   GeneratorEffect,
   TrackEffect,
 } from "classes/control";
+import Control from "classes/control";
 import Algorithmic from "classes/generators/algorithmic";
 import Track from "classes/track";
-import { ALGORITHMTYPE } from "types";
 import findGeneratorParent from "utils/findgeneratorparent";
 
 // activate and process last track or generator control that proceeds
@@ -72,8 +71,6 @@ export function activatePriorControls(
       generator.setReverbEnabled(
         (generatorControl.effect as GeneratorEffect).reverbEnable
       );
-      if (generator.noteP.algorithmType == ALGORITHMTYPE.Sequencer) {
-      }
     }
   }
 }

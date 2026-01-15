@@ -1,5 +1,5 @@
 import { getGeneratorValues } from "sfcomponents/sfgenerators";
-import { InstrumentZone, Preset, PresetZone } from "sfcomponents/types";
+import { InstrumentZone, Preset, PresetZone, RangeGenerator } from "sfcomponents/types";
 
 // select mid range velocity Range
 const isActiveZone = (
@@ -7,8 +7,8 @@ const isActiveZone = (
   pitch: number,
   velocity: number
 ): boolean => {
-  const keyRange: any = zone.keyRange;
-  const velRange: any = zone.velRange;
+  const keyRange: RangeGenerator | undefined = zone.keyRange;
+  const velRange:  RangeGenerator | undefined = zone.velRange;
   const keyCheck: boolean =
     !keyRange || (keyRange.lo <= pitch && pitch <= keyRange.hi);
   const velCheck: boolean =

@@ -273,8 +273,8 @@ function getOffsetFromMidi(
   offset: number
 ) {
   // adjust the range to add 10% to lo and 10% to high
-  let lo: number = loMidi;
-  let hi: number = hiMidi;
+  const lo: number = loMidi;
+  const hi: number = hiMidi;
   return height - ((pitch - lo) * height) / (hi - lo) + offset;
 }
 

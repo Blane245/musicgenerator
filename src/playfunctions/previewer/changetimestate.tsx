@@ -15,7 +15,7 @@ import TimeLine from "classes/timeline";
 import SignalLevel from "classes/signallevel";
 import {signalWidth} from "./footer"
 import CMGFile from "classes/cmgfile";
-import { Control } from "classes/control";
+import Control from "classes/control";
 
 export default function changeTimerState(
   displayWidth: number,
@@ -50,9 +50,18 @@ export default function changeTimerState(
   setRightVolumes: React.Dispatch<React.SetStateAction<string>>,
   setLeftMaxes: React.Dispatch<React.SetStateAction<string>>,
   setRightMaxes: React.Dispatch<React.SetStateAction<string>>,
-  DrawSources: Function,
-  redrawSource: Function,
-  onExit: Function,
+  DrawSources: (
+    sources: RawSourceData[],
+    drawing: HTMLElement,
+    timeline: TimeLine,
+    timeProgress: number,
+    sections: DrawingSection[],
+    sourceMap: SourceToDrawingSectionEntry[],
+    displayWidth: number,
+    displayHeight: number
+  )=>void,
+  redrawSource: (s: RawSourceData)=>void,
+  onExit: ()=>void,
   fileContents: CMGFile,
   realtimeControls:  React.MutableRefObject<Control[]>,
 ) {

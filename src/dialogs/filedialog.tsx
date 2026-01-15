@@ -1,13 +1,13 @@
 import CMG2 from "assets/CGM2.svg";
-import { useEffect, useState, type JSX } from "react";
+import { Dispatch, SetStateAction, useEffect, useState, type JSX } from "react";
 import { GoArrowLeft, GoArrowRight, GoArrowUp } from "react-icons/go";
-import {fetchFSData} from "utils/fetchdata";
+import { fetchFSData } from "utils/fetchdata";
 import {
   DirectoryEntry,
   ENTRYTYPE,
   FSEntry,
   FSList,
-  FSResponse,
+  FSResponse
 } from "../types";
 
 type FileDialogProps = {
@@ -15,10 +15,10 @@ type FileDialogProps = {
   action: string; // Save or Open
   fileTypes: string[]; // allowed extents for files
   directory: string; // starting directory
-  setDirectory: Function; // the last directory the user picked
-  setFile: Function; // the name of the file picked, or blank if none
-  setStatus: Function;
-  setMode: Function; // blank to cause dialog to disappear
+  setDirectory: Dispatch<SetStateAction<string>>; // the last directory the user picked
+  setFile: Dispatch<SetStateAction<string>>; // the name of the file picked, or blank if none
+  setStatus: Dispatch<SetStateAction<string>>;
+  setMode: React.Dispatch<React.SetStateAction<string>>; // blank to cause dialog to disappear
 };
 // a dialog for the use to select a file from a list, or enter a new one
 export default function FileDialog(props: FileDialogProps): JSX.Element {
@@ -29,7 +29,6 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
     directory,
     setDirectory,
     setFile,
-    setStatus,
     setMode,
   } = props;
   const [directoryList, setDirectoryList] = useState<DirectoryEntry[]>([]);
@@ -56,13 +55,7 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
     setEnteredDirectory(directory);
     try {
       const mountPoints: string[] = ["C:\\", "D:\\", "E:\\"];
-      // clear the filesystem tag list
-      // const tag: HTMLElement | null = document.getElementById("filesystem");
-      // if (tag) {
-      //   while (tag.firstChild) {
-      //     tag.firstChild.remove();
-      //   }
-      // }
+
       let newFSDirectory: { mountPoint: string; list: string[] }[] = [];
       mountPoints.forEach((mountPoint: string) => {
         getDirectoryList(mountPoint).then((response: FSResponse) => {
@@ -101,12 +94,12 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
           setFilesystemDirectory(newFSDirectory);
         });
       });
-    } catch (e: any) {
+    } catch (e) {
       setError(
         `Error while ready filesystem directory ${(e as Error).message}`
       );
     }
-  }, []);
+  }, [directory]);
 
   useEffect(() => {
     try {
@@ -141,7 +134,7 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
           // console.log("new location queue", newQueue);
         }
       });
-    } catch (error: any) {
+    } catch (error) {
       setError((error as Error).message);
       setDirectoryList([]);
       setSelectedFile("");
@@ -183,9 +176,11 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
     // remove all of the double slashes
     newFS.forEach((entry: FSEntry) => {
       entry.mountPoint = entry.mountPoint.replace(/\\\\/g, "\\");
+      const n:string[] = [];
       entry.list.forEach((directory: string) => {
-        directory = directory.replace(/\\\\/g, "\\");
+        n.push(directory.replace(/\\\\/g, "\\"));
       });
+      entry.list = [...n];
     });
     return newFS;
   }
@@ -258,14 +253,14 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
     });
 
     // change all \\ to \ and all / to \
-    list = list.map((entry: DirectoryEntry) => {
-      return {
-        name: entry.name.replace(/\\\\|\//g, "\\"),
-        path: entry.path.replace(/\\\\|\//g, "\\"),
-        type: entry.type,
-      };
-    });
-    // setDirectoryList(list);
+    // list = list.map((entry: DirectoryEntry) => {
+    //   return {
+    //     name: entry.name.replace(/\\\\|\//g, "\\"),
+    //     path: entry.path.replace(/\\\\|\//g, "\\"),
+    //     type: entry.type,
+    //   };
+    // });
+    setDirectoryList(list);
     return  Promise.resolve(  {
       error: false,
       status: "",
@@ -284,7 +279,6 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
     const extendedFile: string = selectedFile.includes(selectedDirectory)? selectedFile: selectedDirectory + '\\' + selectedFile;
     setFile(extendedFile.replace(/\\\\|\//g, '\\'));
     setDirectory(selectedDirectory.replace(/\\\\|\//g, '\\'));
-    setStatus("");
     setMode("");
   }
 
@@ -502,7 +496,7 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
     name: string;
     initialValue?: string;
     width: string;
-    onBlur: Function;
+    onBlur: (e: React.FocusEvent<HTMLInputElement, Element>)=> void;
   }): JSX.Element {
     return (
       <input

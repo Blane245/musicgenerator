@@ -6,7 +6,12 @@ import Track from "classes/track";
 import { useCMGContext } from "cmgcontext";
 import GeneratorMenuDialog from "dialogs/generator/generatormenudialog";
 import React, { MouseEvent, useEffect, useState } from "react";
-import { GeneratorType, TimeLineScales, TIMELINETYPE } from "types";
+import {
+  GeneratorType,
+  MouseLocation,
+  TimeLineScales,
+  TIMELINETYPE,
+} from "types";
 import {
   moveGeneratorBodyPosition,
   moveGeneratorTime,
@@ -29,16 +34,8 @@ type GeneratorBox = {
 
 export default function GeneratorIcons(props: GeneratorIconProps) {
   const { track } = props;
-  const {
-    setFileContents,
-    timeLine,
-    setStatus,
-    playing,
-    timeInterval,
-    mouseDown,
-    mouseLocation,
-    setMouseLocation,
-  } = useCMGContext();
+  const { setFileContents, timeLine, setStatus, timeInterval } =
+    useCMGContext();
   const [boxIndex, setBoxIndex] = useState<number>(-1);
   const [generatorIndex, setGeneratorIndex] = useState<number>(-1);
   const [editGeneratorMenuVisible, setEditGeneratorMenuVisible] =
@@ -49,11 +46,13 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
   const [editMode, setEditMode] = useState<string>("None");
   const [trackWidth, setTrackWidth] = useState<number>(100);
   const [trackHeight, setTrackHeight] = useState<number>(100);
-  const [accumXLocation, setAccumXLocation] = useState<number>(0);
   const [positionXTick, setPositionXTick] = useState<number>(0);
   const [startTickPosition, setStartTickPosition] = useState<number>(0);
-  // const [endTickPosition, setEndTickPosition] = useState<number>(0);
   const [edgeSelected, setEdgeSelected] = useState<string>("");
+  const [mouseLocation, setMouseLocation] = useState<MouseLocation | null>(
+    null
+  );
+  const [mouseDown, setMouseDown] = useState<boolean>(false);
 
   // set the visible generator icon boxes based on the generator times and timeLine
   // handle highlighting from timeline interval selection and preview playing
@@ -107,33 +106,52 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
           (TimeLineScales[timeLine.currentZoomLevel].majorDivisions *
             TimeLineScales[timeLine.currentZoomLevel].minorDivisions);
         setPositionXTick(positionTick);
+        setStartTickPosition(0);
         // console.log('Time snap mode. tick size is', positionTick);
       } else {
         // the number of displayed beats in the time line
-        const { tickPositionSize, startTickPosition } =
-          measureScaling({
-            startTime: timeLine.startTime,
-            timeExtent: TimeLineScales[timeLine.currentZoomLevel].extent,
-            positionWidth: timeLine.width,
-            measureTime: timeLine.measureSize,
-            beatsPerMeasure: timeLine.beatsPerMeasure,
-          });
+        const { tickPositionSize, startTickPosition } = measureScaling({
+          startTime: timeLine.startTime,
+          timeExtent: TimeLineScales[timeLine.currentZoomLevel].extent,
+          positionWidth: timeLine.width,
+          measureTime: timeLine.measureSize,
+          beatsPerMeasure: timeLine.beatsPerMeasure,
+        });
 
         setPositionXTick(tickPositionSize);
         setStartTickPosition(startTickPosition);
-        // setEndTickPosition(endTickPosition);
       }
+    }
+    function isSelected(g: GeneratorType): boolean {
+      if (
+        timeInterval.startTime != undefined &&
+        timeInterval.endTime != undefined
+      ) {
+        if (
+          g.startTime >= timeInterval.startTime &&
+          g.stopTime <= timeInterval.endTime
+        )
+          return true;
+        else return false;
+      }
+      return false;
     }
   }, [track.generators, timeLine, timeInterval]);
 
   // handle vertical movements
   useEffect(() => {
-    if (!mouseLocation) return;
-    if (editMode != "MoveVertical") return;
-    if (!timeLine) return;
-    if (mouseLocation.dY == 0) return;
+    if (
+      !timeLine ||
+      boxIndex < 0 ||
+      !mouseDown ||
+      !mouseLocation ||
+      editMode != "MoveVertical"
+    )
+      return;
     const moveTo: number =
       generatorBoxes[boxIndex].position.y + mouseLocation.dY;
+    // const moveTo: number = mouseLocation.Y;
+    // console.log(`move generator ${boxIndex} vertically`, moveTo, mouseLocation.dY);
     if (moveTo < 0 || moveTo > (2 * trackHeight) / 3) return;
     moveGeneratorBodyPosition(
       track,
@@ -143,66 +161,58 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     );
     // console.log("generator moved to new position", moveTo);
     setStatus(``);
-  }, [mouseLocation?.dY]);
+  }, [mouseLocation, mouseDown]);
 
-  // accumulate the X mouse movements
+  // handle horiztonal movements
   useEffect(() => {
-    // console.log('mouselocation x fired. edit mode is ', editMode, 'snap mode is', timeLine?.snap);
-    if (!mouseLocation) return;
-    if (editMode != "MoveHorizontal") return;
-    if (!timeLine) return;
-    if (!timeLine.snap) {
-      setAccumXLocation(mouseLocation.X);
-      // console.log('not snap mode. x location is', mouseLocation.X);
-    } else {
-      // in snap mode we need to constrain the accumulated location to ticks
-      // the mouse x location may be anywhere in the window so we round off
-      // this location to the nearest tick position
-      const newPosition: number =
+    if (
+      !mouseLocation ||
+      !mouseDown ||
+      editMode != "MoveHorizontal" ||
+      !timeLine
+    )
+      return;
+
+    // handle snap mode
+    let newPosition: number = mouseLocation.X;
+    if (timeLine.snap) {
+      newPosition =
         mouseLocation.X > 0
           ? Math.trunc(mouseLocation.X / positionXTick) * positionXTick +
             startTickPosition
           : Math.trunc(mouseLocation.X / positionXTick) * positionXTick -
             1 +
             startTickPosition;
-      console.log(
-        "snap mode mouse location is ",
-        mouseLocation.X,
-        "tick size is ",
-        positionXTick,
-        "new position is ",
-        newPosition,
-        "old position is ",
-        accumXLocation
-      );
-      if (
-        (newPosition < 0 && edgeSelected == "start") ||
-        (newPosition < positionXTick && edgeSelected == "stop") ||
-        newPosition > timeLine.width
-      )
-        return;
-      if (newPosition != accumXLocation) setAccumXLocation(newPosition);
-      // console.log('mouse moved in snap move, new accumulated position is', newPosition, 'old position is ', accumXLocation);
     }
-  }, [mouseLocation?.X]);
 
-  // handle horizontal movements when auumulated mouse movements are passed
-  useEffect(() => {
-    // console.log(`accumulated x location fired at ${accumXLocation}, edit mode is '${editMode}', timeline width is ${timeLine?.width}, edge selected is '${edgeSelected}'`);
-    if (editMode != "MoveHorizontal") {
+    // console.log(
+    //   " snap mode is",
+    //   timeLine.snap,
+    //   "mouse location is ",
+    //   mouseLocation.X,
+    //   "tick size is ",
+    //   positionXTick,
+    //   "new position is ",
+    //   newPosition
+    // );
+    // constrain the new position to be between the start and end of the
+    // displayed timeline
+    if (
+      (newPosition < 0 && edgeSelected == "start") ||
+      (newPosition > timeLine.width && edgeSelected == "stop")
+    )
       return;
-    }
-    if (!timeLine) return;
+
+    // modify the moveto point based on the timeline mode
+    // move to the closest time or measure tick if in snap mode
     const newTime: number = linearInterpolate(
-      accumXLocation,
+      mouseLocation.X,
       0,
       timeLine.width,
       timeLine.startTime,
       timeLine.startTime + TimeLineScales[timeLine.currentZoomLevel].extent
     );
     // console.log(`generator move ${edgeSelected} time to ${newTime}`);
-    // modify the moveto point based on the timeline mode
-    // move to the closest time or measure tick if in snap mode
     moveGeneratorTime(
       track,
       generatorBoxes[boxIndex].generatorIndex,
@@ -210,15 +220,88 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
       edgeSelected,
       setFileContents
     );
-    setStatus("");
-  }, [accumXLocation]);
+  }, [mouseLocation, mouseDown]);
 
-  // enable the icon menu
-  function handleTextMouseDown(
+  // when the mouse enters an icon body with the mouse up change the cursor to ns
+  function onBodyEnter(e: MouseEvent<SVGRectElement>): void {
+    if (mouseDown) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setCursor("ns-resize");
+    // console.log("mouse enter body");
+  }
+
+  // when mouse goes down in the icon body
+  // initiate a vertical move
+  function onMouseDownBody(
+    e: MouseEvent<SVGRectElement>,
+    boxIndex: number
+  ): void {
+    setBoxIndex(boxIndex);
+    setEditMode("MoveVertical");
+    setMouseLocation({
+      X: e.nativeEvent.offsetX,
+      Y: e.nativeEvent.offsetY,
+      dX: 0,
+      dY: 0,
+    });
+    setMouseDown(true);
+    // console.log("mouse down on body");
+  }
+
+  // when mouse moves in the icon body
+  // update the mouse location so the icon move can execute
+  function onMouseMoveBody(
+    e: MouseEvent<SVGRectElement>): void {
+    if (!mouseDown) return;
+    setMouseLocation({
+      X: e.nativeEvent.offsetX,
+      Y: e.nativeEvent.offsetY,
+      dX: e.nativeEvent.movementX,
+      dY: e.nativeEvent.movementY,
+    });
+    // console.log("mouse move on body");
+  }
+
+  // when the mouse leaves the icon body or goes up, terminate
+  // vertical movement
+  function onMouseLeaveBody(e: MouseEvent<SVGRectElement>): void {
+    if (mouseDown)  return;
+    e.preventDefault();
+    e.stopPropagation();
+    setCursor("default");
+    setBoxIndex(-1);
+    setEditMode("None");
+    setMouseLocation(null);
+    setMouseDown(false);
+    // console.log("mouse leave body");
+  }
+
+  function onMouseUpBody(e: MouseEvent<SVGRectElement>): void {
+    e.preventDefault();
+    e.stopPropagation();
+    setCursor("default");
+    setBoxIndex(-1);
+    setEditMode("None");
+    setMouseLocation(null);
+    setMouseDown(false);
+    // console.log("mouse up body");
+  }
+
+  // when the mouse enters the icon text with the mouse up,
+  // change it to a plus
+  function onTextMouseEnter(e: MouseEvent<SVGTextElement>): void {
+    if (mouseDown) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setCursor("cell");
+    // console.log("mouse enter body");
+  }
+  // when the mouse goes down on the icon text, display the menu
+  function onTextMouseDown(
     event: MouseEvent<HTMLOrSVGElement>,
     boxIndex: number
   ) {
-    if (playing.current) return;
     event.preventDefault();
     event.stopPropagation();
     const box = generatorBoxes[boxIndex];
@@ -233,28 +316,42 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     setMenuX(box.position.x + box.width / 2.0);
     setMenuY(box.position.y + box.height / 3.0 - 100);
     setEditGeneratorMenuVisible(track);
-    setStatus(``);
+    setMouseDown(true);
   }
 
-  // handlers for mouse events on icon body and edges
-  // useEffect captures mouse up and mouse movements
-  function onBodyEnter(e: MouseEvent<SVGRectElement>): void {
-    if (mouseDown.current) return;
-    e.preventDefault();
-    e.stopPropagation();
-    setCursor("ns-resize");
-    // console.log('mouse enter body');
+  // when the mouse goes up or leaves the icon text with the mouse up
+  // terminate the icon menu
+  function onTextMouseLeave(event: MouseEvent<SVGTextElement>): void {
+    if (mouseDown) return;
+    event.preventDefault();
+    event.stopPropagation();
+    setBoxIndex(-1);
+    setEditGeneratorMenuVisible(null);
+    setMouseDown(false);
   }
+
+  function onTextMouseUp(event: MouseEvent<SVGTextElement>): void {
+    event.preventDefault();
+    event.stopPropagation();
+    setBoxIndex(-1);
+    setEditGeneratorMenuVisible(null);
+    setMouseDown(false);
+  }
+
+  // when the mouse enters an icon edge with the mouse up,
+  // set the move cursor
   function onEdgeEnter(e: MouseEvent<SVGLineElement>): void {
-    if (mouseDown.current) return;
+    if (mouseDown) return;
     e.preventDefault();
     e.stopPropagation();
-    setCursor("grab");
+    setCursor("ew-resize");
     // console.log('mouse enter edge');
   }
-  function onMouseDownStartEdge(
+  // when the mouse goes down on an icon edge, initiate the icon move
+  function onMouseDownEdge(
     e: MouseEvent<SVGPathElement>,
-    boxIndex: number
+    boxIndex: number,
+    edge: string
   ): void {
     setBoxIndex(boxIndex);
     setEditMode("MoveHorizontal");
@@ -264,66 +361,47 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
       dX: 0,
       dY: 0,
     });
-    setAccumXLocation(e.nativeEvent.offsetX);
-    setEdgeSelected("start");
-    mouseDown.current = true;
-    // console.log('mouse down on start edge');
+    setEdgeSelected(edge);
+    setMouseDown(true);
+    // console.log("mouse down on edge", edge);
   }
-  function onMouseDownStopEdge(
-    e: MouseEvent<SVGPathElement>,
-    boxIndex: number
-  ): void {
-    setBoxIndex(boxIndex);
-    setEditMode("MoveHorizontal");
+
+
+  function onMouseMoveEdge (e: MouseEvent<SVGPathElement | SVGSVGElement>):void {
+    if (!mouseDown) return;
     setMouseLocation({
       X: e.nativeEvent.offsetX,
       Y: e.nativeEvent.offsetY,
-      dX: 0,
-      dY: 0,
+      dX: e.nativeEvent.movementX,
+      dY: e.nativeEvent.movementY,
     });
-    setAccumXLocation(e.nativeEvent.offsetX);
-    setEdgeSelected("stop");
-    mouseDown.current = true;
-    // console.log('mouse down on stop edge');
   }
-  function onLeave(e: MouseEvent<SVGRectElement | SVGPathElement>): void {
-    if (mouseDown.current) return;
+
+  // when the mouse goes up or leaves an icon edge, terminate all
+  // movement
+  function onMouseLeaveEdge(
+    e: MouseEvent<SVGRectElement | SVGPathElement>
+  ): void {
+    if (mouseDown) return;
     e.preventDefault();
     e.stopPropagation();
     setCursor("default");
-    // console.log('mouse leave');
+    setMouseDown(false);
+    setEdgeSelected("None");
+    setMouseLocation(null);
+    // console.log("mouse leave edge ");
   }
 
-  // let mousedown events propagate to the main page
-  function onMouseDownBody(
-    e: MouseEvent<SVGRectElement>,
-    boxIndex: number
+  function onMouseUpEdge(
+    e: MouseEvent<SVGRectElement | SVGPathElement>
   ): void {
-    setBoxIndex(boxIndex);
-    setEditMode("MoveVertical");
-    setMouseLocation({
-      X: e.nativeEvent.offsetX,
-      Y: e.nativeEvent.offsetY,
-      dX: 0,
-      dY: 0,
-    });
-    mouseDown.current = true;
-    // console.log('mouse down on body');
-  }
-
-  function isSelected(g: GeneratorType): boolean {
-    if (
-      timeInterval.startTime != undefined &&
-      timeInterval.endTime != undefined
-    ) {
-      if (
-        g.startTime >= timeInterval.startTime &&
-        g.stopTime <= timeInterval.endTime
-      )
-        return true;
-      else return false;
-    }
-    return false;
+    e.preventDefault();
+    e.stopPropagation();
+    setCursor("default");
+    setMouseDown(false);
+    setEdgeSelected("None");
+    setMouseLocation(null);
+    // console.log("mouse up edge ");
   }
 
   function selectClass(selected: boolean): string {
@@ -340,12 +418,13 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
         width={trackWidth}
         height={trackHeight}
         viewBox={`0 0 ${trackWidth} ${trackHeight}`}
+        onMouseMove={onMouseMoveEdge}
       >
         {generatorBoxes.map((generatorBox, i) => (
           <React.Fragment key={"genbox-" + generatorBox.generator.name}>
             <rect
               className={selectClass(generatorBoxes[i].selected)}
-              pointerEvents={playing.current ? "none" : "all"}
+              pointerEvents={"all"}
               x={generatorBox.position.x}
               y={generatorBox.position.y}
               width={generatorBox.width}
@@ -353,19 +432,24 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
               fill="white"
               stroke="black"
               strokeWidth={1}
-              onMouseDown={(event) => onMouseDownBody(event, i)}
               onMouseEnter={(event) => onBodyEnter(event)}
-              onMouseLeave={(event) => onLeave(event)}
+              onMouseDown={(event) => onMouseDownBody(event, i)}
+              onMouseMove={(event) => onMouseMoveBody(event)}
+              onMouseLeave={(event) => onMouseLeaveBody(event)}
+              onMouseUp={(event) => onMouseUpBody(event)}
             />
             <text
-              pointerEvents={playing.current ? "none" : "all"}
+              pointerEvents={"all"}
               x={generatorBox.position.x + generatorBox.width / 2.0}
               y={generatorBox.position.y + generatorBox.height / 3.0}
               fontSize={"10pt"}
               fontWeight={"200"}
               textAnchor="middle"
               dominantBaseline="hanging"
-              onMouseDown={(event) => handleTextMouseDown(event, i)}
+              onMouseEnter={(event) => onTextMouseEnter(event)}
+              onMouseDown={(event) => onTextMouseDown(event, i)}
+              onMouseLeave={(event) => onTextMouseLeave(event)}
+              onMouseUp={(event) => onTextMouseUp(event)}
               stroke={generatorBox.generator.mute ? "red" : "black"}
             >
               {generatorBox.generator.name
@@ -373,7 +457,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
                 .concat(generatorBox.generator.type)}
             </text>
             <line
-              pointerEvents={playing.current ? "none" : "all"}
+              pointerEvents={"all"}
               stroke="blue"
               strokeWidth={5}
               x1={generatorBox.position.x}
@@ -381,11 +465,13 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
               x2={generatorBox.position.x}
               y2={generatorBox.position.y + generatorBox.height}
               onMouseEnter={(e) => onEdgeEnter(e)}
-              onMouseLeave={(e) => onLeave(e)}
-              onMouseDown={(e) => onMouseDownStartEdge(e, i)}
+              onMouseDown={(e) => onMouseDownEdge(e, i, "start")}
+              onMouseMove={(e) => onMouseMoveEdge(e)}
+              onMouseLeave={(e) => onMouseLeaveEdge(e)}
+              onMouseUp={(e) => onMouseUpEdge(e)}
             />
             <line
-              pointerEvents={playing.current ? "none" : "all"}
+              pointerEvents={"all"}
               stroke="blue"
               strokeWidth={5}
               x1={generatorBox.position.x + generatorBox.width}
@@ -393,8 +479,10 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
               x2={generatorBox.position.x + generatorBox.width}
               y2={generatorBox.position.y + generatorBox.height}
               onMouseEnter={(e) => onEdgeEnter(e)}
-              onMouseLeave={(e) => onLeave(e)}
-              onMouseDown={(e) => onMouseDownStopEdge(e, i)}
+              onMouseDown={(e) => onMouseDownEdge(e, i, "stop")}
+              onMouseMove={(e) => onMouseMoveEdge(e)}
+              onMouseLeave={(e) => onMouseLeaveEdge(e)}
+              onMouseUp={(e) => onMouseUpEdge(e)}
             />
           </React.Fragment>
         ))}

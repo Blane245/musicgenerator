@@ -1,5 +1,8 @@
 import { softDisconnect } from "utils/softdisconnect";
-import { getAttributeValue, getElementElement } from "utils/xmlfunctions";
+import {
+  getAttributeValueWithDefault,
+  getElementElement
+} from "utils/xmlfunctions";
 
 export default class Compressor {
   enabled: boolean;
@@ -40,7 +43,7 @@ export default class Compressor {
   }
 
   connect(destination: AudioNode) {
-    if (!this.effectIn || !this.effectOut ) return;
+    if (!this.effectIn || !this.effectOut) return;
     this.effectOut.connect(destination);
     this.#enable(this.enabled);
   }
@@ -48,21 +51,12 @@ export default class Compressor {
   // enabled - connect the effectIn to compressor, disconnect effectIn from effectOut
   // disabled - disconnect effectIn from compressor, connect effectIn to effectOut
   #enable(enabled: boolean) {
-    if (
-      !this.compressor ||
-      !this.effectIn ||
-      !this.effectOut
-    )
-      return;
+    if (!this.compressor || !this.effectIn || !this.effectOut) return;
     if (enabled) {
-      try {
-        softDisconnect(this.effectIn,this.effectOut);
-      } catch (e) {}
+      softDisconnect(this.effectIn, this.effectOut);
       this.effectIn.connect(this.compressor);
     } else {
-      try {
-        softDisconnect(this.effectIn, this.compressor);
-      } catch (e) {}
+      softDisconnect(this.effectIn, this.compressor);
       this.effectIn.connect(this.effectOut);
     }
   }
@@ -130,18 +124,52 @@ export default class Compressor {
 
   getXML(fcElem: Element, _version: string): void {
     const cElem: Element | null = getElementElement(fcElem, "compressor");
-    if (!cElem) throw new Error (`Compressor getXML missing compressor element`)
-    try {
-      this.enabled =
-        (getAttributeValue(cElem, "enabled", "string") as string) == "true";
-    } catch (e) {
+    if (!cElem) {
+      // set default values
       this.enabled = true;
+      this.threshold = -24;
+      this.knee = 30;
+      this.ratio = 12;
+      this.attack = 0.003;
+      this.release = 0.25;
+    } else {
+      this.enabled = getAttributeValueWithDefault(
+        cElem,
+        "enabled",
+        "boolean",
+        true
+      ) as boolean;
+      this.attack = getAttributeValueWithDefault(
+        cElem,
+        "attack",
+        "float",
+        0.003
+      ) as number;
+      this.knee = getAttributeValueWithDefault(
+        cElem,
+        "knee",
+        "float",
+        30
+      ) as number;
+      this.ratio = getAttributeValueWithDefault(
+        cElem,
+        "ratio",
+        "float",
+        12
+      ) as number;
+      this.release = getAttributeValueWithDefault(
+        cElem,
+        "release",
+        "float",
+        0.25
+      ) as number;
+      this.threshold = getAttributeValueWithDefault(
+        cElem,
+        "threshold",
+        "float",
+        -24
+      ) as number;
     }
-    this.attack = getAttributeValue(cElem, "attack", "float") as number;
-    this.knee = getAttributeValue(cElem, "knee", "float") as number;
-    this.ratio = getAttributeValue(cElem, "ratio", "float") as number;
-    this.release = getAttributeValue(cElem, "release", "float") as number;
-    this.threshold = getAttributeValue(cElem, "threshold", "float") as number;
   }
   appendXML(doc: XMLDocument, elem: Element): void {
     const cElement: Element = doc.createElement("compressor");

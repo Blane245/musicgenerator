@@ -1,7 +1,7 @@
 // The file menu handles creating new files, opening existing ones,
 // saving current ones, and adding tracks to current ones
 // import Algorithmic from "classes/generators";
-import { Control } from "classes/control";
+import Control from "classes/control";
 import Algorithmic from "classes/generators/algorithmic";
 import TimeLine from "classes/timeline";
 import Track from "classes/track";
@@ -73,7 +73,7 @@ export default function EditMenu() {
         `The current composition contains a generator that uses a soundfont file that is not it this directory.`
       );
     setErrorMsgs(errors);
-  }, [SFFileList]);
+  }, [SFFileList, fileContents.tracks]);
 
   function handleEditComment() {
     setCommentModal(true);
@@ -131,7 +131,7 @@ export default function EditMenu() {
     }
 
     // check if the soundfont file location has changed
-    let newSFFileList: { list: string[]; error: string } = {
+    const newSFFileList: { list: string[]; error: string } = {
       list: [],
       error: "",
     };

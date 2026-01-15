@@ -121,8 +121,8 @@ export function getBufferSourceNodesFromAlgorithmic(
         noteP.values.items[iItem].value > 0
           ? noteP.values.items[iItem].value + transpose
           : -1;
-      let beat: number = noteP.values.items[iItem].beats;
-      let {
+      const beat: number = noteP.values.items[iItem].beats;
+      const {
         speed,
         duration: noteDuration,
         attack,
@@ -148,7 +148,6 @@ export function getBufferSourceNodesFromAlgorithmic(
           nextSource
         );
         sourceData.push(...connections);
-        // console.log('connections', connections);
         nextSource += connections.length;
       }
       time += interval;

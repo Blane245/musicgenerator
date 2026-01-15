@@ -120,7 +120,7 @@ export default class Stochastic extends Silent {
         this.values.composition = [];
         for (let i = 0; i < this.values.Nt; i++) {
           this.values.composition.push(Array<number>(this.#Ne).fill(0));
-          for (let j = 0; j < this.#Ne; j++) {
+          for (let j = 0; j < this.values.voices.length; j++) {
             this.values.composition[i][j] = parseInt(valueStrings[count]);
             count++;
           }
@@ -247,7 +247,7 @@ export default class Stochastic extends Silent {
       returnElem.setAttribute("composition", compositionString);
 
       return Promise.resolve(returnElem);
-    } catch (e: any) {
+    } catch (e) {
       return Promise.reject(e);
     }
   }
@@ -294,10 +294,10 @@ export default class Stochastic extends Silent {
       if (!voicesElement) {
         g.values.voices = [];
       } else {
-        let voiceList: string[] = [];
+        const voiceList: string[] = [];
         g.values.muted = [];
         const voicesChildren: HTMLCollection = voicesElement.children;
-        for (let child of voicesChildren) {
+        for (const child of voicesChildren) {
           const name: string = getAttributeValueWithDefault(
             child,
             "name",
@@ -353,7 +353,7 @@ export default class Stochastic extends Silent {
             "boolean",
             ""
           ) as boolean;
-          g.values.voices.push({
+          const voice: Voice = {
             name,
             description,
             soundFontFile,
@@ -363,7 +363,8 @@ export default class Stochastic extends Silent {
             registerLo,
             registerHi,
             duration,
-          });
+          }
+          g.values.voices.push(voice);
           g.values.muted.push(muted);
 
           // notify file handler that some soundfonts need to be loaded

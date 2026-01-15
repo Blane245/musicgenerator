@@ -70,5 +70,12 @@ export default function buildElementSamples(props: {
     t += deltaT;
   }
 
+  // apply a short attack filter to kill some of the popping
+  // trying 50ms
+  const attackCount: number = Math.min(outputCount, Math.trunc(SAMPLERATE * 0.05));
+  for (let i = 0; i < attackCount; i++) {
+    result[i] = result[i] * i / attackCount;
+  }
+
   return result;
 }

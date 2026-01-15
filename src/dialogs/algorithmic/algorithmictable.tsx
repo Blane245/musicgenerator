@@ -20,7 +20,7 @@ import WienerPropertiesBox from "./wienerpropertiesbox";
 
 // provides the form fields and validators for the algorithmic generator
 
-export interface AlgorithmicTableProps {
+interface AlgorithmicTableProps {
   formData: Algorithmic;
   handleChange: (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -47,7 +47,7 @@ export default function AlgorithmicTable(
     }
     // determine what changed. First, load the current values from the form
     let items: SequenceItem[] = (formData.noteP as SequenceValues).values.items;
-    let speedP: AlgorithmValues = formData.speedP.copy();
+    const speedP: AlgorithmValues = formData.speedP.copy();
     let doCalc: boolean = false;
 
     // if the name of the sequence changes, then load the new items to be used
@@ -83,9 +83,13 @@ export default function AlgorithmicTable(
     // pass the original change onto handleChange
     handleChange(e);
   }
+
+  // set the note name for those attributes that need it
+  const noteName = (value: number | undefined): string =>
+    value != undefined ? toNote(value) : "";
   return (
     <>
-      <table style={{width:'100%'}}>
+      <table style={{ width: "100%" }}>
         <thead>
           <tr>
             <th>Attribute</th>
@@ -123,10 +127,7 @@ export default function AlgorithmicTable(
                     step: 0.0001,
                     suffix: "(pitch)",
                   }}
-                  centerSuffix={(value: number) => {
-                    if (value < 0) return "";
-                    else return " ".concat(toNote(value));
-                  }}
+                  centerSuffix={(value: number | undefined) => noteName(value)}
                   frequency={{
                     value: (formData.noteP as OscillatorValues).values
                       .frequency,
@@ -157,10 +158,7 @@ export default function AlgorithmicTable(
                 <MarkovianPropertiesBox
                   name="noteP"
                   values={(formData.noteP as MarkovianValues).values}
-                  valueSuffix={(value: number) => {
-                    if (value < 0) return "";
-                    else return " ".concat(toNote(value));
-                  }}
+                  valueSuffix={(value: number | undefined) => noteName(value)}
                   min={0}
                   max={127}
                   step={0.1}
@@ -175,7 +173,7 @@ export default function AlgorithmicTable(
                   min={0}
                   max={127}
                   step={0.001}
-                  valueSuffix={(value: number) => toNote(value)}
+                  valueSuffix={(value: number | undefined) => noteName(value)}
                 />
               )}
               {!!(formData.noteP.algorithmType == ALGORITHMTYPE.Constant) && (
@@ -186,7 +184,7 @@ export default function AlgorithmicTable(
                   min={0}
                   max={127}
                   step={0.001}
-                  valueSuffix={(value: number) => toNote(value)}
+                  valueSuffix={(value: number | undefined) => noteName(value)}
                 />
               )}
               {!!(
@@ -199,7 +197,7 @@ export default function AlgorithmicTable(
                   min={0}
                   max={127}
                   step={0.001}
-                  valueSuffix={() => "(pitch)"}
+                  valueSuffix={(value: number | undefined) => noteName(value)}
                 />
               )}
               {!!(formData.noteP.algorithmType == ALGORITHMTYPE.Sequencer) && (
@@ -220,15 +218,16 @@ export default function AlgorithmicTable(
                 onChange={handleChange}
                 value={formData.attackP.algorithmType}
               >
-                {Object.values(ALGORITHMTYPE).map((p: ALGORITHMTYPE) => {
-                                      if (p != ALGORITHMTYPE.Sequencer)
-
-                  return (
-                    <option key={`attackPmodulator-${p}`} value={p}>
-                      {p}
-                    </option>
-                  );
-                }).filter((p)=>p)}
+                {Object.values(ALGORITHMTYPE)
+                  .map((p: ALGORITHMTYPE) => {
+                    if (p != ALGORITHMTYPE.Sequencer)
+                      return (
+                        <option key={`attackPmodulator-${p}`} value={p}>
+                          {p}
+                        </option>
+                      );
+                  })
+                  .filter((p) => p)}
               </select>
             </td>
             <td>
@@ -245,8 +244,8 @@ export default function AlgorithmicTable(
                     step: 0.0001,
                     suffix: "(0-127)",
                   }}
-                  centerSuffix={(value: number) => {
-                    if (value < 0) return "";
+                  centerSuffix={(value: number | undefined) => {
+                    if (!value || value < 0) return "";
                     else return "(0-127)";
                   }}
                   frequency={{
@@ -282,7 +281,7 @@ export default function AlgorithmicTable(
                   name="attackP"
                   values={(formData.attackP as MarkovianValues).values}
                   valueSuffix={() => "[0-127]"}
-                                   min={0}
+                  min={0}
                   max={127}
                   step={1}
                   handleChange={handleChange}

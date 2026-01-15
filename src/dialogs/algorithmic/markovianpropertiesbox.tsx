@@ -5,7 +5,7 @@ import { generateRandomString } from "utils/randomstring";
 export type MarkovianPropertiesBoxProps = {
   name: string;
   values: MarkovianType;
-  valueSuffix: Function;
+  valueSuffix: (value?:number | undefined)=>string;
   min: number;
   max: number;
   step: number;
@@ -20,7 +20,7 @@ export default function MarkovianPropertiesBox(
   const { name, values, min, max, step, valueSuffix, handleChange } = props;
   function getSeed(): void {
     const newSeed: string = generateRandomString(15);
-    const event: {} = {
+    const event = {
       target: { name: name.concat(".seed"), value: newSeed, type: "string" },
     };
     handleChange(event as ChangeEvent<HTMLInputElement>);

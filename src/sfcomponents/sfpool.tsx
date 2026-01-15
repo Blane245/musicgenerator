@@ -23,7 +23,7 @@ export async function SFPool(
       const sf: SoundFont2 = await loadSoundFont(desiredFile);
       pool.push({ name: desiredFile, soundFont: sf });
       return Promise.resolve({ name: desiredFile, soundFont: sf });
-    } catch (e: any) {
+    } catch (e) {
       throw new Error(e);
     }
   }

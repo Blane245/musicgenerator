@@ -1,4 +1,5 @@
 import TimeLine from "classes/timeline";
+import { Dispatch, SetStateAction } from "react";
 import {
     DrawingSection,
     RawSourceData,
@@ -19,16 +20,25 @@ export default function tick(
   offsetTime: number,
   pendingSourceData: React.MutableRefObject<RawSourceData[]>,
   drawing: HTMLElement | null,
-  DrawSources: Function,
+  DrawSources: (
+    sources: RawSourceData[],
+    drawing: HTMLElement,
+    timeline: TimeLine,
+    timeProgress: number,
+    sections: DrawingSection[],
+    sourceMap: SourceToDrawingSectionEntry[],
+    displayWidth: number,
+    displayHeight: number
+  )=>void,
   drawingSections: DrawingSection[],
   sourceToDrawingSectionMap: SourceToDrawingSectionEntry[],
-  setTimeProgress: Function,
+  setTimeProgress:  Dispatch<SetStateAction<number>>,
   displayWidth: number,
   displayHeight: number,
 ): void {
   if (paused.current) {
     // console.log("tick paused");
-    tickId && clearTimeout(tickId);
+    if (tickId != 0) clearTimeout(tickId);
     return;
   }
   if (!audioContext) {
@@ -94,7 +104,7 @@ export default function tick(
       setTimeProgress(newTime);
     }
   } else {
-    tickId && clearTimeout(tickId);
+    if (tickId != 0) clearTimeout(tickId);
     setTimeProgress(-1);
   }
     // if the time progress past the end of the current timeline

@@ -14,7 +14,7 @@ export function playingGenerators(
 ) {
   if (paused.current) {
     // console.log("playingGenerators paused");
-    playingId && clearTimeout(playingId);
+    if (playingId !=0) clearTimeout(playingId);
     return;
   }
   if (!audioContext) return;
@@ -43,7 +43,6 @@ export function playingGenerators(
           newActiveGenerators.push(s.gen.name);
         }
       }
-      newActiveGenerators;
       activeGenerators.current = newActiveGenerators;
       setActiveGeneratorsCount(newActiveGenerators.length);
     });
@@ -60,6 +59,6 @@ export function playingGenerators(
       setActiveGeneratorsCount
     );
   } else {
-    playingId && clearTimeout(playingId);
+    if (playingId !=0) clearTimeout(playingId);
   }
 }

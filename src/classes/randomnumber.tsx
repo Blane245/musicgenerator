@@ -38,7 +38,10 @@ export default class RandomNumber {
       h2 = Math.imul(h4 ^ (h2 >>> 22), 2869860233);
       h3 = Math.imul(h1 ^ (h3 >>> 17), 951274213);
       h4 = Math.imul(h2 ^ (h4 >>> 19), 2716044179);
-      (h1 ^= h2 ^ h3 ^ h4), (h2 ^= h1), (h3 ^= h1), (h4 ^= h1);
+      h1 ^= h2 ^ h3 ^ h4;
+      h2 ^= h1;
+      h3 ^= h1;
+      h4 ^= h1;
       return [h1 >>> 0, h2 >>> 0, h3 >>> 0, h4 >>> 0];
     }
   
@@ -47,7 +50,7 @@ export default class RandomNumber {
       let b: number = (this.#seed[1] |= 0);
       let c: number = (this.#seed[2] |= 0);
       let d: number = (this.#seed[3] |= 0);
-      let t: number = (((a + b) | 0) + d) | 0;
+      const t: number = (((a + b) | 0) + d) | 0;
       d = (d + 1) | 0;
       a = b ^ (b >>> 9);
       b = (c + (c << 3)) | 0;

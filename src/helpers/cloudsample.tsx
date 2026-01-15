@@ -82,7 +82,7 @@ export default function cloudSample(props: {
 	} = props;
 	const newCloudState: CloudState = { ...cloudState };
 	const sampleCount = Math.ceil(SAMPLERATE * cloudDuration);
-	let sample: number[] = Array(sampleCount).fill(0); // initialize size, may grow
+	const sample: number[] = Array(sampleCount).fill(0); // initialize size, may grow
 	const lo: number = voice.registerLo;
 	const hi: number = voice.registerHi;
 
@@ -104,9 +104,8 @@ export default function cloudSample(props: {
 	// initialize the starting time and starting pitch based for the current element state
 	let t1: number = cloudState.offset < 0 ? probabilityLookup(Pd, Nd, rN.rand()) : cloudState.offset;
 	let pitch1: number =
-		cloudState.offset < 0 ? intervalProbabilty(hi - lo, rN) + lo : cloudState.pitch;
+		cloudState.offset < 0 ? Math.round(intervalProbabilty(hi - lo, rN) + lo) : cloudState.pitch;
 
-	let sequenceCount: number = 0;
 	let t2: number = 0;
 	let pitch2: number = 0;
 	let finished: boolean = false;
@@ -125,7 +124,7 @@ export default function cloudSample(props: {
 			// get a speed and pitch2
 			const speed: number = gaussianRandom(0, delta * RMSFACTOR, rN);
 			// restrict the glissando to remain in the range of the voice
-			pitch2 = Math.min(hi, Math.max(lo, pitch1 + speed * interval));
+			pitch2 = Math.round(Math.min(hi, Math.max(lo, pitch1 + speed * interval)));
 			// console.log(
 			// 	`glissando for voice ${voice.name}, pitch1=${pitch1}, pitch2=${pitch2}, speed=${speed}, interval=${interval}, t1=${t1}, t2=${t2}`
 			// );
@@ -169,7 +168,6 @@ export default function cloudSample(props: {
 				interval = probabilityLookup(Pd, Nd, rN.rand()); // the initial duration
 			} while (interval == 0);
 		}
-		sequenceCount++;
 	} while (!finished);
 
 	// update the element state

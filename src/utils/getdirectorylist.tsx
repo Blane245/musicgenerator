@@ -1,12 +1,13 @@
 // get the list of soundfont files either from local storage or from the server
+import { Dispatch, SetStateAction } from "react";
 import { type FSResponse } from "../types";
 import {fetchFSData} from "./fetchdata";
 
 export async function getDirectoryList(
   directory: string,
   typeFilter: string[],
-  setList: Function,
-  setStatus: Function
+  setList: React.Dispatch<React.SetStateAction<string[]>>,
+  setStatus: Dispatch<SetStateAction<string>>
 ) {
   if (directory == "") {
     setList([]);

@@ -1,20 +1,37 @@
 # Rambling
 
-This work is inspired by the book [Formalized Music: Thought and Mathematics in Composition](https://en.wikipedia.org/wiki/Formalized_Music), several other readings, and some active listening. Though the principles in that book are only partially realized here, more work may be done...
+This work is inspired by the book [Formalized Music: Thought and Mathematics in Composition](https://en.wikipedia.org/wiki/Formalized_Music) by Iannis Xenakis, several other readings, and some active listening. Though the principles in that book are only partially realized here, more work may be done. Most recently I have implemented a version of stochastic music that closely approximates Xenakis' work. I have finally made it to the 1950-1960s in computer music! I may venture into to the use of neural nets, but that is another day. 
 
-The music generator will play one or more voices using various algorithms or from an existing audio file. Algorithmic voice controls include
+The music generator will play one or more voices using various algorithms, create and stochastic composition and realize it, or will play a recording from an existing audio file. 
+
+Algorithmic voice controls include
 
 - start and stop times
 - SoundFont bank and preset
-- generation algorithms for a voice's note, attack, speed, duration, volume, and pan (Constant, Oscillator, Autoregressive, Markovian, or Wiener)
+- generation algorithms for a voice's note, attack, speed, duration, volume, and pan (Constant, Oscillator, Autoregressive, Markovian, Wiener, or Sequencer)
 - application of Gaussian frequency modulation noise to a voice centered on the generator's current note
-- optional reverberation for each generator
+- reverberation for each generator
+- tremolo and vibrato
 - rhythm selection based on a Euclidean Rhythm algorithm
 - the number of notes used in an octave based on the Euclidean Rhythm algorithm. 
 
+Stochastic composition controls include
+
+- start time, with calculated stop time
+- ensemble selection that defines which voices are in the composition
+- parameters to define the composition, including length, number of time cells, the average number of events per time cell, and a random number seed
+- parameters that define the sound density of each voice 'cloud'
+- pan and intensity controls
+
+Audio file controls include 
+- start time, with calculated stop time
+- browsing for a audio file to load. 
+
 Sound generation can be either previewed thru the computer speakers or recorded to a wav or mp3 file.
 
-Room effects and controls are implemented. They include volume, reverb (both early reflections and diffuse noise), compression, and equalization.
+Room effects are implemented. They include volume, reverb (both early reflections and diffuse noise), compression, and equalization.
+
+Automated volume controls are available at the global, track, or generator level.
 
 A report of the details of a composition in HTML format can be produced.
 
@@ -22,46 +39,17 @@ A report of the details of a composition in HTML format can be produced.
 
 The data structure is hierarchial:
 
-* *CMGFile*: this includes all attributes that apply to all other attributes. It includes a filename, the room compressor, the room equalizer, the room reverberator, the room volume, and a collection of tracks that contain generators.
+* *CMGFile*: this includes all attributes that apply to all other attributes. It includes a filename, the room compressor, the room equalizer, the room reverberator, the room volume, and collections of tracks and controls. 
 * *TimeLine*: this includes attributes that define the left most time to be displayed, and the current zoom level. This data element is independent of CMGFile. i.e., time line setting persist between files and are not saved.
+* *Control*: this is an instance of the control collection belonging to a CMGFile. Each control has time, volume setting, and scope.
 * *Track*: this is an instance of the track collection belonging to a CMGFile. Each track has position, name, solo, and mute attributes and a collection of generators. This provides the means by which generators can be assigned to different tracks for organizational purposes.
 * *Generator*: this is an instance of a generator collection and is the source of the sound that is produced by CMG.
 
-All sound generators have a time when its effect starts and stops. A generator maybe be muted. 
-There are three types of sound generators in this version:
+There are three types of four generators in this version. Each generator may use a different soundfont and preset. See the section on Algorithms for a more detailed discussion.
 1. A silent (**Silent**) generator, which produces silence. It most commonly used at the beginning or end of a composition to offset its start or end time.
-2. An algorithmic (**Algorithmic**) generator, which uses selectable algorithms for the assigned voice's parameter. Each of the voice's parameters may be assigned a different algorithm. The algorithm assigned to the note parameter uses pitch numbers to select presets from a soundfont file. Each generator obtains its audio sample from a preset in a soundfont file. Each generator may use a different soundfont and preset.
-    * The Constant algorithm sets the parameter at a constant value. 
-    * The Oscillator algorithm creates a sequence of values using sine, sawtooth, square, descending triangular, or ascending triangular wave forms. Each waveform have a center, frequency, amplitude, and phase. The waveforms are sampled at each beat and a audio source is generated that starts at that time and ends at the next beat. If the amplitude of the oscillator is zero, the value generated is the center value, equivalent to the Constant algorithm.
-    * The Autoregressive algorithm creates a sequence of values for the assigned voice's parameter. This is a statistical first-order autoregressive sequence of values given by the equation $$V_{i}=\alpha V_{i-1}+\sigma_i$$
-where
-    $V_{i}$ is the next value in the series,
-    $\alpha$ is the persistence parameters, usually between -1 and +1.
-    $V_{i}$ is the previous value in the series, and
-    $\sigma$ is a uniformly distributed random number between -0.5 and +0.5.
-        
-        Each sequence value is bounded by a lower and upper limit and each move is done with a given step size.
-
-    * The Markovian algorithm creates a sequence of values for the assigned voice's parameter. This is a statistical process that has three states with probability transitions between each state. The states are  
-        * keep the same value 
-        * move the value up 
-        * move the value down 
-    
-        If the state transition are such that all transition from the same state to the same state are 1, the value generated is always the starting value. Each sequence value is bounded by a lower and upper limit and each move is done with a given step size. 
-    * The Wiener algorithm creates a sequence values for the assigned voice's parameter. This is a statistical process that has an assigned trend and dispersion. Each sequence value is bounded by a lower and upper limit and each move is done with a given step size. Values are generated using the Wiener Process $$x_t=x_0+\alpha t+N(0,\sigma\sqrt{t})$$
-
-    where $x_t$ is the new attribute value at time $t$, $x_0$ is initial attribute value, $\alpha$ is the trend, $\sigma$ is the dispersion variable, and $\N$ is the Gaussian noise function which generates a random variable with mean $0$ and standard deviation $\sigma\sqrt{t}$.
-    * A Euclidean Rhythm algorithm is used to determine a beat pattern and the notes selectable with in octave. 
-        * The number of beats in the measure is specified along with the number of 'on beats'. An 'on beat' is one that will produce a sound from the current preset, while an 'off beat' is silent no matter what preset is currently active. If the measure length and on beat count are the same, all notes will be played.
-        * The number of notes in an octave determines which presets are available for use by the note parameter. When the note algorithm selects a pitch value, the value is modified to the closest selectable pitch number. If the number of notes in the octave is set to 12, all notes in teh octave will be heard.
-    * A Gaussian noise algorithm is used to apply noise the note's sample. The noise amplitude determines the gain of the noise signal. The frequency of the noise is given in hertz. If the amplitude or frequency is 0, no noise is applied. The Gaussian noise equation is  $$\varphi(z)=\frac {1}{2\pi\sigma}e^{-\frac {(z-\mu)^2}{2\sigma^2}}$$
-    where $\sigma$ is the noise frequency and $\mu$ is zero. The equation for the signal after adding the noise is $$s(t)=\frac {sin(2\pi(s_i(t)+\varphi(\rho))t)}{(1+\sigma)}$$ where $s(t)$ is the signal with applied noise, $\rho$ is a Gaussian-distributed random number, $t$ is the time and $s(t)_i$ is the instrument's signal at time $t$.
-
-        It should be noted that CMG does not use the gain values of the Gain node in the Web API and set the sample playback rate to one. These has been found to be poorly implemented. SoundFont samples are converted to instrument samples by the getPresetNode.tsx function. This is a rather complex routine and is described in detail in the Sample Generation section.
-    * Diffuse reverberation may be applied to a generator. This uses a Web API Audio Convolution filter with user-specified delay and decay times.
-
-    
-3. An Audio File Generator (**AudioFile**). This generator contains the samples from an existing audio file. The start time is controllable, but the stop time is set based on the duration of the audio file. Only the volume can be adjusted as it is assumed that panning is handled in the file itself. 
+2. An algorithmic (**Algorithmic**) generator, which uses selectable algorithms for the assigned voice's parameter. Each of the voice's attributes (note, attack, speed, duration, volume, and pan) may be assigned a different algorithm. The algorithm assigned to the note parameter uses pitch numbers to select presets from a soundfont file. Each generator obtains its audio sample from a preset in a soundfont file. 
+3. A stochastic (**Stochastic**) generator, which an uses ensemble or voices and Poisson, continuous, and random probability functions to create a composition.   
+3. An Audio File (**AudioFile**) generator, which contains the samples from an existing audio file. 
 
 # Web Audio Routing Graph
 
@@ -69,43 +57,138 @@ A Web Audio graph is virtualized when a user selects preview or record. The conn
 The following figure illustrates the audio graph using an example where their are an arbitrary number of tracks containing an arbitrary number of generators.
 
 The upper figure focuses on overall structure from the generators to the compressor. The lower figure focuses on the multiple sources of a single generator. A generator can create one or more sources depending on its type and the specified interval or speed.
-
-![Web Audio Routine Graph](./READMEimages/AudioRoutingGraph.png)
+<p align="center">
+  <img src="./READMEimages/AudioRoutingGraph.png" width="50%" alt="Audio Routing Graph">
+  <br>
+  <em>Audio Routing Graph</em>
+</p>
 
 The upper figure presents those sources, volumes, pans, and reverbs or a generator as a single box. Each generator group is connected to the room concentrator which has a gain of 1. The lower figure illustrates a generator that creates several sources, applies volume and pan to each source. In all cases the gain for volume is 1, as the attribute has been handled in the construction of the sources signal.
 
 The room concentrator gain output is routed to an reverb, compressor, equalizer, volume controls, and to the final destination (either computer speakers for preview or a output stream for recording). 
 
-The reverb, compressor, and equalizer may be enabled or disabled by the user. The diagrams for each is shown below. First the reverb:
+The reverb, compressor, and equalizer may be enabled or disabled by the user. The diagrams for each is shown below.
 
-![Reverb audio routing graph](./READMEimages/RoomReverb.png)
+<p align="center">
+  <img src="./READMEimages/RoomReverb.png" width="50%" height: auto; alt="Room Reverb">
+  <br>
+  <em>Room Reverb</em>
+</p>
 
 The compressor:
- 
-![compressor audio routing graph](./READMEimages/RoomCompressor.png)
+<p align="center">
+  <img src="./READMEimages/RoomCompressor.png" width="20%" height: auto; alt="Room Compressor">
+    <br>
+  <em>Room Compressor</em>
+</p>
 
 The equalizer:
-
-![equalizer audio routing graph](./READMEimages/RoomEqualizer.png)
+<p align="center">
+  <img src="./READMEimages/RoomEqualizer.png" width="50%" height: auto; alt="Room Equalizer">
+    <br>
+  <em>Room Equalizer</em>
+</p>
 
 # Application Structure
 
 The CMG application provides several features:
 1. User definition of the all of the attributes of global generation environment, including room volume, reverb, equalizer, and compressor. 
 2. Display of a timeline that can be panned and zoomed, and shows the progress during preview. A interval can be defined that will select generators to be recorded or previewed. 
-3. User creation, deletion, and maintenance of tracks including track renaming, solo, muting and repositioning
+3. User creation, deletion, and maintenance of tracks including track renaming, solo, muting, and reordering
 4. User creation, deletion, and maintenance of generators, including all attributes of each generator.
 5. Preview and Record functions. During preview, the characteristics of the room volume, reverb, equalizer, and compressor may be changed. 
 6. The ability save and load a defined computer music generation scenario.
 
-The figure below illustrates the class structure of the application. It is implemented as a Vite client using TypeScript. A webserver is used to access a library of soundfont files.
-
-![CMG Component Diagram](./READMEimages/ClassDiagram.png)
-
 The application is designed around the user interface and supported by a context. The four parts of the application are the header, body, footer, and previewer. Preview is implemented at the top level to facilitate full screen display of the preview window.
 
-## Component Structure
-Classes are used to define sound generator objects (Silent, Algorithmic, AudioFile) that are persisted in files while the user interface and sound generation are implemented through React functions. The general structure of the classes are
+The figures below illustrate the class structure of the application. In each diagram, classes that are expanded further are highlighted in peach. In some cases the class is expanded in another diagram. 
+
+The CMGFile class holds all of the information about a composition. 
+<p align="center">
+  <img src="./READMEimages/classdiagrams/CMGFile.png" width="50%" height: auto; alt="Structure of the CMG file class">
+  <br>
+  <em>The CMGFile Class</em>
+</p>
+
+The Home component represents the structure of the GUI.
+<p align="center">
+  <img src="./READMEimages/classdiagrams/Home.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>The Home Component</em>
+</p>
+
+The Home component represents the GUI Title, menus, and time line.
+<p align="center">
+  <img src="./READMEimages/classdiagrams/Header.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>The Header Component</em>
+</p>
+
+The Body component represents the GUI for editting tracks and generators
+<p align="center">
+  <img src="./READMEimages/classdiagrams/Body.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>The Body Component</em>
+</p>
+
+The Footer component displays status message and the room level effects
+<p align="center">
+  <img src="./READMEimages/classdiagrams/Body.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>The Footer Component</em>
+</p>
+
+The ControlDialog component provides maintenance of sound controls on the time line
+<p align="center">
+  <img src="./READMEimages/classdiagrams/ControlDialog.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>The ControlDialog Component</em>
+</p>
+
+The Track Class provides track objects  
+<p align="center">
+  <img src="./READMEimages/classdiagrams/Track.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>The Track Class</em>
+</p>
+
+The GeneratorIcons Component provides a graphical representation of a generator on a track
+<p align="center">
+  <img src="./READMEimages/classdiagrams/Track.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>The GeneratorIcons Component</em>
+</p>
+
+The GeneratorDialog Component manages the dialogs for teh various types of generators
+<p align="center">
+  <img src="./READMEimages/classdiagrams/GeneratorDialog.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>The GeneratorDialog Component</em>
+</p>
+
+The Play Component manages audio preview and record function.
+<p align="center">
+  <img src="./READMEimages/classdiagrams/Play.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>The Play Component</em>
+</p>
+
+The AlgorithmicDialog Component manages maintenance of a Algorithmic generator.
+<p align="center">
+  <img src="./READMEimages/classdiagrams/AlgorithmicDialog.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>The AlgorithmicDialog Component</em>
+</p>
+
+The StochasticDialog Component manages maintenance of a Stochastic generator.
+<p align="center">
+  <img src="./READMEimages/classdiagrams/StochasticDialog.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>The StochasticDialog Component</em>
+</p>
+
+## Class Structure
+Classes are used to define a number of objects used by CMG that are persisted in files while the user interface and sound generation are implemented through React functions. The general structure of the classes are
 1. A set of attributes that define the objects of the class.
 2. A *constructor* that requires a parameter to name the object. Other optional parameters may be present.
 4. A *copy* function that makes a copy of the current object. This is used to cause React to trigger hooks when one or more of the properties of the object changes.
@@ -113,9 +196,7 @@ Classes are used to define sound generator objects (Silent, Algorithmic, AudioFi
 6. A *currentValues* function that returns the values for beat, velocity, note, speed, volume, and pan at a specific time.
 6. An *appendXML* function that added the objects definition to an XML document to be written to external storage. 
 7. A *getXML* static function that reads the object from a XML string.
-7. The Algorithmic class links to AlgorithmValue objects for each of the voice parameters. The AlgorithmValue object may be ConstantValues, OscillatorValues, MarkovianValues, or WienerValues. It also implements generator reverb.
-
-Other functions may be available for special needs. 
+7. Other methods and class objects may exist depending on needed functionality.
 
 ## Header
 
@@ -151,13 +232,13 @@ Preview provides a display overlay that contains three areas:
 - Header
     - buttons for exiting, starting, pausing, and resuming the preview
     - the application title, version, file, and file change status
-    - volume monitor sliders for the left and right channels
     - the timeline 
 - Body
     - one to three sections that display the sources for any instruments, percussions, or audio files that are being previewed. The vertical location of the sources within their sections depend on their pitch number. The color of the source lines varying depending on their volume (saturation), pan (hue), and current playing status (lightness).
 - Footer 
     - a table enumerating the number of total and active generators and sources. A source is 'active' when it is currently being played.
-    - the spectra of the left and right channels
+    - the spectra or sonogram of the left and right channels
+    - the signal levels of the left and right channels
     - room controls for the reverb, compression, equalization, and volume. 
 
 ### Preview Realization
@@ -197,7 +278,9 @@ Before recording can begin, the user is asked to identify the file that is to co
 
 # Sample Generation
 
-I have found the gain envelope feature of the Web API audio framework to be problematic. Envelope control does not have a high level of accuracy and does not always perform as desired. I have developed the following scheme to construct the audio samples for each source using information from the SoundFont preset and instruments and the user controls for note, attack, speed, duration, and volume.
+I have found the gain envelope feature of the Web API audio framework to be problematic. Envelope control does not have a high level of accuracy and does not always perform as desired. I have developed the following scheme to construct the audio samples for each source using information from the SoundFont preset and instruments and the user controls for note, attack, speed, duration, volume, and pan.
+
+What follows is particular to the Algorithmic generators.
 
 The gain envelope, in general has five different regions that may be present. The values for these are derived from the preset and instrument of the selected pitch and velocity. There may be one or more instruments associated with the pitch/velocity combination. Each of them will have its own gain envelope. The gain regions, and their SoundFont definition parameters are:
 1. **Delay** - the amount of time (*delayEnd*) that the signal is zero before the instrument's sound begins (*delayVolEnv*).
@@ -233,7 +316,7 @@ The envelope for an instrument is determined by CMG using the following scheme:
 
         Thus a gain envelope may have as few as one point and as many as six.
 
-The delay and and attack phases may be bypassed if the user has diabled the attack phase. Many instruments have attack built into their samples. Applying the SoundFont generators will over emphasize this attack.  
+The delay and and attack phases may be bypassed if the user has disabled the attack phase. Many instruments have attack built into their samples. Applying the SoundFont generators will over emphasize this attack.  
 
 If tremolo if active, the envelope is revised to apply the tremolo waveform. This is done by interpolating the original envelope at 10 ms intervals and applying the waveform. The number of points in the envelope will them by *totalTime/0.01*.
 
@@ -249,11 +332,13 @@ Once the *sampleRate* and *totalTime* are defined the samples can be determined 
     * otherwise, if looping, adjust the current index to the start of the loop and set the sample array to this instrument's sample with noise added
     * otherwise, there are no more instrument samples, set the sample array at this point to zero.
     * if there is vibrator active, its waveform is applied to the instruments cents and a new playback rate is calculated. 
-    * The current indes is increments by the play back rate and the process repeated 
+    * The current index is increments by the play back rate and the process repeated 
 
 Gaussian frequency modulation noise may be added to the sample if specified by the user. The noise has a dispersion of *noiseFrequency* and an amplitude of *noiseAmplitude*. The added noise is balanced with the original signal assuming that the original signal's gain is 1.
 
 Once the sample array has been constructed by resampling the instrument's signal and applying noise, the gain envelope can be applied to it. This is a relatively simple process of interpolating the gain between envelope points and applying it to the signal.
+
+Finally, the pan value is applied to the sample. 
 
 # Thanks
 
@@ -264,10 +349,11 @@ Special thanks to various people and non-people
 - WebAudio documentation, particularly the authors of the page [Advanced techniques: Creating and sequencing audio](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Advanced_techniques).
 - Russell Good for his blog [How to Convert an AudioBuffer to an Audio File with JavaScript](https://russellgood.com/how-to-convert-audiobuffer-to-audio-file/).
 - Mathew Willox for his blog [Making Reverb with the Web Audio API](https://blog.gskinner.com/archives/2019/02/reverb-web-audio-api.html). 
-- The Duckduckgo search engine and Visual Code Chat Engine that helped me hack my way through this.
-- 'The Computer Music Tutorial', by Curtis Roads, 1996. This is an excellent book that gives the history and basic of signal processing as applied to sound. 
+- The Duckduckgo search engine and Visual Code Copilot that helped me hack my way through this.
+- 'The Computer Music Tutorial', by Curtis Roads, 1996. This is an excellent book that gives the history and basic of signal processing as applied to sound. Since it was written, many algorithmic methods described there are realizable on computers in real time. 
 
 # Versions - Changes
+## 6.0.0 Release Notes (5.0.0 was never released)
 ## 4.0.0 Release Notes
 - implemented graphical display for preview, including spectra
 - refactored generator icons as it was getting quite large
@@ -301,8 +387,6 @@ Special thanks to various people and non-people
 
 ## Remaining things to do
 
-- disable delay of a preset. For presets that have multiple instruments, the shortest delay is removed and the other instrument delays are shortened.
-- implement a note velocity modulator. Should add some expression to notes
 - consider using slow time line scrolling during preview
 
 - Bugs
@@ -311,17 +395,61 @@ Special thanks to various people and non-people
 
 # Development and Installation
 
-This application was developed in Visual Code, using a vite/typescript project. 
+This application was developed in Visual Code, using a vite/typescript project. It depends on the WebAPI interface to realize audio sounds. See the package.json file for specific packages used. 
+
+A file dialog is used to access locally stored soundfont files. Sequencer and ensemble data are provided a MySql server.
 
 ## Typescript and Vite build tweaks
 
 While TypeScript goes a long way towards making JavaScript strongly data typed, there is still some work that is needed. I had to have typescript compiler ignore a few lines that it was having trouble with using // @ts-ignore
 
-The base for the build is set to /cmg4.
-I am running a nginx ubuntu server for access to the CMG client. After building the application (npm run build), move the contents of the build folder (dist) to /var/www/lanedb.hopto.org/cmg4 via scp. The nginx configuration for the path lanedb.hopto.org/cmg4 is root /var/www/lanedb.hopto.org. The assets directory had to have its mode changed via <code>sudo chmod 755 assets</code>.
+Currently, I have no place to provide this application globally being devoid of any domain or virtual server. 
 
-## Local file server
+## Local File Server
 
 Web security restrictions prevent file dialogs from obtaining the full path of files read and written on the local machine. This drove me to write a local file server that mimics the file dialogs in Javascript. It is used to access SoundFont files and enabled a 'recent files' capability since the full path is available to me. Since this application is full a local client with no internet dependencies, there is no security problem.
 
 The local file server, located in the [GitHub Repository](https://github.com/Blane245/local_file_server). The README.md file has installation instructions.
+
+## CMG Database Server
+
+The Sequencing and Ensemble capabilities are providing by a MySql server, located in the [GitHub Repository](https://github.com/Blane245/CMGDatabaseServer)
+
+
+# Generator Algorithms
+
+The Algorithmic and Stochastic generators use various deterministic and statistical algorithms. 
+
+* The Oscillator algorithm creates a sequence of values using sine, sawtooth, square, descending triangular, or ascending triangular wave forms. Each waveform have a center, frequency, amplitude, and phase. The waveforms are sampled at each beat and a audio source is generated that starts at that time and ends at the next beat. If the amplitude of the oscillator is zero, the value generated is the center value, equivalent to the Constant algorithm.
+* The Autoregressive algorithm creates a sequence of values for the assigned voice's parameter. This is a statistical first-order autoregressive sequence of values given by the equation $$V_{i}=\alpha V_{i-1}+\sigma_i$$
+where $V_{i}$ is the next value in the series, $\alpha$ is the persistence parameters, usually between -1 and +1, $V_{i}$ is the previous value in the series, and $\sigma$ is a uniformly distributed random number between -0.5 and +0.5.
+        
+    Each sequence value is bounded by a lower and upper limit and each move is done with a given step size.
+
+* The Markovian algorithm creates a sequence of values for the assigned voice's parameter. This is a statistical process that has three states with probability transitions between each state. The states are  
+    * keep the same value 
+    * move the value up 
+    * move the value down 
+    
+    If the state transition are such that all transition from the same state to the same state are 1, the value generated is always the starting value. Each sequence value is bounded by a lower and upper limit and each move is done with a given step size. 
+
+* The Wiener algorithm creates a sequence values for the assigned voice's parameter. This is a statistical process that has an assigned trend and dispersion. Each sequence value is bounded by a lower and upper limit and each move is done with a given step size. Values are generated using the Wiener Process $$x_t=x_0+\alpha t+N(0,\sigma\sqrt{t})$$
+
+    where $x_t$ is the new attribute value at time $t$, $x_0$ is initial attribute value, $\alpha$ is the trend, $\sigma$ is the dispersion variable, and $\N$ is the Gaussian noise function which generates a random variable with mean $0$ and standard deviation $\sigma\sqrt{t}$.
+* A Euclidean Rhythm algorithm is used to determine a beat pattern and the notes selectable with in octave. 
+    * The number of beats in the measure is specified along with the number of 'on beats'. An 'on beat' is one that will produce a sound from the current preset, while an 'off beat' is silent no matter what preset is currently active. If the measure length and on beat count are the same, all notes will be played.
+    * The number of notes in an octave determines which presets are available for use by the note parameter. When the note algorithm selects a pitch value, the value is modified to the closest selectable pitch number. If the number of notes in the octave is set to 12, all notes in teh octave will be heard.
+* A Gaussian noise algorithm is used to apply noise the note's sample and to select speeds for stochastic glissando voices. The Gaussian equation is  $$\varphi(z)=\frac {1}{2\pi\sigma}e^{-\frac {(z-\mu)^2}{2\sigma^2}}$$
+    where $\sigma$ is the noise frequency and $\mu$ is zero.  
+    
+    The noise amplitude determines the gain of the noise signal. The frequency of the noise is given in hertz. If the amplitude or frequency is 0, no noise is applied. The equation for the signal after adding the noise is $$s(t)=\frac {sin(2\pi(s_i(t)+\varphi(\rho))t)}{(1+\sigma)}$$ where $s(t)$ is the signal with applied noise, $\rho$ is a Gaussian-distributed random number, $t$ is the time and $s(t)_i$ is the instrument's signal at time $t$.
+
+    The glissando speed is such that $\mu$ is zero, providing to rising and falling glissandi, $\sigma$ is proportional the sonic density $\delta$
+* The Possion Distribution is used to create a composition for a stochastic generator. $$\varphi(k)=\frac {\lambda}{k!}e^{-\lambda}$$ where $\lambda$ is the average number of sound events in each time interval, and $k$ is the number of events.
+* The first law of Continuous Probability is to determine the duration of a voice instance for a stochastic generator. $$\varphi(x)=ce^{-cx}dx$$ where $c$ is the density of events.
+* The second law of Continuois probability is used by the stochastic generator to determine intervals of pitch, intensity, density, pan.
+$$\varphi(j)=\frac {2}{a}(1-\frac {j}{a})dj$$
+
+It should be noted that CMG does not use the gain values of the Gain node or the panner values of a Panner node in the Web API. It also set the sample playback rate to one as resampling is done by the source building engines. getPresetNode.tsx and buildPresetSample.tsx functions. These are a rather complex routine and is described in detail in the Sample Generation section.
+
+    * Diffuse reverberation may be applied to a generator. This uses a Web API Audio Convolution filter with user-specified delay and decay times.

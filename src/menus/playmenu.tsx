@@ -216,6 +216,6 @@ export default function PlayMenu() {
             );
           }
         });
-    } catch (_) {}
+    } catch (e) {throw new Error(`Error while writing the report ${(e as Error).message}`)}
   }
 }

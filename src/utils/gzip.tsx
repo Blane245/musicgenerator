@@ -12,7 +12,7 @@ export async function compressAndConvertToString(data: ArrayBuffer): Promise<str
     writer.write(data);
     writer.close();
     const compressedStream: ReadableStream<Uint8Array> = cs.readable;
-    let compressedArray: ArrayBuffer = await new Response(
+    const compressedArray: ArrayBuffer = await new Response(
       compressedStream
     ).arrayBuffer();
     return compressedArray;

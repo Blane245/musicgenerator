@@ -1,7 +1,8 @@
 import CMGFile from "classes/cmgfile";
 import Stochastic from "classes/generators/stochastic";
+import RandomNumber from "classes/randomnumber";
 import buildSamples from "helpers/buildsamples";
-import { RawSourceData, SAMPLERATE, StochasticValues } from "types";
+import { RawSourceData, SAMPLERATE, StochasticValues, Voices } from "types";
 
 // convert all of the stochastic elements in all clouds to audio samples
 // and put them in the source data
@@ -12,13 +13,22 @@ export function getBufferSourceNodesFromStochastic(
 ): RawSourceData[] {
   const { startTime, stopTime } = gen;
   const v: StochasticValues = gen.values;
+
+  // select only the voices that are not muted
+  const muted: boolean[] = [...v.muted];
+  const selectedVoices: Voices = [];
+  for (let i = 0; i < v.voices.length; i++) {
+    if (!muted[i]) selectedVoices.push(v.voices[i]);
+  }
+  // restart the random number genertor every time the composition samples are restarted
+  v.rN = new RandomNumber(v.seed);
   const stereo = buildSamples ({
     delta: v.delta,
     Ne: gen.getNe(),
     Nt: v.Nt,
     Tc: v.Tc,
     composition: v.composition,
-    voices: v.voices,
+    voices: selectedVoices,
     panOption: v.panOption,
     panAlgorithm: v.panAlgorithm,
     panParameters: v.panParameters,

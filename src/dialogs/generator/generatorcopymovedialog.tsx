@@ -9,8 +9,8 @@ export interface GeneratorCopyMoveProps {
   mode: string;
   trackName: string;
   generator: GeneratorType;
-  setDialogVisible: Function;
-  setMenuVisible: Function;
+  setDialogVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  setMenuVisible: React.Dispatch<React.SetStateAction<Track | null>>;
 }
 
 // handles copy and move generator between tracks.
@@ -22,7 +22,7 @@ export default function GeneratorCopyMoveDialog(props: GeneratorCopyMoveProps) {
 
   function onCancel() {
     setDialogVisible(false);
-    setStatus("");
+    setStatus("Generator move/copy canceled");
     setMenuVisible(null);
   }
   function onChange(event: ChangeEvent<HTMLSelectElement>) {

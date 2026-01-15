@@ -15,7 +15,7 @@ export interface StochasticValuesProps {
   handleChange: (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
-  setMessages: Function;
+  setMessages: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 export default function StochasticValues(
@@ -26,7 +26,7 @@ export default function StochasticValues(
 
   function generateSeed(): void {
     const newSeed: string = generateRandomString(15);
-    const event: {} = {
+    const event = {
       target: { name: "seed", value: newSeed, type: "string" },
     };
     formData.values.composition = [];

@@ -10,7 +10,7 @@ import {
 } from "utils/xmlfunctions";
 
 // Controls do not affect generators that have already stopped running.
-export class Control {
+export default class Control {
   name: string = "";
   time: number = 0;
   type: EFFECTTYPE = EFFECTTYPE.None;
@@ -80,7 +80,7 @@ export class Control {
           (this.effect as GeneratorEffect).appendXML(doc, elem);
           break;
       }
-    } catch (e: any) {
+    } catch (e) {
       throw new Error(`Control appendxml error ${e} `);
     }
   }
@@ -115,24 +115,27 @@ export class Control {
       if (list != "") e.list = list.split(",");
       else e.list = [];
       switch (e.type) {
-        case EFFECTTYPE.Global:
+        case EFFECTTYPE.Global: {
           const ge: Element | null = getElementElement(elem, "globalEffect");
           if (ge) e.effect = GlobalEffect.getXml(ge, version);
           break;
-        case EFFECTTYPE.Track:
+        }
+        case EFFECTTYPE.Track: {
           const te: Element | null = getElementElement(elem, "trackEffect");
           if (te) e.effect = TrackEffect.getXml(te, version);
           break;
-        case EFFECTTYPE.Generator:
+        }
+        case EFFECTTYPE.Generator: {
           const gene: Element | null = getElementElement(
             elem,
             "generatorEffect"
           );
           if (gene) e.effect = GeneratorEffect.getXml(gene, version);
           break;
+        }
       }
       return e;
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`Control getXML error ${error}`);
     }
   }
@@ -228,24 +231,26 @@ export class GlobalEffect extends Effect {
 
   initializeVolumeRamp(time: number) {
     this.#startTime = time;
-    this.#stopTime = time+this.volumeDuration;
+    this.#stopTime = time + this.volumeDuration;
   }
 
   getCurrentValues(time: number): {
     reverbEnable: boolean;
     compressorEnable: boolean;
     equalizerEnable: boolean;
-    volume: number;
+    volume: number | undefined;
   } {
-    let newVolume: number = this.volumeStart;
-    newVolume = linearInterpolate(
-      time,
-      this.#startTime,
-      this.#stopTime,
-      this.volumeStart,
-      this.volumeStop
-    );
-    newVolume = Math.min(10, Math.max(-10, newVolume));
+    let newVolume: number | undefined = undefined;
+    if (time >= this.#startTime && time <= this.#stopTime) {
+      newVolume = linearInterpolate(
+        time,
+        this.#startTime,
+        this.#stopTime,
+        this.volumeStart,
+        this.volumeStop
+      );
+      newVolume = Math.min(10, Math.max(-10, newVolume));
+    } else newVolume = undefined;
     return {
       reverbEnable: this.reverbEnable,
       compressorEnable: this.compressorEnable,
@@ -275,7 +280,7 @@ export class GlobalEffect extends Effect {
       effectElem.setAttribute("volumeStop", this.volumeStop.toString());
       effectElem.setAttribute("volumeDuration", this.volumeDuration.toString());
       return newElem;
-    } catch (e: any) {
+    } catch (e) {
       throw new Error(`GlobalEffect appendXML error ${e} `);
     }
   }
@@ -320,7 +325,7 @@ export class GlobalEffect extends Effect {
         0
       ) as number;
       return e;
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`GlobalEffect getXML error ${error} `);
     }
   }
@@ -366,7 +371,7 @@ export class TrackEffect extends Effect {
 
   initializeVolumeRamp(time: number) {
     this.#startTime = time;
-    this.#stopTime = time+this.volumeDuration;
+    this.#stopTime = time + this.volumeDuration;
   }
 
   getCurrentValues(time: number): { volume: number } {
@@ -379,7 +384,7 @@ export class TrackEffect extends Effect {
       this.volumeStop
     );
     newVolume = Math.min(10, Math.max(-10, newVolume));
-    return {volume: newVolume}
+    return { volume: newVolume };
   }
 
   appendXML(doc: XMLDocument, elem: Element): Element {
@@ -391,7 +396,7 @@ export class TrackEffect extends Effect {
       effectElem.setAttribute("volumeStop", this.volumeStop.toString());
       effectElem.setAttribute("volumeDuration", this.volumeDuration.toString());
       return newElem;
-    } catch (e: any) {
+    } catch (e) {
       throw new Error(`TrackEffect appendXML error ${e} `);
     }
   }
@@ -418,7 +423,7 @@ export class TrackEffect extends Effect {
         0
       ) as number;
       return e;
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`TrackEffect getXML error ${error} `);
     }
   }
@@ -503,7 +508,7 @@ export class GeneratorEffect extends Effect {
         this.vibratoEnable ? "true" : "false"
       );
       return newElem;
-    } catch (e: any) {
+    } catch (e) {
       throw new Error(`GeneratorEffect appendXML error ${e} `);
     }
   }
@@ -536,7 +541,7 @@ export class GeneratorEffect extends Effect {
         true
       ) as boolean;
       return e;
-    } catch (error: any) {
+    } catch (error) {
       throw new Error(`GeneratorEffect getXML error ${error} `);
     }
   }

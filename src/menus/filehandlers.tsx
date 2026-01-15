@@ -97,9 +97,9 @@ export async function writeCMGFile(
       else return "";
     else
       return Promise.reject(`Unknown server error while writing ${fileName} `);
-  } catch (e: any) {
-    console.log("file writing error", e);
-    return Promise.reject(e.toString());
+  } catch (e) {
+    console.log("file writing error", (e as Error).message);
+    return Promise.reject((e as Error).message);
   }
 }
 
@@ -126,29 +126,32 @@ export async function readCMGFile(
     // <CMG><timeLine>...</timeLine><fileContents>...</fileContents></CMG>
     let timeLineElem: Element | null = null;
     let fcElem: Element | null = null;
-    try {
-      const CMGElem: Element = getDocElement(xmlDoc, "CMG");
+
+    const CMGElem: Element | null = getDocElement(xmlDoc, "CMG");
+    if (!CMGElem) getDocElement(xmlDoc, "fileContents");
+    else {
       timeLineElem = getElementElement(CMGElem, "timeLine");
       fcElem = getElementElement(CMGElem, "fileContents");
-    } catch (e) {
-      fcElem = getDocElement(xmlDoc, "fileContents");
     }
-    let timeLine: TimeLine = new TimeLine(width, height);
+    const timeLine: TimeLine = new TimeLine(width, height);
     if (timeLineElem) timeLine.getXML(timeLineElem, fileName);
 
     const fileContents = new CMGFile();
+    if (!fcElem) return Promise.resolve({ fileContents, timeLine });
 
     // clear the SoundFontGenerators map so only generators loaded by this
     // file are retrieved
     SoundFontGenerators.clear();
 
-    if (fcElem) {
-      await fileContents.getXML(fcElem, fileName);
+    // read the filecontents element
+    await fileContents.getXML(fcElem, fileName);
 
-      const tracksElem: Element = getDocElement(xmlDoc, "tracks");
+    // read the tracks element
+    const tracksElem: Element | null = getDocElement(xmlDoc, "tracks");
+    if (tracksElem) {
       const tracksChildren: HTMLCollection = tracksElem.children;
       const trackPromises: Promise<Track>[] = [];
-      for (let child of tracksChildren) {
+      for (const child of tracksChildren) {
         const track: Track = new Track(0);
         const trackPromise: Promise<Track> = track.getXML(
           child,
@@ -161,18 +164,17 @@ export async function readCMGFile(
         const tracks: Track[] = await Promise.all(trackPromises);
         fileContents.tracks = tracks;
       }
-      // retrieve all of the soundfont files that are needed by the composition
 
+      // retrieve all of the soundfont files that are needed by the system
       const soundFontPromises: Promise<SFPromiseType>[] = [];
       Array.from(SoundFontGenerators.keys()).forEach(async (name) => {
         try {
           const soundFontPromise: Promise<SFPromiseType> = SFPool(name);
           soundFontPromises.push(soundFontPromise);
-        } catch (e: any) {
-          throw new Error(e);
+        } catch (e) {
+          throw new Error((e as Error).message);
         }
       });
-
       // wait for the all of the soundfont files to load, then update the
       // generators with the soundfont file and preset
       const data: { name: string; soundFont: SoundFont2 }[] = await Promise.all(
@@ -187,9 +189,7 @@ export async function readCMGFile(
             thisOne.users.forEach((user) => {
               const g: Algorithmic = user.generator as Algorithmic;
               g.soundFont = d.soundFont;
-              g.presets = (
-                d.soundFont.presets as Preset[]
-              ).sort((a, b) => {
+              g.presets = (d.soundFont.presets as Preset[]).sort((a, b) => {
                 if (a.header.bank < b.header.bank) return -1;
                 if (a.header.bank > b.header.bank) return 1;
                 return a.header.preset - b.header.preset;
@@ -206,17 +206,18 @@ export async function readCMGFile(
               const voice: Voice = g.values.voices[user.voiceNumber];
               voice.soundFontFile = d.name;
               const soundFont: SoundFont2 = d.soundFont;
-              const {preset} = 
-              presetNameToPreset(voice.presetName, soundFont.presets as Preset[])
+              const { preset } = presetNameToPreset(
+                voice.presetName,
+                soundFont.presets as Preset[]
+              );
               voice.preset = preset;
-            })
+            });
           }
         }
       });
-      return Promise.resolve({ fileContents, timeLine });
-    } else {
-      return Promise.resolve({ fileContents: null, timeLine: null });
-    }
+    } else fileContents.tracks = [];
+
+    return Promise.resolve({ fileContents, timeLine });
   } catch (e) {
     return Promise.reject(e);
   }

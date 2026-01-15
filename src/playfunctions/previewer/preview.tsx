@@ -25,7 +25,7 @@
 // Drawing which includes the source graphics
 // Footer which includes status on genrators and sources playing and the room effect controls
 import CMGFile from "classes/cmgfile";
-import { Control } from "classes/control";
+import Control from "classes/control";
 import SignalLevel from "classes/signallevel";
 import TimeLine from "classes/timeline";
 import { useCMGContext } from "cmgcontext";
@@ -58,7 +58,7 @@ import Timeline from "./timeline";
 // are CMG context variables
 export interface PreviewProps {
   sourceData: RawSourceData[];
-  setMode: Function;
+  setMode: React.Dispatch<React.SetStateAction<PLAYMODE>>;
 }
 
 // this component uses many state variables as all subcomponents are
@@ -68,6 +68,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
   const {
     fileContents,
     setFileContents,
+    setStatus,
     playing,
     displayHeight,
     displayWidth,
@@ -128,11 +129,11 @@ export default function Preview(params: PreviewProps): JSX.Element {
   });
   const [analyser, setAnalyser] = useState<SignalLevel | null>(null);
 
-  let tickId: number = 0;
-  let playingId: number = 0;
-  let signalId = 0;
-  let timerID: number = 0;
-  let nextTime: number = 0.0;
+  const tickId: number = 0;
+  const playingId: number = 0;
+  const signalId = 0;
+  const timerID: number = 0;
+  const nextTime: number = 0.0;
 
   // initialize the preview timeline and the ticks when the display layout changes
   useEffect(() => {
@@ -157,7 +158,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
       const newTimeTicks: TimeTicks | null = updateTimeTicks(nP);
       if (newTimeTicks) setTicks(newTimeTicks);
     }
-  }, [displayWidth, offsetTime]);
+  }, [displayWidth, offsetTime, timeLine]);
 
   // prepare the drawing when new sources arrive
   useEffect(() => {
@@ -207,7 +208,37 @@ export default function Preview(params: PreviewProps): JSX.Element {
     // save the control state
     saveControlledState(fileContents);
     console.log("file contents saved");
-  }, [sourceData]);
+    
+  function initializeRoomEffects(ctx: AudioContext) {
+    fileContents.equalizer.setContext(ctx);
+    fileContents.compressor.setContext(ctx);
+    fileContents.volume.setContext(ctx);
+    fileContents.reverb.setContext(ctx);
+
+    setConcentrator(
+      buildRoomNodes(
+        fileContents.compressor,
+        fileContents.equalizer,
+        fileContents.volume,
+        fileContents.reverb,
+        ctx
+      )
+    );
+
+    setAnalyser(
+      new SignalLevel(ctx, fileContents.volume.effect as GainNode, FFTSize)
+    );
+
+    // initialize the frequency bins
+    // console.log("analyzer connected", fileContents.volume.effect);
+    const bins: Float32Array = new Float32Array(FFTSize / 2);
+    for (let i = 0; i < bins.length; i++) {
+      bins[i] = frequencyForBinIndex(i, ctx.sampleRate, FFTSize);
+    }
+    setFrequencyBins(bins);
+  }
+
+  }, [sourceData, FFTSize, fileContents, previewHeight]);
 
   // draw the sources when a new previewtimeline and a drawing exists
   useEffect(() => {
@@ -224,17 +255,18 @@ export default function Preview(params: PreviewProps): JSX.Element {
         displayHeight
       );
     }
-  }, [drawing]);
+    // timeProgress is intentionally omitted to avoid infinite loop during playback
+  }, [drawing, drawingSections, sourceToDrawingSectionMap, displayWidth, displayHeight]);
 
   function onExit() {
     setMode(PLAYMODE.idle);
     setRunning(false);
     playing.current = false;
     // paused.current = true;
-    timerID && clearTimeout(timerID);
-    tickId && clearTimeout(tickId);
-    playingId && clearTimeout(playingId);
-    signalId && clearTimeout(signalId);
+    if(timerID!=0) clearTimeout(timerID);
+    if (tickId != 0) clearTimeout(tickId);
+    if (playingId !=0) clearTimeout(playingId);
+    if (signalId != 0) clearTimeout(signalId);
     if (audioContext && audioContext.state != "closed") {
       audioContext.close();
     }
@@ -251,6 +283,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
       console.log("file contents restored");
       return n;
     });
+    setStatus(`Preview Terminated`)
     return;
   }
 
@@ -376,34 +409,6 @@ export default function Preview(params: PreviewProps): JSX.Element {
     );
   }
 
-  function initializeRoomEffects(ctx: AudioContext) {
-    fileContents.equalizer.setContext(ctx);
-    fileContents.compressor.setContext(ctx);
-    fileContents.volume.setContext(ctx);
-    fileContents.reverb.setContext(ctx);
-
-    setConcentrator(
-      buildRoomNodes(
-        fileContents.compressor,
-        fileContents.equalizer,
-        fileContents.volume,
-        fileContents.reverb,
-        ctx
-      )
-    );
-
-    setAnalyser(
-      new SignalLevel(ctx, fileContents.volume.effect as GainNode, FFTSize)
-    );
-
-    // initialize the frequency bins
-    // console.log("analyzer connected", fileContents.volume.effect);
-    const bins: Float32Array = new Float32Array(FFTSize / 2);
-    for (let i = 0; i < bins.length; i++) {
-      bins[i] = frequencyForBinIndex(i, ctx.sampleRate, FFTSize);
-    }
-    setFrequencyBins(bins);
-  }
   function frequencyForBinIndex(
     index: number,
     sampleRate: number,

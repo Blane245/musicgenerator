@@ -26,7 +26,7 @@ export interface GeneratorDialogProps {
   newGenerator: boolean;
 }
 
-export default function generatorDialog(props: GeneratorDialogProps) {
+export default function GeneratorDialog(props: GeneratorDialogProps) {
   const { track, generatorType, generator, newGenerator } = props;
   type SFDataType = {
     soundFont: SoundFont2 | undefined;
@@ -65,7 +65,7 @@ export default function generatorDialog(props: GeneratorDialogProps) {
     // either get the generator from the track or build a new one if being added
     if (newGenerator && !generator) {
       // create a generator with a unique name
-      let next = getGeneratorUID(fileContents.tracks);
+      const next = getGeneratorUID(fileContents.tracks);
       switch (generatorType) {
         case GENERATORTYPE.Silent:
           {
@@ -321,6 +321,7 @@ export default function generatorDialog(props: GeneratorDialogProps) {
       }
       setGeneratorDialogVisible(false);
       setOldName("");
+      setStatus(`Generator ${formData.name} ${newGenerator?'added': 'modified'}.`)
     }
   }
 
@@ -366,14 +367,13 @@ export default function generatorDialog(props: GeneratorDialogProps) {
     
     setPreviewVisible(true);
     setMode(PLAYMODE.solo);
-    setStatus(``);
   }
 
   function handleCancelClick(event: MouseEvent<Element>) {
     event.preventDefault();
     setGeneratorDialogVisible(false);
     setOldName("");
-    setStatus("");
+    setStatus("Generator editing canceled");
   }
 
   function loadSoundFontandUpdate(fileName: string) {
@@ -402,8 +402,8 @@ export default function generatorDialog(props: GeneratorDialogProps) {
           return newSoundFontData;
         });
       }
-    } catch (e: any) {
-      setStatus(e);
+    } catch (e) {
+      setStatus((e as Error).message);
     }
   }
 
@@ -536,7 +536,6 @@ export default function generatorDialog(props: GeneratorDialogProps) {
             </div>
             <GeneratorTypeForm
               formData={formData}
-              setFormData={setFormData}
               handleChange={handleChange}
               setMessages={setErrorMessages}
             />

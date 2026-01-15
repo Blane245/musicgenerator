@@ -2,7 +2,7 @@
 //  create their mouse event handlers, which will bring up a menu to
 //  select the control to edit or delete
 
-import { Control } from "classes/control";
+import Control from "classes/control";
 import TimeLine from "classes/timeline";
 import { useCMGContext } from "cmgcontext";
 import ControlDialog from "dialogs/control/controldialog";
@@ -69,7 +69,7 @@ export default function DisplayControls(
       }
     }
     setCtlLists(lists);
-  }, [fileContents.controls]);
+  }, [fileContents.controls, timeLine.currentZoomLevel, timeLine.startTime]);
   function handleEditControl(event: MouseEvent, name: string): void {
     event.preventDefault();
     event.stopPropagation();

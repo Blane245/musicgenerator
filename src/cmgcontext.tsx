@@ -2,6 +2,7 @@
 // it contains attributes that are used by multiple
 // components.
 // Its use avoids a whole lot of parameter passing between components
+import Control from "classes/control";
 import {
   createContext,
   Dispatch,
@@ -18,14 +19,10 @@ import {
   EditGenerator,
   EnsembleType,
   GeneratorType,
-  MouseLocation,
   PLAYMODE,
   RawSourceData,
-  TimelineInterval,
-  Voice,
-  Voices
+  TimelineInterval
 } from "./types";
-import { Control } from "classes/control";
 
 // the elements of this application that are used at many levels
 interface CMGContextType {
@@ -81,8 +78,6 @@ interface CMGContextType {
   setStatus: Dispatch<SetStateAction<string>>;
   timeLine: TimeLine | null;
   setTimeLine: Dispatch<SetStateAction<TimeLine | null>>;
-  // controls: Control[];
-  // setControls: Dispatch<SetStateAction<Control[]>>;
   controlNew: Control | null;
   setControlNew: Dispatch<SetStateAction<Control| null>>;
   displayControlDialog: boolean;
@@ -106,9 +101,6 @@ interface CMGContextType {
   setTrackIndex: Dispatch<SetStateAction<number>>;
   editGeneratorData: EditGenerator;
   setEditGeneratorData: Dispatch<SetStateAction<EditGenerator>>;
-  mouseDown: MutableRefObject<boolean>;
-  mouseLocation: MouseLocation | null;
-  setMouseLocation: Dispatch<SetStateAction<MouseLocation | null>>;
   generatorsPlaying: GeneratorType[];
   setGeneratorsPlaying: Dispatch<SetStateAction<GeneratorType[]>>;
   FFTSize: number;
@@ -152,7 +144,6 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
   const [fileContents, setFileContents] = useState<CMGFile>(new CMGFile());
   const [status, setStatus] = useState<string>("");
   const [timeLine, setTimeLine] = useState<TimeLine | null>(null);
-  // const [controls, setControls] = useState<Control[]>([]);
   const [controlNew, setControlNew] = useState<Control|null>(null);
   const [displayControlDialog, setDisplayControlDialog] = useState<boolean>(false);
   const [fileName, setFileName] = useState<string>("");
@@ -175,11 +166,6 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
   const [FFTSize, setFFTSize] = useState<number>(2048);
   const [frequencyDisplay, setFrequencyDisplay] = useState<string>('spectrum');
 
-  // items used to manage mouse interactivity
-  const mouseDown = useRef<boolean>(false);
-  const [mouseLocation, setMouseLocation] = useState<MouseLocation | null>(
-    null
-  );
   const contextValue = {
     appName,
     setAppName,
@@ -233,8 +219,6 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     setStatus,
     timeLine,
     setTimeLine,
-    // controls,
-    // setControls,
     controlNew,
     setControlNew,
     displayControlDialog,
@@ -258,9 +242,6 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     setEditGeneratorData,
     trackIndex,
     setTrackIndex,
-    mouseDown,
-    mouseLocation,
-    setMouseLocation,
     generatorsPlaying,
     setGeneratorsPlaying,
     FFTSize,

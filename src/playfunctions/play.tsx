@@ -8,8 +8,8 @@ import { buildSources } from "./buildsources";
 import ReadyPlay from "./readyplay";
 import Record from "./record";
 
-export interface PlayProps {
-  setRecordHandle?: Function;
+interface PlayProps {
+  setRecordHandle?: React.Dispatch<React.SetStateAction<FileSystemFileHandle | null>>;
   recordFormat?: string;
   recordHandle?: FileSystemFileHandle | null;
   generator: GeneratorType | null;
@@ -68,12 +68,12 @@ export default function Play(props: PlayProps) {
     setSourceData(builtSourceData);
     // let the system know that playing is entered
     playing.current = true;
-  }, [mode]);
+  }, [mode, fileContents, generator, playing, timeInterval]);
 
   function handleErrorClose() {
     setError("");
     setMode(PLAYMODE.idle);
-    setStatus(``);
+    setStatus(`Error occurred during preview`);
   }
 
   // the only thing displayed by this function is an error popup

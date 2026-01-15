@@ -1,12 +1,10 @@
-import { SequenceItem } from "types";
 import DraggablePopup from "components/draggablepopup";
 import ItemTable from "components/itemtable";
 import { ChangeEvent, MouseEvent, useEffect, useState } from "react";
-import { SEQUENCEATTRIBUTE, SequenceName, SequenceType } from "types";
+import { SEQUENCEATTRIBUTE, SequenceItem, SequenceName, SequenceType } from "types";
 import { loadSequenceItems } from "utils/loadsequenceitems";
 import { loadValidSequenceNames } from "utils/loadvalidsequencenames";
 import toTitleCase from "utils/totitlecase";
-import { toNote } from "sfcomponents/util";
 
 type SequencerProperitesBoxProps = {
   attributeType: SEQUENCEATTRIBUTE;
@@ -43,7 +41,7 @@ export default function SequencerPropertiesBox(
       setSequenceItems(sequenceItems);
     }
     if (sequenceItems.length == 0) load();
-  }, [values.name]);
+  }, [values.name, attributeType, sequenceItems.length]);
 
   // when a new sequence name is selected, load its sequence items and
   // then signal the change

@@ -55,7 +55,7 @@ export default class SequenceValues extends AlgorithmValues {
         this.values.sequenceAttribute = SEQUENCEATTRIBUTE[value];
         return true;
 
-      case "name":
+      case "name": {
         this.values.name = value;
         const loadItems = async (
           sequenceAttribute: SEQUENCEATTRIBUTE,
@@ -65,6 +65,7 @@ export default class SequenceValues extends AlgorithmValues {
         };
         loadItems(this.values.sequenceAttribute, this.values.name);
         return true;
+      }
 
       case "transpose":
         this.values.transpose = parseFloat(value);
@@ -142,7 +143,7 @@ export default class SequenceValues extends AlgorithmValues {
       );
 
       return Promise.resolve(returnElem);
-    } catch (e: any) {
+    } catch (e) {
       return Promise.reject(e);
     }
   }

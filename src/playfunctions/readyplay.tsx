@@ -23,7 +23,7 @@ function isSelected(
   } else return false;
 }
 
-export interface ReadyPlayProps {
+interface ReadyPlayProps {
   mode: PLAYMODE;
   generator: GeneratorType | null;
   fileContents: CMGFile;
@@ -38,10 +38,10 @@ export default function ReadyPlay(props: ReadyPlayProps): {
   error: string;
 } {
   const { mode, generator, fileContents, timeInterval } = props;
-  let AlgorithmicGenerators: Algorithmic[] = [];
-  let AudioFileGenerators: AudioFile[] = [];
-  let SilentGenerators: Silent[] = [];
-  let StochasticGenerators: Stochastic[] = [];
+  const AlgorithmicGenerators: Algorithmic[] = [];
+  const AudioFileGenerators: AudioFile[] = [];
+  const SilentGenerators: Silent[] = [];
+  const StochasticGenerators: Stochastic[] = [];
   let error: string = "";
 
   // get the active generators for the entire rendering
@@ -71,7 +71,7 @@ export default function ReadyPlay(props: ReadyPlayProps): {
       });
     } else {
       // find if there are any solo tracks
-      let isSolo: boolean = fileContents.tracks.findIndex((t) => t.solo) >= 0;
+      const isSolo: boolean = fileContents.tracks.findIndex((t) => t.solo) >= 0;
       fileContents.tracks.forEach((t) => {
         if (!t.mute) {
           if ((isSolo && t.solo) || !isSolo) {

@@ -37,17 +37,18 @@ export function realizeSource(
     // build gain
     const vol: GainNode = ctx.createGain();
     vol.gain.value = 1.0;
-    // build pan
-    const panner: StereoPannerNode = ctx.createStereoPanner();
-    panner.pan.value = rawSourceData.panner.value;
+    // // build pan
+    // const panner: StereoPannerNode = ctx.createStereoPanner();
+    // panner.pan.value = rawSourceData.panner.value;
     // connect everything
-    source.connect(vol).connect(panner).connect(destination);
+    // source.connect(vol).connect(panner).connect(destination);
+    source.connect(vol).connect(destination);
     // connect the instrument reverb
     if (rawSourceData.gen.type == GENERATORTYPE.Algorithmic) {
       const gen = rawSourceData.gen as Algorithmic;
         gen.setContext(ctx);
         if (gen.effectIn)
-        panner.connect(gen.effectIn);
+        vol.connect(gen.effectIn);
         gen.connectReverb(destination);
       }
     
@@ -56,7 +57,6 @@ export function realizeSource(
       source,
       sourceIndex,
       vol,
-      panner,
       stopTime: rawSourceData.source.stopTime,
     };
   } else {
@@ -65,7 +65,6 @@ export function realizeSource(
       source: ctx.createBufferSource(),
       sourceIndex,
       vol: ctx.createGain(),
-      panner: ctx.createStereoPanner(),
       stopTime: rawSourceData.gen.stopTime,
     };
   }

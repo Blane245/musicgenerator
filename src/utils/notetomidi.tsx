@@ -5,8 +5,8 @@ export default function noteToMidi(note: string): number {
   const match: RegExpExecArray | null = notePattern.exec(note);
   if (!match || match.length < 5) return -1;
   const noteName: string = match[1].toUpperCase();;
-  let accidentalPart: string = match[2];
-  let octavePart: string = match[3];
+  const accidentalPart: string = match[2];
+  const octavePart: string = match[3];
   const centsPart = match[4];
   let pitch: number | undefined = {"C":0, "D":2, "E":4, "F":5, "G":7, "A":9, "B":11}[noteName];
   if (pitch == undefined) return -1;

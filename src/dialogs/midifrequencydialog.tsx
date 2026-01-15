@@ -2,7 +2,7 @@ import { ChangeEvent, useState } from "react";
 import { frequencyToMidi, midiToFrequency, toNote } from "sfcomponents/util";
 
 export interface MidiFrequencyDialogProps {
-  setOpen: Function;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export default function MidiFrequencyDialog(

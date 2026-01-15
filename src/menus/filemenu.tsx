@@ -54,7 +54,7 @@ export default function FileMenu() {
       saveFileContents(fileName, false);
     }
     setDialogType("");
-  }, [fileName]);
+  }, [fileName, dialogType, readFileContents, saveFileContents, setTimeInterval]);
 
   // a couple of hot keys are supported for file saving and opening
   useHotkeys(

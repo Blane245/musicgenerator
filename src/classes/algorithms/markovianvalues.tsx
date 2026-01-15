@@ -173,7 +173,7 @@ export default class MarkovianValues extends AlgorithmValues {
       elem.setAttribute("down.up", this.values.down.up.toString());
       elem.setAttribute("down.down", this.values.down.down.toString());
       return Promise.resolve(elem);
-    } catch (e: any) {
+    } catch (e) {
       return Promise.reject(e);
     }
   }

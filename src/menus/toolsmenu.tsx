@@ -99,7 +99,7 @@ export default function ToolsMenu() {
 }
 
 interface MidiFrequencyDialogProps {
-  setOpen: Function;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 function MidiFrequencyDialog(props: MidiFrequencyDialogProps): JSX.Element {
@@ -153,7 +153,7 @@ function MidiFrequencyDialog(props: MidiFrequencyDialogProps): JSX.Element {
 }
 
 interface MeasureDurationDialogProps {
-  setOpen: Function;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 function MeasureDurationDialog(props: MeasureDurationDialogProps): JSX.Element {
@@ -216,7 +216,7 @@ function MeasureDurationDialog(props: MeasureDurationDialogProps): JSX.Element {
 }
 
 interface OscillatorFrequencyDialogProps {
-  setOpen: Function;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 function OscillatorFrequencyDialog(

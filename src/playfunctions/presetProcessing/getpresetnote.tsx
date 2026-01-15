@@ -2,16 +2,12 @@ import CMGFile from "classes/cmgfile";
 import Algorithmic from "classes/generators/algorithmic";
 import { samplePool } from "sfcomponents/samplepool";
 import { Preset } from "sfcomponents/types";
-import {
-  attenuate,
-  dBToGain,
-  precision,
-  tc2s
-} from "sfcomponents/util";
+import { attenuate, dBToGain, precision, tc2s } from "sfcomponents/util";
 import { RawSourceData } from "types";
 import buildEnvelope from "./buildenvelope";
 import buildSampleArray from "./buildsample";
 import getActiveZones from "./getactivezones";
+import { pantoLeftRight } from "helpers/algorithms/panutils";
 
 export const getPresetNote = (
   fileContents: CMGFile,
@@ -42,33 +38,33 @@ export const getPresetNote = (
       sampleRate: instrumentSampleRate,
     } = header;
     const {
-      // @ts-ignore
+      // @ts-expect-error name cannot be found?
       overridingRootKey,
-      // @ts-ignore
+      // @ts-expect-error name cannot be found?
       fineTune = 0,
-      // @ts-ignore
+      // @ts-expect-error name cannot be found?
       startloopAddrsOffset = 0,
-      // @ts-ignore
+      // @ts-expect-error name cannot be found?
       startloopAddrsCoarseOffset = 0,
-      // @ts-ignore
+      // @ts-expect-error name cannot be found?
       endloopAddrsOffset = 0,
-      // @ts-ignore
+      // @ts-expect-error name cannot be found?
       endloopAddrsCoarseOffset = 0,
-      // @ts-ignore
+      // @ts-expect-error name cannot be found?
       delayVolEnv = -12000,
-      // @ts-ignore
+      // @ts-expect-error name cannot be found?
       attackVolEnv = -12000,
-      // @ts-ignore
+      // @ts-expect-error name cannot be found?
       holdVolEnv = -12000,
-      // @ts-ignore
+      // @ts-expect-error name cannot be found?
       decayVolEnv = -12000,
-      // @ts-ignore
+      // @ts-expect-error name cannot be found?
       sustainVolEnv = -12000,
-      // @ts-ignore
+      // @ts-expect-error name cannot be found?
       releaseVolEnv = -12000,
-      // @ts-ignore
+      // @ts-expect-error name cannot be found?
       sampleModes = 0,
-      // @ts-ignore
+      // @ts-expect-error name cannot be found?
       initialAttenuation = 0,
     } = zone.mergedGenerators;
 
@@ -81,7 +77,7 @@ export const getPresetNote = (
     const cents = pitchValue * 100 - baseDetune - 45;
 
     // combining the instrument's sampleRate with the playbackRate
-    let playbackRate = 1.0 * Math.pow(2, cents / 1200);
+    const playbackRate = 1.0 * Math.pow(2, cents / 1200);
     const sampleRate: number = instrumentSampleRate;
     // playbackRate = 1;
 
@@ -118,15 +114,10 @@ export const getPresetNote = (
         : noteEnd;
     const totalTime: number = releaseEnd;
 
-    //TODO only generator volume is needed here
-    // track volume is handled during signal processing
-    // const volumeValue: number = track
-    //   ? generatorVolume + track.getVolume(time)
-    //   : generatorVolume;
-    // const volumeGain: number = dBToGain(volumeValue);
     const volumeGain: number = dBToGain(generatorVolume);
     const volumeValue: number = generatorVolume;
-    let attenuationdB: number = initialAttenuation / 10;
+    const attenuationdB: number = initialAttenuation / 10;
+    //TODO never could get soundofnt attenutation to work properly
     // const attenuation: number = attenuate(1.0, attenuationdB);
     const attenuation: number = 1;
     const sustainGain: number = attenuate(
@@ -144,11 +135,11 @@ export const getPresetNote = (
       releaseEnd,
       volumeGain,
       sustainGain,
-      attenuation,
+      attenuation
     );
 
     // build the sample using resampling
-    let sample: Float32Array = buildSampleArray(
+    const sample: Float32Array = buildSampleArray(
       time,
       gen,
       fileContents,
@@ -165,12 +156,20 @@ export const getPresetNote = (
       attenuation
     );
 
+    // apply pan to the sample
+    const { left, right } = pantoLeftRight(panValue);
+    const panSample = [sample, sample];
+    for (let i = 0; i < sample.length; i++) {
+      panSample[0][i] = panSample[0][i] * left;
+      panSample[1][i] = panSample[1][i] * right;
+    }
+
     const aResult: RawSourceData = {
       gen,
       index: sourceCount,
       source: {
         note: pitchValue,
-        sample: [sample, sample],
+        sample: panSample,
         sampleRate,
         playbackRate,
         startTime: time,

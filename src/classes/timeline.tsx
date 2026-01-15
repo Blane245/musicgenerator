@@ -2,7 +2,9 @@
 // it has a start time, and extent, and a format for major and minor ticks
 // it can be zoomed in or out
 import { TimeLineScales, TIMELINETYPE } from "types";
-import { getAttributeValue } from "utils/xmlfunctions";
+import {
+  getAttributeValueWithDefault
+} from "utils/xmlfunctions";
 
 export default class TimeLine {
   startTime: number; //
@@ -61,21 +63,21 @@ export default class TimeLine {
     return n;
   }
 
-  setAttribute(name:string, value:string): void {
+  setAttribute(name: string, value: string): void {
     switch (name) {
-      case 'mode':
+      case "mode":
         this.mode = TIMELINETYPE[value];
         break;
-      case 'measureSize':
+      case "measureSize":
         this.measureSize = parseFloat(value);
         break;
-      case 'beatsPerMeasure':
+      case "beatsPerMeasure":
         this.beatsPerMeasure = parseInt(value);
         break;
-      case 'snap':
-        this.snap = value == 'true';
+      case "snap":
+        this.snap = value == "true";
         break;
-      case 'snapIncrement':
+      case "snapIncrement":
         this.snapIncrement = parseFloat(value);
         break;
       default:
@@ -86,43 +88,53 @@ export default class TimeLine {
     elem.setAttribute("startTime", this.startTime.toString());
     elem.setAttribute("currentZoomLevel", this.currentZoomLevel.toString());
     elem.setAttribute("mode", this.mode.toString());
-    elem.setAttribute("snap", this.snap?"true":"false");
+    elem.setAttribute("snap", this.snap ? "true" : "false");
     elem.setAttribute("snapIncrement", this.snapIncrement.toString());
-        elem.setAttribute("beatsPerMeasure", this.beatsPerMeasure.toString());
-        elem.setAttribute("measureSize", this.measureSize.toString());
-
+    elem.setAttribute("beatsPerMeasure", this.beatsPerMeasure.toString());
+    elem.setAttribute("measureSize", this.measureSize.toString());
   }
   getXML(tElem: Element, _fileName: string) {
-    this.startTime = getAttributeValue(tElem, "startTime", "float") as number;
-    this.currentZoomLevel = getAttributeValue(
+    this.startTime = getAttributeValueWithDefault(
+      tElem,
+      "startTime",
+      "float",
+      0
+    ) as number;
+    this.currentZoomLevel = getAttributeValueWithDefault(
       tElem,
       "currentZoomLevel",
-      "int"
+      "int",
+      TimeLineScales.findIndex((t) => t.extent == 50.0)
     ) as number;
-    try {
-      this.mode = getAttributeValue(tElem, 'mode',  'string') as TIMELINETYPE;
-    } catch (e) {
-      this.mode = TIMELINETYPE.Time;
-    }
-    try {
-      this.snap = (getAttributeValue(tElem, 'snap', 'string') as string) == 'true';
-    } catch (e) {
-      this.snap = false;
-    }
-    try {
-      this.snapIncrement = getAttributeValue(tElem, 'snapIncrement', 'float') as number;
-    } catch (e) {
-      this.snapIncrement = 1;
-    }
-    try {
-      this.beatsPerMeasure = getAttributeValue(tElem, 'beatsPerMeasure', 'int') as number;
-    } catch (e) {
-      this.beatsPerMeasure = 1;
-    }
-    try {
-      this.measureSize = getAttributeValue(tElem, 'measureSize', 'float') as number;
-    } catch (e) {
-      this.measureSize = 1;
-    }
+    this.mode = getAttributeValueWithDefault(
+      tElem,
+      "mode",
+      "string",
+      TIMELINETYPE.Time
+    ) as TIMELINETYPE;
+    this.snap = getAttributeValueWithDefault(
+      tElem,
+      "snap",
+      "boolean",
+      false
+    ) as boolean;
+    this.snapIncrement = getAttributeValueWithDefault(
+      tElem,
+      "snapIncrement",
+      "float",
+      1
+    ) as number;
+    this.beatsPerMeasure = getAttributeValueWithDefault(
+      tElem,
+      "beatsPerMeasure",
+      "int",
+      1
+    ) as number;
+    this.measureSize = getAttributeValueWithDefault(
+      tElem,
+      "measureSize",
+      "float",
+      1
+    ) as number;
   }
 }

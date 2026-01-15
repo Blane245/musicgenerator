@@ -6,7 +6,7 @@ type OscillatorProperitesBoxProps = {
   type: string;
   frequency: ModulatorAttributeData;
   center: ModulatorAttributeData;
-  centerSuffix: Function;
+  centerSuffix: (value?:number | undefined)=>string;
   amplitude: ModulatorAttributeData;
   phase: ModulatorAttributeData;
   handleChange: (

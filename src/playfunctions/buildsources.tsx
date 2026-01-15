@@ -12,7 +12,7 @@ import { saveControlledState } from "./controlledstate";
 import Stochastic from "classes/generators/stochastic";
 import { getBufferSourceNodesFromStochastic } from "./stochasticnodes";
 
-export interface buildSourcesProps {
+interface buildSourcesProps {
   fileContents: CMGFile;
   AlgorithmicGenerators: Algorithmic[];
   AudioFileGenerators: AudioFile[];
@@ -78,7 +78,7 @@ export function buildSources(params: buildSourcesProps): {
       ),
       error: error,
     };
-  } catch (e: any) {
+  } catch (e) {
     error = (e as Error).message;
     return { sources: sourceData, error: error };
   }
