@@ -1,6 +1,7 @@
 import Stochastic from "classes/generators/stochastic";
 import { ChangeEvent, JSX } from "react";
 import StochasticValues from "./stochasticvalues";
+import StochasticComposition from "./stochasticcomposition";
 
 export interface StochasticDialogProps {
   formData: Stochastic;
@@ -16,13 +17,16 @@ export default function StochasticDialog(
   const { formData, handleChange, setMessages } = props;
 
   return (
-    <>
-      <div className="stochastic-preamble">
-        <StochasticValues 
+    <div className="stochastic-preamble">
+      <StochasticValues
         formData={formData}
         handleChange={handleChange}
-        setMessages={setMessages}/>
-      </div>
-    </>
+      />
+      <StochasticComposition
+        formData={formData}
+        handleChange={handleChange}
+        setMessages={setMessages}
+      />
+    </div>
   );
 }

@@ -2,10 +2,10 @@
 
 import CMGFile from "classes/cmgfile";
 import Control, {
-  EFFECTTYPE,
-  GeneratorEffect,
-  GlobalEffect,
-  TrackEffect,
+  CONTROLTYPE,
+  GeneratorControl,
+  GlobalControl,
+  TrackControl,
 } from "classes/control";
 import Algorithmic from "classes/generators/algorithmic";
 import Track from "classes/track";
@@ -24,23 +24,24 @@ export function activateRealtimeControls(
   const result: Control[] = currentControls;
   for (let i: number = 0; i < fileContents.controls.length; i++) {
     const control: Control = fileContents.controls[i];
-    if (control.time > currentTime && control.time < aheadTime) {
+    // console.log('locating controls at time, ahead time', currentTime, aheadTime, control.time);
+    if (control.time >= currentTime && control.time <= aheadTime) {
       result.push(control);
+      // console.log('control located at time', currentTime, control);
       switch (control.type) {
-        case EFFECTTYPE.Global: {
-          const effect: GlobalEffect = control.effect as GlobalEffect;
+        case CONTROLTYPE.Global: {
           // replace a current global control or add a new one
           const index: number = currentControls.findIndex(
-            (c: Control) => c.type == EFFECTTYPE.Global
+            (c: Control) => c.type == CONTROLTYPE.Global
           );
           if (index < 0) {
             result.push(control);
           } else {
             result.splice(index, 0, control);
           }
-          effect.initializeVolumeRamp(control.time);
+          (control as GlobalControl).initializeVolumeRamp(control.time);
           const { reverbEnable, compressorEnable, equalizerEnable, volume } =
-            effect.getCurrentValues(control.time);
+            (control as GlobalControl).getCurrentValues(control.time);
           fileContents.reverb.setAttribute(
             "reverb.enabled",
             reverbEnable.toString()
@@ -54,43 +55,42 @@ export function activateRealtimeControls(
             equalizerEnable.toString()
           );
           if (volume != undefined) fileContents.volume.setVolume(volume);
+
           break;
         }
-        case EFFECTTYPE.Track: {
-          const effect: TrackEffect = control.effect as TrackEffect;
+        case CONTROLTYPE.Track: {
           fileContents.tracks.forEach((track: Track) => {
-            const trackIndex: number = control.list.findIndex(
+            const trackIndex: number = (control as TrackControl).values.list.findIndex(
               (name: string) => name == track.name
             );
             if (trackIndex >= 0) {
               // replace an current track control or add a new one
               const currentIndex: number = result.findIndex(
                 (c: Control) =>
-                  c.type == EFFECTTYPE.Track && c.list[trackIndex] == track.name
+                  c.type == CONTROLTYPE.Track && (c as TrackControl).values.list[trackIndex] == track.name
               );
               if (currentIndex < 0) {
                 result.push(control);
               } else {
                 result.splice(currentIndex, 0, control);
               }
-              track.initializeVolumeRamp(control.time, effect);
+              track.initializeVolumeRamp(control.time, (control as TrackControl));
             }
           });
           break;
         }
-        case EFFECTTYPE.Generator: {
-          const effect: GeneratorEffect = control.effect as GeneratorEffect;
+        case CONTROLTYPE.Generator: {
           fileContents.tracks.forEach((track: Track) => {
             track.generators.forEach((generator) => {
-              const generatorIndex: number = control.list.findIndex(
+              const generatorIndex: number = (control as GeneratorControl).values.list.findIndex(
                 (name: string) => name == generator.name
               );
               if (generatorIndex >= 0) {
                 // replace an current track control or add a new one
                 const currentIndex: number = result.findIndex(
                   (c: Control) =>
-                    c.type == EFFECTTYPE.Generator &&
-                    c.list[generatorIndex] == generator.name
+                    c.type == CONTROLTYPE.Generator &&
+                    (c as GeneratorControl).values.list[generatorIndex] == generator.name
                 );
                 if (currentIndex < 0) {
                   console.log("added new generator control", control);
@@ -104,8 +104,8 @@ export function activateRealtimeControls(
                   result.splice(currentIndex, 0, control);
                 }
                 // only generator reverb is processed in realtime
-                // other effects are handled during source DSP
-                (generator as Algorithmic).reverbEnabled = effect.reverbEnable;
+                // other controls are handled during source DSP
+                (generator as Algorithmic).reverbEnabled = (control as GeneratorControl).values.reverbEnable;
               }
             });
           });
@@ -124,11 +124,13 @@ export function processGlobalControls(
   controls: Control[],
   fileContents: CMGFile
 ): void {
+  // console.log('controls at time', time, controls);
   for (let i: number = 0; i < controls.length; i++) {
-    if (controls[i].type == EFFECTTYPE.Global) {
-      const { volume } = (controls[i].effect as GlobalEffect).getCurrentValues(
+    if (controls[i].type == CONTROLTYPE.Global) {
+      const { volume } = (controls[i] as GlobalControl).getCurrentValues(
         time
       );
+      // console.log('global controls set volume', volume, time);
       if (volume != undefined) fileContents.volume.setVolume(volume);
     }
   }
@@ -144,14 +146,13 @@ export function processActiveSources(
     const source: ActiveSource = sources[i];
     for (let j: number = 0; j < controls.length; j++) {
       if (
-        controls[j].type == EFFECTTYPE.Generator &&
-        controls[j].list.findIndex((name: string) => name == genName) >= 0
+        controls[j].type == CONTROLTYPE.Generator &&
+        (controls[j] as GeneratorControl).values.list.findIndex((name: string) => name == genName) >= 0
       ) {
         // change the reverb setting when it updates
-        const effect: GeneratorEffect = controls[j].effect as GeneratorEffect;
         const gen: Algorithmic = source.gen as Algorithmic;
-        if (gen.reverbEnabled != effect.reverbEnable) {
-          gen.setReverbEnabled(effect.reverbEnable);
+        if (gen.reverbEnabled != (controls[j] as GeneratorControl).values.reverbEnable) {
+          gen.setReverbEnabled((controls[j] as GeneratorControl).values.reverbEnable);
           // console.log(
           //   "processActiveSources: generator reverb enable changed",
           //   gen

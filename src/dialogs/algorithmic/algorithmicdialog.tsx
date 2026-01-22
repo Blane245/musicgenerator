@@ -34,19 +34,20 @@ export default function AlgorithmicDialog(
   }
   return (
     <>
-      {/* <div className="algorithmic-preamble"> */}
-        <table style={{width:'100%'}}>
-          <thead>
+      <table style={{ width: "100%" }}>
+        <thead>
+          <tr>
             <th>Sound Font File</th>
             <th>Preset</th>
-            <th>Looping?</th>
-            <th>Attack Enabled?</th>
+            <th colSpan={2}>Enabled?</th>
             <th>Generator Tools</th>
             <th>Noise Seed</th>
             <th>Noise Frequency (Hz)</th>
             <th>Noise Amplitude (+-10dB)</th>
-          </thead>
-          <tbody>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
             <td>
               <select
                 name="soundfontfile"
@@ -80,22 +81,31 @@ export default function AlgorithmicDialog(
                   );
                 })}
               </select>
+              <button type="button" style={{fontSize:'10px'}} onClick={() => setViewPreset(true)}>
+                View Preset
+              </button>
             </td>
             <td>
+              <label>
+                Looping:&nbsp;
               <input
                 name="isLooping"
                 type="checkbox"
                 checked={formData.isLooping ? true : false}
                 onChange={handleChange}
               />
+              </label>
             </td>
             <td>
+              <label>
+                Attack:&nbsp;
               <input
                 name="attackEnabled"
                 type="checkbox"
                 checked={formData.attackEnabled ? true : false}
                 onChange={handleChange}
               />
+              </label>
             </td>
             <td>
               <ToolsMenu />
@@ -137,19 +147,22 @@ export default function AlgorithmicDialog(
                 value={formData.noiseAmplitude}
               />
             </td>
-          </tbody>
-          <thead>
+          </tr>
+        </tbody>
+        <thead>
+          <tr>
             <th colSpan={2}>Reverb</th>
-            <th colSpan={3}>Tremelo</th>
+            <th colSpan={3}>Tremolo</th>
             <th colSpan={3}>Vibrato</th>
-          </thead>
-          <tbody>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
             <td colSpan={2}>
               <label>
                 Duration (sec):&nbsp;
                 <input
-                                style={{width:'50px'}}
-
+                  style={{ width: "50px" }}
                   name="reverbDuration"
                   type="number"
                   min={0}
@@ -163,8 +176,7 @@ export default function AlgorithmicDialog(
               <label>
                 &nbsp;Decay (sec):&nbsp;
                 <input
-                                style={{width:'50px'}}
-
+                  style={{ width: "50px" }}
                   name="reverbDecay"
                   type="number"
                   min={0}
@@ -179,8 +191,7 @@ export default function AlgorithmicDialog(
               <label>
                 Speed: (mHz)&nbsp;
                 <input
-                                style={{width:'50px'}}
-
+                  style={{ width: "50px" }}
                   name="tremolo.speed"
                   type="number"
                   min={0}
@@ -193,7 +204,7 @@ export default function AlgorithmicDialog(
               <label>
                 &nbsp;Depth: (dB)&nbsp;
                 <input
-                style={{width:'50px'}}
+                  style={{ width: "50px" }}
                   name="tremolo.depth"
                   type="number"
                   min={0}
@@ -222,7 +233,7 @@ export default function AlgorithmicDialog(
               <label>
                 Speed (mHz):&nbsp;
                 <input
-                style={{width:'50px'}}
+                  style={{ width: "50px" }}
                   name="vibrato.speed"
                   type="number"
                   min={0}
@@ -234,7 +245,7 @@ export default function AlgorithmicDialog(
               <label>
                 Depth (cents):&nbsp;
                 <input
-                style={{width:'50px'}}
+                  style={{ width: "50px" }}
                   name="vibrato.depth"
                   type="number"
                   min={0}
@@ -259,15 +270,19 @@ export default function AlgorithmicDialog(
                 </select>
               </label>
             </td>
-          </tbody>
-          <thead>
+          </tr>
+        </tbody>
+        <thead>
+          <tr>
             <th>Measure Length (beats)</th>
             <th>On Beats (beats) </th>
             <th>Beat Shift (beats)</th>
             <th>Notes in Octave (1-12)</th>
             <th>Note Shift (tones)</th>
-          </thead>
-          <tbody>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
             <td>
               <input
                 name="measureLength"
@@ -323,8 +338,9 @@ export default function AlgorithmicDialog(
                 value={formData.offsetNotes}
               />
             </td>
-          </tbody>
-        </table>
+          </tr>
+        </tbody>
+      </table>
       {/* </div> */}
       <hr />
       <AlgorithmicTable formData={formData} handleChange={handleChange} />

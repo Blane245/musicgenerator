@@ -5,9 +5,7 @@ import { setReverb } from "utils/cmfiletransactions";
 
 export default function RoomReverbDialog() {
   const { setFileContents, fileContents } = useCMGContext();
-  const [reverbData, setReverbData] = useState<Reverb>(
-    new Reverb()
-  );
+  const [reverbData, setReverbData] = useState<Reverb>(new Reverb());
 
   useEffect(() => {
     setReverbData(fileContents.reverb);
@@ -16,19 +14,27 @@ export default function RoomReverbDialog() {
   function handleChange(event: ChangeEvent<HTMLInputElement>): void {
     const eventName: string | null = event.target["name"];
     const eventValue: string | null = event.target["value"];
-    const n: Reverb = reverbData.copy();
-    if (eventName && eventValue) {
-      n.setAttribute(eventName, eventValue);
+    if (!reverbData.effectIn) {
+      const n: Reverb = reverbData.copy();
+      if (eventName && eventValue) {
+        n.setAttribute(eventName, eventValue);
+      }
+      setReverb(n, setFileContents);
+    } else {
+      reverbData.setAttribute(eventName, eventValue);
     }
-    setReverb(n, setFileContents);
   }
 
   function handleEnable() {
-    const eventName: string = 'reverb.enabled';
-    const eventValue:string = reverbData.enabled?'false':'true';
-    const n: Reverb = reverbData.copy();
-    n.setAttribute(eventName, eventValue);
-    setReverb(n, setFileContents);
+    const eventName: string = "reverb.enabled";
+    const eventValue: string = reverbData.enabled ? "false" : "true";
+    if (reverbData.effectIn == undefined) {
+      const n: Reverb = reverbData.copy();
+      n.setAttribute(eventName, eventValue);
+      setReverb(n, setFileContents);
+    } else {
+      reverbData.setAttribute(eventName, eventValue);
+    }
   }
 
   function reset() {
@@ -37,10 +43,17 @@ export default function RoomReverbDialog() {
     setReverb(n, setFileContents);
   }
   return (
-    <div className="reverb" style={{backgroundColor: reverbData.enabled? 'white': 'lightpink'}}>
+    <div
+      className="reverb"
+      style={{ backgroundColor: reverbData.enabled ? "white" : "lightpink" }}
+    >
       <div className="title">
         <label>
-          <input type="checkbox" onChange={(()=> handleEnable())} checked={reverbData.enabled}/>
+          <input
+            type="checkbox"
+            onChange={() => handleEnable()}
+            checked={reverbData.enabled}
+          />
           <span>&nbsp;Enable&nbsp;</span>
         </label>
         Reverb Reset:&nbsp;
@@ -49,7 +62,7 @@ export default function RoomReverbDialog() {
         </button>
       </div>
       <div className="sliders">
-        <div className="slider" key={'roomreverb'}>
+        <div className="slider" key={"roomreverb"}>
           <span className="param">Duration (sec)</span>
           <span className="param">{reverbData.duration}</span>
           <input

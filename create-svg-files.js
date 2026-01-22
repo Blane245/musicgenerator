@@ -61,7 +61,7 @@ async function createSVGFiles() {
       // Clean up SVG and add proper attributes
       const cleanSVG = svgContent
         .replace(/stroke="currentColor"/g, 'stroke="black"')
-        .replace(/fill="currentColor"/g, 'fill="black"')
+        .replace(/fill="currentColor"/g, 'fill="white"')
         .replace(/xmlns="http:\/\/www\.w3\.org\/2000\/svg"/g, '')
         .replace(/<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
       

@@ -295,7 +295,7 @@ Below is a full gain envelope with all regions present. Not all may be in all ca
 
 SoundFonts are normally driven by a human gesture, e.g., the press and release of a key. A key may be pressed soft or hard, thus giving it a sound a different attack. In SoundFont terminology, this is called note velocity.
 
-CMG has certain parameters that mimic human gestures. A generator has a start and stop time, similar to pressing and releasing a key. It has a speed which defines how often notes are played during the generator start/stop period. It has a duration with is a percentage of the time between start and stop that mimics early release for staccato effects. It has an attack parameter which is the note velocity. It has a volume mimicking some form of human control, like a turning of a knob or moving of a slider.
+CMG has certain parameters that mimic human gestures. A generator has a start and stop time, similar to pressing and releasing a key. It has a speed which defines how often notes are played during the generator start/stop period. It has a duration with is a percentage of the time between start and stop that mimics early release for pizzacato effects. It has an attack parameter which is the note velocity. It has a volume mimicking some form of human control, like a turning of a knob or moving of a slider.
 
 As an example, a violin preset (000:040) in the GeneralUser-GS SoundFont file has two instruments defined that are keyed by note range and velocity range. By specify these two parameters, either one or two instruments are selected depending on the note and velocity values. For most notes, the higher velocities have an instrument that contains the samples for hard string bowing. Lower velocities do not have this instrument.
 
@@ -354,6 +354,10 @@ Special thanks to various people and non-people
 
 # Versions - Changes
 ## 6.0.0 Release Notes (5.0.0 was never released)
+- implemented the Stochastic generator 
+- implemented sequencer algorithm
+- implemented tremolo and vibrato
+- improved UI look and feel
 ## 4.0.0 Release Notes
 - implemented graphical display for preview, including spectra
 - refactored generator icons as it was getting quite large
@@ -447,7 +451,7 @@ where $V_{i}$ is the next value in the series, $\alpha$ is the persistence param
     The glissando speed is such that $\mu$ is zero, providing to rising and falling glissandi, $\sigma$ is proportional the sonic density $\delta$
 * The Possion Distribution is used to create a composition for a stochastic generator. $$\varphi(k)=\frac {\lambda}{k!}e^{-\lambda}$$ where $\lambda$ is the average number of sound events in each time interval, and $k$ is the number of events.
 * The first law of Continuous Probability is to determine the duration of a voice instance for a stochastic generator. $$\varphi(x)=ce^{-cx}dx$$ where $c$ is the density of events.
-* The second law of Continuois probability is used by the stochastic generator to determine intervals of pitch, intensity, density, pan.
+* The second law of Continuous probability is used by the stochastic generator to determine intervals of pitch, intensity, density, pan.
 $$\varphi(j)=\frac {2}{a}(1-\frac {j}{a})dj$$
 
 It should be noted that CMG does not use the gain values of the Gain node or the panner values of a Panner node in the Web API. It also set the sample playback rate to one as resampling is done by the source building engines. getPresetNode.tsx and buildPresetSample.tsx functions. These are a rather complex routine and is described in detail in the Sample Generation section.

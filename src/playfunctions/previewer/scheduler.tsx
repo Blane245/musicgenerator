@@ -83,6 +83,10 @@ export default function scheduler(
   if (playing.current && previewTimeline.current) {
     const aheadTime = audioContext.currentTime + SCHEDULEAHEADTIME;
 
+    // TODO check if any changes have been made to the room effects
+    // these may be overriden by the realtime controls 
+
+
     // activate a global and instrument reverb controls that occurs between currentTime + offsetTime and aheadTime + offsetTime
     realtimeControls.current = activateRealtimeControls(
       realtimeControls.current,
@@ -106,8 +110,6 @@ export default function scheduler(
         iPending++
       ) {
         const s = pendingSourceData.current[iPending];
-        // pendingSourceData.current.forEach((s: RawSourceData) => {
-        // add any sources that are ready to start and are not already started
         // if (!s.source.started)
           // console.log('source candidate for starting at time',aheadTime,s.source.startTime, s.source.duration);
         if (
@@ -129,14 +131,13 @@ export default function scheduler(
               s.source.duration
             );
           }
-          console.log("source", s.index, "started at ", s.source.startTime, 'duration', s.source.duration);
+          // console.log("source", s.index, "started at ", s.source.startTime, 'duration', s.source.duration);
           newActiveSources.push(activeSource);
           s.source.started = true;
           redrawSource(s);
           nStarted++;
         }
         if (s.source.startTime - offsetTime > aheadTime) stopSearch = true;
-        // });
       }
 
       // disconnect all of the nodes that have finished playing
@@ -149,10 +150,10 @@ export default function scheduler(
             (s) => s.index == activeSource.sourceIndex
           );
         if (thisSource == undefined) {
-          console.log(
-            "could not find active source with index",
-            activeSource.sourceIndex
-          );
+          // console.log(
+          //   "could not find active source with index",
+          //   activeSource.sourceIndex
+          // );
           return;
         }
         // const stopTime: number =
@@ -167,16 +168,16 @@ export default function scheduler(
           if (activeSource.gen.type != GENERATORTYPE.Silent) {
             activeSource.source.disconnect();
             activeSource.vol.disconnect();
-            console.log('source stopped at', audioContext.currentTime);
+            // console.log('source stopped at', audioContext.currentTime);
           }
           if (activeSource.gen.type != GENERATORTYPE.Silent)
             redrawSource(thisSource);
-          console.log(
-            "source",
-            activeSource.sourceIndex,
-            "stopped at",
-            stopTime
-          );
+          // console.log(
+          //   "source",
+          //   activeSource.sourceIndex,
+          //   "stopped at",
+          //   stopTime
+          // );
           nStopped++;
           return false;
         } else return true;
@@ -190,12 +191,12 @@ export default function scheduler(
   }
     // notify the display engine of the sources currently playing
     if (nStarted > 0 || nStopped > 0) {
-      console.log(
-        "activesources has changed",
-        newActiveSources.length,
-        "pendingSources",
-        pendingSourceData.current.length
-      );
+      // console.log(
+      //   "activesources has changed",
+      //   newActiveSources.length,
+      //   "pendingSources",
+      //   pendingSourceData.current.length
+      // );
       activeSources.current = newActiveSources;
       setActiveSourcesCount(newActiveSources.length);
     }

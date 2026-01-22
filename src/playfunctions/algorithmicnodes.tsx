@@ -52,7 +52,6 @@ export function getBufferSourceNodesFromAlgorithmic(
 
     // get any controls that affect the generator during its POP
     activatePriorControls(gen, fileContents);
-
     let {
       beat: hitBeat,
       note,
@@ -62,8 +61,9 @@ export function getBufferSourceNodesFromAlgorithmic(
       volume,
       pan,
     } = gen.getCurrentValues(time - startTime, 0);
+    volume = volume + gen.parent.volume;
 
-    while (time < stopTime) {
+    while (time < stopTime - 0.001) {
       const interval: number = Math.min(60.0 / speed, stopTime - time);
 
       const duration = (interval * noteDuration) / 100;
@@ -129,6 +129,7 @@ export function getBufferSourceNodesFromAlgorithmic(
         volume,
         pan,
       } = gen.getCurrentValues(time - startTime, beats);
+      const totalVolume:number = volume + gen.parent.volume;
       const interval: number = (beat * 60.0) / speed;
       const duration = (interval * noteDuration) / 100;
       // console.log(`build connects for note, beat, speed, noteDuration, attack, volume, pan, interval, duration`, note,beat,speed,noteDuration,attack,volume,pan, interval, duration)
@@ -142,7 +143,7 @@ export function getBufferSourceNodesFromAlgorithmic(
           duration,
           note,
           attack,
-          volume, // in dB
+          totalVolume, // in dB
           pan,
           time,
           nextSource

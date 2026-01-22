@@ -1,12 +1,46 @@
 // The file menu handles creating new files, opening existing ones,
 // saving current ones, and adding tracks to current ones
+// use cases
+// Start an new file
+//    if the current file is not dirty, clear the fileContents and timeinterval and exit
+//    if the current file is dirty, request confirmation to delete
+//      if delete OK, clear fileContents and timeinterval and exit
+// Open a file
+//    if current file is not dirty, have filedialog open the file
+//      if filedialog returns a filename read the file. update recent. Handle read errors
+//    if current file is dirty, request confirmation to delete
+//      if delete OK, read the file. handle read errors
+// save file (name is filecontents.name)
+//    save the named file. handle save errors.
+// save as file (not named)
+//    have filedialog request a file to save to.
+//    if the file does not exist, save the file contents to the named file. handle save errors
+//    if the file exists, request confirmation to overwrite the file
+//      if overwrite OK, save the file contents to the named file. handle save errors.
+// open recent file
+//    if the current file is dirty, request confirmation to delete
+//      if delete OK, read the file. update recent. Handle read errors.
+
+// routines
+//  menu actions (new, open, save, save as, recent)
+//  readfile
+//  savefile
+//  saveasfile
+//  update recent list
+//  confim delete
+//  confirm overwrite
+// states
+//  filename - blank unless named by open or recent, used by readfile, savefile, saveasfile
+//  confirmDelete - boolean, set when filecontents is dirty, clear when user confirms deletion
+//  overwrite - bool, set when filedialog says file exits
+//  dialogmode - blank, Open or Save for filedialog
 import CMGFile from "classes/cmgfile";
 import TimeLine from "classes/timeline";
 import { useCMGContext } from "cmgcontext";
 import FileDialog from "dialogs/filedialog";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import { RECENTCMGDIRECTORY, RECENTFILES } from "types";
+import { RECENTFILES } from "types";
 import { newFile, setDirty } from "utils/cmfiletransactions";
 import { readCMGFile, writeCMGFile } from "./filehandlers";
 
@@ -20,140 +54,63 @@ export default function FileMenu() {
     playing,
     recentFiles,
     setRecentFiles,
-    fileName,
-    setFileName,
     recentCMGDirectory,
     setRecentCMGDirectory,
     timeLine,
     setTimeLine,
     setTimeInterval,
   } = useCMGContext();
-  const [open, setOpen] = useState<string>("");
-  const [dialogType, setDialogType] = useState<string>("");
-  const [title, setTitle] = useState<string>("");
-  const [fileExists, setFileExists] = useState<boolean>(false);
-  const [mode, setMode] = useState<string>("");
+  const [fileName, setFileName] = useState<string>("");
+  const [confirmDelete, setConfirmDelete] = useState<boolean>(false);
+  const [confirmOverwrite, setConfirmOverwrite] = useState<boolean>(false);
+  const [dialogMode, setDialogMode] = useState<string>("");
 
   // initialize the recent file list display to none
-  useEffect(() => {
-    showRecentList(false);
-  }, []);
+  // useEffect(() => {
+  //   showRecentList(false);
+  // }, []);
 
-  // when the file dialog provides a file name, either open the
+  // when the file dialog and provides a file name or a recent file is selected, either open the
   // file or perform saveas
-  useEffect(() => {
-    async function getFileContents() {
-      const success = await readFileContents(fileName);
-      if (success) setTimeInterval({ startOffset: 0, endOffset: 0 });
-    }
-    if (fileName == "") return;
-    if (dialogType == "Open") {
-      getFileContents();
-    } else if (dialogType == "Save") {
-      // attempt to save as without overwrite
-      saveFileContents(fileName, false);
-    }
-    setDialogType("");
-  }, [fileName, dialogType, readFileContents, saveFileContents, setTimeInterval]);
+  // useEffect(() => {
+  //   async function getFileContents() {
+  //     await readFileContents(fileName);
+  //   }
+  //   if (fileName == "" && dialogType == "") return;
+  //   if (fileName != "" && dialogType == "") {
+  //     // a recent file to open
+  //     readFileContents(fileName);
+  //     return;
+  //   }
+  //   if (fileName != "" && dialogType == "Open") {
+  //     // file dialog  provided a filename to open
+  //     readFileContents(fileName);
+  //     return;
+  //   }
+  //   if (fileName != "" && dialogType == "Save") {
+  //     // file dialog provided a filename to save
+  //     saveFileContents(fileName, false);
+  //     return;
+  //   }
+  //   showRecentList(false);
+  // }, [fileName, dialogType]);
 
   // a couple of hot keys are supported for file saving and opening
   useHotkeys(
     "ctrl+s",
     () => {
-      if (!playing.current && fileName != "") saveFileContents(fileName, true);
+      if (fileName != "") saveFileContents(fileName, true);
     },
-    { preventDefault: true }
+    { preventDefault: true },
   );
 
   useHotkeys(
     "ctrl+o",
     () => {
-      if (!playing.current) handleOpen("");
+      handleOpen("");
     },
-    { preventDefault: true }
+    { preventDefault: true },
   );
-
-  // handle request to create a new file
-  // If the curretn one is 'dirty' the user is
-  // prompted to confirm overwrite
-  function handleFileNew() {
-    if (fileContents.dirty) setOpen("new");
-    else {
-      const contents: CMGFile = new CMGFile();
-      newFile(contents, setFileContents);
-      setFileName("");
-      setStatus("New file started.");
-      setOpen("");
-      setFileExists(false);
-      setTimeInterval({ startOffset: 0, endOffset: 0 });
-      setTimeLine(new TimeLine(timelineWidth, timelineHeight));
-    }
-  }
-
-  function handleCancel() {
-    setOpen("");
-    setDialogType("");
-    setFileExists(false);
-  }
-
-  async function handleOK() {
-    if (open == "new") {
-      const contents = new CMGFile();
-      newFile(contents, setFileContents);
-      setFileName("");
-      setStatus("New file started.");
-      setOpen("");
-      setFileExists(false);
-      setTimeInterval({ startOffset: 0, endOffset: 0 });
-      setTimeLine(new TimeLine(timelineWidth, timelineHeight));
-    } else if (open == "open") {
-      setOpen("");
-      if (await readFileContents(fileName)) {;
-        setFileExists(false);
-        setTimeInterval({ startOffset: 0, endOffset: 0 });
-      }
-    }
-  }
-
-  // handle request to open an unnamed or named file.
-  // if the current one is 'dirty' the user is asked to confirm over-write
-  async function handleOpen(name: string) {
-    if (fileContents.dirty) setOpen("open");
-    else {
-      setOpen("");
-      if (name == "") {
-        // this is open of an unnamed file - use FileDialog
-        setTitle("Select the CMG File to open");
-        setDialogType("Open");
-        setMode("dialog");
-      } else {
-        if (! await readFileContents(name)) return;
-        setFileContents((prev) => {
-          const nameParts = name.split("\\");
-          prev.name = nameParts[nameParts.length - 1];
-          return prev;
-        });
-        addRecent(name);
-        window.localStorage.setItem(RECENTCMGDIRECTORY, recentCMGDirectory);
-        setTimeInterval({ startOffset: 0, endOffset: 0 });
-      }
-    }
-  }
-
-  // handle request to open a file.
-  // if the current one is 'dirty' the user is asked to confirm over-write
-  function handleFileSaveAs() {
-    setOpen("");
-    showRecentList(false);
-    setTitle("Enter File Name to Save File");
-    setDialogType("Save");
-    setMode("dialog");
-  }
-
-  function handleFileSave() {
-    saveFileContents(fileName, true);
-    showRecentList(false);
-  }
 
   function handleMenuSelect(action: string) {
     if (playing.current) return;
@@ -165,7 +122,7 @@ export default function FileMenu() {
         handleOpen("");
         break;
       case "save":
-        handleFileSave();
+        handleFileSave(fileContents.name);
         break;
       case "saveas":
         handleFileSaveAs();
@@ -177,6 +134,108 @@ export default function FileMenu() {
       default:
         break;
     }
+  }
+  function handleCancel() {
+    setConfirmDelete(false);
+    setConfirmOverwrite(false);
+    setDialogMode("");
+    showRecentList(false);
+  }
+
+  // used by new, open, recent
+  async function handleDeleteOK() {
+    if (fileName != "") {
+      readFileContents(fileName);
+      addRecent(fileName);
+      setFileName("");
+      setConfirmDelete(false);
+      setConfirmOverwrite(false);
+      setDialogMode("");
+      return;
+    }
+    if (dialogMode == "None") {
+      const contents = new CMGFile();
+      newFile(contents, setFileContents);
+      setTimeInterval({ startOffset: 0, endOffset: 0 });
+      setTimeLine(new TimeLine(timelineWidth, timelineHeight));
+      setFileName("");
+      setConfirmDelete(false);
+      setConfirmOverwrite(false);
+      setDialogMode("");
+      setStatus("New file started.");
+      return;
+    } else {
+      setDialogMode("Open");
+      setConfirmDelete(false);
+      setConfirmOverwrite(false);
+    }
+
+    // if the file name is blank and the dialogmode is not blank
+    // use the filedialog to get the file name
+  }
+
+  function handleFileNew() {
+    if (fileContents.dirty) {
+      setFileName("");
+      setConfirmDelete(true);
+      setDialogMode("None");
+    } else {
+      createNewFile();
+    }
+  }
+
+  function createNewFile() {
+    const contents: CMGFile = new CMGFile();
+    newFile(contents, setFileContents);
+    setTimeLine(new TimeLine(timelineWidth, timelineHeight));
+    setTimeInterval({ startOffset: 0, endOffset: 0 });
+    setFileName("");
+    setConfirmDelete(false);
+    setDialogMode("");
+    showRecentList(false);
+    setStatus("New file started.");
+  }
+
+  // handle request to open an unnamed or named file.
+  // if the current one is 'dirty' the user is asked to confirm over-write
+  async function handleOpen(name: string) {
+    if (fileContents.dirty) {
+      setConfirmDelete(true);
+      setFileName(name);
+    } else {
+      if (name == "") {
+        // this is open of an unnamed file - use FileDialog
+        setDialogMode("Open");
+      } else {
+        setFileName(name); // useEffect will load the file
+        readFileContents(name);
+        addRecent(name);
+        setFileName("");
+        setConfirmDelete(false);
+        setConfirmOverwrite(false);
+        showRecentList(false);
+      }
+    }
+  }
+
+  function handleFileSave(name: string) {
+    saveFileContents(name, true);
+    addRecent(name);
+    setFileName("");
+    setConfirmDelete(false);
+    setConfirmOverwrite(false);
+    setDialogMode("");
+    showRecentList(false);
+  }
+
+  // handle request to open a file.
+  // if the current one is 'dirty' the user is asked to confirm over-write
+  function handleFileSaveAs() {
+    setDialogMode("Save");
+    setFileName("");
+    setConfirmDelete(false);
+    setConfirmOverwrite(false);
+    showRecentList(false);
   }
 
   function showRecentList(ok: boolean) {
@@ -193,79 +252,74 @@ export default function FileMenu() {
     e.preventDefault();
     handleOpen(name);
     showRecentList(false);
-    setFileName(name);
+    setDialogMode("");
   }
 
   function handleOverWriteOK(): void {
-    setFileExists(false);
     saveFileContents(fileName, true);
+    addRecent(fileName);
+    setFileName("");
+    setConfirmDelete(false);
+    setConfirmOverwrite(false);
+    setDialogMode("");
+    showRecentList(false);
   }
 
   async function saveFileContents(name: string, overWrite: boolean) {
-    const page: HTMLElement | null = document.getElementById("page");
     // save the xml data
     try {
+      document.body.style.cursor = "wait";
       const error: string | undefined = await writeCMGFile(
-        fileName,
+        name,
         overWrite,
         fileContents,
         timeLine,
       );
+
       if (error == "file exists but overwrite is false") {
-        setFileExists(true);
+        setConfirmOverwrite(true);
       } else if (error == "") {
+        fileContents.name = name;
         setDirty(false, fileContents, setFileContents);
         setStatus(`File '${name}' saved.`);
-        addRecent(name);
-        setDialogType("");
-        setOpen("");
       } else if (error != undefined) setStatus(error);
-      if (page) page.inert = false;
+      document.body.style.cursor = "default";
     } catch (err) {
-      if (page) page.inert = false;
       const e = err as Error;
       setStatus(
-        `Error saving cmg file '${name}': '${e.name}' message: '${e.message}'`
+        `Error saving cmg file '${name}': '${e.name}' message: '${e.message}'`,
       );
+      document.body.style.cursor = "default";
     }
   }
 
-  async function readFileContents(name: string): Promise<boolean> {
-    let success: boolean = false;
-    const page = document.getElementById("page");
+  async function readFileContents(name: string) {
     document.body.style.cursor = "wait";
     try {
-      if (page) page.inert = true;
-      if (timeLine) {
-        const { fileContents, timeLine: thisTimeLine } = await readCMGFile(
-          name,
-          timeLine.width,
-          timeLine.height,
-        );
-        if (fileContents) {
-          setFileContents(fileContents);
-          setStatus(`File '${name}' loaded`);
-          if (page) page.inert = false;
-          // add file to recentFiles list
-          addRecent(name);
-          setFileName(name);
-          setTimeLine(thisTimeLine);
-        }
-        success = true;
+      const { fileContents, timeLine: thisTimeLine } = await readCMGFile(
+        name,
+        timelineWidth,
+        timelineHeight,
+      );
+      if (fileContents) {
+        setFileContents(fileContents);
+        setStatus(`File '${name}' loaded`);
+        // add file to recentFiles list
+        setTimeLine(thisTimeLine);
+        setTimeInterval({ startOffset: 0, endOffset: 0 });
       } else {
-        setStatus(
-          "Error reading cmg file. Time Line has not yet been defined."
-        );
+        setTimeLine(new TimeLine(timelineWidth, timelineHeight));
+        setTimeInterval({ startOffset: 0, endOffset: 0 });
+        setStatus("Error reading cmg file");
       }
+      document.body.style.cursor = "default";
     } catch (err) {
       const e = err as Error;
       setStatus(
-        `Error reading cmg file, type: '${e.name}' message: '${e.message}'`
+        `Error reading cmg file, type: '${e.name}' message: '${e.message}'`,
       );
+      document.body.style.cursor = "default";
     }
-    if (page) page.inert = false;
-    document.body.style.cursor = "default";
-    return success;
   }
 
   // add file to recent files list. if it is already there, move to the top
@@ -277,6 +331,23 @@ export default function FileMenu() {
     theList = theList.filter((_f, i) => i < 10);
     setRecentFiles(theList);
     window.localStorage.setItem(RECENTFILES, theList.join("|"));
+  }
+
+  // calld by fileDialog when user has selected a file to open or save
+  function processFile(action: string, name: string) {
+    if (action == "Open") {
+      readFileContents(name);
+      addRecent(name);
+      setFileName(name);
+    } else {
+      saveFileContents(name, false);
+      addRecent(name);
+      setFileName(name);
+    }
+    setConfirmDelete(false);
+    setConfirmOverwrite(false);
+    setDialogMode("");
+    showRecentList(false);
   }
 
   return (
@@ -322,28 +393,22 @@ export default function FileMenu() {
           </div>
         </div>
       </div>
-      {mode != "" ? (
+      {!!(dialogMode == "Open" || dialogMode == "Save") && (
         <FileDialog
-          title={title}
-          action={dialogType}
+          action={dialogMode}
           fileTypes={["cmg"]}
           directory={recentCMGDirectory}
           setDirectory={setRecentCMGDirectory}
           setFile={setFileName}
-          setMode={setMode}
+          setMode={setDialogMode}
           setStatus={setStatus}
+          reaction={processFile}
         />
-      ) : null}
-      {open != "" ? (
-        <div
-          style={{ display: open == "" ? "none" : "block" }}
-          className="modal-content"
-        >
+      )}
+      {!!confirmDelete && (
+        <div className="modal-content">
           <div className="modal-header">
-            {open == "new" || open == "open" ? (
-              <h2>Confirm {open} file</h2>
-            ) : null}
-            {open == "exit" ? <h2>Confirm exit</h2> : null}
+            <h2>Confirm file deletion</h2>
           </div>
           <div className="modal-body">
             <h3>
@@ -352,14 +417,12 @@ export default function FileMenu() {
             </h3>
           </div>
           <div className="modal-footer">
-            <button id={"file-delete:" + fileContents.name} onClick={handleOK}>
-              OK
-            </button>
+            <button onClick={handleDeleteOK}>OK</button>
             <button onClick={handleCancel}>Cancel</button>
           </div>
         </div>
-      ) : null}
-      {fileExists ? (
+      )}
+      {!!confirmOverwrite && (
         <div className="modal-content">
           <div className="modal-header">
             <h2>Confirm file overwrite</h2>
@@ -370,16 +433,11 @@ export default function FileMenu() {
             </h3>
           </div>
           <div className="modal-footer">
-            <button
-              id={"file-overwrite:" + fileName}
-              onClick={handleOverWriteOK}
-            >
-              OK
-            </button>
+            <button onClick={handleOverWriteOK}>OK</button>
             <button onClick={handleCancel}>Cancel</button>
           </div>
         </div>
-      ) : null}
+      )}
     </>
   );
 }

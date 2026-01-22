@@ -1,54 +1,27 @@
-import RandomNumber from 'classes/randomnumber';
+import Stochastic from 'classes/generators/stochastic';
 import {
 	CloudState,
 	CloudStates,
-	Composition,
 	INTENSITYOPTION,
-	IntensityOption,
-	IntensityParameters,
-	IntensityTransitionOption,
-	PanAlgorithm,
 	PANOPTION,
-	PanOption,
-	PanParameters,
 	SAMPLERATE,
-	Voice,
+	Voice
 } from 'types';
-import cloudSample from './cloudsample';
 import applyIntensity from './algorithms/applyintensity';
 import applyPan from './algorithms/applypan';
+import cloudSample from './cloudsample';
 
 interface BuildSampleProps {
-	delta: number;
-	Ne: number;
-	Nt: number;
-	Tc: number;
-	composition: Composition;
+	generator: Stochastic;
 	voices: Voice[];
-	panOption: PanOption;
-	panAlgorithm: PanAlgorithm;
-	panParameters: PanParameters;
-	intensityOption: IntensityOption;
-	intensityTransitionOption: IntensityTransitionOption;
-	intensityParameters: IntensityParameters;
-	rN: RandomNumber;
+	trackGain: number;
 }
 export default function buildSamples(props: BuildSampleProps): number[][] {
-	const {
-		delta,
-		Ne,
-		Nt,
-		Tc,
-		composition,
-		voices,
-		panOption,
-		panAlgorithm,
-		panParameters,
-		intensityOption,
-		intensityTransitionOption,
+	const {generator, voices, trackGain} = props;
+	const {Nt, Tc, composition, panOption, panAlgorithm, panParameters, intensityOption,intensityTransitionOption,
 		intensityParameters,
-		rN,
-	} = props;
+		dynamicsRN: rN, } = {... generator.values};
+	const Ne = generator.getNe();
 
 	let samples: number[][] = [];
 	if (Nt == 0) return samples;
@@ -60,14 +33,14 @@ export default function buildSamples(props: BuildSampleProps): number[][] {
 	samples.push(Array<number>(sampleCount).fill(0));
 	samples.push(Array<number>(sampleCount).fill(0));
 
-	// number of samples in each time cell and the time duratio of the cell
+	// number of samples in each time cell and the time duration of the cell
 	const deltaSample: number = sampleCount / Nt;
 	const deltaT: number = Tc / Nt;
 
 	// build the stereo sample from the composition and its characteristics
 	// loop through each voice
 
-	for (let iVoice = 0; iVoice < Ne; iVoice++) {
+	for (let iVoice = 0; iVoice < voices.length; iVoice++) {
 		// initialize the cloud states for this voice
 		let voiceSamples: number[][] = [];
 		voiceSamples.push(Array<number>(sampleCount).fill(0));
@@ -83,24 +56,17 @@ export default function buildSamples(props: BuildSampleProps): number[][] {
 				const nClouds: number = composition[iTime][iVoice];
 				for (let iCloud = 0; iCloud < nClouds; iCloud++) {
 					const { cloud, cloudState } = cloudSample({
-						delta,
+						generator,
 						voice: voices[iVoice],
 						cloudDuration: deltaT,
 						cloudState: cloudStates[iCloud],
-						intensityOption,
-						intensityTransitionOption,
-						intensityParameters,
-						panOption,
-						panAlgorithm,
-						panParameters,
-						rN,
 					});
 					cloudStates[iCloud] = { ...cloudState };
 
 					// add the clouds to the full sample with possible extension
 					for (let iSample = sampleStart; iSample < sampleStart + cloud[0].length; iSample++) {
-						voiceSamples[0][iSample] = voiceSamples[0][iSample] != undefined?voiceSamples[0][iSample] + cloud[0][iSample - sampleStart]:cloud[0][iSample - sampleStart];
-						voiceSamples[1][iSample] = voiceSamples[1][iSample] != undefined?voiceSamples[1][iSample] + cloud[1][iSample - sampleStart]:cloud[0][iSample - sampleStart];
+						voiceSamples[0][iSample] = voiceSamples[0][iSample] != undefined?voiceSamples[0][iSample] + cloud[0][iSample - sampleStart] * trackGain:cloud[0][iSample - sampleStart] * trackGain;
+						voiceSamples[1][iSample] = voiceSamples[1][iSample] != undefined?voiceSamples[1][iSample] + cloud[1][iSample - sampleStart]*trackGain:cloud[0][iSample - sampleStart] * trackGain;
 					}
 				}
 				// if (nClouds != 0)

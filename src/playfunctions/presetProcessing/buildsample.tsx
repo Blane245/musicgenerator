@@ -107,7 +107,7 @@ export default function buildSampleArray(
 
     // apply tremolo
     if (
-      generator.tremeloEnabled &&
+      generator.tremoloEnabled &&
       generator.tremolo.values.depth != 0 &&
       generator.tremolo.values.speed != 0
     ) {

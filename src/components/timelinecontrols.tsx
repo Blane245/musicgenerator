@@ -23,18 +23,6 @@ export default function TimeLineControls() {
     setTimeInterval,
   } = useCMGContext();
 
-  // when the timeline changes update the timeInterval and set the dirty bit
-  // useEffect(() => {
-  //   if (!timeLine) return;
-  //   const newInterval: TimelineInterval | null = updateTimeInterval(
-  //     timeInterval,
-  //     timeLine
-  //   );
-  //   if (!newInterval) return;
-  //   setTimeInterval(newInterval);
-  //   setDirty(true, fileContents, setFileContents);
-  // }, [timeLine]);
-
   const handleZoomIn = (): void => {
     setTimeLine((c: TimeLine | null) => {
       if (!c) return null;
@@ -134,14 +122,14 @@ export default function TimeLineControls() {
   return (
     <>
       <button
-        style={{ fontSize: "15px" }}
+        style={{ fontSize: "10px" }}
         disabled={!timeLine || timeLine.currentZoomLevel == 0}
         onClick={handleZoomIn}
       >
         <CiZoomIn />
       </button>
       <button
-        style={{ fontSize: "15px" }}
+        style={{ fontSize: "10px" }}
         disabled={
           !timeLine || timeLine.currentZoomLevel == TimeLineScales.length - 1
         }
@@ -150,17 +138,17 @@ export default function TimeLineControls() {
         <CiZoomOut />
       </button>
       <button
-        style={{ fontSize: "15px" }}
+        style={{ fontSize: "10px" }}
         disabled={!timeLine || timeLine.startTime == 0}
         onClick={handleShiftLeft}
       >
         <CiCircleChevLeft />
       </button>
-      <button style={{ fontSize: "15px" }} onClick={handleShiftRight}>
+      <button style={{ fontSize: "10px" }} onClick={handleShiftRight}>
         <CiCircleChevRight />
       </button>
       <br />
-      <button style={{ fontSize: "15px" }} onClick={handleModeChange}>
+      <button style={{ fontSize: "10px" }} onClick={handleModeChange}>
         {timeLine?.mode}
       </button>
       {timeLine?.mode == "Measure"

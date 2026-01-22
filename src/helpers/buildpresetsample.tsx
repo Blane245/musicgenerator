@@ -2,6 +2,7 @@ import { samplePool } from 'sfcomponents/samplepool';
 import { Preset } from 'sfcomponents/types';
 import buildElementSamples from './buildelementsamples';
 import getActiveZones from './getactivezones';
+import { dBToGain } from 'sfcomponents/util';
 
 // gt the preset samples for all instruments
 export default function buildPresetSample(props: {
@@ -10,13 +11,18 @@ export default function buildPresetSample(props: {
 	duration: number; // the note's duration with that interval
 	pitch1: number; // first pitch
 	pitch2: number; // second pitch for glissando
+	volume: number; // volume (dB) of the voice
+	velocity: number; // soundfont instrument velocity
 }): number[][] {
-	const { preset, interval, duration, pitch1, pitch2 } = props;
+	const { preset, interval, duration, pitch1, pitch2, volume, velocity } = props;
 	const result: number[][] = [];
+	const gain: number = dBToGain(volume);
+	// console.log('gain for pitch', gain, pitch1);
 	if (preset == undefined) return result;
-	//TODO velocity is set to 0 - no control currently available
+
 	// get all of the zones for this preset. Each represets a different instrument
-	const zones = getActiveZones(preset, Math.round(pitch1), 10);
+	// all instruments have the same velocity
+	const zones = getActiveZones(preset, Math.round(pitch1), velocity);
 	zones.forEach((zone) => {
 		// get the sample
 		const { sample: instrumentSample, header } = samplePool(zone.sample);
@@ -98,6 +104,7 @@ export default function buildPresetSample(props: {
 			loop,
 			loopStart,
 			loopEnd,
+			gain,
 		});
 		result.push(sample);
 	});

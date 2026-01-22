@@ -1,9 +1,9 @@
-import { GeneratorEffect } from "classes/control";
+import { GeneratorControl } from "classes/control";
 import Track from "classes/track";
 import { ChangeEvent } from "react";
 
-export interface GeneratorEffectDialogProps {
-  effect: GeneratorEffect;
+export interface GeneratorControlDialogProps {
+  control: GeneratorControl;
   list: string[];
   tracks: Track[];
   handleChange: (
@@ -12,10 +12,10 @@ export interface GeneratorEffectDialogProps {
   handleListChange: (event: ChangeEvent<HTMLSelectElement>) => void;
 }
 
-export default function GeneratorEffectDialog(
-  props: GeneratorEffectDialogProps
+export default function GeneratorControlDialog(
+  props: GeneratorControlDialogProps
 ): JSX.Element {
-  const { effect, list, tracks, handleChange, handleListChange } = props;
+  const { control, list, tracks, handleChange, handleListChange } = props;
   return (
     <>
       <label style={{ display: "inline-grid" }}>
@@ -41,7 +41,7 @@ export default function GeneratorEffectDialog(
         <input
           name="noiseEnable"
           type="checkbox"
-          checked={effect.noiseEnable}
+          checked={control.values.noiseEnable}
           onChange={(e) => handleChange(e)}
         />
       </label>
@@ -50,16 +50,16 @@ export default function GeneratorEffectDialog(
         <input
           name="reverbEnable"
           type="checkbox"
-          checked={effect.reverbEnable}
+          checked={control.values.reverbEnable}
           onChange={(e) => handleChange(e)}
         />
       </label>
       <label>
-        &nbsp;Enable Tremelo&nbsp;
+        &nbsp;Enable Tremolo&nbsp;
         <input
           name="tremoloEnable"
           type="checkbox"
-          checked={effect.tremoloEnable}
+          checked={control.values.tremoloEnable}
           onChange={(e) => handleChange(e)}
         />
       </label>
@@ -68,7 +68,7 @@ export default function GeneratorEffectDialog(
         <input
           name="vibratoEnable"
           type="checkbox"
-          checked={effect.vibratoEnable}
+          checked={control.values.vibratoEnable}
           onChange={(e) => handleChange(e)}
         />
       </label>

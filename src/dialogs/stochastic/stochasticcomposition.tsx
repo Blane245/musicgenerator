@@ -79,8 +79,8 @@ export default function StochasticComposition(
 
   useEffect(() => {
     const newSelected: Voices = [];
-    for (let i = 0; i < formData.values.muted.length; i++) {
-      if (!formData.values.muted[i])
+    for (let i = 0; i < formData.values.voices.length; i++) {
+      if (!formData.values.voices[i].muted)
         newSelected.push(formData.values.voices[i]);
     }
     setSelectedVoices(newSelected);
@@ -95,6 +95,9 @@ export default function StochasticComposition(
     loadVoices(ensemble.name);
   }
 
+  // load the voices from the ensemble and update the formData
+  // This should retain the muted and volume properties if
+  // they are already on the form for a voice
   const loadVoices = (ensembleName: string) => {
     try {
       loadEnsembleandVoices(ensembleName);
@@ -104,60 +107,84 @@ export default function StochasticComposition(
           `/ensemble/${name}`,
           "GET"
         );
-        if (ensembleResponse.type == "ensemble") {
-          // fetch each of the voice details
-          const data: DbEnsembleType = ensembleResponse as DbEnsembleType;
-          formData.values.ensemble = { ...data.value };
-          const voiceList: string[] = data.value.voices.split(",");
-          for (let i = 0; i < voiceList.length; i++) {
-            const vName: string = voiceList[i];
-            const voiceData: DbResponseType = await fetchDBData(
-              `/voice/${vName}`,
-              "GET"
-            );
+        if (ensembleResponse.type != "ensemble") return;
+        // fetch each of the voice details
+        const data: DbEnsembleType = ensembleResponse as DbEnsembleType;
+        formData.values.ensemble = { ...data.value };
 
-            if (voiceData.type == DBRESPONSETYPE.voice) {
-              const vData: dBVoiceType = voiceData as dBVoiceType;
-              // get the preset for this voice
-              const { soundFont } = await SFPool(vData.value.soundFontFile);
-              const { preset } = presetNameToPreset(
-                vData.value.presetName,
-                soundFont.presets as Preset[]
-              );
-              const nv: Voice = {
-                name: vData.value.name,
-                description: vData.value.description,
-                timbre: vData.value.timbre as TIMBRETYPE,
-                registerLo: vData.value.registerLo,
-                registerHi: vData.value.registerHi,
-                duration: vData.value.duration,
-                soundFontFile: vData.value.soundFontFile,
-                presetName: vData.value.presetName,
-                preset,
-              };
-              voices.push(nv);
-            }
+        // get the current voices from the form to match up with the 
+        // new ones and carry over the muted and volume properties
+        const formVoices: Voices = [...formData.values.voices];
+
+        // load each voice from the dB
+        const voiceList: string[] = data.value.voices.split(",");
+        for (let i = 0; i < voiceList.length; i++) {
+          const vName: string = voiceList[i];
+          const voiceData: DbResponseType = await fetchDBData(
+            `/voice/${vName}`,
+            "GET"
+          );
+
+          if (voiceData.type != DBRESPONSETYPE.voice) return;
+
+          const vData: dBVoiceType = voiceData as dBVoiceType;
+
+          // get the preset for this voice
+          const { soundFont } = await SFPool(vData.value.soundFontFile);
+          const { preset } = presetNameToPreset(
+            vData.value.presetName,
+            soundFont.presets as Preset[]
+          );
+
+          // hold over the muted and voice properties if they were on the form already
+          // a match is when the voice name matches that just read
+          const voiceIndex: number = formVoices.findIndex((voice: Voice) => (
+            voice.name == vData.value.name
+          ))
+          let muted: boolean = false;
+          let volume: number = 0;
+          let velocity: number = 0;
+          if (voiceIndex >= 0) {
+            muted = formVoices[voiceIndex].muted;
+            volume = formVoices[voiceIndex].volume;
+            velocity = formVoices[voiceIndex].velocity;
           }
-          // load the voices onto the form and trigger a change event
-          formData.values.voices = [...voices];
-          // formData.values.muted = Array(voices.length).fill(false);
-          const event = {
-            target: {
-              name: "voices",
-              value: voices.length.toString(),
-              type: "string",
-            },
+
+          const nv: Voice = {
+            name: vData.value.name,
+            description: vData.value.description,
+            timbre: vData.value.timbre as TIMBRETYPE,
+            registerLo: vData.value.registerLo,
+            registerHi: vData.value.registerHi,
+            duration: vData.value.duration,
+            soundFontFile: vData.value.soundFontFile,
+            presetName: vData.value.presetName,
+            preset,
+            muted,
+            volume,
+            velocity,
           };
-          // only reset the composition of the number of voices loaded
-          // do not agree with the dimenion of the composition
-          if (
-            formData.values.composition.length > 0 &&
-            voices.length != formData.values.composition[1].length
-          )
-            formData.values.composition = [];
-          setComposition(formData.values.composition);
-          handleChange(event as ChangeEvent<HTMLInputElement>);
+          voices.push(nv);
         }
+        // load the voices onto the form and trigger a change event
+        formData.values.voices = [...voices];
+        // formData.values.muted = Array(voices.length).fill(false);
+        const event = {
+          target: {
+            name: "voices",
+            value: voices.length.toString(),
+            type: "string",
+          },
+        };
+        // only reset the composition of the number of voices loaded
+        // do not agree with the dimension of the composition
+        if (
+          formData.values.composition.length > 0 &&
+          voices.length != formData.values.composition[1].length
+        )
+          formData.values.composition = [];
+        setComposition(formData.values.composition);
+        handleChange(event as ChangeEvent<HTMLInputElement>);
       }
     } catch (e) {
       setStatus(
@@ -182,7 +209,8 @@ export default function StochasticComposition(
     }
     setMessages([]);
     // reset the random number seed before building the composition
-    const rN = new RandomNumber(formData.values.seed);
+    const rN = new RandomNumber(formData.values.compositionSeed);
+    formData.values.compositionRN = rN;
 
     const composition: Composition = buildComposition({
       nColumns: formData.values.voices.length,
@@ -197,7 +225,6 @@ export default function StochasticComposition(
     // sneak in an update to the stop time
     formData.stopTime = formData.startTime + formData.values.Tc;
     updateComposition(composition);
-
   }
 
   function updateComposition(composition: Composition) {
@@ -212,10 +239,9 @@ export default function StochasticComposition(
       target: { name: "composition", value: compositionString, type: "string" },
     };
     handleChange(event as ChangeEvent<HTMLInputElement>);
-    // setComposition(composition); // update the GUI image of the composition
   }
 
-  // swap a composition column wiht the one to teh left or right of it
+  // swap a composition column with the one to teh left or right of it
   function handleVoiceLeftRight(
     e: MouseEvent<HTMLButtonElement>,
     direction: string,
@@ -285,189 +311,210 @@ export default function StochasticComposition(
 
   return (
     <>
-      <thead>
-        <tr>
-          <th></th>
-          <th colSpan={4} align="left">
-            {formData.values.voices.length != 0 ? "Voices" : ""}
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>
-            <button
-              className="submitbutton"
-              type="button"
-              onClick={() => reloadEnsembleList()}
-            >
-              Ensembles
-            </button>
-            <br />
-            <button
-              className="submitbutton"
-              type="button"
-              onClick={() => {
-                reloadEnsembleVoices(formData.values.ensemble);
-              }}
-            >
-              Voices
-            </button>
-            <br />
-            <button
-              className="submitbutton"
-              type="button"
-              onClick={() => createComposition()}
-            >
-              Build Composition
-            </button>
-          </td>
-          {!!(formData.values.voices.length > 0) && (
-            <td colSpan={4}>
-              <table border={1}>
-                <thead>
-                  <tr>
-                    <td>Mute</td>
-                    <td>Name</td>
-                    <td>Description</td>
-                    <td>Timbre</td>
-                    <td>Register (lo, hi) (midi)</td>
-                    <td>Duration (sec)</td>
-                    <td>SoundFont</td>
-                    <td>Preset</td>
-                  </tr>
-                </thead>
-                <tbody>
-                  {formData.values.voices.map((voice: Voice, i) => (
-                    <tr key={`voice-${voice.name}`}>
-                      <td>
-                        <input
-                          type="checkbox"
-                          name={`muted-${i}`}
-                          checked={formData.values.muted[i]}
-                          onChange={(e) => handleChange(e)}
-                        />
-                      </td>
-                      <td>{voice.name}</td>
-                      <td>{voice.description}</td>
-                      <td>{voice.timbre}</td>
-                      <td>{`(${voice.registerLo},${voice.registerHi})`}</td>
-                      <td>{voice.duration}</td>
-                      <td>{voice.soundFontFile}</td>
-                      <td>{voice.presetName}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </td>
-          )}
-        </tr>
-        {!!(composition.length > 0) && (
+      <table>
+        <thead>
           <tr>
-            <td colSpan={5}>
-              <table border={1}>
-                <thead>
-                  <tr>
-                    <th colSpan={selectedVoices.length + 3}>Composition</th>
-                  </tr>
-                  <tr>
-                    <th></th>
-                    <th>Time (sec)</th>
-                    <>
-                      {selectedVoices
-                        .map((v: Voice, i) => (
-                            <th key={`cheader1-${i}`}>{v.name}</th>
-                        ))}
-                    </>
-                    <th>Sum</th>
-                  </tr>
-                  <tr>
-                    <th>Move</th>
-                    <th></th>
-                    <>
-                      {selectedVoices
-                        .map((_v: Voice, i) => (
-                            <th key={`cheader2-${i}`}>
-                              <button
-                                className="submitbutton"
-                                hidden={i == 0}
-                                key={"time-left:" + i}
-                                onClick={(e) =>
-                                  handleVoiceLeftRight(e, "left", i)
-                                }
-                              >
-                                <AiFillCaretLeft />
-                              </button>
-                              <button
-                                hidden={i == selectedVoices.length - 1}
-                                className="submitbutton"
-                                key={"time-right:" + i}
-                                onClick={(e) =>
-                                  handleVoiceLeftRight(e, "right", i)
-                                }
-                              >
-                                <AiFillCaretRight />
-                              </button>
-                            </th>
-                        ))}
-                    </>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {composition.map((row, i) => (
-                    <tr key={`crow-${i}`}>
-                      <td>
-                        <button
-                          className="submitbutton"
-                          hidden={i == 0}
-                          id={"time-up:" + i}
-                          key={"time-up:" + i}
-                          onClick={(e) => handleTimeUpDown(e, "up", i)}
-                        >
-                          <AiFillCaretUp />
-                        </button>
-                        <button
-                          hidden={i == composition.length - 1}
-                          className="submitbutton"
-                          id={"time-down:" + i}
-                          key={"time-down:" + i}
-                          onClick={(e) => handleTimeUpDown(e, "down", i)}
-                        >
-                          <AiFillCaretDown />
-                        </button>
-                      </td>
-                      <td style={{ textAlign: "center" }}>
-                        {precision(formData.getDeltaT() * i, 2)}
-                      </td>
-                      {row
-                        .map((value, i) =>
-                          !formData.values.muted[i] ? (
-                            <td
-                              key={`voice-${value}-${i}`}
-                              style={{ textAlign: "center" }}
-                            >
-                              {value}
-                            </td>
-                          ) : null
-                        )
-                        .filter((v) => v)}
-                      <td style={{ textAlign: "center" }}>
-                        {row
-                          .reduce(function (x, y, i) {
-                            if (!formData.values.muted[i]) return x + y;
-                            else return x;
-                          }, 0)
-                          .toFixed(0)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </td>
+            <th>Reload and Build</th>
+            <th colSpan={9} align="left">
+              {formData.values.voices.length != 0 ? "Voices" : ""}
+            </th>
           </tr>
-        )}
-      </tbody>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <button
+                style={{ margin: "1px" }}
+                className="submitbutton"
+                type="button"
+                onClick={() => reloadEnsembleList()}
+              >
+                Ensembles
+              </button>
+              <br />
+              <button
+                style={{ margin: "1px" }}
+                className="submitbutton"
+                type="button"
+                onClick={() => {
+                  reloadEnsembleVoices(formData.values.ensemble);
+                }}
+              >
+                Voices
+              </button>
+              <br />
+              <button
+                style={{ margin: "1px" }}
+                className="submitbutton"
+                type="button"
+                onClick={() => createComposition()}
+              >
+                Build Composition
+              </button>
+            </td>
+            {!!(formData.values.voices.length > 0) && (
+              <td>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Mute</th>
+                      <th>Volume</th>
+                      <th>Velocity</th>
+                      <th>Name</th>
+                      <th>Description</th>
+                      <th>Timbre</th>
+                      <th>Register (lo, hi) (midi)</th>
+                      <th>Duration (sec)</th>
+                      <th>SoundFont</th>
+                      <th>Preset</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {formData.values.voices.map((voice: Voice, i) => (
+                      <tr key={`voice-${voice.name}`}>
+                        <td style={{textAlign: "center"}}>
+                          <input
+                            type="checkbox"
+                            name={`muted-${i}`}
+                            checked={formData.values.voices[i].muted}
+                            onChange={(e) => handleChange(e)}
+                          />
+                        </td>
+                        <td style={{textAlign: "center"}}>
+                          <input
+                            type="range"
+                            name={`volume-${i}`}
+                            value={formData.values.voices[i].volume}
+                            min={-10}
+                            max={10}
+                            step={1}
+                            onChange={(e) => handleChange(e)}
+                          />
+                          {formData.values.voices[i].volume}
+                        </td>
+                        <td style={{textAlign: "center"}}>
+                          <input
+                            type="range"
+                            name={`velocity-${i}`}
+                            value={formData.values.voices[i].velocity}
+                            min={0}
+                            max={127}
+                            step={1}
+                            onChange={(e) => handleChange(e)}
+                          />
+                          {formData.values.voices[i].velocity}
+                        </td>
+                        <td>{voice.name}</td>
+                        <td>{voice.description}</td>
+                        <td>{voice.timbre}</td>
+                        <td>{`(${voice.registerLo},${voice.registerHi})`}</td>
+                        <td>{voice.duration}</td>
+                        <td>{voice.soundFontFile}</td>
+                        <td>{voice.presetName}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </td>
+            )}
+          </tr>
+        </tbody>
+      </table>
+      {!!(composition.length > 0) && (
+        <table border={1} style={{ width: "80%" }}>
+          <thead>
+            <tr>
+              <th colSpan={selectedVoices.length + 3}>Composition</th>
+            </tr>
+            <tr>
+              <th></th>
+              <th>Time (sec)</th>
+              <>
+                {selectedVoices.map((v: Voice, i) => (
+                  <th key={`cheader1-${i}`}>{v.name}</th>
+                ))}
+              </>
+              <th>Sum</th>
+            </tr>
+            <tr>
+              <th>Move</th>
+              <th></th>
+              <>
+                {selectedVoices.map((_v: Voice, i) => (
+                  <th key={`cheader2-${i}`}>
+                    <button
+                      className="submitbutton"
+                      hidden={i == 0}
+                      key={"time-left:" + i}
+                      onClick={(e) => handleVoiceLeftRight(e, "left", i)}
+                    >
+                      <AiFillCaretLeft />
+                    </button>
+                    <button
+                      hidden={i == selectedVoices.length - 1}
+                      className="submitbutton"
+                      key={"time-right:" + i}
+                      onClick={(e) => handleVoiceLeftRight(e, "right", i)}
+                    >
+                      <AiFillCaretRight />
+                    </button>
+                  </th>
+                ))}
+              </>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {composition.map((row, i) => (
+              <tr key={`crow-${i}`}>
+                <td>
+                  <button
+                    className="submitbutton"
+                    hidden={i == 0}
+                    id={"time-up:" + i}
+                    key={"time-up:" + i}
+                    onClick={(e) => handleTimeUpDown(e, "up", i)}
+                  >
+                    <AiFillCaretUp />
+                  </button>
+                  <button
+                    hidden={i == composition.length - 1}
+                    className="submitbutton"
+                    id={"time-down:" + i}
+                    key={"time-down:" + i}
+                    onClick={(e) => handleTimeUpDown(e, "down", i)}
+                  >
+                    <AiFillCaretDown />
+                  </button>
+                </td>
+                <td style={{ textAlign: "center" }}>
+                  {precision(formData.getDeltaT() * i, 2)}
+                </td>
+                {row
+                  .map((value, i) =>
+                    !formData.values.voices[i].muted ? (
+                      <td
+                        key={`voice-${value}-${i}`}
+                        style={{ textAlign: "center" }}
+                      >
+                        {value}
+                      </td>
+                    ) : null
+                  )
+                  .filter((v) => v)}
+                <td style={{ textAlign: "center" }}>
+                  {row
+                    .reduce(function (x, y, i) {
+                      if (!formData.values.voices[i].muted) return x + y;
+                      else return x;
+                    }, 0)
+                    .toFixed(0)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </>
   );
 }

@@ -16,18 +16,22 @@ export default function RoomCompressorDialog() {
   function handleChange(event: ChangeEvent<HTMLInputElement>): void {
     const eventName: string | null = event.target["name"];
     const eventValue: string | null = event.target["value"];
-    const n: Compressor = compressorData.copy();
-    if (eventName && eventValue) {
-      n.setAttribute(eventName, eventValue);
-    }
-    setCompressor(n, setFileContents);
+    if (!compressorData.effectIn) {
+      const n: Compressor = compressorData.copy();
+      if (eventName && eventValue) {
+        n.setAttribute(eventName, eventValue);
+      }
+      setCompressor(n, setFileContents);
+    } else compressorData.setAttribute(eventName, eventValue);
   }
   function handleEnable() {
-    const eventName: string = 'compressor.enabled';
-    const eventValue:string = compressorData.enabled?'false':'true';
-    const n: Compressor = compressorData.copy();
-    n.setAttribute(eventName, eventValue);
-    setCompressor(n, setFileContents);
+    const eventName: string = "compressor.enabled";
+    const eventValue: string = compressorData.enabled ? "false" : "true";
+    if (!compressorData.effectIn) {
+      const n: Compressor = compressorData.copy();
+      n.setAttribute(eventName, eventValue);
+      setCompressor(n, setFileContents);
+    } else compressorData.setAttribute(eventName, eventValue);
   }
 
   function reset() {
@@ -36,10 +40,19 @@ export default function RoomCompressorDialog() {
     setCompressor(n, setFileContents);
   }
   return (
-    <div className="compressor"  style={{backgroundColor: compressorData.enabled? 'white': 'lightpink'}}>
+    <div
+      className="compressor"
+      style={{
+        backgroundColor: compressorData.enabled ? "white" : "lightpink",
+      }}
+    >
       <div className="title">
         <label>
-          <input type="checkbox" onChange={(()=> handleEnable())} checked={compressorData.enabled}/>
+          <input
+            type="checkbox"
+            onChange={() => handleEnable()}
+            checked={compressorData.enabled}
+          />
           <span>&nbsp;Enable&nbsp;</span>
         </label>
         Compressor Reset:&nbsp;

@@ -15,17 +15,25 @@ export default function RoomEqualizerDialog() {
 
   function handleGain(event: ChangeEvent<HTMLInputElement>, i: number): void {
     const value: number = parseInt(event.target["value"]);
-    const n: Equalizer = equalizerData.copy();
-    n.setGain(i, value);
-    setEqualizer(n, setFileContents);
+    if (!equalizerData.effectIn) {
+      const n: Equalizer = equalizerData.copy();
+      n.setGain(i, value);
+      setEqualizer(n, setFileContents);
+    } else {
+      equalizerData.setGain(i, value);
+    }
   }
 
   function handleEnable() {
-    const eventName: string = 'equalizer.enabled';
-    const eventValue:string = equalizerData.enabled?'false':'true';
-    const n: Equalizer = equalizerData.copy();
-    n.setAttribute(eventName, eventValue);
-    setEqualizer(n, setFileContents);
+    const eventName: string = "equalizer.enabled";
+    const eventValue: string = equalizerData.enabled ? "false" : "true";
+    if (!equalizerData.effectIn) {
+      const n: Equalizer = equalizerData.copy();
+      n.setAttribute(eventName, eventValue);
+      setEqualizer(n, setFileContents);
+    } else {
+      equalizerData.setAttribute(eventName, eventValue);
+    }
   }
 
   function reset() {
@@ -35,10 +43,17 @@ export default function RoomEqualizerDialog() {
   }
 
   return (
-    <div className="equalizer"  style={{backgroundColor: equalizerData.enabled? 'white': 'lightpink'}}>
+    <div
+      className="equalizer"
+      style={{ backgroundColor: equalizerData.enabled ? "white" : "lightpink" }}
+    >
       <div className="title">
         <label>
-          <input type="checkbox" onChange={(()=> handleEnable())} checked={equalizerData.enabled}/>
+          <input
+            type="checkbox"
+            onChange={() => handleEnable()}
+            checked={equalizerData.enabled}
+          />
           <span>&nbsp;Enable&nbsp;</span>
         </label>
         Equalizer (+- 10dB) Freqs (Hz) Reset: &nbsp;

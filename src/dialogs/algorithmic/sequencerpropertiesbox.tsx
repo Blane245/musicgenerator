@@ -1,7 +1,12 @@
 import DraggablePopup from "components/draggablepopup";
 import ItemTable from "components/itemtable";
 import { ChangeEvent, MouseEvent, useEffect, useState } from "react";
-import { SEQUENCEATTRIBUTE, SequenceItem, SequenceName, SequenceType } from "types";
+import {
+  SEQUENCEATTRIBUTE,
+  SequenceItem,
+  SequenceName,
+  SequenceType,
+} from "types";
 import { loadSequenceItems } from "utils/loadsequenceitems";
 import { loadValidSequenceNames } from "utils/loadvalidsequencenames";
 import toTitleCase from "utils/totitlecase";
@@ -72,8 +77,6 @@ export default function SequencerPropertiesBox(
       <thead>
         <tr>
           <th>Sequence Name</th>
-          <th>View</th>
-          <th>Reload</th>
           <th>Transposition</th>
           <th>Reverse Sequence?</th>
           <th>Reflect Sequence?</th>
@@ -97,19 +100,14 @@ export default function SequencerPropertiesBox(
                 );
               })}
             </select>
-          </td>
-
-          {sequenceItems.length > 0 ? (
-            <>
-              <td>
+            {!!(sequenceItems.length > 0) && (
+              <>
                 <button
                   style={{ fontSize: "12px", paddingLeft: "5px" }}
                   onClick={(e) => reloadItems(e, values.name)}
                 >
                   Reload
                 </button>
-              </td>
-              <td>
                 <button
                   style={{ fontSize: "12px", paddingLeft: "5px" }}
                   onClick={(e) => {
@@ -132,13 +130,10 @@ export default function SequencerPropertiesBox(
                     items={sequenceItems}
                   />
                 </DraggablePopup>
-              </td>
-            </>
-          ) : (
-            <>
-              <td></td>
-            </>
-          )}
+              </>
+            )}
+          </td>
+
           <td>
             <input
               name={name + ".transpose"}

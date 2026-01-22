@@ -1,9 +1,9 @@
-import { TrackEffect } from "classes/control";
+import { TrackControl } from "classes/control";
 import Track from "classes/track";
 import { ChangeEvent } from "react";
 
-export interface TrackEffectDialogProps {
-  effect: TrackEffect;
+export interface TrackControlDialogProps {
+  control: TrackControl;
   list: string[];
   tracks: Track[];
   handleChange: (
@@ -12,10 +12,10 @@ export interface TrackEffectDialogProps {
   handleListChange: (event: ChangeEvent<HTMLSelectElement>) => void;
 }
 
-export default function TrackEffectDialog(
-  props: TrackEffectDialogProps
+export default function TrackControlDialog(
+  props: TrackControlDialogProps
 ): JSX.Element {
-  const { effect, list, tracks, handleChange, handleListChange } = props;
+  const { control, list, tracks, handleChange, handleListChange } = props;
   return (
     <>
       <label style={{ display: "inline-grid", textAlign: "center" }}>
@@ -42,7 +42,7 @@ export default function TrackEffectDialog(
           type="number"
           min={-10}
           max={10}
-          value={effect.volumeStart}
+          value={control.values.volumeStart}
           onChange={(e) => handleChange(e)}
         />
       </label>
@@ -53,7 +53,7 @@ export default function TrackEffectDialog(
           type="number"
           min={-10}
           max={10}
-          value={effect.volumeStop}
+          value={control.values.volumeStop}
           onChange={(e) => handleChange(e)}
         />
       </label>
@@ -64,7 +64,7 @@ export default function TrackEffectDialog(
           type="number"
           min={0}
           max={1000}
-          value={effect.volumeDuration}
+          value={control.values.volumeDuration}
           onChange={(e) => handleChange(e)}
         />
       </label>

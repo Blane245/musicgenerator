@@ -23,20 +23,21 @@ export default class Stochastic extends Silent {
   values: StochasticValues = {
     ensemble: null,
     ensembleName: "",
-    Tc: 100, // seconds
-    Nt: 10, // cells
-    lambda: 0.6,
-    delta: 2.2,
+    Tc: 0, // seconds
+    Nt: 0, // cells
+    lambda: 0,
+    delta: 0,
     voices: [],
-    muted: [],
     intensityOption: INTENSITYOPTION.none,
     intensityTransitionOption: INTENSITYTRANSITIONOPTION.none,
     intensityParameters: { cycleTime: 0 },
-    panOption: PANOPTION.voice,
-    panAlgorithm: PANALGORITHM.glide,
-    panParameters: { cycleTime: 5 },
-    seed: "0s00ty50o3",
-    rN: new RandomNumber("0s00ty50o3"),
+    panOption: PANOPTION.none,
+    panAlgorithm: PANALGORITHM.none,
+    panParameters: { cycleTime: 0 },
+    compositionSeed: "0s00ty50o3",
+    compositionRN: new RandomNumber("0s00ty50o3"),
+    dynamicsSeed: "0s00ty50o3",
+    dynamicsRN: new RandomNumber("0s00ty50o3"),
     composition: [],
   };
   #deltaT: number = this.values.Nt != 0 ? this.values.Tc / this.values.Nt : 0;
@@ -45,7 +46,6 @@ export default class Stochastic extends Silent {
   constructor(nextGenerator: number, parent: Track) {
     super(nextGenerator, parent);
     this.type = GENERATORTYPE.Stochastic;
-    this.values.voices = [];
   }
 
   override copy(parent: Track): Stochastic {
@@ -64,12 +64,29 @@ export default class Stochastic extends Silent {
       if (super.setAttribute(name, value)) return true;
     }
     const stringValue: string = value;
-    // handle muted first since the name contains a number
+    // handle muted and volume first since their names contains a number
     if (name.startsWith("muted")) {
       const muteParts = name.split("-");
       if (muteParts.length == 2) {
-        const muteNumber: number = parseInt(muteParts[1]);
-        this.values.muted[muteNumber] = stringValue == "true";
+        const iVoice: number = parseInt(muteParts[1]);
+        this.values.voices[iVoice].muted = stringValue == "true";
+        return true;
+      }
+    }
+    if (name.startsWith("volume")) {
+      const volumeParts = name.split("-");
+      if (volumeParts.length == 2) {
+        const iVoice: number = parseInt(volumeParts[1]);
+        this.values.voices[iVoice].volume = parseInt(stringValue);
+        return true;
+      }
+    }
+
+    if (name.startsWith("velocity")) {
+      const velocityParts = name.split("-");
+      if (velocityParts.length == 2) {
+        const iVoice: number = parseInt(velocityParts[1]);
+        this.values.voices[iVoice].velocity = parseInt(stringValue);
         return true;
       }
     }
@@ -92,9 +109,13 @@ export default class Stochastic extends Silent {
       case "delta":
         this.values.delta = parseFloat(stringValue);
         return true;
-      case "seed":
-        this.values.seed = stringValue;
-        this.values.rN = new RandomNumber(stringValue);
+      case "compositionSeed":
+        this.values.compositionSeed = stringValue;
+        this.values.compositionRN = new RandomNumber(stringValue);
+        return true;
+      case "dynamicsSeed":
+        this.values.dynamicsSeed = stringValue;
+        this.values.dynamicsRN = new RandomNumber(stringValue);
         return true;
       case "intensityOption":
         this.values.intensityOption = stringValue;
@@ -131,7 +152,7 @@ export default class Stochastic extends Silent {
         this.#Ne = parseInt(stringValue);
         return true; // the Stochastic dialog has already set the value if the voices property
       case "ensembleList":
-        return true; // the Stochastic dialog has already set the value of this property
+        return true; // the Stochastic dialog has already set the value of this propert and loaded the ensemble and voices
       default:
         return false;
     }
@@ -189,7 +210,7 @@ export default class Stochastic extends Silent {
         );
         const voicesElem: Element = doc.createElement("voices");
         ensembleElem.appendChild(voicesElem);
-        this.values.voices.forEach((voice: Voice, iVoice) => {
+        this.values.voices.forEach((voice: Voice) => {
           const voiceElem: Element = doc.createElement("voice");
           voicesElem.appendChild(voiceElem);
           voiceElem.setAttribute("name", voice.name);
@@ -200,10 +221,9 @@ export default class Stochastic extends Silent {
           voiceElem.setAttribute("registerLo", voice.registerLo.toString());
           voiceElem.setAttribute("soundFontFile", voice.soundFontFile);
           voiceElem.setAttribute("timbre", voice.timbre);
-          voiceElem.setAttribute(
-            "muted",
-            this.values.muted[iVoice] ? "true" : "false"
-          );
+          voiceElem.setAttribute("muted", voice.muted ? "true" : "false");
+          voiceElem.setAttribute("volume", voice.volume.toString());
+          voiceElem.setAttribute("velocity", voice.velocity.toString());
         });
       }
 
@@ -211,7 +231,8 @@ export default class Stochastic extends Silent {
       returnElem.setAttribute("Nt", this.values.Nt.toString());
       returnElem.setAttribute("lambda", this.values.lambda.toString());
       returnElem.setAttribute("delta", this.values.delta.toString());
-      returnElem.setAttribute("seed", this.values.seed);
+      returnElem.setAttribute("compositionSeed", this.values.compositionSeed);
+      returnElem.setAttribute("dynamicsSeed", this.values.dynamicsSeed);
 
       const intensityElem: Element = doc.createElement("intensity");
       returnElem.appendChild(intensityElem);
@@ -295,7 +316,6 @@ export default class Stochastic extends Silent {
         g.values.voices = [];
       } else {
         const voiceList: string[] = [];
-        g.values.muted = [];
         const voicesChildren: HTMLCollection = voicesElement.children;
         for (const child of voicesChildren) {
           const name: string = getAttributeValueWithDefault(
@@ -353,6 +373,18 @@ export default class Stochastic extends Silent {
             "boolean",
             ""
           ) as boolean;
+          const volume: number = getAttributeValueWithDefault(
+            child,
+            "volume",
+            "int",
+            0
+          ) as number;
+          const velocity: number = getAttributeValueWithDefault(
+            child,
+            "velocity",
+            "int",
+            0
+          ) as number;
           const voice: Voice = {
             name,
             description,
@@ -363,9 +395,11 @@ export default class Stochastic extends Silent {
             registerLo,
             registerHi,
             duration,
-          }
+            muted,
+            volume,
+            velocity,
+          };
           g.values.voices.push(voice);
-          g.values.muted.push(muted);
 
           // notify file handler that some soundfonts need to be loaded
           // and preset set for this voice
@@ -374,10 +408,15 @@ export default class Stochastic extends Silent {
           if (foundSoundFont == undefined) {
             SoundFontGenerators.set(soundFontFile, {
               type: GENERATORTYPE.Stochastic,
-              users: [{generator:g, voiceNumber: g.values.voices.length - 1}],
+              users: [
+                { generator: g, voiceNumber: g.values.voices.length - 1 },
+              ],
             });
           } else {
-            foundSoundFont.users.push({generator:g, voiceNumber: g.values.voices.length - 1});
+            foundSoundFont.users.push({
+              generator: g,
+              voiceNumber: g.values.voices.length - 1,
+            });
           }
         }
         g.values.ensemble.voices = voiceList.join(",");
@@ -405,11 +444,17 @@ export default class Stochastic extends Silent {
           "float",
           0
         ) as number;
-        g.values.seed = getAttributeValueWithDefault(
+        g.values.compositionSeed = getAttributeValueWithDefault(
           elem,
-          "seed",
+          "compositionSeed",
           "string",
-          0
+          ""
+        ) as string;
+        g.values.dynamicsSeed = getAttributeValueWithDefault(
+          elem,
+          "dynamicsSeed",
+          "string",
+          ""
         ) as string;
         const intensityElem: Element | null = getElementElement(
           elem,

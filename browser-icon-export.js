@@ -10,7 +10,7 @@ function generateSimpleIconMarkdown() {
     'play': 'CiPlay1',
     'pause': 'CiPause1', 
     'stop': 'CiStop1',
-    'delete': 'AiFillDelete',
+    'delete': 'AiOutlineClose',
     'edit': 'AiOutlineEdit',
     'rename': 'CgRename',
     'person': 'IoPerson',

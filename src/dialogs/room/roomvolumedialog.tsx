@@ -13,9 +13,13 @@ export default function RoomVolumeDialog() {
 
   function handleChange(event: ChangeEvent<HTMLInputElement>): void {
     const value: number = parseFloat(event.target["value"]);
-    const n: Volume = volumeData.copy();
-    n.setVolume(value);
-    setVolume(n, setFileContents);
+    if (!volumeData.effect) {
+      const n: Volume = volumeData.copy();
+      n.setVolume(value);
+      setVolume(n, setFileContents);
+    } else {
+      volumeData.setVolume(value);
+    }
   }
 
   return (

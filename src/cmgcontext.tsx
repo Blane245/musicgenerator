@@ -70,8 +70,6 @@ interface CMGContextType {
   setSFFileList: Dispatch<SetStateAction<string[]>>;
   ensembleList: EnsembleType[];
   setEnsembleList: Dispatch<SetStateAction<EnsembleType[]>>;
-  fileName: string;
-  setFileName: Dispatch<SetStateAction<string>>;
   fileContents: CMGFile;
   setFileContents: Dispatch<SetStateAction<CMGFile>>;
   status: string;
@@ -146,7 +144,6 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
   const [timeLine, setTimeLine] = useState<TimeLine | null>(null);
   const [controlNew, setControlNew] = useState<Control|null>(null);
   const [displayControlDialog, setDisplayControlDialog] = useState<boolean>(false);
-  const [fileName, setFileName] = useState<string>("");
   const playing = useRef<boolean>(false);
   const [mode, setMode] = useState<PLAYMODE>(PLAYMODE.idle);
   const [playbackLength, setPlaybackLength] = useState<number>(0);
@@ -211,8 +208,6 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     setSFFileList,
     ensembleList,
     setEnsembleList,
-    fileName,
-    setFileName,
     fileContents,
     setFileContents,
     status,

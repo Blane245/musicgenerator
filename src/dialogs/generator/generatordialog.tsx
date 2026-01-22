@@ -59,7 +59,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
   const [audioFileData, setAudioFileData] = useState<AudioFile>(
     new AudioFile(0, track)
   );
-  const [locked, setLocked] = useState<boolean>(false);
 
   useEffect(() => {
     // either get the generator from the track or build a new one if being added
@@ -124,7 +123,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
       n.preset = soundFontData.preset;
       n.presetName = soundFontData.presetName;
       n.presets = soundFontData.presets;
-      setLocked(false);
       return n;
     });
   }, [soundFontData]);
@@ -135,7 +133,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
       const n: AudioFile = (prev as AudioFile).copy(prev.parent);
       return n;
     });
-    setLocked(false);
   }, [audioFileData]);
 
   // when playing stops take down the stop preview popup
@@ -378,7 +375,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
 
   function loadSoundFontandUpdate(fileName: string) {
     try {
-      setLocked(true);
       LoadFile(fileName);
       // load the soundfont file and set the presets
       async function LoadFile(fileName: string) {
@@ -419,12 +415,12 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
   }
 
   return (
-    <fieldset disabled={locked}>
+    <>
       <div
         className="generator-content"
         aria-modal="true"
       >
-        <div className="header">
+        <div className="generator-header">
           <span className="close" onClick={handleCancelClick}>
             &times;
           </span>
@@ -434,7 +430,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
               : "  Modify " + formData.type + " Generator: " + formData.name}
           </span>
         </div>
-        <div className="body">
+        <div className="generator-body">
 
           <form
             name="generator_CRUD"
@@ -550,13 +546,14 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
             Preview
           </button>
           <button
+          type="button"
             id={"generator-update:" + formData.name}
             onClick={handleCancelClick}
           >
             Cancel
           </button>
         </div>
-        <div className="footer">
+        <div className="generator-footer">
           {errorMessages.map((m, i) => (
             <h3 style={{color:"white"}} key={`error-${i}`}>
               {m}
@@ -565,6 +562,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
         </div>
       </div>
       {previewVisible ? <Play generator={formData} /> : null}
-    </fieldset>
+    </>
   );
 }

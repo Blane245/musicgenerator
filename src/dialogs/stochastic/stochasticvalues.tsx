@@ -8,31 +8,30 @@ import {
   PANOPTION,
 } from "types";
 import { generateRandomString } from "utils/randomstring";
-import StochasticComposition from "./stochasticcomposition";
 
 export interface StochasticValuesProps {
   formData: Stochastic;
   handleChange: (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
-  setMessages: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 export default function StochasticValues(
   props: StochasticValuesProps
 ): JSX.Element {
-  const { formData, handleChange, setMessages } = props;
+  const { formData, handleChange } = props;
   const { ensembleList } = useCMGContext();
 
-  function generateSeed(): void {
+  function generateSeed(property: string): void {
     const newSeed: string = generateRandomString(15);
     const event = {
-      target: { name: "seed", value: newSeed, type: "string" },
+      target: { name: property, value: newSeed, type: "string" },
     };
-    formData.values.composition = [];
+    if (property == 'compositionSeed') formData.values.composition = [];
     handleChange(event as ChangeEvent<HTMLInputElement>);
   }
 
+  // clear the composition when a property changes that affects its size and/or content
   function handlePropertyChange(e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     formData.values.composition = [];
     handleChange(e);
@@ -40,19 +39,21 @@ export default function StochasticValues(
 
 
   return (
+    <>
     <table border={1}>
       <thead>
         <tr>
           <th colSpan={5}>Composition Parameters</th>
-          <th colSpan={3}>Dynamic Parameters</th>
+          <th colSpan={3}>Dynamics Parameters</th>
         </tr>
         <tr>
           <th>Ensemble</th>
           <th>Length (sec)</th>
           <th>Time Cells</th>
           <th>Events/Cell</th>
-          <th>Random Seed</th>
-          <th>Sound/sec</th>
+          <th>Composition Seed</th>
+          <th>Sounds/sec</th>
+          <th>Dynamics Seed</th>
           <th>Pan Controls</th>
           <th>Intensity Controls</th>
         </tr>
@@ -99,13 +100,13 @@ export default function StochasticValues(
           </td>
           <td>
             <input
-              name="seed"
+              name="compositionSeed"
               type="string"
-              value={formData.values.seed}
+              value={formData.values.compositionSeed}
               onChange={handlePropertyChange}
             />
-            <button onClick={generateSeed} type="button">
-              Generate
+            <button onClick={()=>generateSeed('compositionSeed')} type="button">
+              New Seed
             </button>
           </td>
           <td>
@@ -115,6 +116,17 @@ export default function StochasticValues(
               value={formData.values.delta}
               onChange={handleChange}
             />
+          </td>
+          <td>
+            <input
+              name="dynamicsSeed"
+              type="string"
+              value={formData.values.dynamicsSeed}
+              onChange={handleChange}
+            />
+            <button onClick={()=>generateSeed('dynamicsSeed')} type="button">
+              New Seed
+            </button>
           </td>
           <td>
             <label>
@@ -200,11 +212,7 @@ export default function StochasticValues(
           </td>
         </tr>
       </tbody>
-      <StochasticComposition
-        formData={formData}
-        handleChange={handleChange}
-        setMessages={setMessages}
-      />
     </table>
+      </>
   );
 }

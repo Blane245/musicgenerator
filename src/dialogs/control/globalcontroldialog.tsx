@@ -1,17 +1,17 @@
-import { GlobalEffect } from "classes/control";
+import { GlobalControl } from "classes/control";
 import { ChangeEvent } from "react";
 
-export interface GlobalEffectDialogProps {
-  effect: GlobalEffect;
+export interface GlobalControlDialogProps {
+  control: GlobalControl;
   handleChange: (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
 }
 
-export default function GlobalEffectDialog(
-  props: GlobalEffectDialogProps
+export default function GlobalControlDialog(
+  props: GlobalControlDialogProps
 ): JSX.Element {
-  const { effect, handleChange } = props;
+  const { control, handleChange } = props;
   return (
     <>
       <label>
@@ -19,7 +19,7 @@ export default function GlobalEffectDialog(
         <input
           name="reverbEnable"
           type="checkbox"
-          checked={effect.reverbEnable}
+          checked={control.values.reverbEnable}
           onChange={(e) => handleChange(e)}
         />
       </label>
@@ -28,7 +28,7 @@ export default function GlobalEffectDialog(
         <input
           name="compressorEnable"
           type="checkbox"
-          checked={effect.compressorEnable}
+          checked={control.values.compressorEnable}
           onChange={(e) => handleChange(e)}
         />
       </label>
@@ -37,7 +37,7 @@ export default function GlobalEffectDialog(
         <input
           name="equalizerEnable"
           type="checkbox"
-          checked={effect.equalizerEnable}
+          checked={control.values.equalizerEnable}
           onChange={(e) => handleChange(e)}
         />
       </label>
@@ -48,7 +48,7 @@ export default function GlobalEffectDialog(
           type="number"
           min={-10}
           max={10}
-          value={effect.volumeStart}
+          value={control.values.volumeStart}
           onChange={(e) => handleChange(e)}
         />
       </label>
@@ -59,7 +59,7 @@ export default function GlobalEffectDialog(
           type="number"
           min={-10}
           max={10}
-          value={effect.volumeStop}
+          value={control.values.volumeStop}
           onChange={(e) => handleChange(e)}
         />
       </label>
@@ -70,7 +70,7 @@ export default function GlobalEffectDialog(
           type="number"
           min={0}
           max={1000}
-          value={effect.volumeDuration}
+          value={control.values.volumeDuration}
           onChange={(e) => handleChange(e)}
         />
       </label>

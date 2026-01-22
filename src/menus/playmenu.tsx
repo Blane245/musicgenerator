@@ -196,7 +196,7 @@ export default function PlayMenu() {
           ],
         })
         .then(async (handle) => {
-          if (page) page.inert = true;
+          // if (page) page.inert = true;
           // build the html for the file contents
           const theReport: React.ReactNode = Report({
             fileContents: fileContents,

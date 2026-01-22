@@ -10,11 +10,11 @@ import TimeLineControls from "components/timelinecontrols";
 import TimeLineDisplay from "components/timelinedisplay";
 import { useEffect, useState } from "react";
 
-export default function Header() {
+export default function Header(params:{fileName: string}) {
+  const {fileName} = params;
   const {
     appName,
     appVersion,
-    fileName,
     fileContents,
     displayWidth,
     timelineWidth,

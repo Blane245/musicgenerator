@@ -2,19 +2,17 @@
 // saving current ones, and adding tracks to current ones
 // import Algorithmic from "classes/generators";
 import Control from "classes/control";
-import Algorithmic from "classes/generators/algorithmic";
 import TimeLine from "classes/timeline";
 import Track from "classes/track";
 import { useCMGContext } from "cmgcontext";
 import ControlDialog from "dialogs/control/controldialog";
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useState } from "react";
 import {
-  GENERATORTYPE,
   PREVIEWFFTSIZE,
   PREVIEWFREQUENCYDISPLAY,
   RECORDFORMAT,
   SFFILELOCATION,
-  TIMELINETYPE,
+  TIMELINETYPE
 } from "types";
 import { addTrack, setDirty, setFileComment } from "utils/cmfiletransactions";
 import { getControlUID } from "utils/getcontroluid";
@@ -37,7 +35,6 @@ export default function EditMenu() {
     setStatus,
     setRecordFormat,
     setSFFileList,
-    SFFileList,
     playing,
     recordFormat,
     SFLocalDirectory,
@@ -54,26 +51,26 @@ export default function EditMenu() {
     new TimeLine(timelineWidth, timelineHeight)
   );
 
-  useEffect(() => {
-    if (SFFileList.length == 0) return;
-    // check if any generators are using a soundfont file that does not
-    // exist in the new directory
-    const errors: string[] = [];
-    const found: Track | undefined = fileContents.tracks.find(
-      (t) =>
-        t.generators.find(
-          (g) =>
-            (g.type == GENERATORTYPE.Algorithmic &&
-              SFFileList.find((f) => (g as Algorithmic).soundFontFile == f)) ||
-            g.type != GENERATORTYPE.Algorithmic
-        ) != undefined
-    );
-    if (found != undefined)
-      errors.push(
-        `The current composition contains a generator that uses a soundfont file that is not it this directory.`
-      );
-    setErrorMsgs(errors);
-  }, [SFFileList, fileContents.tracks]);
+  // useEffect(() => {
+  //   if (SFFileList.length == 0) return;
+  //   // check if any generators are using a soundfont file that does not
+  //   // exist in the new directory
+  //   const errors: string[] = [];
+  //   const found: Track | undefined = fileContents.tracks.find(
+  //     (t) =>
+  //       t.generators.find(
+  //         (g) =>
+  //           (g.type == GENERATORTYPE.Algorithmic &&
+  //             SFFileList.find((f) => (g as Algorithmic).soundFontFile == f)) ||
+  //           g.type != GENERATORTYPE.Algorithmic
+  //       ) != undefined
+  //   );
+  //   if (found != undefined)
+  //     errors.push(
+  //       `The current composition contains a generator that uses a soundfont file that is not it this directory.`
+  //     );
+  //   setErrorMsgs(errors);
+  // }, [SFFileList, fileContents.tracks]);
 
   function handleEditComment() {
     setCommentModal(true);
@@ -201,7 +198,7 @@ export default function EditMenu() {
   function handleSnapChange(): void {
     setFormData((prev: TimeLine) => {
       const nf: TimeLine = prev.copy();
-      nf.setAttribute("snap", formData.snap ? "false" : "true");
+      nf.setAttribute("snap", prev.snap ? "false" : "true");
       return nf;
     });
   }
@@ -298,7 +295,7 @@ export default function EditMenu() {
                 </select>
               </label>
               <br />
-              <div>Measure Definition</div><br/>
+              <div><b>Measure Definition</b></div><br/>
               <label>
                 Measure Length:&nbsp;
                 <input
@@ -327,7 +324,7 @@ export default function EditMenu() {
                 />
               </label>
               <br />
-              <div>Snap Option</div><br/>
+              <div><b>Snap Option</b></div><br/>
               <label>
                 Snap Mode:&nbsp;
                 <input
@@ -357,7 +354,7 @@ export default function EditMenu() {
                 </label>
               ) : null}
               <hr/>
-              <div>Frequency Display Options</div><br/>
+              <div><b>Frequency Display Options</b></div><br/>
               <label>
                 FFT Size:&nbsp;
                 <input type="number"

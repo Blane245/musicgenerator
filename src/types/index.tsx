@@ -223,16 +223,16 @@ export type Intensity = (typeof INTENSITY)[keyof typeof INTENSITY];
 // map of intensity names to dB and velocity
 // velocity mapping from SmartScore 64 dynamics (wikipedia music dynamics)
 export const IntensityProfile = new Map<Intensity, {dB: number, velocity: number}> ([
-  [INTENSITY.pppp, {dB: 3, velocity: 30}],
-  [INTENSITY.ppp, {dB: 4, velocity: 40}],
-  [INTENSITY.pp, {dB:5, velocity: 50}],
-  [INTENSITY.p, {dB:6, velocity: 60}],
-  [INTENSITY.mp, {dB:7, velocity: 70}],
-  [INTENSITY.mf, {dB:8, velocity: 80}],
-  [INTENSITY.f, {dB:9, velocity: 90}],
-  [INTENSITY.ff, {dB:10, velocity: 100}],
-  [INTENSITY.fff, {dB:11, velocity: 110}],
-  [INTENSITY.ffff, {dB:12, velocity: 120}]
+  [INTENSITY.pppp, {dB: -4, velocity: 30}],
+  [INTENSITY.ppp, {dB: -5, velocity: 40}],
+  [INTENSITY.pp, {dB:-2, velocity: 50}],
+  [INTENSITY.p, {dB:-1, velocity: 60}],
+  [INTENSITY.mp, {dB:0, velocity: 70}],
+  [INTENSITY.mf, {dB:1, velocity: 80}],
+  [INTENSITY.f, {dB:2, velocity: 90}],
+  [INTENSITY.ff, {dB:3, velocity: 100}],
+  [INTENSITY.fff, {dB:4, velocity: 110}],
+  [INTENSITY.ffff, {dB:5, velocity: 120}]
 ]);
 
 export type IntensityTransition = {
@@ -330,17 +330,18 @@ export type StochasticValues = {
   Tc: number; // length of composition (seconds)
   Nt: number; // the number of time rows
   lambda: number; // the average number of events (clouds) per time cell
+  compositionRN: RandomNumber;
   delta: number; // sounds / second
+  dynamicsRN: RandomNumber;
   voices: Voices; // the voices that make up the ensemble
-  muted: boolean[]; // voice muted flags
   intensityOption: IntensityOption; // none, composition, voice, cloud
   intensityTransitionOption: IntensityTransitionOption; // random, persistent
   intensityParameters: IntensityParameters; // averge duration of transition
   panOption: PanOption; // none, voice, cloud
   panAlgorithm: PanAlgorithm; // constant, walk, glide
   panParameters: PanParameters; // cycle time for pan sequences
-  seed: string;
-  rN: RandomNumber;
+  compositionSeed: string;
+  dynamicsSeed: string;
   composition: Composition;
 };
 
@@ -381,6 +382,9 @@ export type Voice = {
   registerLo: number;
   registerHi: number;
   duration: number;
+  muted: boolean;
+  volume: number;
+  velocity: number;
 }
 
 export type Voices = Voice[];

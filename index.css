@@ -1,3 +1,73 @@
+#root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1;
+  font-weight: 400;
+  color-scheme: light dark;
+  background-color: #242424;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  max-width: 2800px;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+	padding: 0;
+	text-align: center;
+	--layout-background-color: lightgray;
+	--header-background-color: white;
+	--header-text-color: black;
+	--menu-background-color: green;
+	--menu-text-color: white;
+	--body--background-color: white;
+	--body-text-color: black;
+	--edit-background-color: white;
+	--edit-header-background-color: green;
+	--edit-body-background-color: white;
+	--edit-footer-background-color: white;
+	--edit-header-text-color: white;
+	--edit-body-text-color: black;
+	--edit-footer-text-color: black;
+	--footer-background-color: white;
+	--footer-text-color: black;
+	--add-background-color: green;
+	--add-text-color: white;
+	--modify-background-color: blue;
+	--modify-text-color: black;
+	--delete-background-color: red;
+	--delete-text-color: white;
+	--rename-background-color: rgb(0, 255, 85);
+	--rename-text-color: black;
+	--duplicate-background-color: rgb(0, 255, 85);
+	--dupicate-text-color: black;
+	--list-background-color: yellow;
+	--list-text-color: black;
+	--inactive-background-color: rgb(122, 122, 122);
+	--inactive-text-color: black;
+	--large-font-size: 24pt;
+	--small-font-size: 12pt;
+	--error-background-color: red;
+	--info-background-color: white;
+	--error-text-color: white;
+	--info-info-color: black;
+	--yes-background-color: green;
+	--yes-text-color: white;
+	--no-background-color: red;
+	--no-text-color: white;
+	--submit-background-color: green;
+	--submit-text-color: white;
+	--ok-background-color: green;
+	--ok-text-color: white;
+	--cancel-background-color: red;
+	--cancel-text-color: white;
+	--modal-background-color: white;
+	--modal-header-background-color: rgb(49, 175, 49);
+	--modal-header-color: white;
+	--modal-body-background-color: white;
+	--modal-body-color: black;
+	--modal-footer-background-color: rgb(49, 175, 49);
+	--modal-footer-color: white;
+}
+
 html {
   box-sizing: border-box;
 }
@@ -54,66 +124,27 @@ a {
 a:hover {
 	color: #535bf2;
 }
-
-#root {
-  max-width: 2800px;
-  margin: 0;
-  text-align: left;
-	padding: 2rem;
-	text-align: center;
-	--layout-background-color: lightgray;
-	--header-background-color: white;
-	--header-text-color: black;
-	--menu-background-color: green;
-	--menu-text-color: white;
-	--body--background-color: white;
-	--body-text-color: black;
-	--edit-background-color: white;
-	--edit-header-background-color: green;
-	--edit-body-background-color: white;
-	--edit-footer-background-color: white;
-	--edit-header-text-color: white;
-	--edit-body-text-color: black;
-	--edit-footer-text-color: black;
-	--footer-background-color: white;
-	--footer-text-color: black;
-	--add-background-color: green;
-	--add-text-color: white;
-	--modify-background-color: blue;
-	--modify-text-color: black;
-	--delete-background-color: red;
-	--delete-text-color: white;
-	--rename-background-color: rgb(0, 255, 85);
-	--rename-text-color: black;
-	--duplicate-background-color: rgb(0, 255, 85);
-	--dupicate-text-color: black;
-	--list-background-color: yellow;
-	--list-text-color: black;
-	--inactive-background-color: rgb(122, 122, 122);
-	--inactive-text-color: black;
-	--large-font-size: 24pt;
-	--small-font-size: 12pt;
-	--error-background-color: red;
-	--info-background-color: white;
-	--error-text-color: white;
-	--info-info-color: black;
-	--yes-background-color: green;
-	--yes-text-color: white;
-	--no-background-color: red;
-	--no-text-color: white;
-	--submit-background-color: green;
-	--submit-text-color: white;
-	--ok-background-color: green;
-	--ok-text-color: white;
-	--cancel-background-color: red;
-	--cancel-text-color: white;
-	--modal-background-color: white;
-	--modal-header-background-color: rgb(49, 175, 49);
-	--modal-header-color: white;
-	--modal-body-background-color: white;
-	--modal-body-color: black;
-	--modal-footer-background-color: rgb(49, 175, 49);
-	--modal-footer-color: white;
+button {
+  border-radius: 8px;
+  border: 2px solid black;
+  padding-top: 0em;
+  padding-left: 1em;
+  padding-bottom: 0em;
+  padding-right: 1em;
+  font-size: 18px;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: white;
+  cursor: inherit;
+  transition: border-color 0.25s;
+  margin: 1px;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
 }
 
 .navbar {
@@ -204,7 +235,7 @@ a:hover {
 .page {
   padding: 0;
   margin: 0;
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: white;
   width: 100%;
   height: 100%;
   text-align: left;
@@ -280,7 +311,7 @@ a:hover {
     display: grid;
     grid-area: body;
     grid-template-columns: 200px 1fr;
-    grid-template-rows: repeat(10, 100px);
+    grid-template-rows: repeat(9, 100px);
     gap: 0;
     position: absolute;
     top: 85px;
@@ -298,6 +329,7 @@ a:hover {
     width: 100%;
     top: auto;
     bottom: 0;
+    left: 0;
     .status {
       display: block;
       grid-area: status;
@@ -528,11 +560,6 @@ a:hover {
         }
       }
     }
-
-    [inert] > * {
-      opacity: 0.5;
-      cursor: wait;
-    }
   }
 }
 
@@ -559,7 +586,7 @@ a:hover {
   z-index: 10;
   top: 160px;
   left: 200px;
-  width: 50em;
+  width:auto;
   background-color: #fefefe;
   margin: 0;
   padding: 0;
@@ -617,25 +644,28 @@ a:hover {
   border: 1px solid #888;
   width: 100%;
   height: 100%;
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   animation-name: animateleft;
   animation-duration: 0.4s;
-  cursor: inherit;
-  display: flex;
+  display: grid;
   flex-direction: column;
   flex-wrap: nowrap;
-  .header {
+  grid-template-rows: 40px 1fr 80px;
+  grid-template-areas: 'header' 'body' 'footer';
+  .generator-header {
+    grid-area: header;
     flex-shrink: 0;
     background-color: #5c75b8;
     color: white;
   }
-  .body {
+  .generator-body {
+    grid-area: body;
     flex-grow: 1;
     background-color: white;
-    overflow: auto;
+    overflow: scroll;
     color: black;
   }
-  .footer {
+  .generator-footer {
+    grid-area: footer;
     background-color: #5c75b8;
     color: white;
     flex-shrink: 0;
@@ -645,51 +675,6 @@ a:hover {
 .id {
   padding: 5px;
 }
-
-/* .algorithmic-preamble {
-  display: grid;
-  grid-area: body;
-  grid-template-columns: 1fr 1fr;
-  grid-template-areas: "soundfont tools" "reverb vibrato" "noise tremolo" "rhythm rhythm";
-  background-color: white;
-  color: black;
-  .id {
-    grid-area: id;
-    padding: 5px;
-  }
-  .soundfont {
-    grid-area: soundfont;
-    padding: 5px;
-  }
-  .tremolo {
-    grid-area: tremolo;
-    padding: 5px;
-  }
-  .vibrato {
-    grid-area: vibrato;
-    padding: 5px;
-  }
-  .tools {
-    grid-area: tools;
-    padding: 5px;
-  }
-  .rhythm {
-    grid-area: rhythm;
-    padding: 5px;
-  }
-  .noise {
-    grid-area: noise;
-    padding: 5px;
-  }
-  .reverb {
-    grid-area: reverb;
-    padding: 5px;
-  }
-  .table {
-    grid-area: table;
-    padding: 5px;
-  }
-} */
 
 .algorithmic-table {
   display: grid;
@@ -1124,7 +1109,7 @@ a:hover {
   .preview-header {
     grid-area: header;
     display: grid;
-    grid-template-columns: 30px 110px 1fr 140px;
+    grid-template-columns: 30px 200px 1fr 180px;
     grid-template-rows: 30px;
     grid-template-areas: "icon buttons title .";
     .icon {
@@ -1150,6 +1135,7 @@ a:hover {
   .preview-footer {
     position: fixed;
     top: auto;
+    left: 0;
     background-color: lightskyblue;
     grid-area: footer;
     display: grid;
@@ -1440,10 +1426,10 @@ a:hover {
   top: 100px;
   left: 100px;
   width: 75%;
-  grid-template-rows: 70px 320px 125px;
+  grid-template-rows: 70px 330px 125px;
   grid-template-areas: "header" "body" "footer";
   z-index: 99;
-  .header {
+  .filedialog-header {
     display: grid;
     top: 0;
     left: 0;
@@ -1478,7 +1464,7 @@ a:hover {
     .directoryrow {
       grid-area: directoryrow;
       display: grid;
-      grid-template-columns: 150px 1fr;
+      grid-template-columns: 250px 1fr;
       grid-template-areas: "navigation directory";
       gap: 0;
       .navigation {
@@ -1489,7 +1475,7 @@ a:hover {
       }
     }
   }
-  .body {
+  .filedialog-body {
     grid-area: body;
     display: grid;
     position: absolute;
@@ -1527,7 +1513,7 @@ a:hover {
       }
     }
   }
-  .footer {
+  .filedialog-footer {
     background-color: lightgray;
     position: fixed;
     top: auto;
@@ -1536,7 +1522,7 @@ a:hover {
     grid-area: footer;
     display: grid;
     grid-template-columns: 1fr;;
-    grid-template-rows: 50px 75px;
+    grid-template-rows: 60px 1fr;
     grid-template-areas: "filerow" "status";
     .filerow {
       display: grid;
@@ -1572,9 +1558,9 @@ a:hover {
       .message {
         grid-area: message;
         display: block;
-        align-self: flex-end;
-        margin-bottom: 10px;
-        margin-left: 5px;
+        align-self: center;
+        /* margin-bottom: 10px;
+        margin-left: 5px; */
         font-size: 12pt;
         text-align: left;
       }
@@ -1582,8 +1568,8 @@ a:hover {
         grid-area: buttons;
         display: block;
         align-self: flex-end;
-        margin-bottom: 5px;
-        margin-left: 5px;
+        /* margin-bottom: 5px;
+        margin-left: 5px; */
         font-size: 12pt;
       }
     }
@@ -1621,5 +1607,18 @@ input:hover {
   to {
     top: 0;
     opacity: 1;
+  }
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button:hover {
+    background-color: cyan;
+    
   }
 }

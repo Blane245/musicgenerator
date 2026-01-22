@@ -169,7 +169,8 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
       !mouseLocation ||
       !mouseDown ||
       editMode != "MoveHorizontal" ||
-      !timeLine
+      !timeLine ||
+      positionXTick <= 0
     )
       return;
 
@@ -178,9 +179,9 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     if (timeLine.snap) {
       newPosition =
         mouseLocation.X > 0
-          ? Math.trunc(mouseLocation.X / positionXTick) * positionXTick +
+          ? Math.round(mouseLocation.X / positionXTick) * positionXTick +
             startTickPosition
-          : Math.trunc(mouseLocation.X / positionXTick) * positionXTick -
+          : Math.round(mouseLocation.X / positionXTick) * positionXTick -
             1 +
             startTickPosition;
     }
@@ -206,7 +207,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     // modify the moveto point based on the timeline mode
     // move to the closest time or measure tick if in snap mode
     const newTime: number = linearInterpolate(
-      mouseLocation.X,
+      newPosition,
       0,
       timeLine.width,
       timeLine.startTime,

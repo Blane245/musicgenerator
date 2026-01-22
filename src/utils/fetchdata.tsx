@@ -24,6 +24,7 @@ export async function fetchFSData(
         }`,
       },
       body: thisBody,
+      signal: AbortSignal.timeout(50000),
     });
     if (!response.ok) return { error: true, status: response.statusText };
 

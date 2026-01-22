@@ -53,6 +53,10 @@ import DrawSources, { redrawSource } from "./drawsources";
 import Footer from "./footer";
 import Header from "./header";
 import Timeline from "./timeline";
+import Reverb from "classes/roomnodes/reverb";
+import Compressor from "classes/roomnodes/compressor";
+import Volume from "classes/roomnodes/volume";
+import Equalizer from "classes/roomnodes/equalizer";
 
 // as this function is non-reactive except for exit, stop, pause, resume, many of its props
 // are CMG context variables
@@ -280,7 +284,16 @@ export default function Preview(params: PreviewProps): JSX.Element {
     setFileContents((prev: CMGFile) => {
       const n: CMGFile | null = restoreControlledState();
       if (!n) return prev;
-      console.log("file contents restored");
+      // save any changes that were made to the room effects during preview
+      const reverbState: Reverb = fileContents.reverb.copy();
+      const compressState: Compressor = fileContents.compressor.copy();
+      const equalizerState: Equalizer = fileContents.equalizer.copy();
+      const volumeState: Volume = fileContents.volume.copy();
+      n.reverb = reverbState;
+      n.compressor = compressState;
+      n.equalizer = equalizerState;
+      n.volume = volumeState;
+      console.log("file contents restored with room effect updates.");
       return n;
     });
     setStatus(`Preview Terminated`)

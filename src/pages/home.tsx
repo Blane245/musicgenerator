@@ -20,10 +20,10 @@ import {
 import { getDirectoryList } from "utils/getdirectorylist";
 import loadEnsembleList from "utils/loadEnsembleList";
 import { useCMGContext } from "../cmgcontext";
-import "./home.css";
 export default function Home() {
   const {
     appName,
+    fileContents,
     setAppName,
     setAppVersion,
     setScreenHeight,
@@ -223,7 +223,7 @@ export default function Home() {
           // onMouseDown={(e) => onMouseDown(e)}
           // onMouseMove={(e) => saveMouseMovement(e)}
         >
-          <Header />
+          <Header fileName={fileContents?fileContents.name:""} />
           <Body />
           <Footer />
         </div>

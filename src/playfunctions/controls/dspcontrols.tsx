@@ -2,76 +2,56 @@
 // sources
 
 import CMGFile from "classes/cmgfile";
-import {
-  EFFECTTYPE,
-  GeneratorEffect,
-  TrackEffect,
+import Control, {
+  CONTROLTYPE,
+  GeneratorControl,
+  TrackControl,
 } from "classes/control";
-import Control from "classes/control";
 import Algorithmic from "classes/generators/algorithmic";
 import Track from "classes/track";
-import findGeneratorParent from "utils/findgeneratorparent";
 
 // activate and process last track or generator control that proceeds
 // the generator startTime. Done when generator processing starts source processing
 export function activatePriorControls(
   generator: Algorithmic,
-  fileContents: CMGFile
+  fileContents: CMGFile,
 ) {
   let trackControl: Control | null = null;
-  // find the track control and initialize it
-  const track: Track | null = findGeneratorParent(generator.name, fileContents);
-  if (track) {
-    for (
-      let i = fileContents.controls.length - 1;
-      i >= 0 && !trackControl;
-      i--
+  const track: Track = generator.parent;
+  for (let i = fileContents.controls.length - 1; i >= 0 && !trackControl; i--) {
+    if (
+      fileContents.controls[i].type == CONTROLTYPE.Track &&
+      (fileContents.controls[i] as TrackControl).time <= generator.startTime &&
+      (fileContents.controls[i] as TrackControl).values.list.findIndex(
+        (name: string) => name == track.name,
+      )
     ) {
-      if (
-        fileContents.controls[i].type == EFFECTTYPE.Track &&
-        fileContents.controls[i].time <= generator.startTime &&
-        fileContents.controls[i].list.findIndex(
-          (name: string) => name == track.name
-        )
-      ) {
-        trackControl = fileContents.controls[i];
-      }
+      trackControl = fileContents.controls[i];
     }
-    if (trackControl) {
-      track.initializeVolumeRamp(
-        trackControl.time,
-        trackControl.effect as TrackEffect
-      );
-    }
+  }
+  if (trackControl) {
+    track.initializeVolumeRamp(trackControl.time, trackControl as TrackControl);
+  }
 
-    // find the generator control preceding the start time and initialize it
-    let generatorControl: Control | null = null;
-    for (
-      let i = fileContents.controls.length - 1;
-      i >= 0 && !generatorControl;
-      i--
+  // find the generator control preceding the start time and initialize it
+  let generatorControl: GeneratorControl | null = null;
+  for (
+    let i = fileContents.controls.length - 1;
+    i >= 0 && !generatorControl;
+    i--
+  ) {
+    if (
+      fileContents.controls[i].type == CONTROLTYPE.Generator &&
+      fileContents.controls[i].time <= generator.startTime
     ) {
-      if (
-        fileContents.controls[i].type == EFFECTTYPE.Generator &&
-        fileContents.controls[i].time <= generator.startTime
-      ) {
-        generatorControl = fileContents.controls[i];
-      }
+      generatorControl = fileContents.controls[i] as GeneratorControl;
     }
-    if (generatorControl) {
-      generator.tremeloEnabled = (
-        generatorControl.effect as GeneratorEffect
-      ).tremoloEnable;
-      generator.vibratoEnabled = (
-        generatorControl.effect as GeneratorEffect
-      ).vibratoEnable;
-      generator.noiseEnabled = (
-        generatorControl.effect as GeneratorEffect
-      ).noiseEnable;
-      generator.setReverbEnabled(
-        (generatorControl.effect as GeneratorEffect).reverbEnable
-      );
-    }
+  }
+  if (generatorControl) {
+    generator.tremoloEnabled = generatorControl.values.tremoloEnable;
+    generator.vibratoEnabled = generatorControl.values.vibratoEnable;
+    generator.noiseEnabled = generatorControl.values.noiseEnable;
+    generator.setReverbEnabled(generatorControl.values.reverbEnable);
   }
 }
 
@@ -83,7 +63,7 @@ export function activateDSPControls(
   time: number, // the real time of the start of the samplesample
   deltaT: number, // the time length of the sample
   generator: Algorithmic,
-  fileContents: CMGFile
+  fileContents: CMGFile,
 ): void {
   // find any controls that are activated during the interval
   const controls: Control[] = [];
@@ -92,7 +72,7 @@ export function activateDSPControls(
     if (
       control.time >= time &&
       control.time <= time + deltaT &&
-      control.type != EFFECTTYPE.Global
+      control.type != CONTROLTYPE.Global
     )
       controls.push(control);
   }
@@ -102,7 +82,7 @@ export function activateDSPControls(
   console.log(
     "activateDSPControls: activating controls at time",
     controls,
-    time
+    time,
   );
 
   // activate the track volume
@@ -111,15 +91,16 @@ export function activateDSPControls(
   for (let i = 0; i < controls.length; i++) {
     const control: Control = controls[i];
     if (
-      control.type == EFFECTTYPE.Track &&
-      control.list.findIndex((name) => name == track.name) >= 0
+      control.type == CONTROLTYPE.Track &&
+      (control as TrackControl).values.list.findIndex(
+        (name) => name == track.name,
+      ) >= 0
     ) {
-      const effect: TrackEffect = control.effect as TrackEffect;
-      track.initializeVolumeRamp(control.time, effect);
+      track.initializeVolumeRamp(control.time, control as TrackControl);
       console.log(
         "activateDSPControls: track volume initialized for track at time ",
         track.name,
-        time
+        time,
       );
     }
   }
@@ -128,20 +109,22 @@ export function activateDSPControls(
   for (let i = 0; i < controls.length; i++) {
     const control: Control = controls[i];
     if (
-      control.type == EFFECTTYPE.Generator &&
-      control.list.findIndex((name) => name == generator.name) >= 0
+      control.type == CONTROLTYPE.Generator &&
+      (control as GeneratorControl).values.list.findIndex(
+        (name) => name == generator.name,
+      ) >= 0
     ) {
-      generator.tremeloEnabled = (
-        control.effect as GeneratorEffect
-      ).tremoloEnable;
+      generator.tremoloEnabled = (
+        control as GeneratorControl
+      ).values.tremoloEnable;
       generator.vibratoEnabled = (
-        control.effect as GeneratorEffect
-      ).vibratoEnable;
-      generator.noiseEnabled = (control.effect as GeneratorEffect).noiseEnable;
+        control as GeneratorControl
+      ).values.vibratoEnable;
+      generator.noiseEnabled = (control as GeneratorControl).values.noiseEnable;
       console.log(
         "activateDSPControls: generator controls changed for generator at time ",
         generator,
-        time
+        time,
       );
     }
   }

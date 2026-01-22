@@ -14,10 +14,10 @@ copy(): Tremolo {
     return n;
 }
 
-isEqual (newTremelo: Tremolo): boolean {
-    return this.values.depth == newTremelo.values.depth &&
-    this.values.speed == newTremelo.values.speed &&
-    this.values.waveForm == newTremelo.values.waveForm
+isEqual (newTremolo: Tremolo): boolean {
+    return this.values.depth == newTremolo.values.depth &&
+    this.values.speed == newTremolo.values.speed &&
+    this.values.waveForm == newTremolo.values.waveForm
 }
   setAttribute(name: string, value: string): boolean {
     if (name == "speed") {

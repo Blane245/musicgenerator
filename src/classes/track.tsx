@@ -7,7 +7,7 @@ import {
 import Silent from "./generators/silent";
 import AudioFile from "./generators/audiofile";
 import Algorithmic from "./generators/algorithmic";
-import { TrackEffect } from "./control";
+import { TrackControl } from "./control";
 import Stochastic from "./generators/stochastic";
 export default class Track {
   name: string;
@@ -15,14 +15,14 @@ export default class Track {
   solo: boolean;
   volume: number;
   generators: GeneratorType[];
-  volumeEffect: TrackEffect | null;
+  volumeControl: TrackControl | null;
   constructor(nextTrack: number) {
     this.name = "T".concat(nextTrack.toString());
     this.mute = false;
     this.solo = false;
     this.volume = 0;
     this.generators = [];
-    this.volumeEffect = null;
+    this.volumeControl = null;
   }
 
   copy(): Track {
@@ -36,23 +36,23 @@ export default class Track {
       const ng = g.copy(t);
       t.generators.push(ng);
     });
-    t.volumeEffect = this.volumeEffect;
+    t.volumeControl = this.volumeControl;
     return t;
   }
 
-  initializeVolumeRamp(time: number, effect: TrackEffect) {
+  initializeVolumeRamp(time: number, control: TrackControl) {
     console.log(
       "track volume control name, time, effect",
       this.name,
       time,
-      effect
+      control
     );
-    this.volumeEffect = effect;
-    effect.initializeVolumeRamp(time);
+    this.volumeControl = control;
+    control.initializeVolumeRamp(time);
   }
 
   getVolume(time: number): number {
-    if (this.volumeEffect) return this.volumeEffect.getCurrentValues(time).volume;
+    if (this.volumeControl) return this.volumeControl.getCurrentValues(time).volume;
     else return this.volume;
   }
   async appendXML(doc: XMLDocument, elem: Element): Promise<Element> {

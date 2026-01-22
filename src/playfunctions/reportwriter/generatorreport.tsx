@@ -119,6 +119,8 @@ function StochasticReport(props: StochasticReportProps): JSX.Element {
           </tr>
           <tr>
             <th>Muted</th>
+            <th>Volume</th>
+            <th>Velocity</th>
             <th>Name</th>
             <th>Description</th>
             <th>Timbre</th>
@@ -131,7 +133,9 @@ function StochasticReport(props: StochasticReportProps): JSX.Element {
         <tbody>
           {v.voices.map((voice, i) => (
             <tr>
-              <td>{v.muted[i] ? "Yes" : "No"}</td>
+              <td>{voice.muted ? "Yes" : "No"}</td>
+              <td>{voice.volume}</td>
+              <td>{voice.velocity}</td>
               <td>{voice.name}</td>
               <td>{voice.description}</td>
               <td>{voice.timbre}</td>

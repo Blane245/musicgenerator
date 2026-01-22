@@ -1,8 +1,12 @@
 // Update various parts of the CMGFile based
 // various transactions within the system
 import CMGFile from "classes/cmgfile";
-import Control from "classes/control"
-import { EFFECTTYPE } from "classes/control";
+import Control, {
+  ControlType,
+  GeneratorControl,
+  TrackControl,
+} from "classes/control";
+import { CONTROLTYPE } from "classes/control";
 import Compressor from "classes/roomnodes/compressor";
 import Equalizer from "classes/roomnodes/equalizer";
 import Reverb from "classes/roomnodes/reverb";
@@ -11,13 +15,16 @@ import Track from "classes/track";
 import { Dispatch, SetStateAction } from "react";
 import { GeneratorType } from "types";
 
-export function newFile(contents: CMGFile, setFileContents: Dispatch<SetStateAction<CMGFile>>): void {
+export function newFile(
+  contents: CMGFile,
+  setFileContents: Dispatch<SetStateAction<CMGFile>>,
+): void {
   setFileContents(contents);
 }
 
 export function setFileComment(
   comment: string,
-  setFileContents: Dispatch<SetStateAction<CMGFile>>
+  setFileContents: Dispatch<SetStateAction<CMGFile>>,
 ): void {
   setFileContents((prev: CMGFile) => {
     const n: CMGFile = prev.copy();
@@ -30,7 +37,7 @@ export function setFileComment(
 export function setDirty(
   state: boolean,
   fileContents: CMGFile,
-  setFileContents: Dispatch<SetStateAction<CMGFile>>
+  setFileContents: Dispatch<SetStateAction<CMGFile>>,
 ) {
   if (fileContents.dirty != state) {
     setFileContents((c: CMGFile) => {
@@ -43,7 +50,7 @@ export function setDirty(
 
 export function setEqualizer(
   newEqualizer: Equalizer,
-  setFileContents: Dispatch<SetStateAction<CMGFile>>
+  setFileContents: Dispatch<SetStateAction<CMGFile>>,
 ): void {
   setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
@@ -55,7 +62,7 @@ export function setEqualizer(
 
 export function setCompressor(
   newCompressor: Compressor,
-  setFileContents: Dispatch<SetStateAction<CMGFile>>
+  setFileContents: Dispatch<SetStateAction<CMGFile>>,
 ): void {
   setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
@@ -65,7 +72,10 @@ export function setCompressor(
   });
 }
 
-export function setReverb(newReverb: Reverb, setFileContents: Dispatch<SetStateAction<CMGFile>>): void {
+export function setReverb(
+  newReverb: Reverb,
+  setFileContents: Dispatch<SetStateAction<CMGFile>>,
+): void {
   setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
     nc.dirty = true;
@@ -74,7 +84,10 @@ export function setReverb(newReverb: Reverb, setFileContents: Dispatch<SetStateA
   });
 }
 
-export function setVolume(newVolume: Volume, setFileContents: Dispatch<SetStateAction<CMGFile>>): void {
+export function setVolume(
+  newVolume: Volume,
+  setFileContents: Dispatch<SetStateAction<CMGFile>>,
+): void {
   setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
     nc.dirty = true;
@@ -83,7 +96,10 @@ export function setVolume(newVolume: Volume, setFileContents: Dispatch<SetStateA
   });
 }
 
-export function addTrack(newTrack: Track, setFileContents: Dispatch<SetStateAction<CMGFile>>) {
+export function addTrack(
+  newTrack: Track,
+  setFileContents: Dispatch<SetStateAction<CMGFile>>,
+) {
   setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
     nc.dirty = true;
@@ -92,12 +108,21 @@ export function addTrack(newTrack: Track, setFileContents: Dispatch<SetStateActi
   });
 }
 
-export function deleteTrack(index: number, setFileContents: Dispatch<SetStateAction<CMGFile>>) {
+export function deleteTrack(
+  index: number,
+  setFileContents: Dispatch<SetStateAction<CMGFile>>,
+) {
   setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
 
-    // update the controls that mention this generator
-    nc.controls = renameDeleteControlList (EFFECTTYPE.Generator, nc.tracks[index].name, "", nc.controls);
+    // update the controls that mention this track
+    nc.controls = renameDeleteControlList(
+      CONTROLTYPE.Track,
+      nc.tracks[index].name,
+      "",
+      nc.controls,
+      nc,
+    );
 
     nc.dirty = true;
     nc.tracks.splice(index, 1);
@@ -108,74 +133,94 @@ export function deleteTrack(index: number, setFileContents: Dispatch<SetStateAct
 export function renameTrack(
   index: number,
   newName: string,
-  setFileContents: Dispatch<SetStateAction<CMGFile>>
+  setFileContents: Dispatch<SetStateAction<CMGFile>>,
 ) {
   setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
     nc.dirty = true;
 
-    // update the controls that mention this generator
-    nc.controls = renameDeleteControlList (EFFECTTYPE.Generator, nc.tracks[index].name, newName, nc.controls);
+    // update the controls that mention this track
+    nc.controls = renameDeleteControlList(
+      CONTROLTYPE.Track,
+      nc.tracks[index].name,
+      newName,
+      nc.controls,
+      nc,
+    );
     nc.tracks[index].name = newName;
-
 
     return nc;
   });
 }
 
-export function addControl (newControl: Control, setFileContents: Dispatch<SetStateAction<CMGFile>>) {
-    setFileContents((c: CMGFile) => {
+export function addControl(
+  newControl: Control,
+  setFileContents: Dispatch<SetStateAction<CMGFile>>,
+) {
+  setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
     nc.dirty = true;
     nc.controls.push(newControl);
-    nc.controls = nc.controls.sort((a:Control, b:Control)=> a.time - b.time)
+    nc.controls = nc.controls.sort((a: Control, b: Control) => a.time - b.time);
     return nc;
   });
 }
 
-export function deleteControl (index: number, setFileContents: Dispatch<SetStateAction<CMGFile>>) {
-    setFileContents((c: CMGFile) => {
+export function deleteControl(
+  index: number,
+  setFileContents: Dispatch<SetStateAction<CMGFile>>,
+) {
+  setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
     nc.dirty = true;
     nc.controls.splice(index, 1);
-    nc.controls = nc.controls.sort((a:Control, b:Control)=> a.time - b.time)
+    nc.controls = nc.controls.sort((a: Control, b: Control) => a.time - b.time);
     return nc;
   });
-
 }
 
-export function renameControl (index: number, newName: string, setFileContents: Dispatch<SetStateAction<CMGFile>>) {
-    setFileContents((c: CMGFile) => {
+export function renameControl(
+  index: number,
+  newName: string,
+  setFileContents: Dispatch<SetStateAction<CMGFile>>,
+) {
+  setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
     nc.dirty = true;
     nc.controls[index].name = newName;
     return nc;
   });
-
 }
-export function modifyControl(index: number, control: Control, setFileContents: Dispatch<SetStateAction<CMGFile>>) {
-  setFileContents((c:CMGFile)=> {
+export function modifyControl(
+  index: number,
+  control: Control,
+  setFileContents: Dispatch<SetStateAction<CMGFile>>,
+) {
+  setFileContents((c: CMGFile) => {
     const newC: CMGFile = c.copy();
     newC.controls[index] = control.copy();
     newC.dirty = true;
     return newC;
-  })
-
+  });
 }
 
-export function modifyTrackGenerators (index: number, gens: GeneratorType[], setFileContents: Dispatch<SetStateAction<CMGFile>>) {
+export function modifyTrackGenerators(
+  index: number,
+  gens: GeneratorType[],
+  setFileContents: Dispatch<SetStateAction<CMGFile>>,
+) {
   setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
     nc.tracks[index].generators = [...gens];
     nc.dirty = true;
     return nc;
-  })  
+  });
 }
 
 export function flipTrackAttribute(
   index: number,
   attribute: string,
-  setFileContents: Dispatch<SetStateAction<CMGFile>>
+  setFileContents: Dispatch<SetStateAction<CMGFile>>,
 ) {
   setFileContents((c: CMGFile) => {
     const newC: CMGFile = c.copy();
@@ -189,19 +234,23 @@ export function flipTrackAttribute(
   });
 }
 
-export function modifyTrack(index: number, track: Track, setFileContents: Dispatch<SetStateAction<CMGFile>>) {  
-  setFileContents((c:CMGFile)=> {
+export function modifyTrack(
+  index: number,
+  track: Track,
+  setFileContents: Dispatch<SetStateAction<CMGFile>>,
+) {
+  setFileContents((c: CMGFile) => {
     const newC: CMGFile = c.copy();
     newC.tracks[index] = track;
     newC.dirty = true;
-    return newC
+    return newC;
   });
 }
 
 export function moveTrack(
   trackName: string,
   direction: string,
-  setFileContents: Dispatch<SetStateAction<CMGFile>>
+  setFileContents: Dispatch<SetStateAction<CMGFile>>,
 ) {
   setFileContents((prev: CMGFile) => {
     const newF: CMGFile = prev.copy();
@@ -230,31 +279,35 @@ export function moveTrack(
   });
 }
 
-function findGeneratorParent (generator:GeneratorType, fileContents: CMGFile) :Track {
-    const trackIndex: number = fileContents.tracks.findIndex((t: Track)=> generator.parent.name == t.name);
-    if (trackIndex < 0) throw new Error (`Add generator '${generator.name}' parent '${generator.parent.name}' could not be located`);
-    return fileContents.tracks[trackIndex];
-
-}
-function findGeneratorIndex (track:Track, name:string): number {
-  const index: number  = track.generators.findIndex(
-      (g) => g.name == name
+function findGeneratorParent(
+  generator: GeneratorType,
+  fileContents: CMGFile,
+): Track {
+  const trackIndex: number = fileContents.tracks.findIndex(
+    (t: Track) => generator.parent.name == t.name,
+  );
+  if (trackIndex < 0)
+    throw new Error(
+      `Add generator '${generator.name}' parent '${generator.parent.name}' could not be located`,
     );
-    if (index < 0) {
-      throw new Error (
-        `Generator couldn't find generator '${name}' on track '${track.name}' in file.`
-      );
-    }
-    return index;
-
+  return fileContents.tracks[trackIndex];
+}
+function findGeneratorIndex(track: Track, name: string): number {
+  const index: number = track.generators.findIndex((g) => g.name == name);
+  if (index < 0) {
+    throw new Error(
+      `Generator couldn't find generator '${name}' on track '${track.name}' in file.`,
+    );
+  }
+  return index;
 }
 export function addGenerator(
   generator: GeneratorType,
-  setFileContents: Dispatch<SetStateAction<CMGFile>>
+  setFileContents: Dispatch<SetStateAction<CMGFile>>,
 ) {
   setFileContents((prev: CMGFile) => {
     const newF: CMGFile = prev.copy();
-    const track:Track = findGeneratorParent (generator, newF);
+    const track: Track = findGeneratorParent(generator, newF);
     track.generators.push(generator);
     newF.dirty = true;
     return newF;
@@ -264,16 +317,22 @@ export function addGenerator(
 export function modifyGenerator(
   generator: GeneratorType,
   oldName: string,
-  setFileContents: Dispatch<SetStateAction<CMGFile>>
+  setFileContents: Dispatch<SetStateAction<CMGFile>>,
 ) {
   setFileContents((prev: CMGFile) => {
     const newF: CMGFile = prev.copy();
-    const track: Track = findGeneratorParent (generator, newF);
-    const index: number = findGeneratorIndex (track, oldName);
+    const track: Track = findGeneratorParent(generator, newF);
+    const index: number = findGeneratorIndex(track, oldName);
     track.generators[index] = generator;
 
     // update the controls that mention this generator
-    newF.controls = renameDeleteControlList (EFFECTTYPE.Generator, oldName, generator.name, newF.controls);
+    newF.controls = renameDeleteControlList(
+      CONTROLTYPE.Generator,
+      oldName,
+      generator.name,
+      newF.controls,
+      newF,
+    );
     newF.dirty = true;
 
     return newF;
@@ -282,16 +341,22 @@ export function modifyGenerator(
 
 export function deleteGenerator(
   generator: GeneratorType,
-  setFileContents: Dispatch<SetStateAction<CMGFile>>
+  setFileContents: Dispatch<SetStateAction<CMGFile>>,
 ) {
   setFileContents((prev: CMGFile) => {
     const newF: CMGFile = prev.copy();
-    const track:Track = findGeneratorParent (generator, newF);
-    const index: number = findGeneratorIndex (track, generator.name);
+    const track: Track = findGeneratorParent(generator, newF);
+    const index: number = findGeneratorIndex(track, generator.name);
     track.generators.splice(index, 1);
 
     // update the controls that mention this generator
-    newF.controls = renameDeleteControlList (EFFECTTYPE.Generator, generator.name, "", newF.controls);
+    newF.controls = renameDeleteControlList(
+      CONTROLTYPE.Generator,
+      generator.name,
+      "",
+      newF.controls,
+      newF,
+    );
 
     newF.dirty = true;
     return newF;
@@ -301,12 +366,12 @@ export function deleteGenerator(
 export function flipGeneratorMute(
   track: Track,
   index: number,
-  setFileContents: Dispatch<SetStateAction<CMGFile>>
+  setFileContents: Dispatch<SetStateAction<CMGFile>>,
 ) {
   setFileContents((prev: CMGFile) => {
     const newF: CMGFile = prev.copy();
     const thisTrack: Track | undefined = newF.tracks.find(
-      (t) => t.name == track.name
+      (t) => t.name == track.name,
     );
     if (!thisTrack) return prev;
 
@@ -321,12 +386,12 @@ export function moveGeneratorBodyPosition(
   track: Track,
   index: number,
   position: number,
-  setFileContents: Dispatch<SetStateAction<CMGFile>>
+  setFileContents: Dispatch<SetStateAction<CMGFile>>,
 ) {
   setFileContents((prev: CMGFile) => {
     const newF: CMGFile = prev.copy();
     const thisTrack: Track | undefined = newF.tracks.find(
-      (t) => t.name == track.name
+      (t) => t.name == track.name,
     );
     if (!thisTrack) return prev;
 
@@ -342,17 +407,17 @@ export function moveGeneratorTime(
   index: number,
   newValue: number,
   edge: string,
-  setFileContents: Dispatch<SetStateAction<CMGFile>>
+  setFileContents: Dispatch<SetStateAction<CMGFile>>,
 ) {
   setFileContents((prev: CMGFile) => {
     const newF: CMGFile = prev.copy();
     const thisTrack: Track | undefined = newF.tracks.find(
-      (t) => t.name == track.name
+      (t) => t.name == track.name,
     );
     if (!thisTrack) return prev;
     const newG: GeneratorType = thisTrack.generators[index];
-    if (edge == 'start') {
-    newG.startTime = newValue;
+    if (edge == "start") {
+      newG.startTime = newValue;
     } else {
       newG.stopTime = newValue;
     }
@@ -361,22 +426,89 @@ export function moveGeneratorTime(
   });
 }
 
-// rename or delete track or generator affects controls that reference them
+// rename or delete track or generator controls that reference them
 // update those controls
-function renameDeleteControlList (type: EFFECTTYPE, name: string, newName: string, controls: Control[]): Control[] {
-  const newControls: Control[] = [...controls];
-  newControls.forEach((control) => {
-    if (control.type == type && control.list) {
-      const newList:string[] = [];
-      control.list.forEach((item)=> {
-        if (item == name) { // rename or delete
-          if (newName != "") newList.push(newName);
-        } else { // keep as is
-          newList.push(item);
+function renameDeleteControlList(
+  type: CONTROLTYPE,
+  name: string,
+  newName: string,
+  controls: ControlType[],
+  fileContents: CMGFile,
+): ControlType[] {
+  if (type == CONTROLTYPE.Track) {
+    // delete or rename a track - update track lists that contain that name
+    let newControls: ControlType[] = [];
+    let deletedTrack: string = "";
+    for (let i = 0; i < controls.length; i++) {
+      if (controls[i].type != CONTROLTYPE.Track) newControls.push(controls[i]);
+      else {
+        const tControl: TrackControl = controls[i] as TrackControl;
+        const tList: string[] = tControl.values.list;
+        const newList: string[] = [];
+        for (let j = 0; j < tList.length; j++) {
+          
+          if (tList[j] == name) {
+            if (newName != "") {
+              newList.push(newName);
+            } else {
+              deletedTrack = name;
+            }
+          } else newList.push(name);
         }
-      });
-      control.list = [...newList];
+        tControl.values.list = newList;
+        newControls.push(tControl);
+      }
     }
-  });
-  return newControls;
+
+    if (deletedTrack != "") {
+      // all references to generators on the deleted track need to
+      // be removed from generator controls.
+      // Note there should only be one deleted track
+      // get the list of generators that belong to this track
+      // and remove them
+      // Note: this is a recursive call this this routine
+      const track: Track | undefined = fileContents.tracks.find(
+        (t) => t.name == deletedTrack,
+      );
+
+      if (track != undefined) {
+        const gens: GeneratorType[] = track.generators;
+        for (let i = 0; i < gens.length; i++) {
+          newControls = renameDeleteControlList(
+            CONTROLTYPE.Generator,
+            gens[i].name,
+            "",
+            newControls,
+            fileContents,
+          );
+        }
+      }
+    }
+    return newControls;
+
+  } else if (type == CONTROLTYPE.Generator) {
+    // delete or rename a generator - update generator lists that contain that name
+    const newControls: ControlType[] = [];
+    for (let i = 0; i < controls.length; i++) {
+      if (controls[i].type != CONTROLTYPE.Generator)
+        newControls.push(controls[i]);
+      else {
+        const gControl: GeneratorControl = controls[i] as GeneratorControl;
+        const gList: string[] = gControl.values.list;
+        const newList: string[] = [];
+        for (let j = 0; j < gList.length; j++) {
+          if (gList[j] == name) {
+            if (newName != "") {
+              newList.push(newName);
+            } else {
+              // generator name removed from the list
+            }
+          } else newList.push(name);
+        }
+        gControl.values.list = newList;
+        newControls.push(gControl);
+      }
+    }
+    return newControls;
+  } else return controls;
 }

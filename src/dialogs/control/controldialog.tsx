@@ -1,20 +1,22 @@
 // modify the parameters of a control
 
-import Control from "classes/control";
+import Control, { ControlType } from "classes/control";
 import {
-  EFFECTTYPE,
-  GeneratorEffect,
-  GlobalEffect,
-  TrackEffect,
+  CONTROLTYPE,
+  GeneratorControl,
+  GlobalControl,
+  TrackControl,
 } from "classes/control";
 import Track from "classes/track";
 import { useCMGContext } from "cmgcontext";
 import { ChangeEvent, FormEvent, MouseEvent, useEffect, useState } from "react";
 import { addControl, modifyControl } from "utils/cmfiletransactions";
 import ControlDeleteDialog from "./controldeletedialog";
-import GeneratorEffectDialog from "./generatoreffectdialog";
-import GlobalEffectDialog from "./globaleffectdialog";
-import TrackEffectDialog from "./trackeffectdialog";
+import GeneratorControlDialog from "./generatocontroldialog";
+import GlobalControlDialog from "./globalcontroldialog";
+import TrackControlDialog from "./trackcontroldialog";
+import { GeneratorType } from "types";
+import { getControlUID } from "utils/getcontroluid";
 
 export interface ControlDialogProps {
   control: Control | null;
@@ -45,64 +47,55 @@ export default function ControlDialog(props: ControlDialogProps): JSX.Element {
       setOldName(control.name);
     }
   }, [control, controlNew]);
+
   function handleEffectTypeChange(event: ChangeEvent<HTMLSelectElement>): void {
     event.preventDefault();
     event.stopPropagation();
-    setFormData((f) => {
-      const newC: Control = f.copy();
-      const type: EFFECTTYPE = event.target.value as EFFECTTYPE;
+    setFormData((prev: ControlType) => {
+      let newC: Control = prev.copy();
+      const type: CONTROLTYPE = event.target.value as CONTROLTYPE;
       newC.type = type;
       switch (type) {
-        case EFFECTTYPE.Global:
-          newC.effect = new GlobalEffect();
+        case CONTROLTYPE.Global:
+          newC = new GlobalControl(0);
           break;
-        case EFFECTTYPE.Track:
-          newC.effect = new TrackEffect();
+        case CONTROLTYPE.Track:
+          newC = new TrackControl(0);
           break;
-        case EFFECTTYPE.Generator:
-          newC.effect = new GeneratorEffect();
+        case CONTROLTYPE.Generator:
+          newC = new GeneratorControl(0);
           break;
+        default:
+          return prev;
       }
+      newC.name = prev.name;
       return newC;
     });
   }
 
   function validate(): string[] {
-    const msgs: string[] = [];
-
-    // check name is nonblank and unique
-    if (formData.name == "") msgs.push("Control Name must not be blank");
-    const oldIndex: number = !controlNew
-      ? fileContents.controls.findIndex((c) => c.name == oldName)
-      : -2;
-    if (oldIndex == -1)
-      throw new Error(`Control Dialog: Control '${oldName}' not found`);
-    let foundMatch: boolean = false;
-    for (let i = 0; i < fileContents.controls.length && !foundMatch; i++) {
-      if (i != oldIndex && fileContents.controls[i].name == formData.name) {
-        msgs.push(`Control with name '${formData.name}' already exists`);
-        foundMatch = true;
-      }
-    }
-
-    // validate the effect values
     switch (formData.type) {
-      case EFFECTTYPE.None:
-        msgs.push("Effect type musst be specified");
-        break;
-      case EFFECTTYPE.Global:
-        msgs.push(...GlobalEffect.validate(formData.effect as GlobalEffect));
-        break;
-      case EFFECTTYPE.Track:
-        msgs.push(...TrackEffect.validate(formData.effect as TrackEffect));
-        break;
-      case EFFECTTYPE.Generator:
-        msgs.push(
-          ...GeneratorEffect.validate(formData.effect as GeneratorEffect)
+      case CONTROLTYPE.Global:
+        return GlobalControl.validate(
+          formData as GlobalControl,
+          fileContents,
+          oldName,
         );
-        break;
+      case CONTROLTYPE.Track:
+        return TrackControl.validate(
+          formData as TrackControl,
+          fileContents,
+          oldName,
+        );
+      case CONTROLTYPE.Generator:
+        return GeneratorControl.validate(
+          formData as GeneratorControl,
+          fileContents,
+          oldName,
+        );
+      default:
+        return [`Invalid control type '${formData.type}'`];
     }
-    return msgs;
   }
 
   function handleSubmit(event: FormEvent<Element>): void {
@@ -118,7 +111,7 @@ export default function ControlDialog(props: ControlDialogProps): JSX.Element {
       setStatus(`Control '${formData.name}' added.`);
     } else {
       const index: number = fileContents.controls.findIndex(
-        (c) => c.name == oldName
+        (c) => c.name == oldName,
       );
       if (index >= 0) modifyControl(index, formData, setFileContents);
       else throw new Error(`ControlDialog: control '${oldName} not found`);
@@ -134,50 +127,62 @@ export default function ControlDialog(props: ControlDialogProps): JSX.Element {
     setDisplayControlDialog(false);
     setControlNew(null);
   }
-  function handleListChange(event: ChangeEvent<HTMLSelectElement>): void {
+
+  function handleListChange(
+    event: ChangeEvent<HTMLSelectElement>,
+    type: CONTROLTYPE,
+  ): void {
     const options: HTMLOptionsCollection = event.target.options;
     const newList: string[] = [];
     for (let i = 0; i < options.length; i++) {
       if (options[i].selected) newList.push(options[i].value);
     }
     setFormData((f: Control) => {
-      const newF: Control = f.copy();
-      newF.list = newList;
-      return newF;
+      if (type == CONTROLTYPE.Track) {
+        const newF: TrackControl = (f as TrackControl).copy();
+        newF.values.list = newList;
+        return newF;
+      } else if (type == CONTROLTYPE.Generator) {
+        const newF: GeneratorControl = (f as GeneratorControl).copy();
+        newF.values.list = newList;
+        return newF;
+      } else return f;
     });
   }
 
   function handleChange(
-    event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    event: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ): void {
     event.preventDefault();
     event.stopPropagation();
-    setFormData((f: Control) => {
+    setFormData((prev: ControlType) => {
       const eventName: string | null = event.target["name"];
       const eventValue: string =
         event.target["type"] != "checkbox"
           ? event.target["value"]
           : event.target["checked"].toString();
-      if (!eventName || !eventValue) return f;
-      const newF: Control = f.copy();
-      const set: boolean = newF.setAttribute(eventName, eventValue);
-      if (!set) {
-        switch (newF.type) {
-          case EFFECTTYPE.Global:
-            (newF.effect as GlobalEffect).setAttribute(eventName, eventValue);
-            break;
-          case EFFECTTYPE.Track:
-            (newF.effect as TrackEffect).setAttribute(eventName, eventValue);
-            break;
-          case EFFECTTYPE.Generator:
-            (newF.effect as GeneratorEffect).setAttribute(
-              eventName,
-              eventValue
-            );
-            break;
+      if (eventName == undefined || eventValue == undefined) return prev;
+      switch (formData.type) {
+        case CONTROLTYPE.Global: {
+          const newFormData: GlobalControl = (prev as GlobalControl).copy();
+          newFormData.setAttribute(eventName, eventValue);
+          return newFormData;
         }
+        case CONTROLTYPE.Track: {
+          const newFormData: TrackControl = (prev as TrackControl).copy();
+          newFormData.setAttribute(eventName, eventValue);
+          return newFormData;
+        }
+        case CONTROLTYPE.Generator: {
+          const newFormData: GeneratorControl = (
+            prev as GeneratorControl
+          ).copy();
+          newFormData.setAttribute(eventName, eventValue);
+          return newFormData;
+        }
+        default:
+          return prev;
       }
-      return newF;
     });
   }
 
@@ -188,95 +193,93 @@ export default function ControlDialog(props: ControlDialogProps): JSX.Element {
   }
 
   return (
-    <>
-      <div className="control-content" aria-modal="true">
-        <div className="control-header">
-          <span className="close" onClick={handleCancelClick}>
-            &times;
-          </span>
-          <span>&nbsp;{controlNew ? "Add Control" : "Modify Control"}</span>
-        </div>
-        <div className="control-body">
-          <form name="control_CRUD" id="control_CRUD" onSubmit={handleSubmit}>
-            <label>
-              Name:&nbsp;
-              <input
-                name="name"
-                type="text"
-                value={formData.name}
-                onChange={(e) => handleChange(e)}
-              />
-            </label>
-            <label>
-              &nbsp;Time
-              <input
-                name="time"
-                type="number"
-                min={0}
-                step={0.01}
-                value={formData.time}
-                onChange={(e) => handleChange(e)}
-              />
-            </label>
-            <label>
-              &nbsp;Type
-              <select
-                name="type"
-                onChange={handleEffectTypeChange}
-                value={formData.type}
-              >
-                {Object.keys(EFFECTTYPE).map((type: string) => (
-                  <option key={`controltype-${type}`} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {!!(formData.type == EFFECTTYPE.Global) && (
-              <GlobalEffectDialog
-                effect={formData.effect as GlobalEffect}
-                handleChange={handleChange}
-              />
-            )}
-            {!!(formData.type == EFFECTTYPE.Track) && (
-              <TrackEffectDialog
-                effect={formData.effect as TrackEffect}
-                handleChange={handleChange}
-                list={formData.list}
-                handleListChange={handleListChange}
-                tracks={tracks}
-              />
-            )}
-            {!!(formData.type == EFFECTTYPE.Generator) && (
-              <GeneratorEffectDialog
-                effect={formData.effect as GeneratorEffect}
-                handleChange={handleChange}
-                list={formData.list}
-                handleListChange={handleListChange}
-                tracks={tracks}
-              />
-            )}
-            <hr />
-            <input type="submit" value={controlNew ? "Add" : "Modify"} />
-          </form>
-          <div className="control-footer">
-            <button onClick={handleDeleteClick}>Delete</button>
-            <button onClick={handleCancelClick}>Cancel</button>
-            {!!showDelete && (
-              <ControlDeleteDialog
-                controlName={formData.name}
-                setDialogVisible={setDisplayControlDialog}
-              />
-            )}
-            <br />
-            {errorMessages.map((m, i) => (
-              <h3 style={{ color: "white" }} key={`error-${i}`}>
-                {m}
-              </h3>
-            ))}
-          </div>
-        </div>
+    <div className="modal-content" aria-modal="true">
+      <div className="modal-header">
+        <span className="close" onClick={handleCancelClick}>
+          &times;
+        </span>
+        <span>&nbsp;{controlNew ? "Add Control" : "Modify Control"}</span>
       </div>
-    </>
+      <div className="modal-body">
+        <form name="control_CRUD" id="control_CRUD" onSubmit={handleSubmit}>
+          <label>
+            Name:&nbsp;
+            <input
+              name="name"
+              type="text"
+              value={formData.name}
+              onChange={(e) => handleChange(e)}
+            />
+          </label>
+          <label>
+            &nbsp;Time
+            <input
+              name="time"
+              type="number"
+              min={0}
+              step={0.01}
+              value={formData.time}
+              onChange={(e) => handleChange(e)}
+            />
+          </label>
+          <label>
+            &nbsp;Type
+            <select
+              name="type"
+              onChange={handleEffectTypeChange}
+              value={formData.type}
+            >
+              {Object.keys(CONTROLTYPE).map((type: string) => (
+                <option key={`controltype-${type}`} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          </label>
+          {!!(formData.type == CONTROLTYPE.Global) && (
+            <GlobalControlDialog
+              control={formData as GlobalControl}
+              handleChange={handleChange}
+            />
+          )}
+          {!!(formData.type == CONTROLTYPE.Track) && (
+            <TrackControlDialog
+              control={formData as TrackControl}
+              handleChange={handleChange}
+              list={(formData as TrackControl).values.list}
+              handleListChange={(e)=>handleListChange(e, CONTROLTYPE.Track)}
+              tracks={tracks}
+            />
+          )}
+          {!!(formData.type == CONTROLTYPE.Generator) && (
+            <GeneratorControlDialog
+              control={formData as GeneratorControl}
+              handleChange={handleChange}
+              list={(formData as GeneratorControl).values.list}
+              handleListChange={(e)=> handleListChange(e, CONTROLTYPE.Generator)}
+              tracks={tracks}
+            />
+          )}
+          <hr />
+          <input type="submit" value={controlNew ? "Add" : "Modify"} />
+        </form>
+      </div>
+      <div className="modal-footer">
+        <button onClick={handleDeleteClick}>Delete</button>
+        <button onClick={handleCancelClick}>Cancel</button>
+        {!!showDelete && (
+          <ControlDeleteDialog
+            controlName={formData.name}
+            setDialogVisible={setDisplayControlDialog}
+          />
+        )}
+        <br />
+        {errorMessages.map((m, i) => (
+          <h3 style={{ color: "white" }} key={`error-${i}`}>
+            {m}
+          </h3>
+        ))}
+      </div>
+    </div>
   );
 }

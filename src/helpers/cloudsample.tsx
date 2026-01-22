@@ -7,22 +7,16 @@
 // the pitch is determined by the second law of continuous probability
 // in the case of glissando, a second pitch is drawn
 
-import RandomNumber from 'classes/randomnumber';
+import Stochastic from 'classes/generators/stochastic';
 import { gaussianRandom } from 'utils/probability/gaussianrandom';
 import {
 	CloudState,
-	IntensityOption,
 	INTENSITYOPTION,
-	IntensityParameters,
-	IntensityTransitionOption,
-	PanAlgorithm,
 	PANOPTION,
-	PanOption,
-	PanParameters,
 	RMSFACTOR,
 	SAMPLERATE,
 	TIMBRE,
-	Voice,
+	Voice
 } from '../types';
 import continuousProbability from '../utils/probability/continuousprobability';
 import intervalProbabilty from '../utils/probability/intervalprobability';
@@ -33,53 +27,24 @@ import buildPresetSample from './buildpresetsample';
 
 const UNIT: number = 100;
 
-/**
- *
- * @param props: {
- * delta - the sound density of the cloud (sounds/second)
- * voice - the ensemble voice for this cell
- * cloudDuration - the time length of this cloud (sec)
- * cloudState - the current cloud state
- * intensityOption - if `cloud` intensity transition is applied to the cloud
- * intensityTransitionOption - either 'persistent' or 'random'
- * intensityParameters - the average cycle time (sec) for intensity transitions
- * panOption - if `cloud` pan transition is applied to the cloud
- * panAlgorithm - either 'walk' or 'glide'
- * panParameters - the average cycle time (sec) for intensity transitions
- * rN - the random number generator
- * }
- * @returns {
- * cloud: the samples for this cloud (length is >= SAMPLERATE * cloud duration)
- * cloudState: the new state for the cloud
- * }
- *
- */
+// build a cloud of soudns for the given voice
 export default function cloudSample(props: {
-	delta: number;
+	generator: Stochastic;
 	voice: Voice;
 	cloudDuration: number;
 	cloudState: CloudState;
-	intensityOption: IntensityOption;
-	intensityTransitionOption: IntensityTransitionOption;
-	intensityParameters: IntensityParameters;
-	panOption: PanOption;
-	panAlgorithm: PanAlgorithm;
-	panParameters: PanParameters;
-	rN: RandomNumber;
 }): { cloud: number[][]; cloudState: CloudState } {
+	const {generator, voice, cloudDuration, cloudState} = props
 	const {
 		delta,
-		voice,
-		cloudDuration,
-		cloudState,
 		intensityOption,
 		intensityTransitionOption,
 		intensityParameters,
 		panOption,
 		panAlgorithm,
 		panParameters,
-		rN,
-	} = props;
+		dynamicsRN:rN,
+	} = {...generator.values};
 	const newCloudState: CloudState = { ...cloudState };
 	const sampleCount = Math.ceil(SAMPLERATE * cloudDuration);
 	const sample: number[] = Array(sampleCount).fill(0); // initialize size, may grow
@@ -143,6 +108,8 @@ export default function cloudSample(props: {
 			duration: voice.duration,
 			pitch1: pitch1,
 			pitch2: pitch2,
+			volume: voice.volume,
+			velocity: voice.velocity,
 		});
 
 		// put the instrument samples in the cloud sample,

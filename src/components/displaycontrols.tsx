@@ -170,7 +170,7 @@ export default function DisplayControls(
           {/* </div> */}
         </>
       )}
-      {!!(displayControlDialog && editCtl) && (
+      {!!(displayControlDialog && editCtl != undefined) && (
         <ControlDialog control={editCtl} tracks={fileContents.tracks} />
       )}
     </>

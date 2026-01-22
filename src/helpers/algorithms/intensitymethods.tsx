@@ -61,6 +61,7 @@ export function intensityPersist(props: IntensityProps): number[][] {
 			while (endIntensity != IntensityTransitions[index].start)
 				index = Math.round(rN.rand() * (nTransitions - 1));
 			transition = IntensityTransitions[index];
+			// console.log('apply intensity transition at sample', transition, i);
 			[start, middle, end] = getIntensityGainProfile(transition);
 			endIntensity = transition.end;
 			// console.log('transition picked', transition, 'new end', endIntensity);

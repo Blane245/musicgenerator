@@ -1,7 +1,7 @@
 import { GainEnvelope } from "types";
 import { linearInterpolate } from "utils/interpolation";
 
-// const tremeloDelta: number = 0.01; // 10 ms between tremolo samples
+// const tremoloDelta: number = 0.01; // 10 ms between tremolo samples
 export default function buildEnvelope(
   delayEnd: number,
   attackEnd: number,

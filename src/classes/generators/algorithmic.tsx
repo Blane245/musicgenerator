@@ -69,7 +69,7 @@ export default class Algorithmic extends Silent {
   panP: AlgorithmType;
   tremolo: Tremolo;
   reverbEnabled: boolean;
-  tremeloEnabled: boolean;
+  tremoloEnabled: boolean;
   vibrato: Tremolo;
   vibratoEnabled: boolean;
 
@@ -112,7 +112,7 @@ export default class Algorithmic extends Silent {
     this.vibrato = new Tremolo();
     this.reverbEnabled = true;
     this.noiseEnabled = true;
-    this.tremeloEnabled = true;
+    this.tremoloEnabled = true;
     this.vibratoEnabled = true;
   }
 
@@ -236,7 +236,7 @@ export default class Algorithmic extends Silent {
     n.tremolo = this.tremolo.copy();
     n.vibrato = this.vibrato.copy();
     n.noiseEnabled = this.noiseEnabled;
-    n.tremeloEnabled = this.tremeloEnabled;
+    n.tremoloEnabled = this.tremoloEnabled;
     n.vibratoEnabled = this.vibratoEnabled;
     return n;
   }
@@ -486,7 +486,7 @@ export default class Algorithmic extends Silent {
     vibratoEnabled: boolean
   ) {
     this.noiseEnabled = noiseEnabled;
-    this.tremeloEnabled = tremoloEnabled;
+    this.tremoloEnabled = tremoloEnabled;
     this.vibratoEnabled = vibratoEnabled;
   }
 
@@ -617,7 +617,7 @@ export default class Algorithmic extends Silent {
       const durationPElem: Element = doc.createElement("durationP");
       const volumePElem: Element = doc.createElement("volumeP");
       const panPElem: Element = doc.createElement("panP");
-      const tremeloElem: Element = doc.createElement("tremolo");
+      const tremoloElem: Element = doc.createElement("tremolo");
       const vibratoElem: Element = doc.createElement("vibrato");
       returnElem.appendChild(notePElem);
       returnElem.appendChild(attackPElem);
@@ -625,7 +625,7 @@ export default class Algorithmic extends Silent {
       returnElem.appendChild(durationPElem);
       returnElem.appendChild(volumePElem);
       returnElem.appendChild(panPElem);
-      returnElem.appendChild(tremeloElem);
+      returnElem.appendChild(tremoloElem);
       returnElem.appendChild(vibratoElem);
       this.noteP.appendXML(doc, notePElem);
       this.attackP.appendXML(doc, attackPElem);
@@ -633,7 +633,7 @@ export default class Algorithmic extends Silent {
       this.durationP.appendXML(doc, durationPElem);
       this.volumeP.appendXML(doc, volumePElem);
       this.panP.appendXML(doc, panPElem);
-      this.tremolo.appendXML(doc, tremeloElem);
+      this.tremolo.appendXML(doc, tremoloElem);
       this.vibrato.appendXML(doc, vibratoElem);
       return Promise.resolve(returnElem);
     } catch (e) {

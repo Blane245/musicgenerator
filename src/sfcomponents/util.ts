@@ -43,7 +43,7 @@ export const attenuate = (gain: number, dB:number): number => {
   return gain * Math.pow(10, -dB);
 }
 export const dBToGain = (dB: number): number => { 
-  return Math.pow(10, (dB-7)/20);
+  return Math.pow(10, dB/20);
 }
 // seconds to timecents
 export const s2tc = (seconds: number):number => Math.round(Math.log2(seconds) * 1200);

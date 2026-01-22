@@ -40,7 +40,7 @@ export default class Silent {
       case "name":
         this.name = value;
         return true;
-        case "type":
+      case "type":
         this.type = GENERATORTYPE.Silent;
         return true;
       case "startTime": {
@@ -77,15 +77,45 @@ export default class Silent {
     }
   }
 
-  static async getXML(elem: Element, _version: string, parent: Track): Promise<Silent> {
+  static async getXML(
+    elem: Element,
+    _version: string,
+    parent: Track,
+  ): Promise<Silent> {
     try {
       const g: Silent = new Silent(0, parent);
-      g.name = getAttributeValueWithDefault(elem, "name", "string", "") as string;
-      g.startTime = getAttributeValueWithDefault(elem, "startTime", "float", 0) as number;
-      g.stopTime = getAttributeValueWithDefault(elem, "stopTime", "float", 0) as number;
-      g.type = getAttributeValueWithDefault(elem, "type", "string", GENERATORTYPE.Silent) as GENERATORTYPE;
-      g.mute = getAttributeValueWithDefault(elem, "mute", "string", false) == "true";
-      g.position = getAttributeValueWithDefault(elem, "position", "float", 0) as number;
+      g.name = getAttributeValueWithDefault(
+        elem,
+        "name",
+        "string",
+        "",
+      ) as string;
+      g.startTime = getAttributeValueWithDefault(
+        elem,
+        "startTime",
+        "float",
+        0,
+      ) as number;
+      g.stopTime = getAttributeValueWithDefault(
+        elem,
+        "stopTime",
+        "float",
+        0,
+      ) as number;
+      g.type = getAttributeValueWithDefault(
+        elem,
+        "type",
+        "string",
+        GENERATORTYPE.Silent,
+      ) as GENERATORTYPE;
+      g.mute =
+        getAttributeValueWithDefault(elem, "mute", "string", false) == "true";
+      g.position = getAttributeValueWithDefault(
+        elem,
+        "position",
+        "float",
+        0,
+      ) as number;
       return Promise.resolve(g);
     } catch (e) {
       return Promise.reject(e);
@@ -96,7 +126,7 @@ export default class Silent {
   static validate(
     values: Silent,
     fileContents: CMGFile,
-    oldName: string
+    oldName: string,
   ): string[] {
     const errors: string[] = [];
     if (values.name == "") errors.push("Name must not be blank");
@@ -112,10 +142,9 @@ export default class Silent {
     }
     if (values.startTime < 0 || values.stopTime <= values.startTime)
       errors.push(
-        "All times must be greater than zero and stop must be greater than start"
+        "All times must be greater than zero and stop must be greater than start",
       );
 
     return errors;
   }
 }
-

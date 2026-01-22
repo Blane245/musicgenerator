@@ -158,7 +158,7 @@ export const getPresetNote = (
 
     // apply pan to the sample
     const { left, right } = pantoLeftRight(panValue);
-    const panSample = [sample, sample];
+    const panSample:Float32Array[] = [new Float32Array(sample), new Float32Array(sample)];
     for (let i = 0; i < sample.length; i++) {
       panSample[0][i] = panSample[0][i] * left;
       panSample[1][i] = panSample[1][i] * right;

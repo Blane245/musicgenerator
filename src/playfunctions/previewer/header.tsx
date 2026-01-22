@@ -16,7 +16,7 @@ export default function Header(props: HeaderProps): JSX.Element {
     OnStartStop,
     onPauseResume,
   } = props;
-  const {appName, appVersion, displayWidth, headerHeight, fileContents, fileName } = useCMGContext();
+  const {appName, appVersion, displayWidth, headerHeight, fileContents} = useCMGContext();
   return (
     <div
       className="preview-header"
@@ -45,7 +45,7 @@ export default function Header(props: HeaderProps): JSX.Element {
         ) : null}
       </div>
       <div className="title" style={{ fontWeight: "bold" }}>
-        {`${appName}: ${appVersion} (${fileName})${fileContents.dirty ? "*" : ""}`}
+        {`${appName}: ${appVersion} (${fileContents.name})${fileContents.dirty ? "*" : ""}`}
       </div>
     </div>
   );

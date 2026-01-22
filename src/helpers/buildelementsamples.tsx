@@ -11,6 +11,7 @@ export default function buildElementSamples(props: {
   loop: boolean;
   loopStart: number;
   loopEnd: number;
+  gain: number;
 }): number[] {
   const {
     interval,
@@ -22,6 +23,7 @@ export default function buildElementSamples(props: {
     loop,
     loopStart,
     loopEnd,
+    gain,
   } = props;
 
   // resample the instrument sample to SAMPLERATE
@@ -49,7 +51,7 @@ export default function buildElementSamples(props: {
         j = loopStart;
         currentIndex = loopStart;
       }
-      result[i] = instrumentSample[j];
+      result[i] = instrumentSample[j] * gain;
     } else if (j <= instrumentSample.length - 1) {
       result[i] = instrumentSample[j];
     } else result[i] = 0;
@@ -72,6 +74,7 @@ export default function buildElementSamples(props: {
 
   // apply a short attack filter to kill some of the popping
   // trying 50ms
+  // TODO not working for bass in SMW.
   const attackCount: number = Math.min(outputCount, Math.trunc(SAMPLERATE * 0.05));
   for (let i = 0; i < attackCount; i++) {
     result[i] = result[i] * i / attackCount;

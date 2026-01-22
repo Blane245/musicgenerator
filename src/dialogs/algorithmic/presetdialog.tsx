@@ -397,10 +397,10 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
           </label>
           <br />
           {presetInfo ? (
-            <table>
+            <table style={{width:(presetInfo.length * 10 + 20).toString() + "%"}}>
               <tbody>
                 <tr key="name">
-                  <td>Instrument Name</td>
+                  <th style={{textAlign:"left"}}>Instrument Name</th>
                   {presetInfo.map((s: RawSourceData) => (
                     <td
                       style={{ textAlign: "right" }}
@@ -411,19 +411,19 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
                   ))}
                 </tr>
                 <tr>
-                  <td>Sample Rate (samples/sec)</td>
+                  <th style={{textAlign:"left"}}>Sample Rate (samples/sec)</th>
                   {presetInfo.map((s: RawSourceData, i) =>
                     numberCell(i, s.source, "sampleRate", 0)
                   )}
                 </tr>
                 <tr>
-                  <td>Sample Count</td>
+                  <th style={{textAlign:"left"}}>Sample Count</th>
                   {presetInfo.map((s: RawSourceData, i) =>
                     lengthCell(i, s.source, "sample", 0, 0)
                   )}
                 </tr>
                 <tr>
-                  <td>Looping?</td>
+                  <th style={{textAlign:"left"}}>Looping?</th>
                   {presetInfo.map((s: RawSourceData) => (
                     <td style={{ textAlign: "right" }}>
                       {s.instrument?.loop ? "true" : "false"}
@@ -431,28 +431,28 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
                   ))}
                 </tr>
                 <tr>
-                  <td>Root Key (pitch)</td>
+                  <th style={{textAlign:"left"}}>Root Key (pitch)</th>
                   {presetInfo.map((s: RawSourceData, i) =>
                     numberCell(i, s.instrument, "rootKey", 0)
                   )}
                 </tr>
                 <tr>
-                  <td>Pitch Correction (cents)</td>
+                  <th style={{textAlign:"left"}}>Pitch Correction (cents)</th>
                   {presetInfo.map((s: RawSourceData, i) =>
                     numberCell(i, s.instrument, "cents", 0)
                   )}
                 </tr>
                 <tr>
-                  <td>Playback Rate</td>
+                  <th style={{textAlign:"left"}}>Playback Rate</th>
                   {presetInfo.map((s: RawSourceData, i) =>
                     numberCell(i, s.source, "playbackRate", 6)
                   )}
                 </tr>
                 <tr>
-                  <td style={{ fontWeight: "bold" }}>Envelope Controls</td>
+                  <th style={{textAlign:"left"}}>Envelope Controls</th>
                 </tr>
                 <tr>
-                  <td>Attack Enabled?</td>
+                  <th style={{textAlign:"left"}}>Attack Enabled?</th>
                   {presetInfo.map((s: RawSourceData) => (
                     <td style={{ textAlign: "right" }}>
                       {s.instrument?.attackEnabled ? "true" : "false"}
@@ -460,30 +460,30 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
                   ))}
                 </tr>
                 <tr>
-                  <td>Interval Length</td>
+                  <th style={{textAlign:"left"}}>Interval Length</th>
                   {presetInfo.map((s: RawSourceData, i) =>
                     numberCell(i, s.instrument, "interval", 3)
                   )}
                 </tr>
                 <tr>
-                  <td>Note Duration</td>
+                  <th style={{textAlign:"left"}}>Note Duration</th>
                   {presetInfo.map((s: RawSourceData, i) =>
                     numberCell(i, s.instrument, "duration", 3)
                   )}
                 </tr>
                 <tr>
-                  <td style={{ fontWeight: "bold" }}>Envelope (sec)</td>
+                  <th style={{textAlign:"left"}}>Envelope (sec)</th>
                 </tr>
                 {!!presetAttackEnabled && (
                   <>
                     <tr>
-                      <td>Delay</td>
+                      <th style={{textAlign:"left"}}>Delay</th>
                       {presetInfo.map((s: RawSourceData, i) =>
                         numberCell(i, s.instrument, "delayEnd", 3)
                       )}
                     </tr>
                     <tr>
-                      <td>Attack</td>
+                      <th style={{textAlign:"left"}}>Attack</th>
                       {presetInfo.map((s: RawSourceData, i) =>
                         numberCell(i, s.instrument, "attackEnd", 3)
                       )}
@@ -491,61 +491,61 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
                   </>
                 )}
                 <tr>
-                  <td>Hold</td>
+                  <th style={{textAlign:"left"}}>Hold</th>
                   {presetInfo.map((s: RawSourceData, i) =>
                     numberCell(i, s.instrument, "holdEnd", 3)
                   )}
                 </tr>
                 <tr>
-                  <td>Decay</td>
+                  <th style={{textAlign:"left"}}>Decay</th>
                   {presetInfo.map((s: RawSourceData, i) =>
                     numberCell(i, s.instrument, "decayEnd", 3)
                   )}
                 </tr>
                 <tr>
-                  <td>End</td>
+                  <th style={{textAlign:"left"}}>End</th>
                   {presetInfo.map((s: RawSourceData, i) =>
                     numberCell(i, s.instrument, "noteEnd", 3)
                   )}
                 </tr>
                 <tr>
-                  <td>Release</td>
+                  <th style={{textAlign:"left"}}>Release</th>
                   {presetInfo.map((s: RawSourceData, i) =>
                     numberCell(i, s.instrument, "releaseEnd", 3)
                   )}
                 </tr>
                 <tr>
-                  <td>Total Duration (sec)</td>
+                  <th style={{textAlign:"left"}}>Total Duration (sec)</th>
                   {presetInfo.map((s: RawSourceData, i) =>
                     numberCell(i, s.instrument, "totalTime", 3)
                   )}
                 </tr>
                 <tr>
-                  <td>Volume Gain</td>
+                  <th style={{textAlign:"left"}}>Volume Gain</th>
                   {presetInfo.map((s: RawSourceData, i) =>
                     numberCell(i, s.instrument, "volumeGain", 3)
                   )}
                 </tr>
                 <tr>
-                  <td>Attenuation Gain</td>
+                  <th style={{textAlign:"left"}}>Attenuation Gain</th>
                   {presetInfo.map((s: RawSourceData, i) =>
                     numberCell(i, s.instrument, "attenuation", 3)
                   )}
                 </tr>
                 <tr>
-                  <td>Sustain Gain</td>
+                  <th style={{textAlign:"left"}}>Sustain Gain</th>
                   {presetInfo.map((s: RawSourceData, i) =>
                     numberCell(i, s.instrument, "sustainGain", 3)
                   )}
                 </tr>
                 <tr>
-                  <td>End Gain</td>
+                  <th style={{textAlign:"left"}}>End Gain</th>
                   {presetInfo.map((s: RawSourceData, i) =>
                     numberCell(i, s.instrument, "noteEndGain", 3)
                   )}
                 </tr>
                 <tr>
-                  <td>Average Signal Level</td>
+                  <th style={{textAlign:"left"}}>Average Signal Level</th>
                   {presetInfo.map((s: RawSourceData, i) => (
                     <td key={`signallevel-${i}`} style={{ textAlign: "right" }}>
                       {precisionString(signalLevel(s.source.sample[0]), 5)}
