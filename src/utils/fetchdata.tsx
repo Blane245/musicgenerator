@@ -1,4 +1,5 @@
 import { DBRESPONSETYPE, DbResponseType, FSResponse } from "../types";
+import { debug } from "./debug";
 
 // issue the fetch request for file list or specific file
 export async function fetchFSData(
@@ -24,7 +25,7 @@ export async function fetchFSData(
         }`,
       },
       body: thisBody,
-      signal: AbortSignal.timeout(50000),
+      signal: AbortSignal.timeout(500000),
     });
     if (!response.ok) return { error: true, status: response.statusText };
 
@@ -32,7 +33,7 @@ export async function fetchFSData(
       const json: FSResponse = await response.json();
       return json;
   } catch (e) {
-    console.log(`fetch exception ${e} on port ${import.meta.env.FSPORT}`);
+    debug.error(`fetchFSData: exception ${e} on port ${import.meta.env.FSPORT}`);
       return { error: true, status: `${e}` };
   }
 }
@@ -67,7 +68,7 @@ export async function fetchDBData(
       const json: DbResponseType = await response.json();
       return json;
   } catch (e) {
-    console.log(`fetch exception ${e} on port ${import.meta.env.DBPORT}`);
+    debug.error(`fetchDBData: exception ${e} on port ${import.meta.env.DBPORT}`);
       return { type: DBRESPONSETYPE.error, message: `${e}` };
   }
 }

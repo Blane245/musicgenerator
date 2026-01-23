@@ -31,17 +31,14 @@ Sound generation can be either previewed thru the computer speakers or recorded 
 
 Room effects are implemented. They include volume, reverb (both early reflections and diffuse noise), compression, and equalization.
 
-Automated volume controls are available at the global, track, or generator level.
-
 A report of the details of a composition in HTML format can be produced.
 
 # CMG Data Structure
 
 The data structure is hierarchial:
 
-* *CMGFile*: this includes all attributes that apply to all other attributes. It includes a filename, the room compressor, the room equalizer, the room reverberator, the room volume, and collections of tracks and controls. 
+* *CMGFile*: this includes all attributes that apply to all other attributes. It includes a filename, the room compressor, the room equalizer, the room reverberator, the room volume, and collections of tracks. 
 * *TimeLine*: this includes attributes that define the left most time to be displayed, and the current zoom level. This data element is independent of CMGFile. i.e., time line setting persist between files and are not saved.
-* *Control*: this is an instance of the control collection belonging to a CMGFile. Each control has time, volume setting, and scope.
 * *Track*: this is an instance of the track collection belonging to a CMGFile. Each track has position, name, solo, and mute attributes and a collection of generators. This provides the means by which generators can be assigned to different tracks for organizational purposes.
 * *Generator*: this is an instance of a generator collection and is the source of the sound that is produced by CMG.
 
@@ -112,7 +109,7 @@ The CMGFile class holds all of the information about a composition.
 
 The Home component represents the structure of the GUI.
 <p align="center">
-  <img src="./READMEimages/classdiagrams/Home.png" width="50%" height: auto; alt="description">
+  <img src="./READMEimages/classdiagrams/Home.png" width="100%" height: auto; alt="description">
   <br>
   <em>The Home Component</em>
 </p>
@@ -133,16 +130,9 @@ The Body component represents the GUI for editting tracks and generators
 
 The Footer component displays status message and the room level effects
 <p align="center">
-  <img src="./READMEimages/classdiagrams/Body.png" width="50%" height: auto; alt="description">
+  <img src="./READMEimages/classdiagrams/Footer.png" width="50%" height: auto; alt="description">
   <br>
   <em>The Footer Component</em>
-</p>
-
-The ControlDialog component provides maintenance of sound controls on the time line
-<p align="center">
-  <img src="./READMEimages/classdiagrams/ControlDialog.png" width="50%" height: auto; alt="description">
-  <br>
-  <em>The ControlDialog Component</em>
 </p>
 
 The Track Class provides track objects  
@@ -154,7 +144,7 @@ The Track Class provides track objects
 
 The GeneratorIcons Component provides a graphical representation of a generator on a track
 <p align="center">
-  <img src="./READMEimages/classdiagrams/Track.png" width="50%" height: auto; alt="description">
+  <img src="./READMEimages/classdiagrams/GeneratorIcons.png" width="50%" height: auto; alt="description">
   <br>
   <em>The GeneratorIcons Component</em>
 </p>

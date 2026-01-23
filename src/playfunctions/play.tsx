@@ -31,9 +31,6 @@ export default function Play(props: PlayProps) {
   const [sourceData, setSourceData] = useState<RawSourceData[]>([]);
   
   useEffect(() => {
-    if (mode == PLAYMODE.idle) {
-      // restore all controlled parameters states
-    }
 
     // determine the selected generators and make sure they are ready to generate sound
     const {

@@ -24,16 +24,10 @@
 // Timeline which displays the timeline
 // Drawing which includes the source graphics
 // Footer which includes status on genrators and sources playing and the room effect controls
-import CMGFile from "classes/cmgfile";
-import Control from "classes/control";
 import SignalLevel from "classes/signallevel";
 import TimeLine from "classes/timeline";
 import { useCMGContext } from "cmgcontext";
 import { buildRoomNodes } from "playfunctions/buildroomnodes";
-import {
-  restoreControlledState,
-  saveControlledState,
-} from "playfunctions/controlledstate";
 import { useEffect, useRef, useState } from "react";
 import {
   ActiveSource,
@@ -53,10 +47,7 @@ import DrawSources, { redrawSource } from "./drawsources";
 import Footer from "./footer";
 import Header from "./header";
 import Timeline from "./timeline";
-import Reverb from "classes/roomnodes/reverb";
-import Compressor from "classes/roomnodes/compressor";
-import Volume from "classes/roomnodes/volume";
-import Equalizer from "classes/roomnodes/equalizer";
+import { debug } from "utils/debug";
 
 // as this function is non-reactive except for exit, stop, pause, resume, many of its props
 // are CMG context variables
@@ -71,7 +62,6 @@ export default function Preview(params: PreviewProps): JSX.Element {
   const { setMode, sourceData } = params;
   const {
     fileContents,
-    setFileContents,
     setStatus,
     playing,
     displayHeight,
@@ -97,7 +87,6 @@ export default function Preview(params: PreviewProps): JSX.Element {
   );
   const activeSources = useRef<ActiveSource[]>([]);
   const [activeSourcesCount, setActiveSourcesCount] = useState<number>(0);
-  const realtimeControls = useRef<Control[]>([]);
   const [signalLevels, setSignalLevels] = useState<SignalLevelsType>({
     leftVolume: 0,
     leftMax: 0,
@@ -141,11 +130,11 @@ export default function Preview(params: PreviewProps): JSX.Element {
 
   // initialize the preview timeline and the ticks when the display layout changes
   useEffect(() => {
-    // console.log(
-    //   "initializing the preview timeline and ticks with displaywidth and offsettime",
-    //   displayWidth,
-    //   offsetTime
-    // );
+    debug.info(
+      "Preview: initializing the preview timeline and ticks with displaywidth and offsettime",
+      displayWidth,
+      offsetTime
+    );
     if (timeLine) {
       const nP: TimeLine = timeLine.copy();
       nP.width = displayWidth;
@@ -188,7 +177,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
       if (nList.find((g) => g.name == s.gen.name) == undefined)
         nList.push(s.gen);
     });
-    // console.log("preview generator list", nList);
+    debug.info("Preview: preview generator list", nList);
     setSelectedGenerators(nList);
 
     // map sources to drawing sections
@@ -209,10 +198,6 @@ export default function Preview(params: PreviewProps): JSX.Element {
     setAudioContext(ctx);
     initializeRoomEffects(ctx);
 
-    // save the control state
-    saveControlledState(fileContents);
-    console.log("file contents saved");
-    
   function initializeRoomEffects(ctx: AudioContext) {
     fileContents.equalizer.setContext(ctx);
     fileContents.compressor.setContext(ctx);
@@ -234,7 +219,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
     );
 
     // initialize the frequency bins
-    // console.log("analyzer connected", fileContents.volume.effect);
+    debug.info("Preview: analyzer connected", fileContents.volume.effect);
     const bins: Float32Array = new Float32Array(FFTSize / 2);
     for (let i = 0; i < bins.length; i++) {
       bins[i] = frequencyForBinIndex(i, ctx.sampleRate, FFTSize);
@@ -247,7 +232,7 @@ export default function Preview(params: PreviewProps): JSX.Element {
   // draw the sources when a new previewtimeline and a drawing exists
   useEffect(() => {
     if (previewTimeline.current && drawing) {
-      // console.log("drawing update ");
+      debug.info("Preview: drawing update ");
       DrawSources(
         pendingSourceData.current,
         drawing,
@@ -280,22 +265,6 @@ export default function Preview(params: PreviewProps): JSX.Element {
     activeSources.current = [];
     pendingSourceData.current = [];
 
-    // restore the controlled state
-    setFileContents((prev: CMGFile) => {
-      const n: CMGFile | null = restoreControlledState();
-      if (!n) return prev;
-      // save any changes that were made to the room effects during preview
-      const reverbState: Reverb = fileContents.reverb.copy();
-      const compressState: Compressor = fileContents.compressor.copy();
-      const equalizerState: Equalizer = fileContents.equalizer.copy();
-      const volumeState: Volume = fileContents.volume.copy();
-      n.reverb = reverbState;
-      n.compressor = compressState;
-      n.equalizer = equalizerState;
-      n.volume = volumeState;
-      console.log("file contents restored with room effect updates.");
-      return n;
-    });
     setStatus(`Preview Terminated`)
     return;
   }
@@ -308,11 +277,11 @@ export default function Preview(params: PreviewProps): JSX.Element {
     }
 
     if (!audioContext) {
-      // console.log("starting preview without an audiocontext");
+      debug.info("Preview: starting preview without an audiocontext");
       return;
     }
     setRunning(true);
-    // console.log("previewing new sourcedata at time", audioContext.currentTime);
+    debug.info("Preview: previewing new sourcedata at time", audioContext.currentTime);
     audioContext.resume();
 
     changeTimerState(
@@ -352,7 +321,6 @@ export default function Preview(params: PreviewProps): JSX.Element {
       redrawSource,
       onExit,
       fileContents,
-      realtimeControls
     );
   }
 
@@ -360,23 +328,23 @@ export default function Preview(params: PreviewProps): JSX.Element {
   // on resume, this restarts them
   function onPauseResume() {
     if (!audioContext) {
-      // console.log("no audio context on pause request");
+      debug.error("Preview: no audio context on pause request");
       return;
     }
     if (isPaused) {
-      // console.log(
-      //   "exit from pause at",
-      //   audioContext.currentTime,
-      //   "activeSource count",
-      //   activeSources.current.length,
-      //   "pendingSourceData count",
-      //   pendingSourceData.current.length
-      // );
+      debug.info(
+        "Preview: exit from pause at",
+        audioContext.currentTime,
+        "activeSource count",
+        activeSources.current.length,
+        "pendingSourceData count",
+        pendingSourceData.current.length
+      );
       setIsPaused(false);
       paused.current = false;
       audioContext.resume();
     } else {
-      // console.log("enter pause at", audioContext.currentTime);
+      debug.info("Preview: enter pause at", audioContext.currentTime);
       setIsPaused(true);
       paused.current = true;
       audioContext.suspend();
@@ -418,7 +386,6 @@ export default function Preview(params: PreviewProps): JSX.Element {
       redrawSource,
       onExit,
       fileContents,
-      realtimeControls
     );
   }
 

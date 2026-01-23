@@ -9,6 +9,7 @@ import {
   SourceToDrawingSectionEntry,
   TimeLineScales,
 } from "types";
+import { debug } from "utils/debug";
 import getOffsetFromTime from "utils/getoffsetfromtime";
 import { linearInterpolate } from "utils/interpolation";
 
@@ -30,9 +31,9 @@ export default function DrawSources(
   displayWidth: number,
   displayHeight: number
 ) {
-  // console.log("drawing lines for ", sources.length, "sources");
+  debug.info("DrawSources: drawing lines for ", sources.length, "sources");
   if (!drawing || !timeline) {
-    // console.log("either drawing or timeline is null");
+    debug.warn("setupSection: either drawing or timeline is null");
     return;
   }
 
@@ -149,12 +150,12 @@ export default function DrawSources(
   const timelineStart: number = timeline.startTime;
   const timelineEnd: number =
     timelineStart + TimeLineScales[timeline.currentZoomLevel].extent;
-  // console.log(
-  //   "time progress and time line start and end",
-  //   timeProgress,
-  //   timelineStart,
-  //   timelineEnd
-  // );
+  debug.info(
+    "DrawSources: time progress and time line start and end",
+    timeProgress,
+    timelineStart,
+    timelineEnd
+  );
   // draw the timeprogress line
   const progressLine: SVGLineElement = document.createElementNS(
     "http://www.w3.org/2000/svg",
@@ -189,7 +190,7 @@ export default function DrawSources(
       timelineEnd
     );
     if (lineStart >= lineEnd) {
-      // console.log('line', i,'not visible', startTime, stopTime, lineStart, lineEnd);
+      debug.info('DrawSources: line', i,'not visible', startTime, startTime + duration, lineStart, lineEnd);
       return;
     }
     // find the section for this source and retrieve its section height and offset
@@ -197,7 +198,7 @@ export default function DrawSources(
       (map) => map.sourceIndex == s.index
     );
     if (entry == undefined) {
-      // console.log("section not found for source generator", s.gen.name);
+      debug.info("DrawSources: section not found for source generator", s.gen.name);
       return;
     }
     const sectionIndex = entry.sectionIndex;
@@ -260,7 +261,7 @@ export default function DrawSources(
       newLine.setAttribute("key", `preview-source-${i}`);
       drawing.appendChild(newLine);
     } else {
-      // console.log("bad section type", type);
+      debug.error("DrawSources: bad section type", type);
     }
     // TODO for audiofiles, draw the portion of the sample that fits in the timeline
   });
@@ -280,14 +281,14 @@ function getOffsetFromMidi(
 
 // change a line's color
 export function redrawSource(s: RawSourceData) {
-  // console.log("recoloring a source for generator", s.gen.name);
+  debug.info("DrawSources: recoloring a source for generator", s.gen.name);
 
   // find the source's line
   const sourceElement: Element | null = document.getElementById(
     "line-" + s.index.toString()
   );
   if (!sourceElement) {
-    // console.log("line not found for source", s.index);
+    debug.warn("DrawSources: line not found for source", s.index);
     return;
   }
   const hue = linearInterpolate(s.panner.value, -1, 1, HUELEFT, HUERIGHT) % 360;

@@ -69,7 +69,7 @@ export default function Footer(props: FooterProps): JSX.Element {
           </tbody>
         </table>
         <div>Active Generators:</div>
-        <div>{activeGenerators.current.toString()}</div>
+        <div style={{overflowWrap:"anywhere"}}>{activeGenerators.current.toString()}</div>
       </div>
       {signalLevels ? (
         <>

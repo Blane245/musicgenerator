@@ -27,11 +27,9 @@ export default function RoomCompressorDialog() {
   function handleEnable() {
     const eventName: string = "compressor.enabled";
     const eventValue: string = compressorData.enabled ? "false" : "true";
-    if (!compressorData.effectIn) {
       const n: Compressor = compressorData.copy();
       n.setAttribute(eventName, eventValue);
       setCompressor(n, setFileContents);
-    } else compressorData.setAttribute(eventName, eventValue);
   }
 
   function reset() {

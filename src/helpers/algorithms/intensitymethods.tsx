@@ -10,6 +10,7 @@ import continuousProbability from 'utils/probability/continuousprobability';
 import { dBToGain } from 'sfcomponents/util';
 import probabilityLookup from 'utils/probability/probabilitylookup';
 import RandomNumber from 'classes/randomnumber';
+import { debug } from 'utils/debug';
 
 interface IntensityProps {
 	sample: number[][];
@@ -39,7 +40,7 @@ export function intensityPersist(props: IntensityProps): number[][] {
 	const nTransitions: number = IntensityTransitions.length;
 	let index: number = Math.round(rN.rand() * (nTransitions - 1));
 	let transition: IntensityTransition = IntensityTransitions[index];
-	// console.log('transition picked', transition);
+	debug.info('intensityPersist: transition picked', transition);
 	// get the gain profile that is to be applied over this duration
 	let [start, middle, end] = getIntensityGainProfile(transition);
 	// set ending intensity
@@ -61,10 +62,10 @@ export function intensityPersist(props: IntensityProps): number[][] {
 			while (endIntensity != IntensityTransitions[index].start)
 				index = Math.round(rN.rand() * (nTransitions - 1));
 			transition = IntensityTransitions[index];
-			// console.log('apply intensity transition at sample', transition, i);
+			debug.info('intensityPersist: apply intensity transition at sample', transition, i);
 			[start, middle, end] = getIntensityGainProfile(transition);
 			endIntensity = transition.end;
-			// console.log('transition picked', transition, 'new end', endIntensity);
+			debug.info('intensityPersist: transition picked', transition, 'new end', endIntensity);
 			// get a new duration
 			duration = 0;
 			while (duration == 0) duration = probabilityLookup(Pd, Nd, rN.rand());
@@ -100,7 +101,7 @@ export function intensityRandom(props: IntensityProps): number[][] {
 	const nTransitions: number = IntensityTransitions.length;
 	let index: number = Math.round(rN.rand() * (nTransitions - 1));
 	let transition: IntensityTransition = IntensityTransitions[index];
-	// console.log('transition picked', transition);
+	debug.info('intensityRandom: transition picked', transition);
 	// get the gain profile that is to be applied over this duration
 	let [start, middle, end] = getIntensityGainProfile(transition);
 
@@ -118,7 +119,7 @@ export function intensityRandom(props: IntensityProps): number[][] {
 			// get a random transition that starts the the end intensity of the last one
 			index = Math.round(rN.rand() * (nTransitions - 1));
 			transition = IntensityTransitions[index];
-			// console.log('transition picked', transition);
+			debug.info('intensityRandom: transition picked', transition);
 
 			// get a new duration
 			duration = 0;

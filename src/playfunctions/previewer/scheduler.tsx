@@ -3,15 +3,10 @@
 // are currently playing are maintained in the graph to keep the load on the
 
 import CMGFile from "classes/cmgfile";
-import Control from "classes/control";
 import TimeLine from "classes/timeline";
-import {
-  activateRealtimeControls,
-  processActiveSources,
-  processGlobalControls,
-} from "playfunctions/controls/realtimecontrols";
 import { realizeSource } from "playfunctions/realizesource";
 import { ActiveSource, GENERATORTYPE, RawSourceData } from "types";
+import { debug } from "utils/debug";
 
 // web audio api at aminimum.
 const SCHEDULEAHEADTIME: number = 0.1; // how far ahead to schedule audio (seconds)
@@ -33,11 +28,10 @@ export default function scheduler(
   redrawSource: (s: RawSourceData) => void,
   setActiveSourcesCount: React.Dispatch<React.SetStateAction<number>>,
   fileContents: CMGFile,
-  realtimeControls: React.MutableRefObject<Control[]>
 ): void {
   // if (paused.current) {
   if (paused.current) {
-    // console.log("scheduler paused");
+    debug.info("scheduler paused");
     if (timerID != 0) clearTimeout(timerID);
     return;
   }
@@ -63,7 +57,6 @@ export default function scheduler(
       redrawSource,
       setActiveSourcesCount,
       fileContents,
-      realtimeControls
     );
   } else {
     if (audioContext && audioContext.state !== "closed") {
@@ -71,7 +64,7 @@ export default function scheduler(
       audioContext.close();
     }
     if (timerID != 0) window.clearTimeout(timerID);
-    console.log("completed preview at ", playbackLength);
+    debug.info("completed preview at ", playbackLength);
     onExit();
     return;
   }
@@ -86,22 +79,8 @@ export default function scheduler(
     // TODO check if any changes have been made to the room effects
     // these may be overriden by the realtime controls 
 
-
-    // activate a global and instrument reverb controls that occurs between currentTime + offsetTime and aheadTime + offsetTime
-    realtimeControls.current = activateRealtimeControls(
-      realtimeControls.current,
-      audioContext.currentTime + offsetTime,
-      aheadTime + offsetTime,
-      fileContents
-    );
-    processGlobalControls(
-      audioContext.currentTime + offsetTime,
-      realtimeControls.current,
-      fileContents
-    );
-
     while (nextTime < aheadTime) {
-      // console.log(activeSources.length,'active sources at time ', nextTime);
+      debug.info('scheduler: ', activeSources.current.length,'active sources at time ', nextTime);
       // assuming the pending sorces are sorted in starttime order ...
       let stopSearch: boolean = false;
       for (
@@ -110,8 +89,8 @@ export default function scheduler(
         iPending++
       ) {
         const s = pendingSourceData.current[iPending];
-        // if (!s.source.started)
-          // console.log('source candidate for starting at time',aheadTime,s.source.startTime, s.source.duration);
+        if (!s.source.started)
+          debug.info('scheduler: source candidate for starting at time',aheadTime,s.source.startTime, s.source.duration);
         if (
           aheadTime >= s.source.startTime - offsetTime &&
           aheadTime <= s.source.startTime + s.source.duration - offsetTime &&
@@ -131,7 +110,7 @@ export default function scheduler(
               s.source.duration
             );
           }
-          // console.log("source", s.index, "started at ", s.source.startTime, 'duration', s.source.duration);
+          debug.info("scehduler: source", s.index, "started at ", s.source.startTime, 'duration', s.source.duration);
           newActiveSources.push(activeSource);
           s.source.started = true;
           redrawSource(s);
@@ -143,17 +122,17 @@ export default function scheduler(
       // disconnect all of the nodes that have finished playing
       // and delete them
       // don't turn them off until the early reflections stop
-      // console.log('activesources count', newActiveSources);
+      debug.info('scehduler: activesources count', newActiveSources);
       newActiveSources = newActiveSources.filter((activeSource) => {
         const thisSource: RawSourceData | undefined =
           pendingSourceData.current.find(
             (s) => s.index == activeSource.sourceIndex
           );
         if (thisSource == undefined) {
-          // console.log(
-          //   "could not find active source with index",
-          //   activeSource.sourceIndex
-          // );
+          debug.warn(
+            "scehduler: could not find active source with index",
+            activeSource.sourceIndex
+          );
           return;
         }
         // const stopTime: number =
@@ -163,27 +142,25 @@ export default function scheduler(
         //     ? 0
         //     : reflectionDelay / 1000 + thisSource.source.duration);
         const stopTime: number = activeSource.stopTime - offsetTime;
-        // console.log('source stop candidate stoptime, audioContext', stopTime, audioContext.currentTime);
+        debug.info('scehduler: source stop candidate stoptime, audioContext', stopTime, audioContext.currentTime);
         if (audioContext.currentTime > stopTime) {
           if (activeSource.gen.type != GENERATORTYPE.Silent) {
             activeSource.source.disconnect();
             activeSource.vol.disconnect();
-            // console.log('source stopped at', audioContext.currentTime);
+            debug.info('scehduler: source stopped at', audioContext.currentTime);
           }
           if (activeSource.gen.type != GENERATORTYPE.Silent)
             redrawSource(thisSource);
-          // console.log(
-          //   "source",
-          //   activeSource.sourceIndex,
-          //   "stopped at",
-          //   stopTime
-          // );
+          debug.info(
+            "scehduler: source",
+            activeSource.sourceIndex,
+            "stopped at",
+            stopTime
+          );
           nStopped++;
           return false;
         } else return true;
       });
-      // handle the source's reverb settings for all active sources
-      processActiveSources(newActiveSources, realtimeControls.current);
 
       // advance to the next scheduled time
       nextTime += SCHEDULEAHEADTIME;
@@ -191,12 +168,12 @@ export default function scheduler(
   }
     // notify the display engine of the sources currently playing
     if (nStarted > 0 || nStopped > 0) {
-      // console.log(
-      //   "activesources has changed",
-      //   newActiveSources.length,
-      //   "pendingSources",
-      //   pendingSourceData.current.length
-      // );
+      debug.info(
+        "scehduler: activesources has changed",
+        newActiveSources.length,
+        "pendingSources",
+        pendingSourceData.current.length
+      );
       activeSources.current = newActiveSources;
       setActiveSourcesCount(newActiveSources.length);
     }

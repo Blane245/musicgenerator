@@ -207,7 +207,7 @@ export default function FileMenu() {
         // this is open of an unnamed file - use FileDialog
         setDialogMode("Open");
       } else {
-        setFileName(name); // useEffect will load the file
+        setFileName(name);
         readFileContents(name);
         addRecent(name);
         setFileName("");

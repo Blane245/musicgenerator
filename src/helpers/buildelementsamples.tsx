@@ -1,4 +1,5 @@
 import { SAMPLERATE } from "types";
+import { debug } from "utils/debug";
 
 // third, if using glizzando, apply the variable playback rate
 export default function buildElementSamples(props: {
@@ -43,7 +44,7 @@ export default function buildElementSamples(props: {
   let currentIndex: number = 0;
   const slope: number = (cents2 - cents1) / interval;
   const result: number[] = Array<number>(outputCount).fill(0);
-  // console.log(`resampling out size=${outputCount}, playbackrate 1 = ${playbackRate1}, playbackrate 2 = ${playbackRate2}, instrument same rate=${instrumentSampleRate}, resampleratio=${resampleRatio}, duration=${sampleDuration}`)
+  debug.info(`buildElementSamples: resampling out size=${outputCount}, playbackrate 1 = ${playbackRate1}, playbackrate 2 = ${playbackRate2}, instrument same rate=${instrumentSampleRate}, resampleratio=${resampleRatio}, duration=${sampleDuration}`)
   for (let i = 0; i < outputCount; i++) {
     j = Math.trunc(currentIndex);
     if (loop) {

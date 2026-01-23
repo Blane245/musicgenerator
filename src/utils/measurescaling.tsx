@@ -5,6 +5,7 @@
 // end of the time line.
 // This routine determines where these beats are both in time and position, along with the
 
+import { debug } from "./debug";
 import { linearInterpolate } from "./interpolation";
 
 interface MeasureScalingProps {
@@ -26,9 +27,9 @@ export function measureScaling(props: MeasureScalingProps): {
 } {
   const { startTime, timeExtent, positionWidth, measureTime, beatsPerMeasure } =
     props;
-    // console.log('input to measure scaling: start time, time extent, position width, measure time, beats per measure',
-    //     startTime, timeExtent, positionWidth, measureTime, beatsPerMeasure
-    // );
+    debug.info('measureScaling: input to measure scaling: start time, time extent, position width, measure time, beats per measure',
+        startTime, timeExtent, positionWidth, measureTime, beatsPerMeasure
+    );
   const endTime: number = startTime + timeExtent;
   const tickTime: number = measureTime / beatsPerMeasure;
 
@@ -65,11 +66,11 @@ export function measureScaling(props: MeasureScalingProps): {
   const tickPositionSize: number =
     (endTickPosition - startTickPosition) / nBeats;
 
-    // console.log('start and end tick times', startTickTime, endTickTime,
-    //     'tick position size', tickPositionSize, 
-    //     'start and end tick positions', startTickPosition, endTickPosition,
-    //     ' beat count, and start and end tick numbers', nBeats, startTickNumber, endTickNumber
-    // );
+    debug.info('measureScaling: start and end tick times', startTickTime, endTickTime,
+        'tick position size', tickPositionSize, 
+        'start and end tick positions', startTickPosition, endTickPosition,
+        ' beat count, and start and end tick numbers', nBeats, startTickNumber, endTickNumber
+    );
   return {
     startTickTime,
     endTickTime,

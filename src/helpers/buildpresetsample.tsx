@@ -3,6 +3,7 @@ import { Preset } from 'sfcomponents/types';
 import buildElementSamples from './buildelementsamples';
 import getActiveZones from './getactivezones';
 import { dBToGain } from 'sfcomponents/util';
+import { debug } from 'utils/debug';
 
 // gt the preset samples for all instruments
 export default function buildPresetSample(props: {
@@ -17,7 +18,7 @@ export default function buildPresetSample(props: {
 	const { preset, interval, duration, pitch1, pitch2, volume, velocity } = props;
 	const result: number[][] = [];
 	const gain: number = dBToGain(volume);
-	// console.log('gain for pitch', gain, pitch1);
+	debug.info('buildPresetSample: gain for pitch', gain, pitch1);
 	if (preset == undefined) return result;
 
 	// get all of the zones for this preset. Each represets a different instrument

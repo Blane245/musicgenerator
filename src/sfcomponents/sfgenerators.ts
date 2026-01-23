@@ -123,17 +123,12 @@ value of 3600 timecents or 8 seconds attack time.
       : undefined;
   const absoluteValue = izoneValue ?? izoneGlobalValue ?? defaultValue;
   const relativeValue = pzoneValue ?? pzoneGlobalValue ?? 0;
-  if (index === 48) {
-    // console.log('get 48', izoneValue, izoneGlobalValue, defaultValue, 
-    //   pzoneValue, pzoneGlobalValue, absoluteValue, relativeValue);
-  }
   return absoluteValue + relativeValue;
 };
 
 export const hasDefaultValue = (index: string): boolean => {
       return DEFAULT_GENERATOR_VALUES[index] !== undefined;
 };
-// console.log('DEFAULT_GENERATOR_VALUES',DEFAULT_GENERATOR_VALUES);
 
 export const getGeneratorValues = (
   izone: InstrumentZone,

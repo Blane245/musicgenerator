@@ -28,13 +28,9 @@ export default function RoomReverbDialog() {
   function handleEnable() {
     const eventName: string = "reverb.enabled";
     const eventValue: string = reverbData.enabled ? "false" : "true";
-    if (reverbData.effectIn == undefined) {
       const n: Reverb = reverbData.copy();
       n.setAttribute(eventName, eventValue);
       setReverb(n, setFileContents);
-    } else {
-      reverbData.setAttribute(eventName, eventValue);
-    }
   }
 
   function reset() {

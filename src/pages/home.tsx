@@ -15,15 +15,19 @@ import {
   RECENTFILES,
   RECENTRECORDDIRECTORY,
   RECORDFORMAT,
-  SFFILELOCATION
+  SFFILELOCATION,
 } from "types";
 import { getDirectoryList } from "utils/getdirectorylist";
 import loadEnsembleList from "utils/loadEnsembleList";
 import { useCMGContext } from "../cmgcontext";
+import { readCMGFile } from "menus/filehandlers";
+import TimeLine from "classes/timeline";
 export default function Home() {
   const {
+    initialParams,
     appName,
     fileContents,
+    setFileContents,
     setAppName,
     setAppVersion,
     setScreenHeight,
@@ -31,9 +35,12 @@ export default function Home() {
     setDisplayHeight,
     setDisplayWidth,
     setHeaderHeight,
+    timelineHeight,
+    timelineWidth,
     setTimelineHeight,
     setTimelineWidth,
     setTimeLine,
+    setTimeInterval,
     setControlWidth,
     setPreviewHeight,
     setPreviewWidth,
@@ -105,7 +112,7 @@ export default function Home() {
       setPreviewHeight(previewHeight);
       setFooterHeight(footerHeight);
       setVerticalScrollWidth(
-        screenWidth - document.documentElement.clientWidth
+        screenWidth - document.documentElement.clientWidth,
       );
       setTimeLine(null);
     };
@@ -114,7 +121,7 @@ export default function Home() {
 
     // load the ensemble list at startup
     loadEnsembleList(setEnsembleList);
-    
+
     return () => {
       window.removeEventListener("resize", handleResize);
     };
@@ -136,14 +143,15 @@ export default function Home() {
         SFFileLocation,
         ["sf2", "SF2"],
         setSFFileList,
-        setStatus
+        setStatus,
       );
     } catch (error) {
       setStatus(error as string);
     }
 
     // get the record format from local storage
-    const recordFormat: string | null = window.localStorage.getItem(RECORDFORMAT);
+    const recordFormat: string | null =
+      window.localStorage.getItem(RECORDFORMAT);
     if (!recordFormat) {
       window.localStorage.setItem(RECORDFORMAT, DEFAULTRECORDFORMAT);
       setRecordFormat(DEFAULTRECORDFORMAT);
@@ -171,7 +179,7 @@ export default function Home() {
 
     // get the most recent record directory from local storage
     const recentRecordDirectory: string | null = window.localStorage.getItem(
-      RECENTRECORDDIRECTORY
+      RECENTRECORDDIRECTORY,
     );
     if (!recentRecordDirectory) {
       setRecentRecordDirectory("spectrum");
@@ -181,7 +189,7 @@ export default function Home() {
 
     // get the frequency display type from local storage
     const previewFrequencyDisplay: string | null = window.localStorage.getItem(
-      PREVIEWFREQUENCYDISPLAY
+      PREVIEWFREQUENCYDISPLAY,
     );
 
     if (!previewFrequencyDisplay) {
@@ -202,9 +210,37 @@ export default function Home() {
   }, []);
 
   // notify the user that the SF file list has been loaded
+  // also start with a given file name if provided in the initial parameters
   useEffect(() => {
     setStatus(`${SFFileList.length} Soundfont files loaded.`);
-  }, [SFFileList]);
+
+    async function readFile(name: string) {
+      try {
+        // copy of readfilecontents from filemenu
+        const { fileContents, timeLine } = await readCMGFile(
+          name,
+          timelineWidth,
+          timelineHeight,
+        );
+        if (fileContents) {
+          setFileContents(fileContents);
+          setStatus(`File '${name}' loaded`);
+          setTimeLine(timeLine);
+          setTimeInterval({ startOffset: 0, endOffset: 0 });
+          // TODO set recent
+        } else {
+          setTimeLine(new TimeLine(timelineWidth, timelineHeight));
+          setTimeInterval({ startOffset: 0, endOffset: 0 });
+          setStatus(`Error reading file '${name}' loaded`);
+        }
+      } catch (e) {
+        setStatus(
+          `Error reading cmg file, ${name}. Either it was not foun dor it is in the wrong format`,
+        );
+      }
+    }
+    if (initialParams?.file) readFile(initialParams.file);
+  }, [SFFileList, initialParams?.file, timelineHeight, timelineWidth]);
 
   // the home page has two windows. One is for editing a composition
   // the other is for previewing a composition.
@@ -216,14 +252,8 @@ export default function Home() {
         <title> {appName} </title>
       </Helmet>
       {mode != PLAYMODE.preview && mode != PLAYMODE.solo ? (
-        <div
-          className="page"
-          id="page"
-          // onMouseUp={() => onMouseUp()}
-          // onMouseDown={(e) => onMouseDown(e)}
-          // onMouseMove={(e) => saveMouseMovement(e)}
-        >
-          <Header fileName={fileContents?fileContents.name:""} />
+        <div className="page" id="page">
+          <Header fileName={fileContents ? fileContents.name : ""} />
           <Body />
           <Footer />
         </div>

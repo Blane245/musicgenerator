@@ -7,22 +7,20 @@ import {
 import Silent from "./generators/silent";
 import AudioFile from "./generators/audiofile";
 import Algorithmic from "./generators/algorithmic";
-import { TrackControl } from "./control";
 import Stochastic from "./generators/stochastic";
+import { debug } from "utils/debug";
 export default class Track {
   name: string;
   mute: boolean;
   solo: boolean;
   volume: number;
   generators: GeneratorType[];
-  volumeControl: TrackControl | null;
   constructor(nextTrack: number) {
     this.name = "T".concat(nextTrack.toString());
     this.mute = false;
     this.solo = false;
     this.volume = 0;
     this.generators = [];
-    this.volumeControl = null;
   }
 
   copy(): Track {
@@ -36,24 +34,11 @@ export default class Track {
       const ng = g.copy(t);
       t.generators.push(ng);
     });
-    t.volumeControl = this.volumeControl;
     return t;
   }
 
-  initializeVolumeRamp(time: number, control: TrackControl) {
-    console.log(
-      "track volume control name, time, effect",
-      this.name,
-      time,
-      control
-    );
-    this.volumeControl = control;
-    control.initializeVolumeRamp(time);
-  }
-
-  getVolume(time: number): number {
-    if (this.volumeControl) return this.volumeControl.getCurrentValues(time).volume;
-    else return this.volume;
+  getVolume(_time: number): number {
+    return this.volume;
   }
   async appendXML(doc: XMLDocument, elem: Element): Promise<Element> {
     // request a promose from each of the generators in the track
@@ -88,7 +73,7 @@ export default class Track {
       trackElem.appendChild(generatorsElem);
       return Promise.resolve(trackElem);
     } catch (e) {
-      console.log("XML file writing error on track", this.name);
+      debug.error("XML file writing error on track", this.name);
       return Promise.reject(e);
     }
   }

@@ -3,6 +3,7 @@ import numeral from "numeral";
 import { TimeLineScales, TIMELINETYPE, TimeTicks } from "types";
 import { linearInterpolate } from "./interpolation";
 import { measureScaling } from "./measurescaling";
+import { debug } from "./debug";
 
 // timeline is either displaying time or measures
 export default function getTickLinesandLabels(
@@ -69,7 +70,7 @@ export default function getTickLinesandLabels(
       measureTime: timeLine.measureSize,
       beatsPerMeasure: timeLine.beatsPerMeasure,
     });
-    // console.log('start and end tick numbers', startTickNumber, endTickNumber, 'start and end tick positions', startTickPosition, endTickPosition);
+    debug.info('getTickLinesand Labels: start and end tick numbers', startTickNumber, endTickNumber, 'start and end tick positions', startTickPosition, endTickPosition);
     // loop through all of the tick, applying labels at the start of each measure
     for (let i = startTickNumber; i <= endTickNumber; i++) {
       // draw a tick at this tick location

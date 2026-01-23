@@ -1,4 +1,5 @@
 import { MAXDECIBELS, MINDECIBELS, SignalLevelsType } from "types";
+import { debug } from "utils/debug";
 
 export default class SignalLevel {
   #context: AudioContext; // not usable in recording mode
@@ -59,7 +60,7 @@ export default class SignalLevel {
       const rightSpectrum = new Uint8Array(this.#rightAnalyser.frequencyBinCount);
       this.#leftAnalyser.getByteFrequencyData(leftSpectrum);
       this.#rightAnalyser.getByteFrequencyData(rightSpectrum);
-      // console.log('volumes', leftVolume, rightVolume)
+      debug.info('signal level volumes', leftVolume, rightVolume);
       
       return { leftVolume, leftMax, rightVolume, rightMax, leftSpectrum, rightSpectrum };
     } else return { leftVolume: 0, leftMax: 0, rightVolume: 0, rightMax: 0, leftSpectrum: new Uint8Array(0), rightSpectrum: new Uint8Array(0) };

@@ -27,13 +27,9 @@ export default function RoomEqualizerDialog() {
   function handleEnable() {
     const eventName: string = "equalizer.enabled";
     const eventValue: string = equalizerData.enabled ? "false" : "true";
-    if (!equalizerData.effectIn) {
       const n: Equalizer = equalizerData.copy();
       n.setAttribute(eventName, eventValue);
       setEqualizer(n, setFileContents);
-    } else {
-      equalizerData.setAttribute(eventName, eventValue);
-    }
   }
 
   function reset() {

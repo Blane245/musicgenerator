@@ -1,21 +1,18 @@
 // The file menu handles creating new files, opening existing ones,
 // saving current ones, and adding tracks to current ones
 // import Algorithmic from "classes/generators";
-import Control from "classes/control";
 import TimeLine from "classes/timeline";
 import Track from "classes/track";
 import { useCMGContext } from "cmgcontext";
-import ControlDialog from "dialogs/control/controldialog";
 import { ChangeEvent, FormEvent, useState } from "react";
 import {
   PREVIEWFFTSIZE,
   PREVIEWFREQUENCYDISPLAY,
   RECORDFORMAT,
   SFFILELOCATION,
-  TIMELINETYPE
+  TIMELINETYPE,
 } from "types";
 import { addTrack, setDirty, setFileComment } from "utils/cmfiletransactions";
-import { getControlUID } from "utils/getcontroluid";
 import { getDirectoryList } from "utils/getdirectorylist";
 import { getTrackUID } from "utils/gettrackuid";
 
@@ -28,10 +25,6 @@ export default function EditMenu() {
     timelineHeight,
     timeLine,
     setTimeLine,
-    controlNew,
-    setControlNew,
-    displayControlDialog,
-    setDisplayControlDialog,
     setStatus,
     setRecordFormat,
     setSFFileList,
@@ -48,7 +41,7 @@ export default function EditMenu() {
   const [preferencesModal, setPreferencesModal] = useState<boolean>(false);
   const [errorMsgs, setErrorMsgs] = useState<string[]>([]);
   const [formData, setFormData] = useState<TimeLine>(
-    new TimeLine(timelineWidth, timelineHeight)
+    new TimeLine(timelineWidth, timelineHeight),
   );
 
   // useEffect(() => {
@@ -99,13 +92,6 @@ export default function EditMenu() {
     setStatus(`Track '${newTrack.name}' Added`);
   }
 
-  function handleNewControl() {
-    // get a unique name for the new control
-    const uid: number = getControlUID(fileContents.controls);
-    setControlNew(new Control(uid));
-    setDisplayControlDialog(true);
-  }
-
   function handleEditPreferences() {
     if (!timeLine) return;
     setErrorMsgs([]);
@@ -150,10 +136,10 @@ export default function EditMenu() {
     window.localStorage.setItem(SFFILELOCATION, location);
     setSFFileList(newSFFileList.list);
     setTimeLine(formData.copy());
-    const newFFTSize:number = parseInt(event.target["FFTSize"].value);
+    const newFFTSize: number = parseInt(event.target["FFTSize"].value);
     setFFTSize(newFFTSize);
     window.localStorage.setItem(PREVIEWFFTSIZE, newFFTSize.toString());
-    const newDisplay:string = event.target["frequencyDisplay"].value;
+    const newDisplay: string = event.target["frequencyDisplay"].value;
     setFrequencyDisplay(newDisplay);
     window.localStorage.setItem(PREVIEWFREQUENCYDISPLAY, newDisplay);
     setDirty(true, fileContents, setFileContents);
@@ -170,9 +156,6 @@ export default function EditMenu() {
       case "track":
         handleNewTrack();
         break;
-      case "control":
-        handleNewControl();
-        break;
       case "preferences":
         handleEditPreferences();
         break;
@@ -183,7 +166,7 @@ export default function EditMenu() {
 
   // handle changes to the time line preferences
   function handleChange(
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ): void {
     const eventName: string | null = e.target["name"];
     const eventValue: string = e.target["value"];
@@ -213,9 +196,6 @@ export default function EditMenu() {
           <div className="dropdown-one">
             <div className="dItem" onClick={() => handleMenuSelect("track")}>
               Add Track
-            </div>
-            <div className="dItem" onClick={() => handleMenuSelect("control")}>
-              Add Control
             </div>
             <div className="dItem" onClick={() => handleMenuSelect("comment")}>
               Edit Comment...
@@ -295,7 +275,10 @@ export default function EditMenu() {
                 </select>
               </label>
               <br />
-              <div><b>Measure Definition</b></div><br/>
+              <div>
+                <b>Measure Definition</b>
+              </div>
+              <br />
               <label>
                 Measure Length:&nbsp;
                 <input
@@ -324,7 +307,10 @@ export default function EditMenu() {
                 />
               </label>
               <br />
-              <div><b>Snap Option</b></div><br/>
+              <div>
+                <b>Snap Option</b>
+              </div>
+              <br />
               <label>
                 Snap Mode:&nbsp;
                 <input
@@ -353,27 +339,28 @@ export default function EditMenu() {
                   <span>&nbsp;(sec)</span>
                 </label>
               ) : null}
-              <hr/>
-              <div><b>Frequency Display Options</b></div><br/>
+              <hr />
+              <div>
+                <b>Frequency Display Options</b>
+              </div>
+              <br />
               <label>
                 FFT Size:&nbsp;
-                <input type="number"
-                size={10}
-                min={256}
-                max={256*32}
-                step={256}
-                name="FFTSize"
-                defaultValue={FFTSize}
-                    style={{ marginBottom: "2px" }}
-                    />
+                <input
+                  type="number"
+                  size={10}
+                  min={256}
+                  max={256 * 32}
+                  step={256}
+                  name="FFTSize"
+                  defaultValue={FFTSize}
+                  style={{ marginBottom: "2px" }}
+                />
               </label>
               <br />
               <label>
                 Frequency Display:&nbsp;
-                <select
-                name="frequencyDisplay"
-                  defaultValue={frequencyDisplay}
-                >
+                <select name="frequencyDisplay" defaultValue={frequencyDisplay}>
                   <option value="spectrum">spectrum</option>
                   <option value="sonogram">sonogram</option>
                 </select>
@@ -382,8 +369,7 @@ export default function EditMenu() {
               <input type="submit" value="Save" />
               <button
                 onClick={() => setPreferencesModal(false)}
-                style={{ paddingLeft: "6px", color: "ButtonText"
-                }}
+                style={{ paddingLeft: "6px", color: "ButtonText" }}
               >
                 Cancel
               </button>
@@ -400,11 +386,6 @@ export default function EditMenu() {
           </div>
         </div>
       ) : null}
-      {!!(displayControlDialog && controlNew) && (
-        <ControlDialog control={null}
-        tracks={fileContents.tracks}
-        />
-      )}
     </>
   );
 }

@@ -3,6 +3,7 @@
 import AudioFile from "classes/generators/audiofile";
 import { ActiveSource, GENERATORTYPE, RawSourceData } from "../types";
 import Algorithmic from "classes/generators/algorithmic";
+import { debug } from "utils/debug";
 
 export function realizeSource(
   ctx: AudioContext | OfflineAudioContext,
@@ -26,7 +27,7 @@ export function realizeSource(
     })
     const cD: Float32Array = source.buffer.getChannelData(0);
     cD.set(rawSourceData.source.sample[0]);
-    // console.log('source sample for note ', rawSourceData.source.note, 'length', cD.length);
+    debug.info('realizeSource: source sample for note ', rawSourceData.source.note, 'length', cD.length);
   } else if (rawSourceData.gen.type == GENERATORTYPE.AudioFile) {
     (rawSourceData.gen as AudioFile).getSample(ctx, source);
   }

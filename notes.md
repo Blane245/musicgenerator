@@ -1,12 +1,9 @@
 # Bugs
-- preview is not honoring the current timeline settings. going to default
 - getting a lot of popping during stochastic playback of one of the SMW presets. tried an attack ramp of 50ms but no difference
-- ControlDialog: check boxes have to be changed twice to change them
 - when a note sequence id reloaded, the duration of the generator should be recalculated.
 - when previewing in the generator dialog, changes made to the parameters are lost after the preview. Somehow the dialog has to be reactivated after a preview with these changes but not update the fileContents with the formData. This is a result of the use of the .copy() method which signals a change similar to the stop time calculation method above
 # Enhancements
 - have separate random sequences for stochastic composition and dynamics.
-- implement controls for Stochastic generator. Effect delta, pan, and intensity controls.
 - display channel signals for stochastic and audiofile preview
 - consider using slow time line scrolling during preview
 - pipe dream - add a video producer that takes hints from the composer and does drawings based on the sounds and those hints. See the ChatGPT chat on scribble for some guidance on structural hints from the composer. 

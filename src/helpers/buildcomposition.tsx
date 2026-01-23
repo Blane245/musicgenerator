@@ -1,6 +1,7 @@
 import RandomNumber from "classes/randomnumber";
 import { Composition } from "../types";
 import poisson from "../utils/probability/poisson";
+import { debug } from "utils/debug";
 
 interface buildCompositionProps {
   nColumns: number; // the number of columns
@@ -20,7 +21,7 @@ export default function buildComposition(
   // develop the distribution of the frequency among the cells (N)
 
   const [N] = buildCellDistribution(nColumns * nRows, lambda);
-  // console.log('cell frequencies', N);
+  debug.info('buildComposition: cell frequencies', N);
 
   // initialize the composition with -1 counts showing that no cells have
   // been populated
@@ -42,27 +43,27 @@ export default function buildComposition(
     // count is the number of cells to be allocation with i events
     // clear the columns allocated for this passa
     if (i == 0) {
-      //  console.log('skipping', cellCount, 'cells', 'since the number of events is zero');
+       debug.info('buildComposition: skipping', cellCount, 'cells', 'since the number of events is zero');
     } else {
-      // console.log('allocating ', cellCount, 'cells with ', i, 'events');
+      debug.info('buildComposition: allocating ', cellCount, 'cells with ', i, 'events');
 
       // develop the distribution of the column's count
       const [Nc] = buildCellDistribution(cellCount, cellCount / nRows);
-      // console.log('frequency distribution for count, lambda', cellCount, cellCount / nRows, Nc);
+      debug.info('buildComposition: frequency distribution for count, lambda', cellCount, cellCount / nRows, Nc);
 
       // reshuffle the row urn
       rowUrn = randomizeIntegers(nRows, rN);
       rowPick = 0;
-      // console.log(`new row urn ${rowUrn}`);
+      debug.info(`buildComposition: new row urn ${rowUrn}`);
       Nc.forEach((rowCount, frequency) => {
         // rowcount is the number of rows to contain frequency events
-        // console.log(`processing ${rowCount} rows needing ${frequency} cells`);
+        debug.info(`buildComposition: processing ${rowCount} rows needing ${frequency} cells`);
         for (let iRow = 0; iRow < rowCount && rowPick < rowUrn.length; iRow++) {
           if (frequency == 0) {
             rowPick++;
-            // console.log(`skipping ${iRow} row in ${rowCount} rows since frequency is zero `);
+            debug.info(`buildComposition: skipping ${iRow} row in ${rowCount} rows since frequency is zero `);
           } else {
-            // console.log(`processing ${iRow} row in ${rowCount} rows with frequency ${frequency}`);
+            debug.info(`buildComposition: processing ${iRow} row in ${rowCount} rows with frequency ${frequency}`);
             // pick a row number from the row urn
             // check that it has at least frequency available cells
             let cellUrn: number[] = [];
@@ -89,7 +90,7 @@ export default function buildComposition(
             if (rowPick < nRows) {
               // something went wrong - no rows have enough cells
               // throw new Error(`Event Density is too large for the ensemble and time cell counts `);
-              // console.log(`Found row ${nRow} having ${cellUrn.length} available cells`);
+              debug.info(`buildComposition: Found row ${nRow} having ${cellUrn.length} available cells`);
 
               // shuffle the available cells to place the events
               cellUrn = cellUrn.sort(() => rN.rand() - 0.5);

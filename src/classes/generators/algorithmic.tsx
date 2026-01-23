@@ -32,6 +32,7 @@ import {
   getElementElement,
 } from "utils/xmlfunctions";
 import Silent from "./silent";
+import { debug } from "utils/debug";
 
 export default class Algorithmic extends Silent {
   soundFontFile: string;
@@ -179,7 +180,7 @@ export default class Algorithmic extends Silent {
       !this.context
     )
       return;
-    // console.log('generator reverb enable', this.name, enabled);
+    debug.info('generator reverb enable', this.name, enabled);
     if (enabled) {
       softDisconnect(this.effectIn, this.#effectOut);
       this.effectIn.connect(this.#reverbHead);
@@ -562,7 +563,7 @@ export default class Algorithmic extends Silent {
 
     // if the note is on, return the original note
     if (this.#activeNotes[normalizedMidiOffset] == 1) {
-      // console.log("returning original note", note);
+      debug.info("getselected note returning original note", note);
       return note;
     }
 
@@ -579,7 +580,7 @@ export default class Algorithmic extends Silent {
     else pitch = octave * 12 + last;
 
     // return with the fractional note applied
-    // console.log("returning modified note", pitch + midiFraction);
+    debug.info("getselected note returning modified note", pitch + midiFraction);
     return pitch + midiFraction;
   }
 

@@ -17,6 +17,7 @@ import { GeneratorType, GENERATORTYPE, PLAYMODE, TIMELINETYPE } from "types";
 import { addGenerator, modifyGenerator } from "utils/cmfiletransactions";
 import { getGeneratorUID } from "utils/getgeneratoruid";
 import GeneratorTypeForm from "./generatortypeform";
+import { debug } from "utils/debug";
 
 // The icon starts at the generator's start time and ends at the generators endtime
 export interface GeneratorDialogProps {
@@ -209,7 +210,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
         case GENERATORTYPE.Algorithmic: {
           const newFormData: Algorithmic = (prev as Algorithmic).copy(prev.parent);
           const isSet: boolean = newFormData.setAttribute(eventName, eventValue);
-          if (!isSet) console.log('value not set eventname, eventvalue', eventName, eventValue);
+          if (!isSet) debug.warn('value not set eventname, eventvalue', eventName, eventValue);
 
           // when the soundfont filename changes, load the new soundfont and presets
           if (eventName == "soundfontfile") {
@@ -229,14 +230,10 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
         case GENERATORTYPE.Stochastic: {
           const newFormData: Stochastic = (prev as Stochastic).copy(prev.parent);
           newFormData.setAttribute(eventName, eventValue);
-
-          // any change to the form except the composition causes the 
-          // composition to clear
-          // if (eventName != 'composition') newFormData.values.composition = [];
           return newFormData;
         }
         default:
-          console.log(
+          debug.info(
             `generator dialog: improper generator type ${formData.type}`
           );
           return prev as Silent;

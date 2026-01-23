@@ -1,6 +1,7 @@
 import AudioFile from "classes/generators/audiofile";
 import { ChangeEvent, useEffect, useState } from "react";
 import { precision } from "sfcomponents/util";
+import { debug } from "utils/debug";
 
 // provides the form fields and validators for the sfperiodic generator
 export interface AudioFileDialogProps {
@@ -33,7 +34,7 @@ export default function AudioFileDialog(
         sampleRate: formData.sampleRate,
         length: formData.samples.length,
       });
-      console.log("file name", formData.fileName);
+      debug.info("AudioFileDialog: file name", formData.fileName);
     } else
       setFileData({
         name: null,
@@ -79,7 +80,7 @@ export default function AudioFileDialog(
         sampleRate: formData.sampleRate,
         length: formData.samples.length,
       });
-      console.log("file name", formData.fileName);
+      debug.info("AudioFileDialog: file name", formData.fileName);
       handleChange({
         target: { name: "filename", value: formData.fileName },
       } as ChangeEvent<HTMLInputElement>);

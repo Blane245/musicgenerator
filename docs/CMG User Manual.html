@@ -365,7 +365,7 @@ code {
           : 'default'
     });
   </script>
-<h1 id="stylenote-background-color-rgb114746color-whitepicture-displayblockmargin-left-automargin-right-autostylecomputer-music-generator-cmg-users-guide-version-410"><style>
+<h1 id="stylenote-background-color-rgb114746color-whitepicture-displayblockmargin-left-automargin-right-autostylecomputer-music-generator-cmg-users-guide-version-600"><style>
 .note {
 background-color: rgb(114,74,6);
 color: white;
@@ -376,17 +376,18 @@ margin-left: auto;
 margin-right: auto;
 }
 </style>
-Computer Music Generator (CMG) User's Guide, Version 4.1.0</h1>
+Computer Music Generator (CMG) User's Guide, Version 6.0.0</h1>
 <p><strong>Table of Contents</strong></p>
 <ul>
 <li><a href="#introduction">Introduction</a></li>
 <li><a href="#handling-cmg-files">Handling CMG Files</a>
 <ul>
 <li><a href="#create-a-new-cmgfile">Create a New CMG File</a></li>
-<li><a href="#open-a-cmg-file">Open a CMG File</a></li>
+<li><a href="#opening-a-cmg-file">Opening a CMG File</a></li>
 <li><a href="#save-a-cmg-file">Save a CMG File</a></li>
 </ul>
 </li>
+<li><a href="#edit-menu">Edit Menu</a></li>
 <li><a href="#tracks">Tracks</a></li>
 <li><a href="#generators">Generators</a>
 <ul>
@@ -394,6 +395,7 @@ Computer Music Generator (CMG) User's Guide, Version 4.1.0</h1>
 <ul>
 <li><a href="#silent">Silent</a></li>
 <li><a href="#algorithmic">Algorithmic</a></li>
+<li><a href="#stochastic">Stochastic</a></li>
 <li><a href="#audiofile">AudioFile</a></li>
 </ul>
 </li>
@@ -422,6 +424,14 @@ Computer Music Generator (CMG) User's Guide, Version 4.1.0</h1>
 <li><a href="#reporting">Reporting</a></li>
 </ul>
 </li>
+<li><a href="#intensity-transitions">Intensity Transitions</a></li>
+<li><a href="#cmg-database-editor">CMG Database Editor</a>
+<ul>
+<li><a href="#sequences">Sequences</a></li>
+<li><a href="#ensembles">Ensembles</a></li>
+</ul>
+</li>
+<li><a href="#random-numbers">Random Numbers</a></li>
 <li><a href="#glossary">Glossary</a></li>
 </ul>
 <h1 id="introduction">Introduction</h1>
@@ -429,20 +439,26 @@ Computer Music Generator (CMG) User's Guide, Version 4.1.0</h1>
 <p>The features of the CMG include:</p>
 <ul>
 <li>Retention of defined sound generation files between working sessions,</li>
-<li>The use of SoundFont files to produce Midi sounds,</li>
+<li>The use of SoundFont files to produce sampled sounds,</li>
+<li>Pitch vibrato and tremolo effects,</li>
+<li>Pitch sequencing,</li>
 <li>The separation of sound generators into tracks that mimics the parts in a music score,</li>
-<li>Three types of sound generators, one of which is silent,</li>
-<li>Room level sound reverb, compression, equalization, and volume controls, and</li>
+<li>Four types of sound generators, one of which is silent,</li>
+<li>Room level sound reverb, compression, equalization, and volume effects, and</li>
 <li>Previewing and recording of assembled compositions.</li>
 </ul>
 <p>An example of a composition in progress is shown here:</p>
-<p><img src="images/exampleinterface.png" alt="Example Composition"></p>
+<p align="center">
+  <img src="images/exampleinterface.png" width="100%" height: auto; alt="description">
+  <br>
+  <em>An example of a containing algorithmic generators composition</em>
+</p>
 <p>The layout of the screen includes a header section, a body section, and a footer section.</p>
 <ul>
 <li>
 <p>The header provides</p>
 <ul>
-<li>File, Edit, Generate, and Help pulldown menus,</li>
+<li>File, Edit, Tools, Play, and Help pulldown menus,</li>
 <li>the name of the application and its version,</li>
 <li>the name of the file currently being displayed, and</li>
 <li>timeline controls and display.</li>
@@ -452,21 +468,30 @@ Computer Music Generator (CMG) User's Guide, Version 4.1.0</h1>
 <p>The body provides the display and control of composition tracks and generators.</p>
 </li>
 <li>
-<p>The footer has a status message display area, and controls for room level reverberation, compression, equalization, and volume.</p>
+<p>The footer has a status message display area and controls for room level reverberation, compression, equalization, and volume.</p>
 </li>
 </ul>
+<p>All of these features are discussed in the sections that follow, from the top of the under interface to the bottom.</p>
 <h1 id="handling-cmg-files">Handling CMG Files</h1>
 <p>CMG files are handled by the <em><strong>File</strong></em> Menu Items:</p>
 <h2 id="create-a-new-cmgfile">Create a New CMGFile</h2>
 <ul>
-<li><em><strong>New File ...</strong></em> - When CMG starts, it has is ready to define a new composition file, default room volume, reverb, compressor, and equalizer settings, and no tracks or generators. At any time, this can be selected to clear the existing workspace. If changes have been made to the workspace since the last save, you will prompted to confirm that you want to delete these changes without saving:
-<img src="./images/ConfirmNewFile.png" alt="alt text"></li>
+<li><em><strong>New File ...</strong></em> - When CMG starts, it has is ready to define a new composition file. Room volume, reverb, compressor, and equalizer settings are set to defaults, and no tracks or generators are present. At any time, this can be selected to clear the existing workspace. If changes have been made to the workspace since the last save, you will prompted to confirm that you want to delete these changes without saving:</li>
 </ul>
+<p align="center">
+  <img src="./images/ConfirmNewFile.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>Confirm file contents deletion popup</em>
+</p>
 <blockquote>
 <div class="note">*Note: The CMG screen header shows the name of the file currently being edited. If changes have been made since the last save, an asterisk <span style='color:lightblue'>(*)</span> will follow the file name.</div><br/>
 </blockquote>
-<p><img src="./images/TitleLine.png" alt="alt text"></p>
-<h2 id="open-a-cmg-file">Open a CMG File</h2>
+<p align="center">
+  <img src="./images/TitleLine.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>CMG title line</em>
+</p>
+<h2 id="opening-a-cmg-file">Opening a CMG File</h2>
 <ul>
 <li><em><strong>Open File ...</strong></em> - CMG files are opened by clicking the menu item <em><strong>Open File...</strong></em> button or by pressing <strong>ctrl-o</strong> on the keyboard. Files with the extent of <em><strong>.cmg</strong></em> are displayed and the one selected will be read. This includes all of the items that were saved (timeline, room compressor, room equalizer, room volume, room reverb settings, and all tracks and generators). If the file is not in proper format, a status message will be displayed and the file will not be opened. When a file is opened, it is placed on the top of the recent files list.</li>
 </ul>
@@ -480,25 +505,70 @@ Computer Music Generator (CMG) User's Guide, Version 4.1.0</h1>
 </ul>
 <h2 id="open-recent">Open Recent</h2>
 <ul>
-<li><em><strong>Open Recent...</strong></em> - Selecting this option will cause a list of up to 10 recently opened or saved files to be listed. The selected file will be read and placed on teh top of the recent files list.</li>
+<li><em><strong>Open Recent...</strong></em> - Selecting this option will cause a list of up to 10 recently opened or saved files to be listed. The selected file will be read and placed on the top of the recent files list.<div class="note">*Note: Long projects contain a lot of data and take some time to create. <span style='font-weight:bold;font-style:italic'>Ensure the file is fully saved before existing CMG or shutting done the computer. </span> The <span style='color:lightblue'>Status Bar</span> at the bottom shows a message when the file has been saved and the <span style='color:lightblue'>(*)</span> will disappear from the title line.</div>
+</li>
 </ul>
-<blockquote>
-<div class="note">*Note: Long projects contain a lot of data and take some time to create. <span style='font-weight:bold;font-style:italic'>Ensure the file is fully saved before existing CMG or shutting done the computer. </span> The <span style='color:lightblue'>Status Bar</span> at the bottom shows a message when the file has been saved and the <span style='color:lightblue'>(*)</span> will disappear from the title line.</div>
-</blockquote>
-<h1 id="tracks">Tracks</h1>
-<p>A computer generated piece of music is constructed by defining tracks and placing generators along them at various start time and end times. By clicking the menu item <em><strong>New Track</strong></em> button a new track is added to the end of the list of existing tracks.</p>
-<p>The new track is given a unique name that starts with <em><strong>T</strong></em> and ends with a number which is unique from all other existing tracks. The track is displayed with a control section on the left side and a timeline display on the right.</p>
-<p><img src="./images/TrackControl.png" alt="Track Control Section"></p>
-<p>The control section displays the name of the track and provides several track level functions:</p>
+<h1 id="edit-menu">Edit Menu</h1>
+<p>This edit menu has three options:</p>
 <ul>
 <li>
-<p><strong>Delete</strong> - A track may be deleted by clicking this button. A track delete confirmation screen is displayed requesting confirmation of the deletion.</p>
-<p><img src="./images/ConfirmTrackDelete.png" alt="alt text"></p>
+<p><strong>Add Track:</strong> A computer generated piece of music is constructed by defining tracks and placing generators along them at various start time and end times. By selecting this option a new track is added to the end of the list of existing tracks. The new track is given a unique name that starts with <em><strong>T</strong></em> and ends with a number which is unique from all other existing tracks. The track is displayed with a control section on the left side and a timeline display on the right. See <a href="#tracks">Tracks</a> for more details.</p>
 </li>
 <li>
-<p><strong>Rename</strong> - A track may be renamed as long as the new name is different from existing track names.</p>
-<p><img src="./images/RenameTrack.png" alt="alt text"></p>
-<p>The new name for the track must be different from all other existing tracks. If it is not, a message will be displayed at the bottom of the rename panel. The panel can be dismissed by clicking the <span style='color:lightblue'>x</span> at the upper left hand corner of the panel.</p></p>
+<p><strong>Edit Preferences:</strong> CMG has preferences that apply both globally and to a CMG file specifically. When this option is selected, the following dialog window is displayed:</p>
+<p align="center">
+  <img src="./images/EditPreferences.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>The dialog that changes global and composition preferences</em>
+</p>
+<p>The global preferences are:</p>
+<ul>
+<li><strong>Soundfont Directory:</strong> This tells CMG where the soundfont files are located in the computer's file system. Use the fully qualified path to the directory containing the soundfont files. When the preferences are saved, the soundfont directory list is loaded and a message is display indicating how many soundfont files are available. If none are located or the directory does not exist, an error message is displayed.</li>
+<li><strong>Record Format:</strong> Compositions may be recorded in either <em>WAV</em> or <em>MP3</em> format. Select the desired option.</li>
+</ul>
+<p>The CMG file-specific options are save with the CMG file and are:</p>
+<ul>
+<li>
+<p><strong>Time Line Mode:</strong> This is either <em>Time</em> or <em>Measure</em>. This setting may also be changed on the time line.</p>
+</li>
+<li>
+<p><strong>Measure Length (sec):</strong> This is the duration of a measure and must be greater than zero.</p>
+</li>
+<li>
+<p><strong>Beats per Measure:</strong> This is the number of beats in a measure.</p>
+</li>
+<li>
+<p><strong>Snap Mode:</strong> Snap mode is used when moving generators. See <a href="#moving-a-generator-within-its-track">Moving a Generator Within Its Track</a> for details.</p>
+</li>
+<li>
+<p><strong>Snap Increment:</strong> This is the snap resolution in either seconds or beats, depending on whether the time line is in <em>Time</em> or <em>Measure</em> display mode.</p>
+</li>
+<li>
+<p><strong>FFT Size:</strong> While a composition is being previewed, the frequency amplitudes and volumes of the left and right channels are displayed. This parameter affects the resolution of the fast fourier transforamtion that is used to produce these results. It show be a multiple of 256.</p>
+</li>
+<li>
+<p><strong>Frequency Display:</strong> The frequency amplitudes can be displayed as a spectra or as a sonogram.</p>
+<div class="note">*Note: High FFT size and sonogram displays can have performace problems that effect the audio playback.</div>
+</li>
+</ul>
+<p>When the <em>Save</em> button is pressed all preferences are updated.</p>
+</li>
+<li>
+<p><strong>Edit Comment:</strong> Each CMG file has a comments associated with it. By selecting the option, the comment may be modified through a popup window.</p>
+</li>
+</ul>
+<h1 id="tracks">Tracks</h1>
+<p>A track is displayed with a control section and a time section.</p>
+<p align="center">
+  <img src="./images/TrackControl.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>The track control section with its various control and menu buttons</em>
+</p>
+<p>The control section displays the name of the track and provides several track level functions:</p>
+<li><b><i>Delete:</i></b> <img src="./docs/images/icons/edit.svg" width="20px" height: auto; alt="description"> A track may be deleted by clicking this button. A track delete confirmation screen is displayed requesting confirmation of the deletion. </li>
+<ul>
+<li>
+<p><strong>Rename</strong> - A track may be renamed as long as the new name is different from existing track names. The new name for the track must be different from all other existing tracks. If it is not, a message will be displayed at the bottom of the rename panel. The panel can be dismissed by clicking the <span style='color:lightblue'>x</span> at the upper left hand corner of the panel.</p></p>
 </li>
 <li>
 <p><strong>Solo</strong> - A track may be soloed when previewing or recording. All tracks that are soloed are played together and others are ignored. A track is taken in and out of solo each time the button is clicked. The track solo setting is ignored when a timeline interval is active. See the Section on the <a href="#timeline-interval">Timeline Interval</a> for more details.</p></p>
@@ -513,65 +583,94 @@ Computer Music Generator (CMG) User's Guide, Version 4.1.0</h1>
 <p><strong>Move Down</strong> - When this button is clicked, the track is moved below the track immediately below it. The lowest most track cannot be moved down.</p>
 </li>
 <li>
+<p><strong>Tools</strong> - By clicking this button, a menu is displayed with the following options.
+<strong>Duplicate</strong> - A track with all of its generators may be duplicated. The new track will have a new name along with all of the generators with new names. The new track is placed at the end of the track list.
+<strong>Shift</strong> - All of the generators may be shifted in time either left or right. A popup will ask for the number of seconds to shift the track. A shift to the left must not cause any of the generators to start before zero seconds.
+<strong>Volume</strong> - The volume of all of the generators in the track may be raised or lower by a number of dB. This volume is added to the volume of the generator at each time volume is evaluated.
+<strong>Exit</strong> - The track menu removed from the display.</p>
+</li>
+<li>
 <p><strong>Add Generator</strong> - When this button is clicked, a menu is displayed providing a list of generator type that can be added to the track. The initial name of the generator is unique to all generators in the file. See <a href="#editing-generators">Editing Generators</a> for more details about adding and editing generators.</p>
 </li>
 </ul>
+<h1 id="time">Time</h1>
+<p>The basic time unit of CMG is the second. Time may be displayed and entered in measures and beats by defining the length of a measure in seconds and how many beats there are in a measure. The time line may be displayed in measures and generator times may be entered in measures and beats. This feature is available at the composition level and may not be changed in a composition. This is a very limited capability as measures and beats can change timing by time signature, ritards, and accelerations. In these cases, it is not recommended that the measure/beat feature be used. See details below in the time line and generator sections.</p>
 <h1 id="generators">Generators</h1>
 <p>Each generator is placed on a track at its start time and extends to its stop time. The name of a generator must be unique within the CMG file to which is belongs. A visual example of tracks and generators is shown in the example above.</p>
-<p>In this figure are shown tracks, each of which has zero or more generators. All of the tracks, except the last, have been renamed and their names are unique. All of the other generators are of the <em><strong>Algorithmic</strong></em> type.</p>
+<p>In the example figure earlier are shown multiple tracks, each of which has one or more generators. All of the tracks, except the last, have been renamed and their names are unique. All of the generators are of the <em><strong>Algorithmic</strong></em> type.</p>
 <h2 id="editing-generators">Editing Generators</h2>
 <p>Generators are the heart of CMG. There can be as many generators in a CMG file
-as is needed to produce the composition desired. There are three types of generators: one silent and two sound producers.</p>
-<p>The <em><strong>Algorithmic</strong></em> generator type uses SoundFont presets. Each preset has a bank, channel number, and name. More information about SoundFont presets can be found in the <a href="https://www.synthfont.com/Tutorial6.html">SynthFont[1] tutorial, part 6</a>.</p>
+as is needed to produce the composition desired. There are four types of generators: one silent and three sound producers.</p>
+<p>The <em><strong>Algorithmic</strong></em> and <em><strong>Stochastic</strong></em> generator types uses SoundFont presets. Each preset has a bank, channel number, and name. More information about SoundFont presets can be found in the <a href="https://www.synthfont.com/Tutorial6.html">SynthFont[1] tutorial, part 6</a>.</p>
 <h2 id="generator-types">Generator Types</h2>
 <h3 id="silent"><strong>Silent</strong></h3>
-<p>The silent generator contains the name of the generator, its type (<em>Silent</em>), and its start and stop times. No sound is created by a silent generator. It can be used to offset the start of a composition or extend the ending to allow reverberation to die down.</p>
-<p>The figure below shows the panel for adding a new Silent generator. There is an <strong>Add</strong> Button. When a generator is modified, the button is displayed as <strong>Modify</strong>. Add and Modify functions may be canceled by clicking the <em><strong>x</strong></em> in the upper left-hand corner of the panel or by clicking the <strong>Cancel</strong> button.
-<img src="./images/SilentEdit.png" alt="alt text">
-The fields below are common to all generator types.</p>
-<ul>
-<li><strong>Name:</strong> The name of the generator must be unique within all generators in the file. When a new generator is created the default name is a 'G' followed by a unique number.</li>
-<li><strong>Start Time:</strong> This is the time that the generator will start, in seconds, It must be greater than or equal to zero. When the start time is changed, the stop time is automatically changed to maintain the original duration.</li>
-<li><strong>Stop Time:</strong> This is the time that the generator will stop. It must be greater than the <em>Start Time</em>.</li>
-</ul>
+<p>The silent generator contains the name of the generator, start time, and stop time. No sound is created by a silent generator. It can be used to offset the start of a composition or extend the ending to allow reverberation to die down.</p>
+<p>The figure below shows the panel for adding a new Silent generator. There is an <strong>Add</strong> Button. When a generator is modified, the button is displayed as <strong>Modify</strong>. Add and Modify functions may be canceled by clicking the <em><strong>x</strong></em> in the upper left-hand corner of the panel or by clicking the <strong>Cancel</strong> button.</p>
+<p align="center">
+  <img src="./images/SilentEdit.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>The silent generator add/modify dialog</em>
+</p>
+The fields below are common to all generator types.
+* **Name:** The name of the generator must be unique within all generators in the file. When a new generator is created the default name is a 'G' followed by a unique number. 
+* **Start Time:** This is the time that the generator will start, in seconds, It must be greater than or equal to zero. When the start time is changed, the stop time is automatically changed to maintain the original duration.
+* **Stop Time:** This is the time that the generator will stop. It must be greater than the *Start Time*.
+<p>When displaying time in measure form, the start and stop times are entered in measure and beat as illustrated below. This mode of time entry is not recommended when the time length of a measure or the number of beats in a measure varies</p>
+<p align="center">
+  <img src="./images/SilentEditMeasure.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>The silent generator add/modify dialog when in measure mode</em>
+</p>
 <p>Each generator edit panel has a <em><strong>Preview</strong></em> button that can be used to preview the sound of the generator. In the case of a <em>Silent</em> generator, no sound will be produced.</p>
 <h3 id="algorithmic">Algorithmic</h3>
-<p>When the generator type of <em>Algorithmic</em> is added or one is edited, the Add/Edit panel for that type is displayed:
-<img src="./images/AlgorithmicEdit1.png" alt="alt text">
-This figure illustrates the initial display when a new Algorithmic generator is being added. Note that the algorithm assigned to note, attack, speed, duration, volume, and pan is <em><strong>Constant</strong></em> and all values are zero except duration which defaults to 100%.
-The fields and their restrictions are defined as follows:</p>
+<p>When the generator type of <em>Algorithmic</em> is added or one is edited, the Add/Edit panel for that type is displayed:</p>
+<p align="center">
+  <img src="./images/AlgorithmicEdit1.png" width="100%" height: auto; alt="description">
+  <br>
+  <em>The algorithmic generator add dialog </em>
+</p>
+This figure illustrates the initial display when a new Algorithmic generator is being added. Note that the algorithm assigned to note, attack, speed, duration, volume, and pan is ***Constant*** and all values are set to defaults.
+The fields and their restrictions are defined as follows: 
 <ul>
-<li>
-<p><strong>SoundFont File:</strong> Each Algorithmic generator may have a different SoundFont file. SoundFont files contain sample-based synthesized sounds that are most frequently used by MIDI (Musical Instrument Digital Interface) devices. There are hundreds of SoundFont files existing today. This application has a small collection of them available. More can be added as desired. It is selected from the list of those available using the selection pulldown:</p>
-<p><img src="./images/SoundFont Selection.png" alt="SoundFont File Selection"></p>
-<p>More information about SoundFont files can be found in <a href="https://en.wikipedia.org/wiki/SoundFont">Wikipedia</a>.</p>
-</li>
-<li>
-<p><strong>Preset:</strong> This is a selection list that identifies which SoundFont preset is to be used by the generator. No preset is available until the SoundFont file has been identified. The presets display their bank, channel number, and name. Only presets available within the SoundFont file can be selected. A SoundFont file and preset must have been selected before an Algorithmic generator can be added.</p>
-</li>
+<li><strong>SoundFont File:</strong> Each Algorithmic generator may have a different SoundFont file. SoundFont files contain sample-based synthesized sounds that are most frequently used by MIDI (Musical Instrument Digital Interface) devices. There are hundreds of SoundFont files existing today. A web site that contains quite a few is <a href="https://www.polyphone.io/">Polyphone</a>. CMG supports files with extent .sf2 and .SF2. The user places Soundfont files in a directory accessible by the application. More can be added as desired. It is selected from the list of those available using the selection pulldown. More information about SoundFont files can be found in <a href="https://en.wikipedia.org/wiki/SoundFont">Wikipedia</a>.</li>
+<li><strong>Preset:</strong> This is a selection list that identifies which SoundFont preset in teh SoundFont file is to be used by the generator. No preset is available until the SoundFont file has been identified. The presets display their bank, channel number, and name. Only presets available within the SoundFont file can be selected. A SoundFont file and preset must have been selected before an Algorithmic generator can be added. A <em>Vew Preset</em> button is included to enable a view of teh preset based on the conditions of the generator. A lot of technical information is displayed which gives the information needed to define how the preset sound if modified based on its instruments, delay, attack, hold, sustain, and release profile.</li>
+</ul>
+<p align="center">
+  <img src="./images/PresetDialog.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>The view of a preset's properties using the <b>View Preset button</b></em>
+</p>
+<ul>
 <li>
 <p><strong>Looping:</strong> Instrument samples contain sounds that are produced for a certain amount of time. If the sound needs to be played for longer than the sample, then a sample loop is defined. This is part of the SoundFont protocol. This option allows the default behavior to be overridden such that no looping will be done.</p>
 </li>
 <li>
-<p><strong>View Preset</strong> - This button is used to view the details of a preset and a specific pitch number, attack, interval, duration, and volume. The number of samples, playback rate, delay, attack, hold, decay, sustain release times, and the sustain level and attenuation can be viewed for each instrument in the preset. The gain envelopes for all of the instruments in the preset also appear.
-<img src="./images/PresetDialog.png" alt="Preset Dialog"></p>
+<p><strong>Attack Enabled:</strong> SoundFont presets contain one or more instrument sounds. These instruments have delay, attack, hold, decay, and release profiles. The delay and attack potion of this profile can be disabled if the generated sound appears to be overemphasizes the attack.</p>
 </li>
 <li>
-<p><strong>Frequency&lt;-&gt;Midi</strong> - This button provides a tool to convert between tone frequency and pitch number.</p>
-</li>
-<li>
-<p><strong>Rhythm</strong> - The beat of the sequence of notes (tones) is determined by a <a href="https://en.wikipedia.org/wiki/Euclidean_rhythm">Euclidean Rhythm</a> algorithm. The beats that are silent will cause a note to be not heard on that beat. For example, a rhythm that has 4 beats in a measure with 3 of them on will produce a 3/4 rhythm with the first 3 'on' and the last one silent. This is particularly useful when applied to percussive voices, but can be applied to any voice. Rhythm is defined by the following fields:</p>
+<p><strong>Tools</strong> This buttons causes a menu to be displayed that has the following options available:</p>
 <ul>
-<li><strong>Measure Length:</strong> The number of beats in a measure. This is an integer greater than zero.</li>
-<li><strong>On Beats:</strong> The number of non-silent beats in a measure. This number must be greater that zero and less than or equal to Measure Length.</li>
+<li><strong>Frequency&lt;-&gt;Midi</strong> - This button provides a tool to convert between tone frequency and pitch number.</li>
 </ul>
 </li>
 <li>
-<p><strong>Notes in Octave:</strong> This is how many notes to be used within an octave. The actual notes are determined by a Euclidean Rhythm algorithm where the larger number is 12. For example, if the number of notes in an octave is 7, the notes selected are (0, 2, 3, 5, 7, 8, 10). If primary note is C, the notes to be used in the octave are C, D, D#(Eb), F, G, G#(Ab), and A#(Bb). When a note is generated by one of the algorithms described below, it is moved to the closed selectable note in the octave. If the notes in the octave are set to 12, then all notes are selectable.
-<a id="randomseed"></a></p>
+<p><strong>Tremolo Definition:</strong> Tremolo is defined as the change in volume of a sound. CMG uses a user-selectable wave form to produce the tremolo effect. By setting th speed or depth to zero, no tremolo affect is added.</p>
+<ul>
+<li><strong>Tremolo Speed (mHz):</strong> This is how fast the tremolo is varied.</li>
+<li><strong>Tremolo Depth (dB):</strong> This is teh strength of the tremolo.</li>
+<li><strong>Wave Form:</strong> This allows the selection of one of several modulators for varying the tremolo effect.</li>
+</ul>
 </li>
 <li>
-<p><strong>Noise Seed:</strong> The is a character string that is used to seed the random number sequence for Gaussian noise. It defaults to the 'seed', which is not a particularly good value and should be changed. Each of the generators has its own seed. This can be the same as another generator if it is desired to have the generators Gaussian noise sequences coupled. See <a href="https://stackoverflow.com/questions/16801687/javascript-random-ordering-with-seed">this</a> for a good discussion on generating random numbers.</p>
+<p><strong>Vibrato Definition:</strong> Vibrato is defined as the change in pitch of a sound. CMG uses a user-selectable wave form to produce the vibrato effect. By setting th speed or depth to zero, no vibrato affect is added.</p>
+<ul>
+<li><strong>Vibrato Speed (mHz):</strong> This is how fast the tremolo is varied.</li>
+<li><strong>Vibrato Depth (dB):</strong> This is teh strength of the tremolo.</li>
+<li><strong>Wave Form:</strong> This allows the selection of one of several modulators for varying the vibrato effect.</li>
+</ul>
+</li>
+<li>
+<p><strong>Noise Seed:</strong> The is a character string that is used to seed the random number sequence for Gaussian noise. See the section on <a href="#random-numbers">random Numbers</a>for more detail about seeds and random numbers.</p>
 </li>
 <li>
 <p><strong>Noise Frequency:</strong> <a href="https://en.wikipedia.org/wiki/Gaussian_noise">Gaussian noise</a> can be applied to the generated notes as frequency modulation noise. The noise frequency is added to the original note's frequency and then combined with the original signal.</p>
@@ -585,22 +684,38 @@ The fields and their restrictions are defined as follows:</p>
 <li>
 <p><strong>Reverb Decay:</strong> This is the decay component of preset reverberation, in seconds. Both duration and decay must be nonzero to have reverberation applied.</p>
 </li>
-</ul>
-<p>The values of the sound attributes can be determined by one of three algorithms. These algorithms are discussed below.</p>
+<li>
+<p><strong>Rhythm</strong> - The beat of the sequence of notes (tones) is determined by a <a href="https://en.wikipedia.org/wiki/Euclidean_rhythm">Euclidean Rhythm</a> algorithm. The beats that are silent will cause a note to be not heard on that beat. For example, a rhythm that has 4 beats in a measure with 3 of them on will produce a 3/4 rhythm with the first 3 'on' and the last one silent. This is particularly useful when applied to percussive voices, but can be applied to any voice. Rhythm is defined by the following fields:</p>
 <ul>
-<li>Note - This determines which note is to be used from the selected SoundFont preset. Sometimes call the pitch number, a note may be fractional so that it lies between two integer pitch numbers.</li>
+<li><strong>Measure Length:</strong> The number of beats in a measure. This is an integer greater than zero.</li>
+<li><strong>On Beats:</strong> The number of non-silent beats in a measure. This number must be greater that zero and less than or equal to Measure Length.</li>
+<li><strong>Beat Shift Amount:</strong> The beat pattern generated by the Euclidean rhythm algorithm may be shifts left or right as desired.</li>
+</ul>
+</li>
+<li>
+<p><strong>Notes in Octave:</strong> This is how many notes to be used within an octave. The actual notes are determined by a Euclidean Rhythm algorithm where the larger number is 12. For example, if the number of notes in an octave is 7, the notes selected are (0, 2, 3, 5, 7, 8, 10). If primary note is C, the notes to be used in the octave are C, D, D#(Eb), F, G, G#(Ab), and A#(Bb). When a note is generated by one of the algorithms described below, it is moved to the closed selectable note in the octave. If the notes in the octave are set to 12, then all notes are selectable.</p>
+</li>
+</ul>
+<h4 id="sound-attributes">Sound Attributes</h4>
+<p>The values of the sound attributes can be determined by one of six algorithms. These algorithms are discussed below.</p>
+<ul>
+<li>Note - This determines which pitch is to be used from the selected SoundFont preset. Sometimes call the midi number, a note may be fractional so that it lies between two integer pitch numbers.</li>
 <li>Attack - This defines the preset velocity representing how fast a key was pressed. Higher velocities cause instruments to be added to the preset that have rapid attack profiles.</li>
 <li>Speed - This determines the rate at which notes will be played. It is expressed in beats per minute (BPM).</li>
 <li>Duration - This is used to introduce a staccato effect to a note. Any value less that 100% will cause the note to be shortened during its performance period.</li>
-<li>Volume - The volume of a selected note is expressed in decibels (dB) relative to the original sample level. Every dB reduces or increases the signal level by 2.</li>
+<li>Volume - The volume of a selected note is expressed in decibels (dB) relative to the original sample level.</li>
 <li>Pan - The sound of the note can be panned left (-1) and right (1). Zero (0) is the pan center.</li>
 </ul>
-<p>Each of the note, attack, speed, duration, volume, and pan attributes must have an algorithm assigned. The initial value is <em>Constant</em>; however, this must be changed to one of those listed below. The figure below shows an example of an Algorithmic generator that has different algorithms assigned to the attributes.
-<img src="./images/AlgorithmicEdit2.png" alt="alt text"></p>
+<p>Each of the attributes must have an algorithm assigned. The initial value is <em>Constant</em>, which assigns a single value to the attribute during its entire interval. The figure below shows an example of an Algorithmic generator that has different algorithms assigned to the attributes.</p>
+<p align="center">
+  <img src="./images/AlgorithmicEdit2.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>An algorithmic generator using a mixture of attribute algorithms. </em>
+</p>
 <blockquote>
 <blockquote>
 <blockquote>
-<div class="note">*Note: Midi numbers range from 0 to 127 and correspond to tones of C0 to G9 from the Acoustical Society at https://acousticalsociety.org/. When a pitch number is entered, its note name is displayed next to the entry box. Fractional numbers may be entered. For example is 60.5 is entered the note name is displayed as *C4+50*</div>
+<div class="note">*Note: Pitch ranges from 0 to 127 and correspond to tones of C0 to G9 from the Acoustical Society at https://acousticalsociety.org/. When a pitch is entered, its name is displayed next to the entry box. Fractional numbers may be entered. For example is 60.5 is entered the note name is displayed as <i>C4+50</i></div>
 </blockquote>
 </blockquote>
 </blockquote>
@@ -625,24 +740,25 @@ The states are</p>
 <li>move the value up</li>
 <li>move the value down</li>
 </ul>
-<p>The transition between states in illustrated here</p>
-<p><img src="./images/statetransitions.png" alt="alt text"></p>
 <p>Each sequence is bounded by a lower and upper limit and each move is done with a given step size. When an attribute hits an upper or lower limit, the value is reversed. For example, if pan is already at its upper limit (1 or right) and the suggested value is to move further up (right), the value is changed to move down (left). Thus, the containment walls are not 'sticky'.</p>
-<p>The transition probabilities from one state to the itself and the others must be between 0 and 1 and add up to 1. If the transition probabilities are such that the same state is never left, the attribute value will always be its starting value.</p>
 <ul>
-<li><strong>Seed:</strong> This is a character string that is used to start the random number sequence for this generator. See <a href="#randomseed">this</a> for further discussion about random seeds.</li>
+<li><strong>Seed:</strong> This is a character string that is used to start the random number sequence for this generator. See <a href="#random-numbers">this</a> for further discussion about random seeds.</li>
 <li><strong>Start Value:</strong> This is the value where the sequence of values for attribute starts. It must be between <em>Lo</em> and <em>Hi</em>.</li>
 <li><strong>Lo:</strong> This is the lowest value that can be assigned to the attribute. It must be smaller than the hi value.</li>
 <li><strong>Hi:</strong> This is the highest value that can be assigned to the attribute. It must be larger than the lo value.</li>
 <li><strong>Step:</strong> This is number to add or subtract from the current attribute to determine the next value when a state is changed. It must be less than or equal to the difference between <em>range hi</em> and <em>range lo</em>.</li>
 </ul>
-<p>The rest of the fields define state transition probabilities between the various states of the Markov Chain for the attribute. At any time, an attribute has a specific value. When it is time to obtain a new value, a transition from one state to the next is determined by drawing a random number. Each of the 9 transitions may have a different value but the sum of the three transitions out of a state and into another must sum up to one and each must be less than or equal to 1 and greater than or equal to 0. The figure below illustrates a example of the note attribute value will never stay at the same value and will have a probably of 0.5 of going either up or down.
-<img src="./images/MarkovianExample.png" alt="alt text"></p>
+<p>The rest of the fields define state transition probabilities between the various states of the Markov Chain for the attribute. At any time, an attribute has a specific value. When it is time to obtain a new value, a transition from one state to the next is determined by drawing a random number. Each of the 9 transitions may have a different value but the sum of the three transitions out of a state and into another must sum up to one and each must be less than or equal to 1 and greater than or equal to 0. The figure below illustrates a example of the note attribute value will never stay at the same value and will have a probably of 0.5 of going either up or down.</p>
+<p align="center">
+  <img src="./images/MarkovianExample.png" width="100%" height: auto; alt="description">
+  <br>
+  <em>An example of a markovian algorithm used for the speed attribute</em>
+</p>
 </li>
 <li>
 <p><strong>Wiener</strong> This generator uses the <a href="https://en.wikipedia.org/wiki/Wiener_process">Wiener Process</a> to create a random walk or Brownian motion of the attribute. It starts at some value and randomly walks with a trend and dispersion at each beat. A zero trend will keep the random walk centered around the initial value. A negative trend decrease the value over time, and a positive trend increases the value. The dispersion affects how far from the trend line the value will be. Dispersion increases over time.</p>
 <ul>
-<li><strong>Seed:</strong> This is a character string that is used to start the random number sequence for this generator. See <a href="#randomseed">this</a> for further discussion about random seeds.</li>
+<li><strong>Seed:</strong> This is a character string that is used to start the random number sequence for this generator. See <a href="#random-numbers">this</a> for further discussion about random seeds.</li>
 <li><strong>Initial Value:</strong> This is the value where the sequence of values for attribute starts. It must be between <em>Lo</em> and <em>Hi</em>.</li>
 <li><strong>Trend:</strong> This is the rate at which the average value of the attribute walks away from the initial value. It is in 1/seconds. For example, if the trend is 1, then the average value of the attribute will increase by one each second. If the trend is zero average value is the initial values. Trend may be negative</li>
 <li><strong>Dispersion:</strong> This is the amount of dispersion in the random walk. It is in the rather strange units of 1/sqrt(seconds). If dispersion is zero, only a trend will occur.</li>
@@ -654,7 +770,7 @@ The states are</p>
 <p><strong>Autoregressive</strong> This algorithm uses a first-order <a href="https://en.wikipedia.org/wiki/Autoregressive_model">Autoregressive Model</a> to create a series of values with some persistence. The next value in the series is determined using weighting the previous value and adding a uniformly distributed random number.</p>
 <p>The autoregressive model has the following inputs:</p>
 <ul>
-<li><strong>Seed:</strong> This is a character string that is used to start the random number sequence for this generator. See <a href="#randomseed">this</a> for further discussion about random seeds.</li>
+<li><strong>Seed:</strong> This is a character string that is used to start the random number sequence for this generator. See <a href="#random-numbers">this</a> for further discussion about random seeds.</li>
 <li><strong>Initial Value:</strong> This is the value where the sequence of values for attribute starts. It must be between <em>Lo</em> and <em>Hi</em>.</li>
 <li><strong>Alpha:</strong> The value of $\alpha$ in the formula above</li>
 <li><strong>Dispersion:</strong> This value of $\sigma$ in the formula above.</li>
@@ -663,49 +779,95 @@ The states are</p>
 </ul>
 <p>The values are restricted to the <em>lo-hi</em> interval.</p>
 </li>
+<li>
+<p><strong>Sequencer:</strong> This algorithm uses a defined list of values in a sequence. Each value has a duration, given in beats. Sequences are stored in a CMG Sequence Database and are defined by the user through the CMG Sequence Editor application. See <a href="#cmg-database-editor">CMG Database Editor</a>. The length of time of a beat is determined by the <em>Measure Length</em> and <em>Beats per Measure</em> settings.</p>
+<div class="note">Note: Sequences only apply to the note attribute.</div>
+<p>The sequencer has a five controls:</p>
+<ul>
+<li><strong>Sequence Name:</strong> This is the name of the desired sequence as it exists in the CMG Database for the selected attribute. When a sequence is selected for the note attribute the <em>Stop Time</em> will be changed to the sum of the <em>Start Time</em> and the sum of all of the beats in the selected sequence. The <em>Stop Time</em> can be subsequently changed if desired.</li>
+<li><strong>Transposition:</strong> This is an additive factor that changes the values of the sequence either up or down and is used primarily to change the key of a note sequence; however, it can be used to modify sequences assign to other attributes. Transposition may be positive, zero, or negative.</li>
+<li><strong>Reverse Sequence?</strong> A handy littel feature that reverses the sequence in time. The last value and beat is first and the first value and beat is last.</li>
+<li><strong>Reflect Sequence?</strong> Another handy feature that reflects the sequence about the <strong>Reflect Pitch</strong> value. For example if a note is 60 (C4) and the reflect pitch is 62 (D4), the resulting pitch is 64 (E4), which is the difference between C4 and D4 added to D4. Note reflect will keep the result note between 0 and 127.</li>
 </ul>
+</li>
+</ul>
+<h3 id="stochastic">Stochastic</h3>
+<p>In keeping with the strong influence that Iannis Xenakis has had on this work, a Stochastic generator is provided. This generator creates composition structures and sound cloud using stochastic first principles. A number of user controls are provided. The Stochastic generator uses the <em>Ensemble</em> portion of the CMG database to define voices that used by the stochastic the ensemble. The theory of stochastic music generation can be found in his book mentioned in the introduction.</p>
+<p>The stochastic generator dialog of a fully developed composition is shown in the following figure.</p>
+<p align="center">
+  <img src="./images/StochasticGenerator.png" width="100%" height: auto; alt="description">
+  <br>
+  <em>A fully realized stochastic generator</em>
+</p>
+<p>A stochastic composition is a two dimensional matrix of cells. One dimension is time and the other is voice. The following figure illustrates the compositional structure of Xenakis' piece <em>Achorripsis</em>. Time is on axis and voice is the other vertical axis. Each entry in the matrix is called a 'cell'. The cells contain zero or more 'sound events' also called 'clouds'.</p>
+<p align="center">
+  <img src="./images/StochasticComposition.png" width="100%" height: auto; alt="description">
+  <br>
+  <em>The composition matrix of Achorripsis</em>
+</p>
+<p>The definition of this type of generator include composition parameters, dynamic parameters, ensemble voices, and the composition matrix.</p>
+<ul>
+<li>
+<p><strong>Composition Parameters:</strong> These parameters effect how the composition is built. If any of them are changed, the current composition will be erased.</p>
+<ul>
+<li><strong>Ensemble:</strong> A stochastic generator must have an ensemble of voices to build upon. Ensembles are discussed further in the <a href="#cmg-database-editor">CMG Database Edit</a> section of this document.</li>
+<li><strong>Length (sec):</strong> The total length in time of the composition. In actuality, the composition may be slightly longer while voices end after the final time interval.</li>
+<li><strong>Time Cells:</strong> Stochastic compositions are divided into time cells of equal length. The length of each cell is the total length of the composition divided by the number of time cells. For example, a composition that has a total length of 100 seconds divided into 20 cells will have cells that are 5 seconds long.</li>
+<li><strong>Event/Cell:</strong> This is the average number of events that are to occur during in each cell. An event is a 'sound cloud'. A sound cloud is a sequence of tones from a single source, e.g., a group of notes played by a trumpet.
+<note></li>
+<li><strong>Composition Seed:</strong> This is a character string that is used to start the random number sequence for the composition of this generator. See <a href="#random-numbers">this</a> for further discussion about random seeds.</li>
+</ul>
+</li>
+<li>
+<p><strong>Dynamics Parameters:</strong> These parameters effect how the sound sources are built from the composition. Changes to them do not erase the current composition.</p>
+<ul>
+<li><strong>Sounds/second:</strong> This is the average number of sounds per second produced by each active voice in the ensemble.</li>
+<li><strong>Dynamics Seed:</strong> This is a character string that is used to start the random number sequence for this generator. See <a href="#random-numbers">this</a> for further discussion about random seeds.</li>
+<li><strong>Pan Controls:</strong> The spatial location of the sound can be moved from left to right using these controls.
+<ul>
+<li><strong>Scope</strong> Pan can be applied to either all of the voices in the composition, to each voice individual, or to each sound cloud separately. If there is only one cloud in a composition cell, this is the same as voice application.</li>
+<li><strong>Method</strong> The pan method can be 'glide' or 'walk'. In the glide case, a random interval is selected and the pan changes from its current value to the next value, which is then used as the next current value. The glide time is a random number whose average is <strong>Cycle Time (sec)</strong>. In the 'walk' case, a random place from left to right is picked, and the pan changes to that pan through the <strong>Cycle Time (sec)</strong> value. All intervals for 'walk' are the same.</li>
+</ul>
+</li>
+<li><strong>Intensity Controls:</strong> This controls the volume of the sound. Intensity variations occur by change the volume during the duration of the effect. For example, an intensity transition may be ppp&gt;f&gt;mf. There are 40 such transitions that CMG can pick from.
+<ul>
+<li><strong>Scope</strong> Intensity can be applied to either all of the voices in the composition, to each voice individual, or to each sound cloud separately. If there is only one cloud in a composition cell, this is the same as voice application.</li>
+<li><strong>Method</strong> The intensity method can be 'persistent' or 'random'. In the persistent case, a transition is selected at random from those available that had the same intensity (e.g., ppp - fff) as the previous transition. The transition duration time is a random number whose average is <strong>Cycle Time (sec)</strong>. In the 'random' case, a transition is selected at random from all of the possible transitions and the intensity changes to that through the <strong>Cycle Time (sec)</strong> value. All intervals for 'random' are the same.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Voices:</strong> An ensemble is a collection of voices. Each voice has has characteristics which determine how it sounds in the composition. The details of a voice definition can be found in the section of <a href="#ensembles">Ensembles</a> futher in this document. The fixed portion of a voice defintion includes a name, a description, timbre, register, duration, soundfont, and preset. Voices can be muted, which removes them from the sound generation but not the composition calculation. Each voice can have its volume and velocity adjusted.</p>
+</li>
+</ul>
+<p>Voice mute, volume, and attack are dynamics parameteres which do not affect the composition structure.</p>
+<ul>
+<li><strong>Reloading and Building:</strong> During the construction of a composition, the user may wish to modify the ensemble using the CMG Database Editor. This might include adding, modifying, or removing ensembles, or modifying voice parameters. CMG does not know about these changes directly, so after changes are made, the use should select the <em><strong>Ensemble</strong></em> or <strong>Voices</strong> button as appropriate. Any change which affect the number of voices in the composition will result in a deletion of the current composition.</li>
+</ul>
+<p>The *<strong>Build Composition</strong> button will cause the composition to be rebuilt using teh current ensemble, length, time cells, events/cell, and compostion seed.</p>
+<ul>
+<li><em><strong>Composition:</strong></em> The stochastic composition is displayed as a table with rows of time and columns of un-muted voices. The total number of events in a time row appear in the last column of the table. The numbers in each cell of the table are the number of events (clouds) for that combination of time and voice.</li>
+</ul>
+<p>The rows and columns can be rearranged by the user. Rows may be moved up and down the table, and columns may be moved left and right. This provides some creativity to the composition, giving control of dynamic progression and voice prominence. The order of the rows and columns are maintained through the life of the composition and is saved with the CMG file. If any compositional parameters are changed the composition is erased and all previous reorder is forgotten.</p>
 <h3 id="audiofile">AudioFile.</h3>
 <p>This is not really a generator as it will play a saved audio file rather than generate a new sound. The user specifies the start time of the playback and its volume. The entire audio file is then played from beginning to end. A good use of an audio file generator is to build up a new composition from the recording of other compositions.</p>
 <ul>
-<li><strong>Volume:</strong> This is the volume at which the audio file will be played back. It must be between 0 and 10 with a step size of 1. The default value is 5.</li>
-<li><strong>Audio File:</strong> All files are displayed and the one selected will be read. If it is not an valid audio file, at error message will be display and the file will not be loaded. The stop time an the information about the audio file (sample rate, duration, and number of channels) is not updated until the volume is changed or the next time the generator is viewed.
-<img src="./images/AudioFileGenerator.png" alt="alt text"></li>
+<li><strong>Volume:</strong> This is the volume at which the audio file will be played back. It must be between -10 and 10 with a step size of 1. The default value is 0.</li>
+<li><strong>Audio File:</strong> All files are displayed and the one selected will be read. If it is not an valid audio file, at error message will be display and the file will not be loaded. The stop time an the information about the audio file (sample rate, duration, and number of channels) is not updated until the volume is changed or the next time the generator is viewed.</li>
 </ul>
-<p><a id="GeneratorPulldownMenu"></a></p>
+<p align="center">
+  <img src="./images/AudioFileGenerator.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>The definition of an audiofile generator </em>
+</p>
 <h2 id="generator-pulldown-menu">Generator Pulldown Menu</h2>
 <p>Each generator has a pulldown menu that is activated by clicking on the name of the generator in the track timeline display. The following functions are available:</p>
 <ul>
 <li><strong>Preview</strong> - The sound created by the generator may be previewed on its own without hearing any other generators. The sound will start as if the generator had been defined to start a time 0 (the start of the composition). See <a href="#Previewing">Preview</a> for more details.</li>
 <li><strong>Edit</strong> - A entry panel is displayed containing all of the values of the fields for the generator. All fields can be modified. If the <em>Delete</em> button is clicked a confirmation panel will be displayed before the deletion occurs:</li>
-</ul>
-<blockquote>
-<blockquote>
-<blockquote>
-<p><img src="./images/confirmgeneratordelete.png" alt="alt text"></p>
-</blockquote>
-</blockquote>
-</blockquote>
-<ul>
 <li><strong>Copy</strong> - A panel is displayed providing the means to copy the selected generator to any of the existing tracks. The default is the track where the generator currently lies. A new generator is created with all of the same values as the selected generator, except a unique name is assigned to it. The panel may be exited by either clicking <em>Cancel</em> or the <em>x</em> in the upper left hand corner of the panel.</li>
-</ul>
-<blockquote>
-<blockquote>
-<blockquote>
-<p><img src="./images/copypanel.png" alt="alt text"></p>
-</blockquote>
-</blockquote>
-</blockquote>
-<ul>
-<li><strong>Move</strong> - A panel is displayed providing the means to move the selected generator to any of the existing tracks. The default is the track where the generator currently lies. The panel may be exited by either clicking <em>Cancel</em> or the <em>x</em> in the upper left hand corner of the panel..</li>
-</ul>
-<blockquote>
-<blockquote>
-<blockquote>
-<p><img src="./images/movepanel.png" alt="alt text"></p>
-</blockquote>
-</blockquote>
-</blockquote>
-<ul>
+<li><strong>Move</strong> - A panel is displayed providing the means to move the selected generator to any of the existing tracks. The default is the track where the generator currently lies. The panel may be exited by either clicking <em>Cancel</em> or the <em>x</em> in the upper left hand corner of the panel.</li>
 <li><strong>Mute/Un-mute</strong> - A generator may be muted or un-muted. This affects whether or not it will be heard during Preview or Record. When a generator is muted, its name and type in the track is displayed in <span style='color:red'>red</span>.</li>
 <li><strong>Exit</strong> - The generator pulldown menu is hidden.</li>
 </ul>
@@ -713,37 +875,41 @@ The states are</p>
 <h3 id="vertical-movement">Vertical Movement</h3>
 <p>Each generator is displayed as an icon with its length determined by its start and stop time and the current timeline settings. Its height is 1/3 of the height of the track timeline display. A generator icon may overlap other icons on the timeline display so it may be desirable to move it away from the others. A generator may be moved vertically up or down by clicking anywhere in the icon except the title and dragging the mouse up or down. When the mouse is released, the icon assumes its new position. This position is part of the generator's properties and is saved in the CMG file.</p>
 <h3 id="horizontal-movement">Horizontal Movement</h3>
-<p>By click/drag either end of the generator icon, the timing of the generator can be moved. This will change the start and stop times such that the generator will maintain its duration.</p>
+<p>By click/drag either end of the generator icon, the timing of the generator can be moved. This will change the start or stop time.</p>
 <h1 id="timeline">Timeline</h1>
 <h2 id="timeline-control">Timeline Control</h2>
-<p>The Timeline is a window into the time frame of the full composition. It can be scrolled and zoomed as desired to best display the generator icons as a composition be being constructed. The figure below is an example of a timeline with the controls display on the left side and the time scale shown to the right.
-<img src="./images/timeline.png" alt="alt text">
-The following buttons are available to control the time line display:</p>
+<p>The Timeline is a window into the time frame of the full composition. It can be scrolled and zoomed as desired to best display the generator icons as a composition be being constructed. The figure below is an example of a timeline with the controls display on the left side and the time scale shown to the right.</p>
+<p align="center">
+  <img src="./images/timeline.png" width="100%" height: auto; alt="description">
+  <br>
+  <em>The CMG time line</em>
+</p>
+The following buttons are available to control the time line display:
 <ul>
 <li><strong>Scroll</strong> - The timeline can be scrolled either left or right by clicking the left arrow or right arrow buttons in the timeline control area. The timeline cannot be scrolled left further than time zero and right further than several years.</li>
 <li><strong>Zoom</strong> - The timeline can be zoomed in or out to reveal more or less detail by clicking the zoom in or zoom out buttons. The zoom function has both maximum and minimum zoom levels. Each zoom roughly doubles or halves the resolution of the timeline. The time values and tick marks are displayed appropriately to the zoom level in hours, minutes, and seconds.</li>
+<li><strong>Time/Measure</strong> - This button switches the timeline display between time and measure modes.</li>
 </ul>
 <p>The scroll and zoom functions of the timeline control how the generator icons are seen. Each generator has a start and stop time which may or may not be with the currently displayed timeline. Only part or none of the generator icon may be seen at any particular timeline setting.</p>
 <h2 id="timeline-interval">Timeline Interval</h2>
-<p>One of the filters for previewing and recording is the timeline interval. This filter defines which generators are selected and overrides the other filters of muting or soloing of tracks and generators. A timeline interval has a start and end time. Generator whose start and stop time fall with the timeline interval are selected.</p>
+<p>This if one of the filters for previewing and recording is the timeline interval. This filter defines which generators are selected and overrides the other filters of muting or soloing of tracks and generators. A timeline interval has a start and end time. Generator whose start and stop time fall with the timeline interval are selected.</p>
 <p>A timeline interval is defined by mouse actions within the timeline. When the mouse moves into the timeline, the cursor changes to an <em>crosshair</em> cursor indicating that an interval can be defined. If there is a interval defined, the cursor will change either to a <em>grab</em> cursor or a <em>ew-resize</em> cursor depending on whether the mouse of within an displayed interval or on one of its edges.</p>
 <p>This figure illustrates a typical timeline interval with three selected generators.</p>
-<p><img src="./images/timelineinterval.png" alt="alt text"></p>
+<p align="center">
+  <img src="./images/timelineinterval.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>The definition of a time interval and its effect on generator selection</em>
+</p>
 <ul>
-<li><strong>Defining a timeline interval</strong> This is initiated when a <em>crosshair</em> cursor is displayed. Clicking the mouse button and dragging either left or right will define a new interval. When the mouse button is released the interval becomes fully defined and the generators contained within it are highlighted. A defined timeline may be removed by clicking anywhere on the timeline except within the existing timeline.</li>
+<li><strong>Defining a timeline interval</strong> This is initiated when a <em>crosshair</em> cursor is displayed. Clicking the mouse button and dragging either left or right will define a new interval. When the mouse button the interval is defined. A defined timeline may be removed by clicking and releasing anywhere on the timeline except within the existing timeline.</li>
 <li><strong>Moving the timeline interval</strong> When the mouse is within the interval and the 'grab' icon is display. A left mouse click with a drag left or right will move the interval. Once the mouse is released the new position is finalized and the generators contained within it are highlighted.</li>
 <li><strong>Moving the start or end of the timeline interval</strong> When the mouse is moved over either the start or end of the timeline interval, an <em>ew-resize</em> cursor is displayed. A left mouse click with a drag left or right will move the selected end of the interval. Once the mouse is released the new end point is finalized and the generators contained within the interval are highlighted.</li>
 </ul>
-<h1 id="room-level-functions">Room Level Functions</h1>
-<p>During the rendering of a generated sound composition, all of the sources from all of the active generators are pulled together to allow for the room level audio modulators of volume, reverberation, compression, and equalization to be applied. These modulators are applied to all of the source sources as an aggregate. The parameters of the room level functions are part of the composition definition and are saved so they can be loaded later. The room level controls are located in the right hand corner of the screen. Their values are set by the use of sliders. Reverberation, compression, and equalization may be disabled.
-<img src="./images/roommodulators.png" alt="alt text"></p>
-<h2 id="room-volume">Room Volume</h2>
-<p>The volume slider affects the final volume of the generated sound. The slider has a default value of 0, indicating the no addition gain is applied. It ranges from +5 dB to -5 dB in steps of 1. Positive values increase the volume, while negative values decrease the volume.</p>
 <h2 id="room-reverb">Room Reverb</h2>
 <p>Room reverb a two types of controls: diffuse sound sliders and early reflections sliders.</p>
 <p>The diffuse sound generates a reverb effect that occurs for a certain duration (0 to 10 seconds) and linear decay time (0 to 10 seconds).</p>
 <p>There are three early reflection effects, simulating a left wall (LW), a right wall (RW) and a ceiling. Each has a single delay of the sound of a specified number of milliseconds (0 to 1000) with a certain signal left relative to the original sound (0 to 1).</p>
-<p>The Room Reverb may be reset to default by clicking the room reverb reset button.</p>
+<p>The Room Reverb may be reset to default by clicking the room reverb reset button. It can also be enabled or disabled.</p>
 <h2 id="room-compressor">Room Compressor</h2>
 <p>The compressor is a <a href="https://developer.mozilla.org/en-US/./Web/API/DynamicsCompressorNode">DynamicsCompressorNode</a>.
 There are five controls to the compressor:</p>
@@ -755,51 +921,390 @@ There are five controls to the compressor:</p>
 <li><strong>Release</strong> The time, in seconds, required to increase the gain by 10 dB. The default value is 250 ms and the range is 0 ms to 1,000 ms.</li>
 </ul>
 <p>The amount of <em>reduction</em>, in dB, currently being applied to the signal appears in the compressor title line during preview.</p>
-<p>The compressor values may be reset to defaults by clicking the compressor reset button.</p>
+<p>The compressor values may be reset to defaults by clicking the compressor reset button. It can also be enabled and disabled.</p>
 <h2 id="room-equalizer">Room Equalizer</h2>
 <p>The equalizer has 10 frequency band filters, roughly spaced 1 octave apart. The lowest band is a <em>lowshelf</em> filter. The highest band is a <em>highshelf</em> filter, and the remaining 8 are <em>peaking filters</em>. The <em>Q</em> value for the peaking filters is defined as the ratio between the frequency of the filter and the next higher filter, which is roughly 2.</p>
-<p>The frequencies of the equalizer are not adjustable, but the gains are. They may be varied from -15 to +15 by moving the gain slider. The default values for all filter gains is 0, which can be restored by clicking the equalizer reset button.</p>
-<p>The equalizer values may be reset to defaults by clicking the equalizer reset button.</p>
+<p>The frequencies of the equalizer are not adjustable, but the gains are. They may be varied from -10 to +10 dB by moving the gain slider. The default values for all filter gains is 0, which can be restored by clicking the equalizer reset button.</p>
+<p>The equalizer values may be reset to defaults by clicking the equalizer reset button. It can also be enabled and disabled.</p>
+<h2 id="room-volume">Room Volume</h2>
+<p>The volume slider affects the final volume of the generated sound. The slider has a default value of 0. It ranges from -10 dB to +10 dB in steps of 1. Positive values increase the volume, while negative values decrease the volume.</p>
 <h1 id="previewing-recording-and-reporting">Previewing, Recording, and Reporting</h1>
-<p>The whole purpose of this application is to produce sound from the defined generators. This is accomplished using the Preview and Record menu options on the <em>Play</em> menu. The options are only active when there is at least one generator defined that can produce sound.</p>
-<div class="note">*Note: When in preview mode a Preview window is displayed, which disables all composition function except the room reverb, compressor, equalizer, and volume until the preview is stopped or completed. When in record mode, a popup appears to show the progress of the recording. It may be stopped prematurely if desired. </div><br/>
+<p>The whole purpose of this application is to produce sound from the defined generators. This is accomplished using the Preview and Record menu options on the <em>Play</em> menu. A <em>Report</em> option is also available.</p>
+<div class="note">*Note: When in preview mode a Preview window is displayed, which disables all composition function except the room reverb, compressor, equalizer, and volume until the preview is stopped or completed. When in record mode, a popup appears to show the progress of the recording. Preview and recording may be stopped prematurely if desired. </div><br/>
 <p>Generator selection occurs by evaluating some filters:</p>
 <ul>
 <li><strong>Timeline Interval</strong> If a timeline interval is defined, only the generators that are selected by the timeline will be previewed or recorded. The time of the preview or record is started at the start time of the earliest selected generator.</li>
 <li><strong>Active Generators</strong> Tracks may be soloed or muted and generators may be muted. All of the tracks and generators are checked for these conditions. If a track is both muted and soloed, solo takes precedence.</li>
 </ul>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>If there are no generators that pass these tests a panel is displayed:
-<img src="./images/nogenerators.png" alt="alt text"></p>
-</blockquote>
-</blockquote>
-</blockquote>
+<p>If there are no generators that pass these tests a popup is displayed and no preview or recording will be performed.</p>
 <h2 id="recording">Recording</h2>
-<p>When the <em>Record</em> button is clicked, you will be prompted to provide a file name and location where the result audio file will be placed. The audio file may be either a WAV or a MP3 file. Once that has been identified, the selected generators are rendered and the wave file is written.</p>
+<p>When the <em>Record</em> button is clicked, you will be prompted to provide a file name and location where the result audio file will be placed. The audio file may be either a WAV or a MP3 file depending on the selected preference. Once that has been identified, the selected generators are rendered and the wave file is written.</p>
 <p>A progress bar is displayed while the recording is being constructed.</p>
 <h2 id="previewing">Previewing</h2>
-<p>When the <em>Preview</em> button is clicked, a preview window is displayed so that the sound sources produced by the selected generators can be seen. Below is an example of a preview window when <em>Preview</em> is first selected.
-<img src="./images/PreviewWindow.png" alt="Preview Window">
-This window has three sections:</p>
+<p>When the <em>Preview</em> button is clicked, a preview window is displayed so that the sound sources produced by the selected generators can be seen. Below is an example of a preview window when <em>Preview</em> is first selected.</p>
+<p align="center">
+  <img src="./images/PreviewWindow.png" width="100%" height: auto; alt="description">
+  <br>
+  <em>Previewing a CMG composition</em>
+</p>
+This window has three sections:
 <ul>
 <li>
 <p>Header: The application logo, a set of buttons, the application name, version, and file, the left and right volume monitors, and the time line are displayed here. The initial set of buttons are <em><strong>Exit</strong></em> and <em><strong>Start</strong></em>. Exit will terminate the preview and return to either the main composition panel or the generator dialog, depending on how Preview was invoked. When Start is pressed, it is replaced by a <em><strong>Pause</strong></em> button. Pressing the Pause button will cause it to be replaced by a <em><strong>Resume</strong></em> button. Pressing the Resume button will resume the preview and display the Pause button again.</p>
 </li>
 <li>
-<p>Body: Up to three sections may appears in the body - Instruments, Percussions, and AudioFile. Each section's scale is derived from the range of values that the notes of the sources can take. The lower left hand corner display the section name and the minimum value on the scale, while the upper left hand corner displays the maximum value of the scale. In the case of the percussion section, the notes each correspond to a different percussion instrument as per Soundfont2 rules. The instrument and percussion sections also have dashed lines that represent the integer pitch numbers. A bolder dashed line indicates a C note.</p>
+<p>Body: Up to three sections may appears in the body - Instruments, Percussions, and AudioFile/Stochastic. Each section's scale is derived from the range of values that the notes of the sources can take. The lower left hand corner display the section name and the minimum value on the scale, while the upper left hand corner displays the maximum value of the scale. In the case of the percussion section, the notes each correspond to a different percussion instrument as per Soundfont2 rules. The instrument and percussion sections also have dashed lines that represent the integer pitch numbers. A bolder dashed line indicates a C note.</p>
 <p>Within each section the sources are displayed. The vertical location corresponds to its note value, while its horizontal extent is determined by its start time and duration. The color is such that the hue is based on the pan location, the saturation is based on its volume, and its lightness is based on whether or not it is current producing sound. See the figure below for a close up of a preview that has been paused with some sources currently producing sound.</p>
-<p><img src="./images/PreviewWindowZoom.png" alt="Zoom Preview"></p>
-<p>If a generator is previewed by selection of generator preview option, or generators are selected via the timeline interval, the generators' start times are moved such that the earliest start time is at zero. This avoids waiting until the generator would normal start before it is heard.</p>
-<p>When previewing, the current time of the soundtrack is shown by a moving <span style='color:red'>red</span> vertical line on the timeline. This line advances are time progresses. The time line pans right to maintain the current time in the window.</p>
-</li>
-<li>
-<p>Footer: The number of total and active sources and generators are displayed in the footer along with the left and right channel spectra, and the room sound controls. Any of the room sound controls may be modified during preview in order to hear their effect.</p>
 </li>
 </ul>
+<p align="center">
+  <img src="./images/PreviewWindowZoom.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>An enlarger picture of the preview window</em>
+</p>
+<pre><code>If a generator is previewed by selection of generator preview option, or generators are selected via the timeline interval, the generators' start times are moved such that the earliest start time is at zero. This avoids waiting until the generator would normal start before it is heard.
+
+When previewing, the current time of the soundtrack is shown by a moving &lt;span style='color:red'&gt;red&lt;/span&gt; vertical line on the timeline. This line advances are time progresses. The time line pans right to maintain the current time in the window.
+</code></pre>
+<ul>
+<li>Footer: The number of total and active sources and generators are displayed in the footer along with the left and right channel spectra and volume levels, and the room sound controls. Any of the room sound controls may be modified during preview in order to hear their effect.</li>
+</ul>
 <h2 id="reporting">Reporting</h2>
-<p>A report of the composition can be produced using the <strong>Report...</strong> button of the <strong>Generate</strong> menu. This report, in HTML format, provides the specific details of the file, all of its tracks, and all of its generators. The sources produced by each generator is expanded. This detail is provided for each generator, and then for all generators in start time sequence.</p>
+<p>A report of the composition can be produced using the <strong>Report...</strong> button of the <strong>Play</strong> menu. This report, in HTML format, provides the specific details of the file, all of its tracks, and all of its generators. The sources produced by each generator is expanded. This detail is provided for each generator, and then for all generators in start time sequence.</p>
+<h1 id="intensity-transitions">Intensity Transitions</h1>
+<p>The stochastic generator has the ability to select a intensity transition form and apply it to the sound either at the composition, voice, or cloud level. The following is the list of transitions available in CMG. If <em>middle</em> is present, CMG changes the intensity from the <em>start</em> to the <em>middle</em> at the mid point of the duration and then to the <em>end</em>. If <em>middle</em> if missing, CMG goes directly from start to end during the duration.</p>
+<table>
+<thead>
+<tr>
+<th>Start</th>
+<th>Middle</th>
+<th>End</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ppp</td>
+<td></td>
+<td>ppp</td>
+</tr>
+<tr>
+<td>ppp</td>
+<td></td>
+<td>p</td>
+</tr>
+<tr>
+<td>ppp</td>
+<td>p</td>
+<td>ppp</td>
+</tr>
+<tr>
+<td>ppp</td>
+<td></td>
+<td>f</td>
+</tr>
+<tr>
+<td>ppp</td>
+<td>f</td>
+<td>ppp</td>
+</tr>
+<tr>
+<td>ppp</td>
+<td></td>
+<td>ff</td>
+</tr>
+<tr>
+<td>ppp</td>
+<td>ff</td>
+<td>ppp</td>
+</tr>
+<tr>
+<td>ppp</td>
+<td>f</td>
+<td>p</td>
+</tr>
+<tr>
+<td>ppp</td>
+<td>ff</td>
+<td>p</td>
+</tr>
+<tr>
+<td>p</td>
+<td></td>
+<td>ppp</td>
+</tr>
+<tr>
+<td>p</td>
+<td>f</td>
+<td>ppp</td>
+</tr>
+<tr>
+<td>p</td>
+<td>ppp</td>
+<td>f</td>
+</tr>
+<tr>
+<td>p</td>
+<td>ppp</td>
+<td>ff</td>
+</tr>
+<tr>
+<td>p</td>
+<td>ff</td>
+<td>ppp</td>
+</tr>
+<tr>
+<td>p</td>
+<td></td>
+<td>p</td>
+</tr>
+<tr>
+<td>p</td>
+<td>ppp</td>
+<td>p</td>
+</tr>
+<tr>
+<td>p</td>
+<td></td>
+<td>f</td>
+</tr>
+<tr>
+<td>p</td>
+<td>f</td>
+<td>p</td>
+</tr>
+<tr>
+<td>p</td>
+<td></td>
+<td>ff</td>
+</tr>
+<tr>
+<td>p</td>
+<td>ff</td>
+<td>p</td>
+</tr>
+<tr>
+<td>p</td>
+<td>ff</td>
+<td>f</td>
+</tr>
+<tr>
+<td>f</td>
+<td></td>
+<td>ppp</td>
+</tr>
+<tr>
+<td>f</td>
+<td>ppp</td>
+<td>p</td>
+</tr>
+<tr>
+<td>f</td>
+<td></td>
+<td>p</td>
+</tr>
+<tr>
+<td>f</td>
+<td>ppp</td>
+<td>ff</td>
+</tr>
+<tr>
+<td>f</td>
+<td>ff</td>
+<td>ppp</td>
+</tr>
+<tr>
+<td>f</td>
+<td>p</td>
+<td>ff</td>
+</tr>
+<tr>
+<td>f</td>
+<td>ff</td>
+<td>p</td>
+</tr>
+<tr>
+<td>f</td>
+<td></td>
+<td>f</td>
+</tr>
+<tr>
+<td>f</td>
+<td>ppp</td>
+<td>f</td>
+</tr>
+<tr>
+<td>f</td>
+<td>p</td>
+<td>f</td>
+</tr>
+<tr>
+<td>f</td>
+<td>ff</td>
+<td>f</td>
+</tr>
+<tr>
+<td>f</td>
+<td></td>
+<td>ff</td>
+</tr>
+<tr>
+<td>ff</td>
+<td></td>
+<td>ppp</td>
+</tr>
+<tr>
+<td>ff</td>
+<td>ppp</td>
+<td>p</td>
+</tr>
+<tr>
+<td>ff</td>
+<td>ppp</td>
+<td>f</td>
+</tr>
+<tr>
+<td>ff</td>
+<td>p</td>
+<td>f</td>
+</tr>
+<tr>
+<td>ff</td>
+<td>f</td>
+<td></td>
+</tr>
+<tr>
+<td>ff</td>
+<td></td>
+<td>ff</td>
+</tr>
+<tr>
+<td>ff</td>
+<td>ppp</td>
+<td>ff</td>
+</tr>
+<tr>
+<td>ff</td>
+<td>p</td>
+<td>ff</td>
+</tr>
+<tr>
+<td>ff</td>
+<td>f</td>
+<td>ff</td>
+</tr>
+</tbody>
+</table>
+<h1 id="cmg-database-editor">CMG Database Editor</h1>
+<p>The CMG Database Editor is used to create, modify, and delete sequences and ensembles used by CMG. The primary CMG Database Editor Window appears when the application is started.</p>
+<p align="center">
+  <img src="./images/CMGDatabaseEditor.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>The main options of the CMG database editor</em>
+</p>
+Sequences and ensembles may be edited. 
+<h2 id="sequence-editing">Sequence Editing</h2>
+<p>Sequences may be defined for any of the tone attributes, which are note, speed, attack, duration, volume, and pan. A sequence has one or more entries. Each entry has a value and a beat count. The value is in the units of the attribute, i.e, notes are pitch number, speed is in beats per minute, and so on. The beat count is any number greater than zero and represents the number of beats that the value should be applied. When CMG uses a sequence, it starts with the first entry, holds that value for the number of beats, and then goes to the next entry.</p>
+<div class="note">Note: CMG only uses note sequences. Other sequence types (attack, etc.) can be created but currently are not used.</div>
+<p>The conversion of beats to time is done by CMG using the <em>Measure Length</em> and <em>Beats per Measure</em> values of the composition. See <a href="#sequencer">Sequencer</a> algorithm for further explanation of how sequences are processed.</p>
+<p>Sequences may be tagged so that they can be organized and searched. Tags must exist before they can be used by sequences. A sequence may have zero or more tags.</p>
+<h2 id="tags">Tags</h2>
+<p>The list of tags appear on the right hand side of the editor window.</p>
+<p align="center">
+  <img src="./images/EditorTags.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>The CMG editor tags</em>
+</p>
+This list is displayed when a sequence attribute has been selected. 
+New tags may be added by presses the plus icon. New tags may have any number of characters greater than zero.
+<p>The tags list entries contain the name of the tag and the sequences of the current attribute that are currently assigned to the tag. This is not the number of all of the sequences assigned to the tag.</p>
+<p>Tags are displayed with three different background colors:</p>
+<ul>
+<li><strong>Yellow</strong> - The current attribute has sequences that are using the tag. By clicking the tag name, the list of those sequences is displayed in a list. By clicking an entry in this sequence list, the sequencer may be edited.</li>
+<li><strong>Gray</strong> - The tag is not used by the current attribute but is used by others. No action is performed if the tag name is clicked.</li>
+<li><strong>Red</strong> - The tag is not used by any sequence of any attribute. Clicking the tag name will ask for a confirmation to delete the tag.</li>
+</ul>
+<h2 id="sequences">Sequences</h2>
+<p>By clicking one of the attribute buttons in the application header, the list of current sequences for that attributes is displayed along with the list of tags. An example of a list of Note sequences is shown here:</p>
+<p align="center">
+  <img src="./images/NoteSequences.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>A list of note sequences</em>
+</p>
+<p>Sequences may be added by clicking the plus icon. Adding sequences is discussed further below. Sequences may be searched by clicking the magnifying glass icon. When this is clicked two search fields are display that provide for searching by tag and/or sequence name. Multiple tags may be provided by delimiting them with a comma. The name field may contain wild cards. For example to find a sequences that start with the letter <em>Q</em>, enter Q* in the name field. When <em>OK</em> is clicked, the list of tags matching the search is displayed. A sequence may be edited by clicking its name.</p>
+<ul>
+<li><strong>Adding and Editing</strong> -
+Sequences are edited by either adding a new one, or clicking on a sequence name in either the sequence list, sequence search list, or tag sequence list.</li>
+</ul>
+<p align="center">
+  <img src="./images/SequenceEdit.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>the sequence edit dialog</em>
+</p>
+When a sequence is added, the *Name* field is blank and must be provided. The sequence name must be one or more characters long and be unique within the attribute. Two different attributes may have sequences with the same name. 
+<p>Zero or more tags may be assigned to the sequence. Provide a list of tags by separating them with commas. If tags are assigned, they must already exist within the list of tags.</p>
+<p>The business end of the CMG Sequence Editor is the list of sequence items. Each item has a value and a beat count. A new item is added to end of the list by clicking the plus icon. When a new item is added, it is in edit mode, which display a <em>Save</em> icon on the right side. Any item may be edited by pressing the <em>Pencil</em> icon.</p>
+<p>The item value is in the units of the attribute. The beat count can be any number greater than zero. In the case of the note attribute, values are entered in pitch notation. This is a note name (A-G, a-g) followed by a single digit octave number (0-9), followed by an optional accidental character (# or b), followed by a optional number of positive or negative cents (-99 through +99). The note name will be capitalized when stored in the database.</p>
+<p>An item may be deleted by clicking the trash can icon. A popup will be displayed requesting confirmation of the deletion.</p>
+<p>All item editing must be completed before the sequence can be modified or added. The is done my clicking the <em>Add/Modify</em> button once it is enabled. All items are checked that they are valid and all tags are checked that they exist before the sequence is added or modified. Sequence editing can be canceled by clicking the <em>Cancel</em> button.</p>
+<ul>
+<li>
+<p><strong>Renaming</strong>
+A sequence may be renamed by clicking the <em>Pencil</em> icon left of the name in the sequence list. A popup is displayed requesting the new name. This name must be unique within the attribute.</p>
+</li>
+<li>
+<p><strong>Duplicating</strong>
+A sequence may be duplicated by clicking the <em>Duplicate</em> button left of the name in the sequence list. A popup is displayed requested the new name of the sequence and to which attribute it should be duplicated. The name must be unique within the attribute.</p>
+</li>
+<li>
+<p><strong>Deleting</strong>
+A sequence may be deleted by clicking the <em>Trash Can</em> button left of the name in the sequence list. A popup is display requested confirmation of the deletion.</p>
+</li>
+</ul>
+<h2 id="ensembles">Ensembles</h2>
+<p>Ensembles are used by CMG to define the voices to be used in a stochastic generator. Each ensemble has a name, a description, and a list of voices in the ensemble. Voices have parameters that determine how it will sound in the ensemble.</p>
+<p>The main dialog for this function includes a list of ensembles and voices.</p>
+<p align="center">
+  <img src="./images/EnsemblePanel.png" width="100%" height: auto; alt="description">
+  <br>
+  <em>A list of ensembles and voices in the CMG Database</em>
+</p>
+<h3 id="voice-maintenance">Voice Maintenance</h3>
+<p>Voices may be added by clicking the <em>+</em> button, deleted by pressing the garbage can button, or modified by clicking the name of the voice. Below is an example of modifying an existing voice:</p>
+<p align="center">
+  <img src="./images/ModifyVoice.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>Modifying a CMG voice</em>
+</p>
+Each voice has the following values:
+<ul>
+<li><strong>Name:</strong> A unique name for the voice. This must be provided when adding a voice and connot be changed when modifying a voice.</li>
+<li><strong>Descripion:</strong> An optional description of the voice</li>
+<li><strong>Soundfont File:</strong> A list of soundfonts available to CMG is provided for selection.</li>
+<li><strong>Preset:</strong> Once a soundfont file is identified, a list of presets available is provided for selection.</li>
+<li><strong>Timbre:</strong> A voice may be either <em>sustained</em> or <em>glissando</em>. Sustained voices hold the same pitch for the duration of the note, while glissando voices slide from one pitch to the next.</li>
+<li><strong>Register:</strong> This is the lowest and highest pitch that the voice can play. It is given in <em>midi</em> units with the notation shown following the input field. In the case of percussion voices, this selects the type of percussive instrument.</li>
+<li><strong>Duration:</strong> The duration of sustain voices are normally the full interval of the note. Setting duration to a nonzero value, cuts the duration down to the value provided. For example, a duration of 0 for a viol will produce a viol arco sound, A non zero value will produce a viol pizzacato sound.</li>
+</ul>
+<h3 id="ensemble-maintenance">Ensemble Maintenance</h3>
+<p>Ensembles have a name, a descrition and a list of included voices. Ensembles may be added (click the <em>+</em> button), deleted (click the trash can button), or modified (click the ensemble name). When a ensemble is added or modified the following dialog is displayed:</p>
+<p align="center">
+  <img src="./images/EnsembleDialog.png" width="50%" height: auto; alt="description">
+  <br>
+  <em>Caption text</em>
+</p>
+An ensemble has the following values:
+<ul>
+<li><strong>Name:</strong> A unique name for the ensemble. It must be present when added an ensemble and cannot be changed when modifying an existing one.</li>
+<li><strong>Description:</strong> An option description of the ensemble</li>
+<li><strong>Voice:</strong> A selection list of available voices. Multiple voices may be selected from this list.</li>
+</ul>
+<h1 id="random-numbers">Random Numbers</h1>
+<p>Random numbers are used by in several places in CMG. CMG is implemented in Javascript, which has no means to initialize a random number sequence with a seed. See <a href="https://stackoverflow.com/questions/16801687/javascript-random-ordering-with-seed">this</a> for a good discussion on generating random numbers. There are three options to set the random number seed.</p>
+<ul>
+<li>Blank - If the seed is left blank, the current date and time will be used to initialize the random number generator. This will cause the resulting sound generator to be different each time the composition is previewed or recorded.</li>
+<li>User-entered value - The user may entered a specific string for the seed. This is partocularly useful when it is desired that different attributes follow the same sequence of random numbers. For example, Wiener series applied to two differrent generators with the same seed, will change the notes in the same way, thus maintaining the same initial pitch spacing through the generators' lives.</li>
+<li>New Seed - a button is provided to allow CMG to generator a new seed. After it has been generated, it bahaves like a user-entered value.</li>
+</ul>
 <h1 id="glossary">Glossary</h1>
 <p>The definition of many of the terms used in this manual can be found online, particularly at <a href="https://en.wikipedia.org/wiki/SoundFont">Wikipedia</a>.</p>
 <table>

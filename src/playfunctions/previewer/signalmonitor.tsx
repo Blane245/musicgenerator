@@ -1,5 +1,6 @@
 import SignalLevel from "classes/signallevel";
 import { SignalLevelsType } from "types";
+import { debug } from "utils/debug";
 import { linearInterpolate } from "utils/interpolation";
 
 // get the volume and spectra once a second
@@ -25,7 +26,7 @@ export default function signalMonitor(
   const volumeOffset: number = spectrumHeight;
 
   if (paused.current) {
-    // console.log("signalMonitor paused");
+    debug.info("signalMonitor: paused");
     if (signalId != 0) clearTimeout(signalId);
     return;
   }
@@ -193,7 +194,6 @@ export function DrawSpectrum(
     if (!spectrum || spectrum.length == 0) return [<></>];
 
     // set vertical scale as log
-    // console.log('drawing spectrum, length', spectrum.length, 'time', audioContext?.currentTime);
     const result: JSX.Element[] = [];
     const minFrequency = frequencyBins[0];
     const maxFrequency = frequencyBins[frequencyBins.length - 1];

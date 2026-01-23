@@ -1,12 +1,6 @@
 // Update various parts of the CMGFile based
 // various transactions within the system
 import CMGFile from "classes/cmgfile";
-import Control, {
-  ControlType,
-  GeneratorControl,
-  TrackControl,
-} from "classes/control";
-import { CONTROLTYPE } from "classes/control";
 import Compressor from "classes/roomnodes/compressor";
 import Equalizer from "classes/roomnodes/equalizer";
 import Reverb from "classes/roomnodes/reverb";
@@ -14,6 +8,7 @@ import Volume from "classes/roomnodes/volume";
 import Track from "classes/track";
 import { Dispatch, SetStateAction } from "react";
 import { GeneratorType } from "types";
+import { debug } from "./debug";
 
 export function newFile(
   contents: CMGFile,
@@ -114,16 +109,6 @@ export function deleteTrack(
 ) {
   setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
-
-    // update the controls that mention this track
-    nc.controls = renameDeleteControlList(
-      CONTROLTYPE.Track,
-      nc.tracks[index].name,
-      "",
-      nc.controls,
-      nc,
-    );
-
     nc.dirty = true;
     nc.tracks.splice(index, 1);
     return nc;
@@ -138,69 +123,8 @@ export function renameTrack(
   setFileContents((c: CMGFile) => {
     const nc: CMGFile = c.copy();
     nc.dirty = true;
-
-    // update the controls that mention this track
-    nc.controls = renameDeleteControlList(
-      CONTROLTYPE.Track,
-      nc.tracks[index].name,
-      newName,
-      nc.controls,
-      nc,
-    );
     nc.tracks[index].name = newName;
-
     return nc;
-  });
-}
-
-export function addControl(
-  newControl: Control,
-  setFileContents: Dispatch<SetStateAction<CMGFile>>,
-) {
-  setFileContents((c: CMGFile) => {
-    const nc: CMGFile = c.copy();
-    nc.dirty = true;
-    nc.controls.push(newControl);
-    nc.controls = nc.controls.sort((a: Control, b: Control) => a.time - b.time);
-    return nc;
-  });
-}
-
-export function deleteControl(
-  index: number,
-  setFileContents: Dispatch<SetStateAction<CMGFile>>,
-) {
-  setFileContents((c: CMGFile) => {
-    const nc: CMGFile = c.copy();
-    nc.dirty = true;
-    nc.controls.splice(index, 1);
-    nc.controls = nc.controls.sort((a: Control, b: Control) => a.time - b.time);
-    return nc;
-  });
-}
-
-export function renameControl(
-  index: number,
-  newName: string,
-  setFileContents: Dispatch<SetStateAction<CMGFile>>,
-) {
-  setFileContents((c: CMGFile) => {
-    const nc: CMGFile = c.copy();
-    nc.dirty = true;
-    nc.controls[index].name = newName;
-    return nc;
-  });
-}
-export function modifyControl(
-  index: number,
-  control: Control,
-  setFileContents: Dispatch<SetStateAction<CMGFile>>,
-) {
-  setFileContents((c: CMGFile) => {
-    const newC: CMGFile = c.copy();
-    newC.controls[index] = control.copy();
-    newC.dirty = true;
-    return newC;
   });
 }
 
@@ -271,7 +195,7 @@ export function moveTrack(
       } else {
         newTracks.push(newF.tracks[i]);
       }
-      console.log("track added", i, newTracks[newTracks.length - 1].name);
+      debug.info("moveTrack: track added", i, newTracks[newTracks.length - 1].name);
     }
     newF.tracks = newTracks;
     newF.dirty = true;
@@ -324,17 +248,7 @@ export function modifyGenerator(
     const track: Track = findGeneratorParent(generator, newF);
     const index: number = findGeneratorIndex(track, oldName);
     track.generators[index] = generator;
-
-    // update the controls that mention this generator
-    newF.controls = renameDeleteControlList(
-      CONTROLTYPE.Generator,
-      oldName,
-      generator.name,
-      newF.controls,
-      newF,
-    );
     newF.dirty = true;
-
     return newF;
   });
 }
@@ -348,16 +262,6 @@ export function deleteGenerator(
     const track: Track = findGeneratorParent(generator, newF);
     const index: number = findGeneratorIndex(track, generator.name);
     track.generators.splice(index, 1);
-
-    // update the controls that mention this generator
-    newF.controls = renameDeleteControlList(
-      CONTROLTYPE.Generator,
-      generator.name,
-      "",
-      newF.controls,
-      newF,
-    );
-
     newF.dirty = true;
     return newF;
   });
@@ -424,91 +328,4 @@ export function moveGeneratorTime(
     newF.dirty = true;
     return newF;
   });
-}
-
-// rename or delete track or generator controls that reference them
-// update those controls
-function renameDeleteControlList(
-  type: CONTROLTYPE,
-  name: string,
-  newName: string,
-  controls: ControlType[],
-  fileContents: CMGFile,
-): ControlType[] {
-  if (type == CONTROLTYPE.Track) {
-    // delete or rename a track - update track lists that contain that name
-    let newControls: ControlType[] = [];
-    let deletedTrack: string = "";
-    for (let i = 0; i < controls.length; i++) {
-      if (controls[i].type != CONTROLTYPE.Track) newControls.push(controls[i]);
-      else {
-        const tControl: TrackControl = controls[i] as TrackControl;
-        const tList: string[] = tControl.values.list;
-        const newList: string[] = [];
-        for (let j = 0; j < tList.length; j++) {
-          
-          if (tList[j] == name) {
-            if (newName != "") {
-              newList.push(newName);
-            } else {
-              deletedTrack = name;
-            }
-          } else newList.push(name);
-        }
-        tControl.values.list = newList;
-        newControls.push(tControl);
-      }
-    }
-
-    if (deletedTrack != "") {
-      // all references to generators on the deleted track need to
-      // be removed from generator controls.
-      // Note there should only be one deleted track
-      // get the list of generators that belong to this track
-      // and remove them
-      // Note: this is a recursive call this this routine
-      const track: Track | undefined = fileContents.tracks.find(
-        (t) => t.name == deletedTrack,
-      );
-
-      if (track != undefined) {
-        const gens: GeneratorType[] = track.generators;
-        for (let i = 0; i < gens.length; i++) {
-          newControls = renameDeleteControlList(
-            CONTROLTYPE.Generator,
-            gens[i].name,
-            "",
-            newControls,
-            fileContents,
-          );
-        }
-      }
-    }
-    return newControls;
-
-  } else if (type == CONTROLTYPE.Generator) {
-    // delete or rename a generator - update generator lists that contain that name
-    const newControls: ControlType[] = [];
-    for (let i = 0; i < controls.length; i++) {
-      if (controls[i].type != CONTROLTYPE.Generator)
-        newControls.push(controls[i]);
-      else {
-        const gControl: GeneratorControl = controls[i] as GeneratorControl;
-        const gList: string[] = gControl.values.list;
-        const newList: string[] = [];
-        for (let j = 0; j < gList.length; j++) {
-          if (gList[j] == name) {
-            if (newName != "") {
-              newList.push(newName);
-            } else {
-              // generator name removed from the list
-            }
-          } else newList.push(name);
-        }
-        gControl.values.list = newList;
-        newControls.push(gControl);
-      }
-    }
-    return newControls;
-  } else return controls;
 }

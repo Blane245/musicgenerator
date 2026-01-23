@@ -30,7 +30,6 @@ Computer Music Generator (CMG) User's Guide, Version 6.0.0
 - [Timeline](#timeline)
   - [Timeline Control](#timeline-control)
   - [Timeline Interval](#timeline-interval)
-  - [Sound Controls](*sound-controls)
 - [Room Level Functions](#room-level-functions)
   - [Room Volume](#room-volume)
   - [Room Reverb](#room-reverb)
@@ -117,32 +116,8 @@ CMG files are handled by the ***File*** Menu Items:
 
 # Edit Menu 
 
-This edit menu has four options:
+This edit menu has three options:
 * **Add Track:** A computer generated piece of music is constructed by defining tracks and placing generators along them at various start time and end times. By selecting this option a new track is added to the end of the list of existing tracks. The new track is given a unique name that starts with ***T*** and ends with a number which is unique from all other existing tracks. The track is displayed with a control section on the left side and a timeline display on the right. See [Tracks](#tracks) for more details.
-
-* **Add Control:** The sound produced by generators is the result of a number of parameters that vary over time based on certain rules. Controls provice some additional flexibility for controlling the sound. A typical use of controls is to provide a fade in and fade out at the beginning and ending of a piece. 
-
-  Each control has a time at which it is to take effect. Once it has started, it remains in effect until the end of the piece unless override by another control. Controls can have one or three levels of effect - **Global**, **Track** or **Generator**. The figures below show the dialogs used to add a new for each type. Each control must have a unique name. The parameters shown in these figures are discussed in more detail later. 
-  <div class="note">*Note: At this time, there are no controls that effect Stochastic generator parameters. Stay tuned.*</div>
-  <p align="center">
-    <img src="./images/AddGlobalControl.png" width="100%" height: auto; alt="description">
-    <br>
-    <em>Global controls the impact room level functions of reverberation, compression, equalization, and volume</em>
-  </p>
-
-  <p align="center">
-    <img src="./images/AddTrackControl.png" width="100%" height: auto; alt="description">
-    <br>
-    <em>Track controls the impact track level setting of volume</em>
-  </p>
-
-  <p align="center">
-    <img src="./images/AddGeneratorControl.png" width="100%" height: auto; alt="description">
-    <br>
-    <em>Generator controls the impact generator level settings of noise, reverberation, tremolo, and vibrato</em>
-  </p>
-
-Controls can be modifed. This is discussed in the [Timeline](*timeline) section.
 
 * **Edit Preferences:** CMG has preferences that apply both globally and to a CMG file specifically. When this option is selected, the following dialog window is displayed:
   <p align="center">
@@ -305,7 +280,7 @@ Each of the attributes must have an algorithm assigned. The initial value is *Co
   <em>An algorithmic generator using a mixture of attribute algorithms. </em>
 </p>
 
->>><div class="note">*Note: Pitch ranges from 0 to 127 and correspond to tones of C0 to G9 from the Acoustical Society at https://acousticalsociety.org/. When a pitch is entered, its name is displayed next to the entry box. Fractional numbers may be entered. For example is 60.5 is entered the note name is displayed as *C4+50*</div>
+>>><div class="note">*Note: Pitch ranges from 0 to 127 and correspond to tones of C0 to G9 from the Acoustical Society at https://acousticalsociety.org/. When a pitch is entered, its name is displayed next to the entry box. Fractional numbers may be entered. For example is 60.5 is entered the note name is displayed as <i>C4+50</i></div>
 The algorithm types are as follows:
 * **Oscillator**  
   * **Modulator:** This is the type of oscillator used to modify the attribute over time. It can be either *Sine*, *Square*, *Triangle*, *Descending Sawtooth*, or *Ascending Sawtooth*. 
@@ -475,20 +450,6 @@ This figure illustrates a typical timeline interval with three selected generato
 - **Defining a timeline interval** This is initiated when a *crosshair* cursor is displayed. Clicking the mouse button and dragging either left or right will define a new interval. When the mouse button the interval is defined. A defined timeline may be removed by clicking and releasing anywhere on the timeline except within the existing timeline.
 - **Moving the timeline interval** When the mouse is within the interval and the 'grab' icon is display. A left mouse click with a drag left or right will move the interval. Once the mouse is released the new position is finalized and the generators contained within it are highlighted.
 - **Moving the start or end of the timeline interval** When the mouse is moved over either the start or end of the timeline interval, an *ew-resize* cursor is displayed. A left mouse click with a drag left or right will move the selected end of the interval. Once the mouse is released the new end point is finalized and the generators contained within the interval are highlighted.
-
-## Sound Controls
-
-Controls, as discussion in the [Edit Menu](#edit-menu) section above, are display as carats on the time line. By clicking the carat, the user can modify the definition of the control or delete it.
-
-# Room Level Functions
-During the rendering of a generated sound composition, all of the sources from all of the active generators are pulled together to allow for the room level audio modulators of volume, reverberation, compression, and equalization to be applied. These modulators are applied to all of the sound sources as an aggregate. mimicing the effect of a performance environment (reverberation) and the roll of a sound engineer for a performance (compression, equalization, and volume). The parameters of the room level functions are part of the composition definition and are saved so they can be loaded later. The room level controls are located in the right hand corner of the screen. Their values are set by the use of sliders. Reverberation, compression, and equalization may be disabled.
-<p align="center">
-  <img src="./images/roommodulators.png" width="50%" height: auto; alt="description">
-  <br>
-  <em>The room level controls</em>
-</p>
-
-These effects are part of the CMG composition. There settings are saved in the CMG file. The values may be changed during composition definition or during preview.
 
 ## Room Reverb
 
@@ -729,6 +690,7 @@ Ensembles have a name, a descrition and a list of included voices. Ensembles may
   <em>Caption text</em>
 </p>
 An ensemble has the following values:
+
 
 * **Name:** A unique name for the ensemble. It must be present when added an ensemble and cannot be changed when modifying an existing one.
 * **Description:** An option description of the ensemble

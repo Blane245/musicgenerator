@@ -17,6 +17,7 @@ import MarkovianPropertiesBox from "./markovianpropertiesbox";
 import OscillatorPropertiesBox from "./oscillatorpropertiesbox";
 import SequencerPropertiesBox from "./sequencerpropertiesbox";
 import WienerPropertiesBox from "./wienerpropertiesbox";
+import { debug } from "utils/debug";
 
 // provides the form fields and validators for the algorithmic generator
 
@@ -55,9 +56,9 @@ export default function AlgorithmicTable(
       const sequenceName: string = e.target.value;
       items = await loadSequenceItems(SEQUENCEATTRIBUTE.note, sequenceName);
       doCalc = true;
-      // console.log(
-      //   `AT: sequence name change. new items loaded for '${sequenceName}'`
-      // );
+      debug.info(
+        `AlgorithmTable: sequence name change. new items loaded for '${sequenceName}'`
+      );
     }
 
     // if any of the speed parameters changes,

@@ -10,6 +10,7 @@ import {
 import applyIntensity from './algorithms/applyintensity';
 import applyPan from './algorithms/applypan';
 import cloudSample from './cloudsample';
+import { debug } from 'utils/debug';
 
 interface BuildSampleProps {
 	generator: Stochastic;
@@ -70,15 +71,15 @@ export default function buildSamples(props: BuildSampleProps): number[][] {
 					}
 				}
 				// if (nClouds != 0)
-					// console.log(
-					// 	`${nClouds} clouds built for cells at time ${
-					// 		iTime * deltaT
-					// 	}, sample start ${sampleStart}`
-					// );
+					debug.info(
+						`buildSamples: ${nClouds} clouds built for cells at time ${
+							iTime * deltaT
+						}, sample start ${sampleStart}`
+					);
 				// bump to next time
 				sampleStart += deltaSample;
 			}
-			// console.log(`All samples built for voice ${voices[iVoice].name}`);
+			debug.info(`buildSamples: All samples built for voice ${voices[iVoice].name}`);
 
 			// do the voice level pan and intensity
 			if (intensityOption == INTENSITYOPTION.voice)
@@ -108,7 +109,7 @@ export default function buildSamples(props: BuildSampleProps): number[][] {
 		samples = applyPan(samples, panAlgorithm, panParameters, rN);
 	// normalize the samples
 	samples = normalize(samples);
-	// console.log(`${voices.length} voices built, sample length = ${samples[0].length}`);
+	debug.info(`buildSamples: ${voices.length} voices built, sample length = ${samples[0].length}`);
 	return samples;
 }
 function normalize(stereo: number[][]): number[][] {

@@ -2,7 +2,6 @@
 // it contains attributes that are used by multiple
 // components.
 // Its use avoids a whole lot of parameter passing between components
-import Control from "classes/control";
 import {
   createContext,
   Dispatch,
@@ -76,10 +75,6 @@ interface CMGContextType {
   setStatus: Dispatch<SetStateAction<string>>;
   timeLine: TimeLine | null;
   setTimeLine: Dispatch<SetStateAction<TimeLine | null>>;
-  controlNew: Control | null;
-  setControlNew: Dispatch<SetStateAction<Control| null>>;
-  displayControlDialog: boolean;
-  setDisplayControlDialog: Dispatch<SetStateAction<boolean>>;
   playing: MutableRefObject<boolean>;
   mode: PLAYMODE;
   setMode: Dispatch<SetStateAction<PLAYMODE>>;
@@ -105,11 +100,23 @@ interface CMGContextType {
   setFFTSize: Dispatch<SetStateAction<number>>;
   frequencyDisplay: string;
   setFrequencyDisplay: Dispatch<SetStateAction<string>>;
+  initialParams?: {
+    file?: string;
+    debug?: string;
+  };
 }
 
 const CMGContext = createContext<CMGContextType | undefined>(undefined);
 
-export const CMGProvider = ({ children }: { children: ReactNode }) => {
+interface CMGProviderProps {
+  children: ReactNode;
+  initialParams?: {
+    file?: string;
+    debug?: string;
+  };
+}
+
+export const CMGProvider = ({ children, initialParams }: CMGProviderProps) => {
   // application data
   const [appName, setAppName] = useState<string>("");
   const [appVersion, setAppVersion] = useState<string>('');
@@ -142,8 +149,6 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
   const [fileContents, setFileContents] = useState<CMGFile>(new CMGFile());
   const [status, setStatus] = useState<string>("");
   const [timeLine, setTimeLine] = useState<TimeLine | null>(null);
-  const [controlNew, setControlNew] = useState<Control|null>(null);
-  const [displayControlDialog, setDisplayControlDialog] = useState<boolean>(false);
   const playing = useRef<boolean>(false);
   const [mode, setMode] = useState<PLAYMODE>(PLAYMODE.idle);
   const [playbackLength, setPlaybackLength] = useState<number>(0);
@@ -214,10 +219,6 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     setStatus,
     timeLine,
     setTimeLine,
-    controlNew,
-    setControlNew,
-    displayControlDialog,
-    setDisplayControlDialog,
     playing,
     mode,
     setMode,
@@ -243,6 +244,7 @@ export const CMGProvider = ({ children }: { children: ReactNode }) => {
     setFFTSize,
     frequencyDisplay,
     setFrequencyDisplay,
+    initialParams,
   };
 
   return (

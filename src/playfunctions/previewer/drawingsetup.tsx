@@ -6,6 +6,7 @@ import {
   SectionType,
   SourceToDrawingSectionEntry,
 } from "types";
+import { debug } from "utils/debug";
 let nInstrument = -1;
 let nPercussion = -1;
 let nAudio = 0;
@@ -55,15 +56,15 @@ function mapSourcesToSections(
             sourceIndex: s.index,
           });
           nAudio++;
-          // console.log(
-          //   "source",
-          //   s.index,
-          //   "mapped to section",
-          //   sectionType,
-          //   "for generator ",
-          //   s.gen.name,
-          //   iSection
-          // );
+          debug.info(
+            "mapSourcesToSection: source",
+            s.index,
+            "mapped to section",
+            sectionType,
+            "for generator ",
+            s.gen.name,
+            iSection
+          );
         }
         break;
       case SectionType.Percussion:
@@ -84,15 +85,15 @@ function mapSourcesToSections(
             sectionIndex: iSection,
             sourceIndex: s.index,
           });
-          // console.log(
-          //   "source",
-          //   s.index,
-          //   "mapped to section",
-          //   sectionType,
-          //   "for generator ",
-          //   s.gen.name,
-          //   iSection
-          // );
+          debug.info(
+            "mapSourcesToSection: source",
+            s.index,
+            "mapped to section",
+            sectionType,
+            "for generator ",
+            s.gen.name,
+            iSection
+          );
         }
         break;
       case SectionType.Instrument:
@@ -113,25 +114,25 @@ function mapSourcesToSections(
             sectionIndex: iSection,
             sourceIndex: s.index,
           });
-          // console.log(
-          //   "source",
-          //   s.index,
-          //   "mapped to section",
-          //   sectionType,
-          //   "for generator",
-          //   s.gen.name,
-          //   iSection
-          // );
+          debug.info(
+            "mapSourcesToSection: source",
+            s.index,
+            "mapped to section",
+            sectionType,
+            "for generator",
+            s.gen.name,
+            iSection
+          );
         }
         break;
       case SectionType.None:
         break;
       default: {
-        // console.log(
-        //   "source has no section for generator",
-        //   s.gen.name,
-        //   s.gen.type
-        // );
+        debug.warn(
+          "mapSourcesToSection: source has no section for generator",
+          s.gen.name,
+          s.gen.type
+        );
         break;
       }
     }
@@ -155,7 +156,7 @@ function setupSections(
 ) {
   // abnormal case - no sections
   if (drawingSections.length == 0) {
-    // console.log("no drawing sections defined");
+    debug.warn("setupSection: no drawing sections defined");
     return;
   }
 
@@ -165,13 +166,13 @@ function setupSections(
     (nInstrument == -1 && nPercussion != -1 && nAudio == 0) ||
     (nInstrument == -1 && nPercussion == -1 && nAudio == 1)
   ) {
-    // console.log("one drawing section");
+    debug.info("setupSection: one drawing section");
     drawingSections[0].height = height;
     drawingSections[0].verticalOffset = 0;
   }
   // only n audiofiles
   else if (nInstrument == -1 && nPercussion == -1) {
-    // console.log(nAudioFiles, "audiofile sections");
+    debug.info("setupSection: ", nAudio, "audiofile sections");
     const sectionSize: number = height / nAudio;
     let offset: number = 0;
     drawingSections.forEach((section) => {
@@ -182,7 +183,7 @@ function setupSections(
   }
   // instrument + percussion, no audiofiles
   else if (nInstrument > -1 && nPercussion > -1 && nAudio == 0) {
-    // console.log("instrument and percussion sections");
+    debug.info("setupSection: instrument and percussion sections");
     // there are two sections. first wil be instrument at 75%, then percussion at 25%
     const sectionSize: number = height * 0.75;
     drawingSections[nInstrument].height = sectionSize;
@@ -197,11 +198,11 @@ function setupSections(
     (nInstrument > -1 && nPercussion == -1 && nAudio > 0) ||
     (nInstrument == -1 && nPercussion > -1 && nAudio > 0)
   ) {
-    // console.log(
-    //   "either 1 instrument or percussion, and",
-    //   nAudioFiles,
-    //   "audiofiles"
-    // );
+    debug.info(
+      "setupSection: either 1 instrument or percussion, and",
+      nAudio,
+      "audiofiles"
+    );
     const section1: number = height * 0.7;
     const section2: number = height * 0.3;
     if (nInstrument > -1) {
@@ -222,11 +223,11 @@ function setupSections(
   }
   // instrument + percussion + n audioFiles
   else if (nInstrument > -1 && nPercussion > -1 && nAudio > 0) {
-    // console.log(
-    //   "1 instrument and percussion, and",
-    //   nAudioFiles,
-    //   "audiofiles"
-    // );
+    debug.info(
+      "setupSection: 1 instrument and percussion, and",
+      nAudio,
+      "audiofiles"
+    );
     const section1: number = height * 0.7;
     const section2: number = height * 0.2;
     const section3: number = height * 0.1;
@@ -244,7 +245,7 @@ function setupSections(
       offset += subsectionHeight;
     });
   } else {
-    console.log(
+    debug.info(
       "drawing section case not determined",
       "nInstrument",
       nInstrument,
@@ -262,11 +263,11 @@ function setupSections(
       (s) => s.index == m.sourceIndex
     );
     if (source == undefined) {
-      // console.log(
-      //   "source not found with index",
-      //   m.sourceIndex,
-      //   "during lo hi search"
-      // );
+      debug.info(
+        "setupSection: source not found with index",
+        m.sourceIndex,
+        "during lo hi search"
+      );
       return;
     }
     if (section.type != SectionType.Audio) {

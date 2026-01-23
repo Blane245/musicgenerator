@@ -16,6 +16,7 @@ import {
   moveGeneratorBodyPosition,
   moveGeneratorTime,
 } from "utils/cmfiletransactions";
+import { debug } from "utils/debug";
 import { linearInterpolate } from "utils/interpolation";
 import { measureScaling } from "utils/measurescaling";
 import setCursor from "utils/setcursor";
@@ -92,7 +93,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
           height: iHeight,
           selected: isSelected(g),
         });
-        // console.log("new generator box", boxes[boxes.length - 1]);
+        debug.info("generatoricons new generator box", boxes[boxes.length - 1]);
       }
     });
     setGeneratorBoxes(boxes);
@@ -107,7 +108,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
             TimeLineScales[timeLine.currentZoomLevel].minorDivisions);
         setPositionXTick(positionTick);
         setStartTickPosition(0);
-        // console.log('Time snap mode. tick size is', positionTick);
+        debug.info('generatoricons: Time snap mode. tick size is', positionTick);
       } else {
         // the number of displayed beats in the time line
         const { tickPositionSize, startTickPosition } = measureScaling({
@@ -150,8 +151,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
       return;
     const moveTo: number =
       generatorBoxes[boxIndex].position.y + mouseLocation.dY;
-    // const moveTo: number = mouseLocation.Y;
-    // console.log(`move generator ${boxIndex} vertically`, moveTo, mouseLocation.dY);
+    debug.info(`generatoricons: move generator ${boxIndex} vertically`, moveTo, mouseLocation.dY);
     if (moveTo < 0 || moveTo > (2 * trackHeight) / 3) return;
     moveGeneratorBodyPosition(
       track,
@@ -159,7 +159,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
       moveTo,
       setFileContents
     );
-    // console.log("generator moved to new position", moveTo);
+    debug.info("generatoricons: generator moved to new position", moveTo);
     setStatus(``);
   }, [mouseLocation, mouseDown]);
 
@@ -186,16 +186,16 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
             startTickPosition;
     }
 
-    // console.log(
-    //   " snap mode is",
-    //   timeLine.snap,
-    //   "mouse location is ",
-    //   mouseLocation.X,
-    //   "tick size is ",
-    //   positionXTick,
-    //   "new position is ",
-    //   newPosition
-    // );
+    debug.info(
+      "generatoricons:  snap mode is",
+      timeLine.snap,
+      "mouse location is ",
+      mouseLocation.X,
+      "tick size is ",
+      positionXTick,
+      "new position is ",
+      newPosition
+    );
     // constrain the new position to be between the start and end of the
     // displayed timeline
     if (
@@ -213,7 +213,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
       timeLine.startTime,
       timeLine.startTime + TimeLineScales[timeLine.currentZoomLevel].extent
     );
-    // console.log(`generator move ${edgeSelected} time to ${newTime}`);
+    debug.info(`generatoricons: generator move ${edgeSelected} time to ${newTime}`);
     moveGeneratorTime(
       track,
       generatorBoxes[boxIndex].generatorIndex,
@@ -229,7 +229,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     e.preventDefault();
     e.stopPropagation();
     setCursor("ns-resize");
-    // console.log("mouse enter body");
+    debug.info("generatoricons: mouse enter body");
   }
 
   // when mouse goes down in the icon body
@@ -247,7 +247,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
       dY: 0,
     });
     setMouseDown(true);
-    // console.log("mouse down on body");
+    debug.info("generatoricons: mouse down on body");
   }
 
   // when mouse moves in the icon body
@@ -261,7 +261,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
       dX: e.nativeEvent.movementX,
       dY: e.nativeEvent.movementY,
     });
-    // console.log("mouse move on body");
+    debug.info("generatoricons: mouse move on body");
   }
 
   // when the mouse leaves the icon body or goes up, terminate
@@ -275,7 +275,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     setEditMode("None");
     setMouseLocation(null);
     setMouseDown(false);
-    // console.log("mouse leave body");
+    debug.info("generatoricons: mouse leave body");
   }
 
   function onMouseUpBody(e: MouseEvent<SVGRectElement>): void {
@@ -286,7 +286,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     setEditMode("None");
     setMouseLocation(null);
     setMouseDown(false);
-    // console.log("mouse up body");
+    debug.info("generatoricons: mouse up body");
   }
 
   // when the mouse enters the icon text with the mouse up,
@@ -296,7 +296,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     e.preventDefault();
     e.stopPropagation();
     setCursor("cell");
-    // console.log("mouse enter body");
+    debug.info("generatoricons: mouse enter body");
   }
   // when the mouse goes down on the icon text, display the menu
   function onTextMouseDown(
@@ -346,7 +346,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     e.preventDefault();
     e.stopPropagation();
     setCursor("ew-resize");
-    // console.log('mouse enter edge');
+    debug.info('generatoricons: mouse enter edge');
   }
   // when the mouse goes down on an icon edge, initiate the icon move
   function onMouseDownEdge(
@@ -364,7 +364,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     });
     setEdgeSelected(edge);
     setMouseDown(true);
-    // console.log("mouse down on edge", edge);
+    debug.info("generatoricons: mouse down on edge", edge);
   }
 
 
@@ -390,7 +390,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     setMouseDown(false);
     setEdgeSelected("None");
     setMouseLocation(null);
-    // console.log("mouse leave edge ");
+    debug.info("generatoricons: mouse leave edge ");
   }
 
   function onMouseUpEdge(
@@ -402,7 +402,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     setMouseDown(false);
     setEdgeSelected("None");
     setMouseLocation(null);
-    // console.log("mouse up edge ");
+    debug.info("generatoricons: mouse up edge ");
   }
 
   function selectClass(selected: boolean): string {

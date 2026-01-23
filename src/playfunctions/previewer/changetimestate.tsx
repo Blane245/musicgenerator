@@ -15,7 +15,6 @@ import TimeLine from "classes/timeline";
 import SignalLevel from "classes/signallevel";
 import {signalWidth} from "./footer"
 import CMGFile from "classes/cmgfile";
-import Control from "classes/control";
 
 export default function changeTimerState(
   displayWidth: number,
@@ -63,7 +62,6 @@ export default function changeTimerState(
   redrawSource: (s: RawSourceData)=>void,
   onExit: ()=>void,
   fileContents: CMGFile,
-  realtimeControls:  React.MutableRefObject<Control[]>,
 ) {
   tick(
     paused,
@@ -127,6 +125,5 @@ export default function changeTimerState(
     redrawSource,
     setActiveSourcesCount,
     fileContents,
-    realtimeControls,
   );
 }

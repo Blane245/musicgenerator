@@ -1,4 +1,3 @@
-import CMGFile from "classes/cmgfile";
 import Stochastic from "classes/generators/stochastic";
 import RandomNumber from "classes/randomnumber";
 import buildSamples from "helpers/buildsamples";
@@ -8,7 +7,6 @@ import { RawSourceData, SAMPLERATE, StochasticValues, Voices } from "types";
 // convert all of the stochastic elements in all clouds to audio samples
 // and put them in the source data
 export function getBufferSourceNodesFromStochastic(
-  _fileContents: CMGFile,
   gen: Stochastic,
   sourceCount: number
 ): RawSourceData[] {

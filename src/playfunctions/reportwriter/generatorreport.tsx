@@ -132,7 +132,7 @@ function StochasticReport(props: StochasticReportProps): JSX.Element {
         </thead>
         <tbody>
           {v.voices.map((voice, i) => (
-            <tr>
+            <tr key={`voicedata-${i}`}>
               <td>{voice.muted ? "Yes" : "No"}</td>
               <td>{voice.volume}</td>
               <td>{voice.velocity}</td>

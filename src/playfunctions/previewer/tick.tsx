@@ -6,6 +6,7 @@ import {
     SourceToDrawingSectionEntry,
     TimeLineScales,
 } from "types";
+import { debug } from "utils/debug";
 import getOffsetFromTime from "utils/getoffsetfromtime";
 
 // time progress clicker for updating the time progress widget
@@ -37,16 +38,16 @@ export default function tick(
   displayHeight: number,
 ): void {
   if (paused.current) {
-    // console.log("tick paused");
+    debug.info("tick: paused");
     if (tickId != 0) clearTimeout(tickId);
     return;
   }
   if (!audioContext) {
-    // console.log("no audio context for tick");
+    debug.error("tick: no audio context for tick");
     return;
   }
   if (playing.current && audioContext.currentTime <= playbackLength) {
-    // console.log("tick at", audioContext.currentTime);
+    debug.info("tick: at", audioContext.currentTime);
     tickId = window.setTimeout(
       tick,
       tickInterval,
@@ -83,10 +84,10 @@ export default function tick(
           }
         );
         if (newSourceData.length != pendingSourceData.current.length) {
-          // console.log(
-          //   "remaining sources after trimming",
-          //   newSourceData.length
-          // );
+          debug.info(
+            "tick: remaining sources after trimming",
+            newSourceData.length
+          );
           pendingSourceData.current = newSourceData;
         }
         if (drawing)
@@ -111,7 +112,7 @@ export default function tick(
   // move the timeline ahead 1/2 of its current extent
   function updateTimeline(timeProgress: number): TimeLine | null {
     if (!previewTimeline.current) {
-      // console.log("in updatetimeline, previewtimeline is null");
+      debug.warn("tick: in updatetimeline, previewtimeline is null");
       return null;
     }
     let result: TimeLine = previewTimeline.current;
@@ -121,7 +122,7 @@ export default function tick(
     if (timeProgress >= newStart + extent) {
       newStart = previewTimeline.current.startTime + extent / 2.0;
       while (newStart + extent <= timeProgress) newStart += extent / 2.0;
-      // console.log("new timeline start", newStart);
+      debug.info("tick: new timeline start", newStart);
       const newPreviewTimeline: TimeLine = previewTimeline.current.copy();
       newPreviewTimeline.startTime = newStart;
       result = newPreviewTimeline;

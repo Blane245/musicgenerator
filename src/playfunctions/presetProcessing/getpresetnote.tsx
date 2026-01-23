@@ -1,5 +1,5 @@
-import CMGFile from "classes/cmgfile";
 import Algorithmic from "classes/generators/algorithmic";
+import { pantoLeftRight } from "helpers/algorithms/panutils";
 import { samplePool } from "sfcomponents/samplepool";
 import { Preset } from "sfcomponents/types";
 import { attenuate, dBToGain, precision, tc2s } from "sfcomponents/util";
@@ -7,10 +7,8 @@ import { RawSourceData } from "types";
 import buildEnvelope from "./buildenvelope";
 import buildSampleArray from "./buildsample";
 import getActiveZones from "./getactivezones";
-import { pantoLeftRight } from "helpers/algorithms/panutils";
 
 export const getPresetNote = (
-  fileContents: CMGFile,
   gen: Algorithmic,
   preset: Preset,
   interval: number, // the note's time interval
@@ -73,7 +71,8 @@ export const getPresetNote = (
       overridingRootKey !== undefined && overridingRootKey !== -1
         ? overridingRootKey
         : originalPitch;
-    const baseDetune = 100 * rootKey + pitchCorrection - fineTune;
+    const baseDetune = 100 * rootKey + pitchCorrection - fineTune;  //sine wave test shows pitch correction to be wrong on the sine wave 
+    // const baseDetune = 100 * rootKey - fineTune;
     const cents = pitchValue * 100 - baseDetune - 45;
 
     // combining the instrument's sampleRate with the playbackRate
@@ -142,7 +141,6 @@ export const getPresetNote = (
     const sample: Float32Array = buildSampleArray(
       time,
       gen,
-      fileContents,
       pitchValue,
       instrumentSample,
       sampleRate,

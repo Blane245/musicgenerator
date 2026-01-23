@@ -24,7 +24,7 @@ export async function SFPool(
       pool.push({ name: desiredFile, soundFont: sf });
       return Promise.resolve({ name: desiredFile, soundFont: sf });
     } catch (e) {
-      throw new Error(e);
+      throw new Error((e as Error).message);
     }
   }
 }

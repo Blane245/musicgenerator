@@ -1,26 +1,13 @@
-import CMGFile from "classes/cmgfile";
 import Algorithmic from "classes/generators/algorithmic";
-import { activateDSPControls } from "playfunctions/controls/dspcontrols";
 import { dBToGain, midiToFrequency } from "sfcomponents/util";
 import { GainEnvelope } from "types";
 import { linearInterpolate } from "utils/interpolation";
 import { getSampleWithNoise } from "./applynoise";
+import { debug } from "utils/debug";
 
-// since the introdution of controls, all sample processing has to occur in this
-// function. Controls are initiated during the time intervals of signal processing
-// This include track volume, tremolo, vibrato, and noise
-// Noise is added to each sample
-// the delay, attack, hold, sustain, release envelop is provided
-// and then processed during the sample.
-// tremolo and track volume are added
-// finally vibrato controls the time spacing.
-// to correlate the control time with the sample time,
-// the samplestarttime is needed. Controls are in composition time space
-// samples are in source time space
 export default function buildSampleArray(
   sampleStartTime: number,
   generator: Algorithmic,
-  fileContents: CMGFile,
   pitchValue: number,
   inputSample: Float32Array,
   inputRate: number,
@@ -33,7 +20,7 @@ export default function buildSampleArray(
   envelope: GainEnvelope,
   attenuation: number
 ): Float32Array {
-  // console.log("building sample with envelope", envelope);
+  debug.info("buildSample: building sample with envelope", envelope);
   const basePlaybackRate = 1.0 * Math.pow(2, inputCents / 1200);
   const inputCount: number = Math.ceil(inputRate * totalTime);
   const result: Float32Array = new Float32Array(inputCount);
@@ -51,9 +38,6 @@ export default function buildSampleArray(
       currentIndex = loopStart;
       thisIndex = loopStart;
     }
-
-    // activate any controls that are present
-    activateDSPControls(sampleStartTime + t, deltaT, generator, fileContents);
 
     // get the sample value by interpolation
     let value: number = 0;

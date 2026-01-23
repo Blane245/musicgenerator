@@ -1,4 +1,5 @@
 import { ActiveSource } from "types";
+import { debug } from "utils/debug";
 
 // determine which generators are currently playing
 export function playingGenerators(
@@ -13,7 +14,7 @@ export function playingGenerators(
   
 ) {
   if (paused.current) {
-    // console.log("playingGenerators paused");
+    debug.info("playingGenerators paused");
     if (playingId !=0) clearTimeout(playingId);
     return;
   }
@@ -21,12 +22,12 @@ export function playingGenerators(
   // update the generators playing list
   if (playing.current && audioContext.currentTime <= playbackLength) {
     const newActiveGenerators: string[] = [];
-    // console.log(
-    //   "checking",
-    //   activeSources.current.length,
-    //   "sources for active generators at",
-    //   ctx.currentTime
-    // );
+    debug.info(
+      "playingGenrators: checking",
+      activeSources.current.length,
+      "sources for active generators at",
+      audioContext.currentTime
+    );
     activeSources.current.forEach((s: ActiveSource) => {
       if (
         newActiveGenerators.findIndex((name: string) => name == s.gen.name) < 0
@@ -35,11 +36,11 @@ export function playingGenerators(
           audioContext.currentTime >= s.gen.startTime &&
           audioContext.currentTime <= s.gen.stopTime
         ) {
-          // console.log(
-          //   "active generator at time",
-          //   ctx.currentTime,
-          //   s.gen.name
-          // );
+          debug.info(
+            "playingGenerators: active generator at time",
+            audioContext.currentTime,
+            s.gen.name
+          );
           newActiveGenerators.push(s.gen.name);
         }
       }

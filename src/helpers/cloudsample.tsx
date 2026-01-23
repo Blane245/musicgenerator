@@ -24,6 +24,7 @@ import probabilityLookup from '../utils/probability/probabilitylookup';
 import applyIntensity from './algorithms/applyintensity';
 import applyPan from './algorithms/applypan';
 import buildPresetSample from './buildpresetsample';
+import { debug } from 'utils/debug';
 
 const UNIT: number = 100;
 
@@ -57,12 +58,12 @@ export default function cloudSample(props: {
 		cloudDuration,
 		cloudDuration / UNIT
 	);
-	// console.log(`duration density table for voice ${voice.name}, delta=${delta}, cloud duration=${cloudDuration}, Pd=${Pd}, Nd=${Nd}`);
+	debug.info(`cloudSample: duration density table for voice ${voice.name}, delta=${delta}, cloud duration=${cloudDuration}, Pd=${Pd}, Nd=${Nd}`);
 	// check that not all of the durations are 0
 	if (Pd.length == 1) {
-		// console.log(
-		// 	`duration table for timbre=${voice.timbre}, delta=${delta}, cloud duration=${cloudDuration} has only zero elements`
-		// );
+		debug.info(
+			`cloudSample: duration table for timbre=${voice.timbre}, delta=${delta}, cloud duration=${cloudDuration} has only zero elements`
+		);
 		return { cloud: [], cloudState: { offset: -1, pitch: 0 } };
 	}
 
@@ -79,9 +80,9 @@ export default function cloudSample(props: {
 	do {
 		interval = probabilityLookup(Pd, Nd, rN.rand()); // the initial duration
 	} while (interval == 0);
-	// console.log(
-	// 	`initial conditions for voice ${voice.timbre}, element ${i}, t1=${t1}, pitch1=${pitch1}, duration=${duration}`
-	// );
+	debug.info(
+		`cloudSample: initial conditions for voice ${voice.timbre}, t1=${t1}, pitch1=${pitch1}, interval=${interval}`
+	);
 	do {
 		t2 = t1 + interval; // the time of the end of the sound
 		if (voice.timbre == TIMBRE.Glissando) {
@@ -90,18 +91,18 @@ export default function cloudSample(props: {
 			const speed: number = gaussianRandom(0, delta * RMSFACTOR, rN);
 			// restrict the glissando to remain in the range of the voice
 			pitch2 = Math.round(Math.min(hi, Math.max(lo, pitch1 + speed * interval)));
-			// console.log(
-			// 	`glissando for voice ${voice.name}, pitch1=${pitch1}, pitch2=${pitch2}, speed=${speed}, interval=${interval}, t1=${t1}, t2=${t2}`
-			// );
+			debug.info(
+				`cloudSample: glissando for voice ${voice.name}, pitch1=${pitch1}, pitch2=${pitch2}, speed=${speed}, interval=${interval}, t1=${t1}, t2=${t2}`
+			);
 		} else {
 			// timbre is Sustained
 			pitch2 = pitch1;
 		}
 
 		// get the samples for the instruments that make up this voice
-		// console.log(
-		// 	`build preset sample of ${voice.preset?.header.name}, pitchs=(${pitch1}, ${pitch2}) starting at ${t1}, with interval ${interval}`
-		// );
+		debug.info(
+			`cloudSample: build preset sample of ${voice.preset?.header.name}, pitchs=(${pitch1}, ${pitch2}) starting at ${t1}, with interval ${interval}`
+		);
 		const eSample = buildPresetSample({
 			preset: voice.preset,
 			interval: interval,
@@ -148,8 +149,6 @@ export default function cloudSample(props: {
 	}
 	// apply cloud level pan
 	if (panOption == PANOPTION.cloud) stereo = applyPan(stereo, panAlgorithm, panParameters, rN);
-	// console.log(`Generated ${sequenceCount} segments
-	// 	for timbre type ${voice.timbre},
-	// 	 cloud size ${sample.length}`);
+	debug.info(`cloudSample: cloud for timbre type ${voice.timbre}, cloud size ${sample.length}`);
 	return { cloud: stereo, cloudState: newCloudState };
 }

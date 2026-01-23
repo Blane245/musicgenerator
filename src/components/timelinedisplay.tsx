@@ -16,10 +16,10 @@ import {
   TimeLineScales,
   TimeTicks,
 } from "types";
+import { debug } from "utils/debug";
 import getTickLinesandLabels from "utils/getticklinesandlabels";
 import setCursor from "utils/setcursor";
 import updateTimeTicks from "utils/updatetimeticks";
-import DisplayControls from "./displaycontrols";
 export default function TimeLineDisplay() {
   const {
     mode,
@@ -66,13 +66,13 @@ export default function TimeLineDisplay() {
       setTimeLine(newTimeLine);
       const newTimeTicks: TimeTicks | null = updateTimeTicks(newTimeLine);
       if (newTimeTicks) setTicks(newTimeTicks);
-      // console.log(
-      //   "update timeline and ticks on display change, timelineWidth, timelineHeight, newtimeline newticks",
-      //   timelineWidth,
-      //   timelineHeight,
-      //   newTimeLine,
-      //   newTimeTicks
-      // );
+      debug.info(
+        "TimeLineDisplay: update timeline and ticks on display change, timelineWidth, timelineHeight, newtimeline newticks",
+        timelineWidth,
+        timelineHeight,
+        newTimeLine,
+        newTimeTicks
+      );
     }
   }, [timelineWidth, timelineHeight]);
 
@@ -83,14 +83,14 @@ export default function TimeLineDisplay() {
       if (newTimeTicks) setTicks(newTimeTicks);
       // const newTimeInterval: TimelineInterval | null = updateTimeInterval(timeInterval, timeLine);
       // if (newTimeInterval) setTimeInterval(newTimeInterval);
-      // console.log("update ticks on entering idle", newTimeTicks);
+      debug.info("TimeLineDisplay: update ticks on entering idle", newTimeTicks);
     }
   }, [timeLine, mode]);
 
   // useeffect handler for mouse move in time interval Define and Move modes
   useEffect(() => {
     if (!mouseDownTimeLine && !mouseDownTimeInterval) {
-      // console.log(
+      // debug.info(
       //   "mouse is not down anywhere. Leaving time interval mode",
       //   edgeMode
       // );
@@ -100,7 +100,7 @@ export default function TimeLineDisplay() {
       return;
     }
     if (!mouseLocation || !timeLine) return;
-    // console.log("timeinterval mode", edgeMode);
+    debug.info("TimeLineDisplay: timeinterval mode", edgeMode);
     const X: number = mouseLocation.X;
     if (edgeMode == TIMEINTERVALMODE.Define) {
       // change the timeinterval definiiton based on the curent mouse X relative location
@@ -133,7 +133,7 @@ export default function TimeLineDisplay() {
           }
           break;
         default:
-          // console.log("bad interval edge definition ", edge);
+          debug.info("TimeLineDisplay: bad interval edge definition ", edge);
           break;
       }
     }
@@ -153,9 +153,9 @@ export default function TimeLineDisplay() {
         newInterval.endOffset = newEnd;
         newInterval = getTimes(newInterval);
         setTimeInterval(newInterval);
-        // console.log("interval moved to ", newInterval);
+        debug.info("TimeLineDisplay: interval moved to ", newInterval);
       } else {
-        // console.log("interval not moved to ", newStart, newEnd);
+        debug.info("TimeLineDisplay: interval not moved to ", newStart, newEnd);
       }
     }
   }, [mouseLocation, mouseDownTimeInterval, mouseDownTimeLine]);
@@ -194,15 +194,9 @@ export default function TimeLineDisplay() {
     const X: number = event.nativeEvent.offsetX;
     const Y: number = event.nativeEvent.offsetY;
     setMouseLocation({ X: X, Y: Y, dX: 0, dY: 0 });
-    // movement.current = {
-    //   X,
-    //   Y,
-    //   dX: 0,
-    //   dY: 0,
-    // };
     const newInterval = getTimes({ startOffset: X, endOffset: X });
     setTimeInterval(newInterval);
-    // console.log("mouse down at", newInterval);
+    debug.info("TimeLineDisplay: mouse down at", newInterval);
     setMouseDownTimeLine(true);
     setMouseDownTimeInterval(false);
   }
@@ -217,13 +211,13 @@ export default function TimeLineDisplay() {
         dX: event.nativeEvent.movementX,
         dY: event.nativeEvent.movementY,
       });
-      // console.log(
-      //   "mouse move timeline nativeevent",
-      //   event.nativeEvent.offsetX,
-      //   event.nativeEvent.offsetY,
-      //   event.nativeEvent.movementX,
-      //   event.nativeEvent.movementY
-      // );
+      debug.info(
+        "TimeLineDisplay: mouse move timeline nativeevent",
+        event.nativeEvent.offsetX,
+        event.nativeEvent.offsetY,
+        event.nativeEvent.movementX,
+        event.nativeEvent.movementY
+      );
     }
   }
 
@@ -235,7 +229,7 @@ export default function TimeLineDisplay() {
     setEdgeMode(TIMEINTERVALMODE.None);
     setEdge(TIMEINTERVALEDGE.None);
     setCursor("default");
-    // console.log("time line mouse goin up");
+    debug.info("TimeLineDisplay: time line mouse goin up");
     setMouseDownTimeLine(false);
     setMouseDownTimeInterval(false);
     setMouseLocation(null);
@@ -268,7 +262,7 @@ export default function TimeLineDisplay() {
     });
     setMouseDownTimeInterval(true);
     setMouseDownTimeLine(false);
-    // console.log("mouse down time interval");
+    debug.info("TimeLineDisplay: mouse down time interval");
   }
 
   // when the mouse moves in the interval bosy with the mouse down
@@ -285,13 +279,13 @@ export default function TimeLineDisplay() {
       dX: event.nativeEvent.movementX,
       dY: event.nativeEvent.movementY,
     });
-    // console.log(
-    //   "mouse move time interval",
-    //   event.nativeEvent.offsetX,
-    //   event.nativeEvent.offsetY,
-    //   event.nativeEvent.movementX,
-    //   event.nativeEvent.movementY
-    // );
+    debug.info(
+      "TimeLineDisplay: mouse move time interval",
+      event.nativeEvent.offsetX,
+      event.nativeEvent.offsetY,
+      event.nativeEvent.movementX,
+      event.nativeEvent.movementY
+    );
   }
 
   // when the mouse goes up in the interval cancel all actions
@@ -304,7 +298,7 @@ export default function TimeLineDisplay() {
     setEdge(TIMEINTERVALEDGE.None);
     setMouseDownTimeInterval(false);
     setMouseDownTimeLine(false);
-    // console.log("interval mouse goes up");
+    debug.info("TimeLineDisplay: interval mouse goes up");
   }
 
   // when the mouse enters an interval edge, set the edge entered and the cursor.
@@ -316,7 +310,7 @@ export default function TimeLineDisplay() {
     if (!mouseDownTimeInterval && !mouseDownTimeLine) {
       setCursor("ew-resize");
       setEdge(edge);
-      // console.log("enter edge set cursor to ew-resize");
+      debug.info("TimeLineDisplay: enter edge set cursor to ew-resize");
       event.stopPropagation();
       event.preventDefault();
     }
@@ -335,7 +329,7 @@ export default function TimeLineDisplay() {
     setEdge(edge);
     setMouseDownTimeInterval(true);
     setMouseDownTimeLine(false);
-    // console.log("mouse down time interval edge");
+    debug.info("TimeLineDisplay: mouse down time interval edge");
   }
 
   // when the mouse moves in the interval edge with the mouse down
@@ -352,19 +346,19 @@ export default function TimeLineDisplay() {
       dX: event.nativeEvent.movementX,
       dY: event.nativeEvent.movementY,
     });
-    // console.log(
-    //   "mouse move time interval",
-    //   event.nativeEvent.offsetX,
-    //   event.nativeEvent.offsetY,
-    //   event.nativeEvent.movementX,
-    //   event.nativeEvent.movementY
-    // );
+    debug.info(
+      "TimeLineDisplay: mouse move time interval",
+      event.nativeEvent.offsetX,
+      event.nativeEvent.offsetY,
+      event.nativeEvent.movementX,
+      event.nativeEvent.movementY
+    );
   }
 
   // when the mouse goes up on the interval edge, cancel all changes
   function onMouseUpTimeIntervalEdge(event: MouseEvent<SVGPathElement>): void {
     setCursor("default");
-    // console.log("mouse up interval edge");
+    // debug.info("mouse up interval edge");
     event.stopPropagation();
     event.preventDefault();
     setEdgeMode(TIMEINTERVALMODE.None);
@@ -402,7 +396,6 @@ export default function TimeLineDisplay() {
               d={`m 0 ${timeLine.height} H ${timeLine.width}`}
             />
           </svg>
-          <DisplayControls timeLine={timeLine} />
         </>
       ) : null}
     </>

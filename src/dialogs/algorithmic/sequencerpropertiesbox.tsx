@@ -7,6 +7,7 @@ import {
   SequenceName,
   SequenceType,
 } from "types";
+import { debug } from "utils/debug";
 import { loadSequenceItems } from "utils/loadsequenceitems";
 import { loadValidSequenceNames } from "utils/loadvalidsequencenames";
 import toTitleCase from "utils/totitlecase";
@@ -33,7 +34,7 @@ export default function SequencerPropertiesBox(
   // load the valid sequence from the db when this dislog starts up
   useEffect(() => {
     loadValidSequenceNames(attributeType, setValidSequences);
-    // console.log(`load valid ${attributeType} sequences`);
+    debug.info(`SequjencePropertiesBox: load valid ${attributeType} sequences`);
   }, [attributeType]);
 
   useEffect(() => {

@@ -8,6 +8,7 @@ import { beatsToIndex } from "utils/beatstoindex";
 import { loadSequenceItems } from "utils/loadsequenceitems";
 import { getAttributeValueWithDefault } from "utils/xmlfunctions";
 import { AlgorithmValues } from "./algorithmvalues";
+import { debug } from "utils/debug";
 
 export default class SequenceValues extends AlgorithmValues {
   override values: SequenceType;
@@ -93,7 +94,7 @@ export default class SequenceValues extends AlgorithmValues {
   }
   setReflect() {
     if (this.values.reflectSequence) {
-      console.log(
+      debug.info(
         "Sequencer: reflect ",
         this.values.reflectPitch,
         this.values.items
@@ -105,7 +106,7 @@ export default class SequenceValues extends AlgorithmValues {
           value: 2 * this.values.reflectPitch - item.value,
         };
       });
-      console.log("new sequence", this.values.items);
+      debug.info("new sequence", this.values.items);
     }
   }
 
@@ -113,7 +114,7 @@ export default class SequenceValues extends AlgorithmValues {
     const itemIndex: number = beatsToIndex(beat, this.values.items);
     const value: number =
       itemIndex < 0 ? 0 : this.values.items[itemIndex].value;
-    // console.log("beat, itemindex, value", beat, itemIndex, value);
+    debug.info("sequenceer beat, itemindex, value", beat, itemIndex, value);
     if (itemIndex < 0) return 0;
     return value;
   }
@@ -181,13 +182,13 @@ export default class SequenceValues extends AlgorithmValues {
       elem,
       "reverseSequence",
       "boolean",
-      true
+      false,
     ) as boolean;
     s.values.reflectSequence = getAttributeValueWithDefault(
       elem,
       "reflectSequence",
       "boolean",
-      true
+      false,
     ) as boolean;
     s.values.reflectPitch = getAttributeValueWithDefault(
       elem,

@@ -17,7 +17,6 @@
 //
 // when all batches have completed or playing has stopped (in waitForCompletion)
 //  write the accumulated buffer to the recording file
-import CMGFile from "classes/cmgfile";
 import Compressor from "classes/roomnodes/compressor";
 import Equalizer from "classes/roomnodes/equalizer";
 import Reverb from "classes/roomnodes/reverb";
@@ -28,8 +27,8 @@ import { GENERATORTYPE, PLAYMODE, RawSourceData } from "types";
 import { bufferToMp3 } from "utils/buffertomp3";
 import { bufferToWav } from "utils/buffertowav";
 import { buildRoomNodes } from "./buildroomnodes";
-import { restoreControlledState } from "./controlledstate";
 import { realizeSource } from "./realizesource";
+import { debug } from "utils/debug";
 // import Control from "classes/control";
 
 interface RecordProps {
@@ -50,7 +49,7 @@ export default function Record(params: RecordProps) {
     setMode,
     setRecordHandle,
   } = params;
-  const { fileContents, setFileContents, setStatus, playing } = useCMGContext();
+  const { fileContents, setStatus, playing } = useCMGContext();
   const BATCHSIZE: number = 200; // the number of sources in a batch
   const GROUPSIZE: number = 10; // the number of batches that will be rendered as a group
   const [completed, setCompleted] = useState<number>(-1);
@@ -114,7 +113,7 @@ export default function Record(params: RecordProps) {
             nBatch = 0;
           }
         });
-        // console.log('total recording batch count', totalBatchCount.current);
+        debug.info('Record: total recording batch count', totalBatchCount.current);
         playing.current = true;
 
         // start dispatching the groups of batches
@@ -164,13 +163,6 @@ export default function Record(params: RecordProps) {
             if(completeTimerId.current) clearTimeout(completeTimerId.current);
             recordingActive.current = false;
 
-            // restore the controlled state
-            setFileContents((prev: CMGFile) => {
-              const n: CMGFile | null = restoreControlledState();
-              if (!n) return prev;
-              console.log("file contents restored");
-              return n;
-            });
           });
       } else {
         completeTimerId.current = window.setTimeout(waitForCompletion, 1000);
@@ -184,14 +176,6 @@ export default function Record(params: RecordProps) {
       setMode(PLAYMODE.idle);
       setRecordHandle(null);
       setStatus(`Recording stopped early`);
-
-      // restore the controlled state
-      setFileContents((prev: CMGFile) => {
-        const n: CMGFile | null = restoreControlledState();
-        if (!n) return prev;
-        console.log("file contents restored");
-        return n;
-      });
     }
   }
 
@@ -239,7 +223,7 @@ export default function Record(params: RecordProps) {
         }
       }
       // there is now a group of batches that need to rendered
-      // console.log("rendering ", group.current.length, " batches");
+      debug.info("Record: rendering ", group.current.length, " batches");
       activeContexts.current = [];
       group.current.forEach(
         (g: {
@@ -315,7 +299,7 @@ export default function Record(params: RecordProps) {
 
     // when the number of completed batches is equal to the
     // total number of batches, we are done, so kill the timer.
-    // console.log('completed batches', completedBatches.current, 'total batches', totalBatchCount.current);
+    debug.info('Record: completed batches', completedBatches.current, 'total batches', totalBatchCount.current);
     if (
       totalBatchCount.current == completedBatches.current ||
       !playing.current

@@ -39,6 +39,7 @@ import {
 import { getDocElement, getElementElement } from "../utils/xmlfunctions";
 import Algorithmic from "classes/generators/algorithmic";
 import Stochastic from "classes/generators/stochastic";
+import { debug } from "utils/debug";
 
 //
 export async function writeCMGFile(
@@ -98,7 +99,7 @@ export async function writeCMGFile(
     else
       return Promise.reject(`Unknown server error while writing ${fileName} `);
   } catch (e) {
-    console.log("file writing error", (e as Error).message);
+    debug.error("writeCMGfile: writing error", (e as Error).message);
     return Promise.reject((e as Error).message);
   }
 }

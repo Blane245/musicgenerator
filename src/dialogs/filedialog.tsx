@@ -9,6 +9,7 @@ import {
   FSList,
   FSResponse,
 } from "../types";
+import { debug } from "utils/debug";
 
 type FileDialogProps = {
   action: string; // Save or Open
@@ -131,7 +132,7 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
           setDirectoryQueue(newQueue);
           setQueueLocation(newQueue.length - 1);
           setNavigationButtons(newQueue.length - 1, newQueue);
-          // console.log("new location queue", newQueue);
+          debug.info("FileDialog: new location queue", newQueue);
         }
       });
     } catch (error) {
