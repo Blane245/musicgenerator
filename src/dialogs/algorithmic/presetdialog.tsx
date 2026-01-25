@@ -303,10 +303,10 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
               value={presetName}
             >
               {SFFile
-                ? (SFFile.presets as Preset[]).map((p) => {
+                ? (SFFile.presets as Preset[]).map((p,i) => {
                     const pName = bankPresettoName(p);
                     return (
-                      <option key={`preset-${pName}`} value={pName}>
+                      <option key={`preset-${pName}${i}`} value={pName}>
                         {pName}
                       </option>
                     );
@@ -388,10 +388,10 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
               <tbody>
                 <tr key="name">
                   <th style={{textAlign:"left"}}>Instrument Name</th>
-                  {presetInfo.map((s: RawSourceData) => (
+                  {presetInfo.map((s: RawSourceData, i) => (
                     <td
                       style={{ textAlign: "right" }}
-                      key={"name-" + s.instrument?.name}
+                      key={"name-" + s.instrument?.name+ i.toString()}
                     >
                       {s.instrument?.name}
                     </td>
@@ -411,8 +411,8 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
                 </tr>
                 <tr>
                   <th style={{textAlign:"left"}}>Looping?</th>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td style={{ textAlign: "right" }}>
+                  {presetInfo.map((s: RawSourceData, i) => (
+                    <td style={{ textAlign: "right" }} key={`loop-${s.instrument?.name}${i}`}>
                       {s.instrument?.loop ? "true" : "false"}
                     </td>
                   ))}
@@ -440,8 +440,8 @@ export default function PresetDialog(props: PresetDialogProps): JSX.Element {
                 </tr>
                 <tr>
                   <th style={{textAlign:"left"}}>Attack Enabled?</th>
-                  {presetInfo.map((s: RawSourceData) => (
-                    <td style={{ textAlign: "right" }}>
+                  {presetInfo.map((s: RawSourceData,i) => (
+                    <td style={{ textAlign: "right" }} key={`attack-${s.instrument?.name}${i}`}>
                       {s.instrument?.attackEnabled ? "true" : "false"}
                     </td>
                   ))}

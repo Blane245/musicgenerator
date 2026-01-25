@@ -1,0 +1,18 @@
+Windows Registry Editor Version 5.00
+
+; Remove any existing association
+[-HKEY_CLASSES_ROOT\.cmg]
+[-HKEY_CLASSES_ROOT\cmg_auto_file]
+
+; Create new association
+[HKEY_CLASSES_ROOT\.cmg]
+@="CMGFile"
+
+[HKEY_CLASSES_ROOT\CMGFile]
+@="CMG Music File"
+
+[HKEY_CLASSES_ROOT\CMGFile\DefaultIcon]
+@="C:\\cmg.ico"
+
+[HKEY_CLASSES_ROOT\CMGFile\shell\open\command]
+@="\"C:\\Program Files\\Notepad++\\notepad++.exe\" \"%1\""

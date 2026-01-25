@@ -19,11 +19,11 @@ export function getBufferSourceNodesFromStochastic(
     if (!v.voices[i].muted) selectedVoices.push(v.voices[i]);
   }
 
-  // restart the random number genertor every time the composition dynamics are restarted
+  // restart the random number generator every time the composition dynamics are restarted
   v.dynamicsRN = new RandomNumber(v.dynamicsSeed);
   const stereo = buildSamples ({
     generator: gen,
-    voices: selectedVoices,
+    voices: gen.values.voices,
     trackGain: dBToGain(gen.parent.volume),
 });
   const sample: Float32Array[] = [];

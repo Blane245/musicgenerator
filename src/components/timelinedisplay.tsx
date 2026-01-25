@@ -29,6 +29,7 @@ export default function TimeLineDisplay() {
     setTimeLine,
     timeInterval,
     setTimeInterval,
+    playing
   } = useCMGContext();
   const [ticks, setTicks] = useState<TimeTicks>({
     majorTickCount: 0,
@@ -56,6 +57,8 @@ export default function TimeLineDisplay() {
 
   // initialize the timeline and ticks when the size changes
   useEffect(() => {
+    if (playing.current) return;
+
     let newTimeLine: TimeLine | null = null;
     if (timelineHeight != 0 && timelineWidth != 0) {
       if (!timeLine) {
@@ -78,6 +81,7 @@ export default function TimeLineDisplay() {
 
   // when the timeline or the generation mode changes to idle, update the ticks and the controls
   useEffect(() => {
+    if (playing.current) return;
     if (mode == PLAYMODE.idle && timeLine) {
       const newTimeTicks: TimeTicks | null = updateTimeTicks(timeLine);
       if (newTimeTicks) setTicks(newTimeTicks);
@@ -89,6 +93,7 @@ export default function TimeLineDisplay() {
 
   // useeffect handler for mouse move in time interval Define and Move modes
   useEffect(() => {
+    if (playing.current) return;
     if (!mouseDownTimeLine && !mouseDownTimeInterval) {
       // debug.info(
       //   "mouse is not down anywhere. Leaving time interval mode",

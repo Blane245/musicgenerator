@@ -65,41 +65,11 @@ export default function FileMenu() {
   const [confirmOverwrite, setConfirmOverwrite] = useState<boolean>(false);
   const [dialogMode, setDialogMode] = useState<string>("");
 
-  // initialize the recent file list display to none
-  // useEffect(() => {
-  //   showRecentList(false);
-  // }, []);
-
-  // when the file dialog and provides a file name or a recent file is selected, either open the
-  // file or perform saveas
-  // useEffect(() => {
-  //   async function getFileContents() {
-  //     await readFileContents(fileName);
-  //   }
-  //   if (fileName == "" && dialogType == "") return;
-  //   if (fileName != "" && dialogType == "") {
-  //     // a recent file to open
-  //     readFileContents(fileName);
-  //     return;
-  //   }
-  //   if (fileName != "" && dialogType == "Open") {
-  //     // file dialog  provided a filename to open
-  //     readFileContents(fileName);
-  //     return;
-  //   }
-  //   if (fileName != "" && dialogType == "Save") {
-  //     // file dialog provided a filename to save
-  //     saveFileContents(fileName, false);
-  //     return;
-  //   }
-  //   showRecentList(false);
-  // }, [fileName, dialogType]);
-
   // a couple of hot keys are supported for file saving and opening
   useHotkeys(
     "ctrl+s",
     () => {
-      if (fileName != "") saveFileContents(fileName, true);
+      if (fileContents.name != "") saveFileContents(fileContents.name, true);
     },
     { preventDefault: true },
   );
