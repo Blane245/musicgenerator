@@ -1,4 +1,5 @@
 # Bugs
+- fix generatoricon menu so it behaves better
 - getting a lot of popping during stochastic playback of one of the SMW presets. tried an attack ramp of 50ms but no difference
 - when a note sequence id reloaded, the duration of the generator should be recalculated.
 - when previewing in the generator dialog, changes made to the parameters are lost after the preview. Somehow the dialog has to be reactivated after a preview with these changes but not update the fileContents with the formData. This is a result of the use of the .copy() method which signals a change similar to the stop time calculation method above
@@ -61,3 +62,25 @@ The following React Icons are used throughout the application:
 ## Processing
 - **PiEnvelopeThin** (Envelope) - Envelope processing
 
+
+# Sound/Somposition realization 
+what I like to see is a single way to 'play' a composition. The component would build a video that included the composition
+graph and the sound track. This could be saved to a file as a video. I would need a way to strip the sound track from the video for use in other videos.
+
+This might be done by building an animated svg and then converting it to video when a save is done.
+
+The svg window would be sized like a HD video. The horizontal scale would be enough for 1 minute of composition, with time hacks every 5 seconds. the curren time line would be fixed at about 15 seconds form the left edge. 
+
+The user selected 'Play'. this builds the composition graph and the soundtrack. The sound track would be built with the Record component and then merged with the video.
+
+cmg would use a temporary file to hold he video that the user could save 
+
+video would contain source graph, current time hack, spectra, sound levels. 
+
+During play of the video the user would have forward/pause/position control. They could also save the video.
+
+there would be no room level controls
+
+SVG would be animated such that the source chart smoothly scrolls from the start to the end 
+
+Playback of video would show relative position in mm:ss

@@ -1,4 +1,4 @@
-import CMG2 from "assets/CGM2.svg";
+import CMG2 from "assets/CMG2.svg";
 import { useCMGContext } from "cmgcontext";
 
 interface HeaderProps {
@@ -25,7 +25,7 @@ export default function Header(props: HeaderProps): JSX.Element {
       <div className="icon">
         <img
           src={CMG2}
-          alt="CGM"
+          alt="CMG"
           style={{ width: 40, height: 40, margin: "0", padding: "0" }}
         />
       </div>

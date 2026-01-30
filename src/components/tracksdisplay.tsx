@@ -28,7 +28,7 @@ export default function TracksDisplay() {
             id={`track-display:${t.name}`}
             style={{ width: timelineWidth }}
           >
-            <GeneratorIcons track={t} />
+            <GeneratorIcons track={t} trackIndex={i} />
           </div>
         </React.Fragment>
       ))}

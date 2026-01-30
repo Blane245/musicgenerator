@@ -1,5 +1,5 @@
 // The CMG Header containing the log, title, file menu, and file-level controls
-import CMG2 from "assets/CGM2.svg";
+import CMG2 from "assets/CMG2.svg";
 import { useCMGContext } from "cmgcontext";
 import EditMenu from "menus/editmenu";
 import FileMenu from "menus/filemenu";
@@ -32,7 +32,7 @@ export default function Header(params:{fileName: string}) {
         <div className="icon">
           <img
             src={CMG2}
-            alt="CGM"
+            alt="CMG"
             style={{ width: 40, height: 40, margin: "0", padding: "0" }}
           />
         </div>

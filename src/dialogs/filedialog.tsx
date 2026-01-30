@@ -1,4 +1,4 @@
-import CMG2 from "assets/CGM2.svg";
+import CMG2 from "assets/CMG2.svg";
 import { Dispatch, SetStateAction, useEffect, useState, type JSX } from "react";
 import { GoArrowLeft, GoArrowRight, GoArrowUp } from "react-icons/go";
 import { fetchFSData } from "utils/fetchdata";

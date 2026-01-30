@@ -1,5 +1,0 @@
-<fileContents name="file2.cmg" SFFileName="">
-    <compressor name="roomcompressor" attack="0.599" knee="9" ratio="9" release="0.787" threshold="-100"/>
-    <equalizer gain0="-15" gain1="-8" gain2="-2" gain3="7" gain4="12" gain5="7" gain6="-4" gain7="6" gain8="-8" gain9="-12"/>
-    <tracks/>
-</fileContents>

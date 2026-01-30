@@ -10,12 +10,11 @@ export interface GeneratorCopyMoveProps {
   trackName: string;
   generator: GeneratorType;
   setDialogVisible: React.Dispatch<React.SetStateAction<boolean>>;
-  setMenuVisible: React.Dispatch<React.SetStateAction<Track | null>>;
 }
 
 // handles copy and move generator between tracks.
 export default function GeneratorCopyMoveDialog(props: GeneratorCopyMoveProps) {
-  const { mode, trackName, generator, setDialogVisible, setMenuVisible } =
+  const { mode, trackName, generator, setDialogVisible } =
     props;
   const { fileContents, setFileContents, setStatus } = useCMGContext();
   const [selectedTrackName, setSelectedTrackName] = useState<string>(trackName);
@@ -23,7 +22,6 @@ export default function GeneratorCopyMoveDialog(props: GeneratorCopyMoveProps) {
   function onCancel() {
     setDialogVisible(false);
     setStatus("Generator move/copy canceled");
-    setMenuVisible(null);
   }
   function onChange(event: ChangeEvent<HTMLSelectElement>) {
     setSelectedTrackName(event?.target.value);
@@ -32,7 +30,6 @@ export default function GeneratorCopyMoveDialog(props: GeneratorCopyMoveProps) {
     event.preventDefault();
     event.stopPropagation();
     setDialogVisible(false);
-    setMenuVisible(null);
     // handle move or copy
     const targetTrack: Track | undefined = fileContents.tracks.find(
       (t) => t.name == selectedTrackName

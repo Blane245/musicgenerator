@@ -7,25 +7,22 @@ import { GeneratorType } from "types";
 export interface GeneratorDeleteProps {
   trackName: string;
   generator: GeneratorType;
-  setDialogVisible: React.Dispatch<React.SetStateAction<boolean>>;
-  setMenuVisible: React.Dispatch<React.SetStateAction<Track | null>>;
+  setDialogVisible: React.Dispatch<React.SetStateAction<{visible:boolean, generator?: GeneratorType}>>;
 }
 
 // handles copy and move generator between tracks.
 export default function GeneratorDeleteDialog(props: GeneratorDeleteProps) {
-  const { trackName, generator, setDialogVisible, setMenuVisible } = props;
+  const { trackName, generator, setDialogVisible } = props;
   const { fileContents, setFileContents, setStatus } = useCMGContext();
 
   function onCancel() {
-    setDialogVisible(false);
+    setDialogVisible({visible:false});
     setStatus("Generator Delte canceled");
-    setMenuVisible(null);
   }
   function onOK(event: FormEvent<Element>) {
     event.preventDefault();
     event.stopPropagation();
-    setDialogVisible(false);
-    setMenuVisible(null);
+    setDialogVisible({visible:false});
     // handle delete
     const currentTrack: Track | undefined = fileContents.tracks.find(
       (t) => t.name == trackName
