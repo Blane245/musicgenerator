@@ -6,7 +6,7 @@ enum DEBUGLEVEL {
   all = 'all',
   none = 'none',
 }
-let debugLevel:DEBUGLEVEL = DEBUGLEVEL.none;
+let debugLevel:DEBUGLEVEL = DEBUGLEVEL.all;
 
 export const setDebugMode = (level: string) => {
   debugLevel = DEBUGLEVEL[level];

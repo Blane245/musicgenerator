@@ -13,7 +13,7 @@ export default function buildElementSamples(props: {
   loopStart: number;
   loopEnd: number;
   gain: number;
-}): number[] {
+}): Float32Array {
   const {
     interval,
     duration,
@@ -29,8 +29,8 @@ export default function buildElementSamples(props: {
 
   // resample the instrument sample to SAMPLERATE
   // if pitch 2 is not pitch 1 adjust the playbackrate as we go
-  if (interval == 0) return [];
-  if (instrumentSample.length == 0) return [];
+  if (interval == 0) return new Float32Array(0);
+  if (instrumentSample.length == 0) new Float32Array(0);
   const playbackRate1: number = 1.0 * Math.pow(2, cents1 / 1200);
   const playbackRate2: number =
     cents1 == cents2 ? playbackRate1 : 1.0 * Math.pow(2, cents2 / 1200);
@@ -43,7 +43,7 @@ export default function buildElementSamples(props: {
   const deltaT: number = 1 / SAMPLERATE;
   let currentIndex: number = 0;
   const slope: number = (cents2 - cents1) / interval;
-  const result: number[] = Array<number>(outputCount).fill(0);
+  const result: Float32Array = new Float32Array(outputCount).fill(0);
   debug.info(`buildElementSamples: resampling out size=${outputCount}, playbackrate 1 = ${playbackRate1}, playbackrate 2 = ${playbackRate2}, instrument same rate=${instrumentSampleRate}, resampleratio=${resampleRatio}, duration=${sampleDuration}`)
   for (let i = 0; i < outputCount; i++) {
     j = Math.trunc(currentIndex);
@@ -75,11 +75,11 @@ export default function buildElementSamples(props: {
 
   // apply a short attack filter to kill some of the popping
   // trying 50ms
-  // TODO not working for bass in SMW.
-  const attackCount: number = Math.min(outputCount, Math.trunc(SAMPLERATE * 0.05));
-  for (let i = 0; i < attackCount; i++) {
-    result[i] = result[i] * i / attackCount;
-  }
+  // // TODO not working for bass in SMW.
+  // const attackCount: number = Math.min(outputCount, Math.trunc(SAMPLERATE * 0.05));
+  // for (let i = 0; i < attackCount; i++) {
+  //   result[i] = result[i] * i / attackCount;
+  // }
 
   return result;
 }

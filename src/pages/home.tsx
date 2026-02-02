@@ -1,16 +1,16 @@
+import TimeLine from "classes/timeline";
 import GeneratorDialog from "dialogs/generator/generatordialog";
 import Body from "layouts/body";
 import Footer from "layouts/footer";
 import Header from "layouts/header";
-import Preview from "playfunctions/previewer/preview";
+import { readCMGFile } from "menus/filehandlers";
+import Play from "playfunctions/play";
 import { useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import {
   DEFAULTLOCALSFURI,
   DEFAULTRECORDFORMAT,
   PLAYMODE,
-  PREVIEWFFTSIZE,
-  PREVIEWFREQUENCYDISPLAY,
   RECENTCMGDIRECTORY,
   RECENTFILES,
   RECENTRECORDDIRECTORY,
@@ -20,8 +20,6 @@ import {
 import { getDirectoryList } from "utils/getdirectorylist";
 import loadEnsembleList from "utils/loadEnsembleList";
 import { useCMGContext } from "../cmgcontext";
-import { readCMGFile } from "menus/filehandlers";
-import TimeLine from "classes/timeline";
 export default function Home() {
   const {
     initialParams,
@@ -35,6 +33,7 @@ export default function Home() {
     setDisplayHeight,
     setDisplayWidth,
     setHeaderHeight,
+    setBodyHeight,
     timelineHeight,
     timelineWidth,
     setTimelineHeight,
@@ -42,10 +41,7 @@ export default function Home() {
     setTimeLine,
     setTimeInterval,
     setControlWidth,
-    setPreviewHeight,
-    setPreviewWidth,
     setFooterHeight,
-    setBodyHeight,
     setVerticalScrollWidth,
     setSFLocalDirectory,
     setSFFileList,
@@ -61,8 +57,6 @@ export default function Home() {
     setMode,
     sourceData,
     setStatus,
-    setFFTSize,
-    setFrequencyDisplay,
   } = useCMGContext();
 
   // set up the the layout and handle screen size changes
@@ -94,11 +88,7 @@ export default function Home() {
       const timelineHeight: number = 45;
       const controlWidth: number = 200;
       const timelineWidth: number = displayWidth - controlWidth;
-      const previewWidth: number = displayWidth;
       const footerHeight: number = 180;
-      const previewHeight: number =
-        displayHeight - headerHeight - timelineHeight - footerHeight;
-      const bodyHeight: number = previewHeight;
       setScreenHeight(screenHeight);
       setScreenWidth(screenWidth);
       setDisplayHeight(displayHeight);
@@ -107,9 +97,7 @@ export default function Home() {
       setTimelineHeight(timelineHeight);
       setTimelineWidth(timelineWidth);
       setControlWidth(controlWidth);
-      setPreviewWidth(previewWidth);
-      setBodyHeight(bodyHeight);
-      setPreviewHeight(previewHeight);
+      setBodyHeight(displayHeight - headerHeight - timelineHeight - footerHeight);
       setFooterHeight(footerHeight);
       setVerticalScrollWidth(
         screenWidth - document.documentElement.clientWidth,
@@ -187,26 +175,6 @@ export default function Home() {
       setRecentRecordDirectory(recentRecordDirectory);
     }
 
-    // get the frequency display type from local storage
-    const previewFrequencyDisplay: string | null = window.localStorage.getItem(
-      PREVIEWFREQUENCYDISPLAY,
-    );
-
-    if (!previewFrequencyDisplay) {
-      setFrequencyDisplay("spectrum");
-    } else {
-      setFrequencyDisplay(previewFrequencyDisplay);
-    }
-
-    // get the frequency bin count from local storage
-    const previewFFTSize: string | null =
-      window.localStorage.getItem(PREVIEWFFTSIZE);
-
-    if (!previewFFTSize) {
-      setFFTSize(2048);
-    } else {
-      setFFTSize(parseInt(previewFFTSize));
-    }
   }, []);
 
   // notify the user that the SF file list has been loaded
@@ -243,23 +211,24 @@ export default function Home() {
   }, [SFFileList, initialParams?.file, timelineHeight, timelineWidth]);
 
   // the home page has two windows. One is for editing a composition
-  // the other is for previewing a composition.
-  // Since preview can be invoked from a generator edit dialog,
-  // that dialog will be redisplayed after preview is complete.
+  // the other is for playing a composition.
+  // Since play can be invoked from a generator edit dialog,
+  // that dialog will be redisplayed after play is complete.
   return (
     <>
       <Helmet>
         <title> {appName} </title>
       </Helmet>
-      {mode != PLAYMODE.preview && mode != PLAYMODE.solo ? (
+      {!!(mode != PLAYMODE.play && mode != PLAYMODE.solo) && (
         <div className="page" id="page">
           <Header fileName={fileContents ? fileContents.name : ""} />
           <Body />
           <Footer />
         </div>
-      ) : (
-        <Preview sourceData={sourceData} setMode={setMode} />
       )}
+        {!!(sourceData && mode != PLAYMODE.idle)&&<Play 
+        setMode={setMode} 
+        />}
       {mode == PLAYMODE.idle &&
       generatorDialogVisible &&
       editGeneratorData.track &&

@@ -25,9 +25,10 @@ export default defineConfig(({ mode }) => {
       manifest: true,
       sourcemap: false,
     },
-    // esbuild: {
-    //   pure: mode === 'production'? ['console.log']: [],
-    // },
+    esbuild: {
+      pure: mode === 'production'? []: [],
+      // pure: mode === 'production'? ['console.log']: [],
+    },
     server: {
       port: 3006,
     },

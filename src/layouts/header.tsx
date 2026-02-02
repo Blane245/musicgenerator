@@ -28,7 +28,7 @@ export default function Header(params:{fileName: string}) {
 
   return (
     <>
-      <div className="header" style={{ width: displayWidth }}>
+      <div className="header" style={{width:displayWidth}}>
         <div className="icon">
           <img
             src={CMG2}
@@ -37,19 +37,19 @@ export default function Header(params:{fileName: string}) {
           />
         </div>
         <div className="menu">
-          <div className="file">
+          <div className="file-menu">
             <FileMenu />
           </div>
-          <div className="edit">
+          <div className="edit-menu">
             <EditMenu />
           </div>
-          <div className="tools">
+          <div className="tools-menu">
             <ToolsMenu />
           </div>
-          <div className="play">
+          <div className="play-menu">
             <PlayMenu />
           </div>
-          <div className="help">
+          <div className="help-menu">
             <HelpMenu />
           </div>
         </div>
@@ -57,7 +57,7 @@ export default function Header(params:{fileName: string}) {
           {`${appName}: ${appVersion} (${fileName})${isDirty}`}
         </div>
       </div>
-      <div className="timeline" style={{ width: displayWidth }}>
+      <div className="timeline" >
         <div className="control" style={{ width: controlWidth }}>
           <TimeLineControls />
         </div>

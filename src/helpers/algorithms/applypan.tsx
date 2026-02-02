@@ -1,24 +1,21 @@
 import { PanAlgorithm, PANALGORITHM, PanParameters } from 'types';
-import panGlide from './panglide';
-import panWalk from './panwalk';
 import RandomNumber from 'classes/randomnumber';
+import { panGlide, panWalk } from './panmethods';
 
 
 // execute the selected pan algorithm
 // only called when pan option is composition
-export default function applyPan(sample: number[][], algorithm: PanAlgorithm, parameters: PanParameters, rN: RandomNumber): number[][] {
-	// newSample.push(new Array(sample.length)); // left
-	// newSample.push(new Array(sample.length)); // right
+export default function applyPan(sample: Float32Array[], algorithm: PanAlgorithm, parameters: PanParameters, rN: RandomNumber) {
 	switch (algorithm) {
 		case PANALGORITHM.walk: {
-            const newSample = panWalk({sample, parameters, rN});
-            return newSample;
+            panWalk({sample, parameters, rN});
+            return;
 		}
 		case PANALGORITHM.glide: {
-            const newSample = panGlide({sample, parameters, rN});
-			return newSample;
+            panGlide({sample, parameters, rN});
+			return;
 		}
 		default:
-			return [sample[0], sample[1]];
+			return;
 	}
 }

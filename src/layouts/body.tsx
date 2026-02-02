@@ -6,7 +6,7 @@ export default function Body() {
   const { bodyHeight, displayWidth} = useCMGContext();
 
   return (
-    <div className="body" style={{ width: displayWidth, height: bodyHeight }}>
+    <div className="page-body" style={{ width: displayWidth, height: bodyHeight }}>
       <TracksDisplay/>
     </div>
   );

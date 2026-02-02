@@ -167,7 +167,7 @@ button:focus-visible {
   display: inline-block;
 /* The container <div> - needed to position the dropdown content */
 .dropbtn {
-  font-size: 10px;
+  font-size: 14px;
   padding: 8px;
   border: none;
   color: var(--body-text-color);
@@ -191,7 +191,7 @@ button:focus-visible {
   background-color: var(--inactive-background-color);
   padding: 12px 16px;
   text-decoration: none;
-  font-size: 10px;
+  font-size: 14px;
   display: block;
 }
 /* Change color of dropdown links on hover */
@@ -282,19 +282,19 @@ button:focus-visible {
       grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
       z-index: 2;
       grid-template-areas: "file edit tools play help";
-      .file {
+      .file-menu {
         grid-area: file;
       }
-      .edit {
+      .edit-menu {
         grid-area: edit;
       }
-      .tools {
+      .tools-menu {
         grid-area: tools;
       }
-      .play {
+      .play-menu {
         grid-area: play;
       }
-      .help {
+      .help-menu {
         grid-area: help;
       }
     }
@@ -323,7 +323,7 @@ button:focus-visible {
     }
   }
 
-  .body {
+  .page-body {
     display: grid;
     grid-area: body;
     grid-template-columns: 200px 1fr;
@@ -335,7 +335,7 @@ button:focus-visible {
     overflow: auto;
     overflow-x: hidden;
   }
-  .footer {
+  .page-footer {
     background-color: lightskyblue;
     display: grid;
     grid-area: footer;
@@ -600,6 +600,7 @@ button:focus-visible {
 /* Modal Content */
 .modal-content {
   position: absolute;
+  display: grid;
   z-index: 10;
   top: 160px;
   left: 200px;
@@ -617,8 +618,9 @@ button:focus-visible {
     grid-area: header;
     padding: 2px 16px;
     display: block;
-    background-color: #5cb85c;
-    text-align: left;
+    background-color: var(--modal-header-background-color);
+
+    text-align: center;
     color: white;
   }
 
@@ -1106,16 +1108,15 @@ button:focus-visible {
   cursor: inherit;
 }
 
-.preview {
+.play {
   padding: 0;
   margin: 0;
   display: grid;
   width: 100%;
   height: 100%;
-  grid-template-rows: 40px 45px 1fr 180px;
+  grid-template-rows: 40px 1fr 40px;
   grid-template-areas:
     "header"
-    "timeline"
     "drawing"
     "footer";
   gap: 0px;
@@ -1123,10 +1124,11 @@ button:focus-visible {
   top: 0;
   left: 0;
   background-color: lightblue;
-  .preview-header {
+  overflow: hidden;
+  .play-header {
     grid-area: header;
     display: grid;
-    grid-template-columns: 30px 200px 1fr 180px;
+    grid-template-columns: 50px 600px 1fr 650px;
     grid-template-rows: 30px;
     grid-template-areas: "icon buttons title .";
     .icon {
@@ -1141,297 +1143,17 @@ button:focus-visible {
       text-align: center;
     }
   }
-  .timeline {
-    grid-area: timeline;
-    background-color: lightgray;
-  }
-  .drawing {
+  .play-body {
     grid-area: drawing;
     background-color: white;
   }
-  .preview-footer {
+  .play-footer {
     position: fixed;
     top: auto;
     left: 0;
     background-color: lightskyblue;
     grid-area: footer;
-    display: grid;
-    grid-template-columns: 1fr 300px 300px 300px 300px 300px 40px;
-    grid-template-areas: "status leftSignal rightSignal reverb compressor equalizer volume";
-    .status {
-      grid-area: status;
-    }
-    .leftSignal {
-      background-color: white;
-      grid-area: leftSignal;
-      display: grid;
-      grid-template-rows: 2fr 1fr;
-      grid-template-areas: "leftSpectrum" "leftVolume";
-      .leftSpectrum {
-        grid-area: leftSpectrum;
-        fill: white;
-        stroke: black;
-      }
-      .leftVolume {
-        grid-area: leftVolume;
-        background-color: lightgray;
-        fill: lightgray;
-        stroke: black;
-      }
-      .leftPoint {
-        stroke: red;
-        fill: none;
-      }
-      .leftMax {
-        stroke: blue;
-        fill: none;
-      }
-    }
-    .rightSignal {
-      background-color: white;
-      grid-area: rightSignal;
-      display: grid;
-      grid-template-rows: 2fr 1fr;
-      grid-template-areas: "rightSpectrum" "rightVolume";
-      .rightSpectrum {
-        grid-area: rightSpectrum;
-        fill: white;
-        stroke: black;
-      }
-      .rightVolume {
-        grid-area: rightVolume;
-        fill: lightgray;
-        stroke: black;
-      }
-      .rightPoint {
-        stroke: red;
-        fill: none;
-      }
-      .rightMax {
-        stroke: blue;
-        fill: none;
-      }
-    }
-    .compressor {
-      background-color: white;
-      display: block;
-      grid-area: compressor;
-      justify-self: right;
-      max-width: 300px;
-      width: 100%;
-      height: 180px;
-      justify-content: center;
-      align-items: center;
-      outline: solid #5c75b8;
-
-      .title {
-        line-height: normal;
-        font-size: 10px;
-        text-align: center;
-        color: black;
-        .button {
-          font-size: 5px;
-        }
-      }
-
-      .sliders {
-        display: flex;
-
-        .slider {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          width: 40px;
-          height: 150px;
-          flex-direction: column;
-          justify-content: space-between;
-          padding: 0;
-          margin: 0;
-          cursor: inherit;
-
-          .param {
-            color: black;
-            font-size: 10px;
-            line-height: 10px;
-            text-align: center;
-            cursor: inherit;
-          }
-          input[type="range"] {
-            writing-mode: vertical-lr;
-            direction: rtl;
-            height: 90px;
-            width: 30px;
-            cursor: inherit;
-          }
-        }
-      }
-    }
-    .reverb {
-      background-color: white;
-      display: block;
-      grid-area: reverb;
-      justify-self: right;
-      max-width: 300px;
-      width: 100%;
-      height: 180px;
-      justify-content: center;
-      align-items: center;
-      outline: solid #5c75b8;
-      cursor: inherit;
-
-      .title {
-        line-height: normal;
-        font-size: 10px;
-        text-align: center;
-        color: black;
-        cursor: inherit;
-        .button {
-          font-size: 5px;
-        }
-      }
-
-      .sliders {
-        display: flex;
-        cursor: inherit;
-      }
-      .slider {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        width: 40px;
-        height: 150px;
-        flex-direction: column;
-        justify-content: space-between;
-        padding: 0;
-        margin: 0;
-        cursor: inherit;
-
-        .param {
-          color: black;
-          font-size: 10px;
-          line-height: 10px;
-          text-align: center;
-          cursor: inherit;
-        }
-        input[type="range"] {
-          writing-mode: vertical-lr;
-          direction: rtl;
-          height: 90px;
-          width: 30px;
-          cursor: inherit;
-        }
-      }
-    }
-
-    .equalizer {
-      background-color: white;
-      display: block;
-      grid-column: equalizer;
-      justify-self: right;
-      max-width: 300px;
-      width: 100%;
-      height: 180px;
-      justify-content: center;
-      align-items: center;
-      outline: solid #5c75b8;
-      cursor: inherit;
-
-      .title {
-        line-height: normal;
-        font-size: 10px;
-        text-align: center;
-        color: black;
-        .button {
-          font-size: 5px;
-        }
-        cursor: inherit;
-      }
-
-      .sliders {
-        display: flex;
-        cursor: inherit;
-      }
-      .slider {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        width: 30px;
-        height: 150px;
-        flex-direction: column;
-        justify-content: space-between;
-        padding: 0;
-        margin: 0;
-        cursor: inherit;
-
-        .param {
-          color: black;
-          font-size: 10px;
-          line-height: 10px;
-          cursor: inherit;
-        }
-
-        input[type="range"] {
-          writing-mode: vertical-lr;
-          direction: rtl;
-          height: 100px;
-          width: 30px;
-          cursor: inherit;
-        }
-      }
-    }
-
-    .volume {
-      background-color: white;
-      display: block;
-      grid-area: volume;
-      justify-self: right;
-      max-width: 300px;
-      width: 100%;
-      height: 180px;
-      justify-content: center;
-      align-items: center;
-      outline: solid #5c75b8;
-      cursor: inherit;
-
-      .title {
-        line-height: normal;
-        font-size: 10px;
-        text-align: center;
-        color: black;
-        cursor: inherit;
-      }
-      .sliders {
-        display: flex;
-        cursor: inherit;
-      }
-      .slider {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        width: 30px;
-        height: 150px;
-        flex-direction: column;
-        justify-content: space-between;
-        padding: 0;
-        margin: 0;
-        cursor: inherit;
-
-        .param {
-          color: black;
-          font-size: 10px;
-          line-height: 10px;
-          cursor: inherit;
-        }
-
-        input[type="range"] {
-          writing-mode: vertical-lr;
-          direction: rtl;
-          height: 100px;
-          width: 30px;
-          cursor: inherit;
-        }
-      }
-    }
+    display: block;
   }
 }
 
@@ -1445,7 +1167,7 @@ button:focus-visible {
   width: 75%;
   grid-template-rows: 70px 330px 125px;
   grid-template-areas: "header" "body" "footer";
-  z-index: 99;
+  z-index: 1000;
   .filedialog-header {
     display: grid;
     top: 0;
@@ -1504,6 +1226,7 @@ button:focus-visible {
     grid-template-areas: "searchtable";
     background-color: white;
     gap: 0;
+    z-index: 1000;
     .searchtable {
       grid-area: searchtable;
       display: grid;

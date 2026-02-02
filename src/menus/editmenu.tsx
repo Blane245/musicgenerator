@@ -6,8 +6,6 @@ import Track from "classes/track";
 import { useCMGContext } from "cmgcontext";
 import { ChangeEvent, FormEvent, useState } from "react";
 import {
-  PREVIEWFFTSIZE,
-  PREVIEWFREQUENCYDISPLAY,
   RECORDFORMAT,
   SFFILELOCATION,
   TIMELINETYPE,
@@ -31,10 +29,6 @@ export default function EditMenu() {
     playing,
     recordFormat,
     SFLocalDirectory,
-    FFTSize,
-    setFFTSize,
-    frequencyDisplay,
-    setFrequencyDisplay,
   } = useCMGContext();
   const [comment, setComment] = useState<string>("");
   const [commentModal, setCommentModal] = useState<boolean>(false);
@@ -136,12 +130,6 @@ export default function EditMenu() {
     window.localStorage.setItem(SFFILELOCATION, location);
     setSFFileList(newSFFileList.list);
     setTimeLine(formData.copy());
-    const newFFTSize: number = parseInt(event.target["FFTSize"].value);
-    setFFTSize(newFFTSize);
-    window.localStorage.setItem(PREVIEWFFTSIZE, newFFTSize.toString());
-    const newDisplay: string = event.target["frequencyDisplay"].value;
-    setFrequencyDisplay(newDisplay);
-    window.localStorage.setItem(PREVIEWFREQUENCYDISPLAY, newDisplay);
     setDirty(true, fileContents, setFileContents);
 
     // disable the preferences modal
@@ -340,7 +328,7 @@ export default function EditMenu() {
                 </label>
               ) : null}
               <hr />
-              <div>
+              {/* <div>
                 <b>Frequency Display Options</b>
               </div>
               <br />
@@ -364,7 +352,7 @@ export default function EditMenu() {
                   <option value="spectrum">spectrum</option>
                   <option value="sonogram">sonogram</option>
                 </select>
-              </label>
+              </label> */}
               <hr />
               <input type="submit" value="Save" />
               <button

@@ -1,6 +1,6 @@
 import Algorithmic from "classes/generators/algorithmic";
 import { dBToGain, midiToFrequency } from "sfcomponents/util";
-import { GainEnvelope } from "types";
+import { GainEnvelope, SAMPLERATE } from "types";
 import { linearInterpolate } from "utils/interpolation";
 import { getSampleWithNoise } from "./applynoise";
 import { debug } from "utils/debug";
@@ -21,7 +21,7 @@ export default function buildSampleArray(
   attenuation: number
 ): Float32Array {
   debug.info("buildSample: building sample with envelope", envelope);
-  const basePlaybackRate = 1.0 * Math.pow(2, inputCents / 1200);
+  const basePlaybackRate = 1.0 * Math.pow(2, (inputCents) / 1200) * SAMPLERATE / inputRate;
   const inputCount: number = Math.ceil(inputRate * totalTime);
   const result: Float32Array = new Float32Array(inputCount);
   const deltaT: number = 1 / inputRate; // time spacing between input samples
@@ -42,9 +42,8 @@ export default function buildSampleArray(
     // get the sample value by interpolation
     let value: number = 0;
     if (!looping && thisIndex >= lastSample - 1) {
-      value = inputSample[lastSample - 1];
+      value = 0;
     } else {
-      // if (isFinite(inputSample[thisIndex])) {
       value = linearInterpolate(
         currentIndex,
         thisIndex,
@@ -59,7 +58,7 @@ export default function buildSampleArray(
       generator.noiseEnabled &&
       generator.noiseFrequency != 0
     ) {
-      value += getSampleWithNoise(
+      value = getSampleWithNoise(
         value,
         t,
         midiToFrequency(pitchValue),
@@ -87,7 +86,7 @@ export default function buildSampleArray(
     value *= 
         volumeGain *
         attenuation *
-        dBToGain(generator.parent.getVolume(t + sampleStartTime));
+        dBToGain(generator.parent.volume);
 
     // apply tremolo
     if (

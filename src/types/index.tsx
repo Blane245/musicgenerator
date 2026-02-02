@@ -22,6 +22,10 @@ import {
 import { SoundFont2 } from "../soundfont2";
 import { Preset } from "sfcomponents/types";
 
+// #region constants and preferences
+export const SAMPLERATE: number = 44100;
+export const EPS: number = 1e-4;
+
 // Preferences that are composition related
 export enum TIMELINETYPE {
   "Time" = "Time",
@@ -33,9 +37,6 @@ export type TimeLinePreferences = {
   MeasureSubdivisions: number;
 };
 
-export const SAMPLERATE: number = 44100;
-
-export const EPS: number = 1e-4;
 
 export const RECORDFORMAT: string = "recordFormat";
 export const DEFAULTRECORDFORMAT: string = "mp3";
@@ -44,15 +45,20 @@ export const DEFAULTLOCALSFURI: string = "/SoundFonts";
 export const RECENTFILES: string = "recentFiles";
 export const RECENTCMGDIRECTORY: string = "recentCMGDirectory";
 export const RECENTRECORDDIRECTORY: string = "recentRECORDDirectory";
-export const PREVIEWFREQUENCYDISPLAY: string = "previewFrequencyDisplay";
-export const PREVIEWFFTSIZE: string = "previewFFTSize";
+// export const PREVIEWFREQUENCYDISPLAY: string = "previewFrequencyDisplay";
+// export const PREVIEWFFTSIZE: string = "previewFFTSize";
+// #endregion
 
+// #region mouse
 export type MouseLocation = {
   X: number;
   Y: number;
   dX: number;
   dY: number;
 };
+// #endregion
+
+// #region generators
 
 export type GeneratorType = Silent | Algorithmic | AudioFile | Stochastic;
 
@@ -91,6 +97,8 @@ export enum ALGORITHMTYPE {
 export type ConstantType = {
   value: number; // the constant value
 };
+// #endregion
+// #region algorithmic
 export type AutoregressiveType = {
   initialValue: number; // units depend on parameter (note, attack, speed, duration, volume, pan)
   seed: string;
@@ -198,9 +206,12 @@ export type SequenceType = {
   reflectSequence: boolean;
   reflectPitch: number;
 };
+// #endregion
+
+// #region stochastic
 
 // Stochastic generator types
-// export const RMSFACTOR: number = 0.75; // speed standard devision factor
+// export const RMSFACTOR: number = 0.75; // speed standard deviation factor
 export const RMSFACTOR: number = 2; // speed standard devision factor
 
 // the number of clouds in each cell
@@ -364,14 +375,6 @@ export type durationProperties = {
   noiseAmplitude: number; // the amplitude of added noise (dB)
 };
 
-  /**
-   * name - the unique name of the voice
-   * type - the type of timbre
- * register - the lo and hi pitches
- * duration - the duration of the sound (secs), 0 means the full interval
- * noiseFrequency - the frequency of added noise (Hz)
- * noiseAmplitude - the amplitude of added noise (dB)
-   */
 export type Voice = {
   name: string; // the unique name of the voice
   description: string;
@@ -389,17 +392,11 @@ export type Voice = {
 
 export type Voices = Voice[];
 
-/**
- * offset time (sec) of first sound for the cloud and its pitch (midi)
- */
 export type CloudState = {
   offset: number;
   pitch: number;
 }
 
-/**
- * dimension is max # clouds in voice
- */
 export type CloudStates = CloudState[];
 
 export type EnsembleType = {
@@ -407,8 +404,9 @@ export type EnsembleType = {
     description: string;
     voices: string;
 }
+// #endregion
 
-
+// #region noiseandmodulators
 export enum NOISETYPE {
   white = "white",
   gaussian = "gaussian",
@@ -445,12 +443,9 @@ ModulatorMap.set(MODULATOR.SQUARE, squareModulator);
 ModulatorMap.set(MODULATOR.TRIANGLE, triangleModulator);
 ModulatorMap.set(MODULATOR.ASCENDINGSAWTOOTH, ascendingSawtoothModulator);
 ModulatorMap.set(MODULATOR.DESCENDINGSAWTOOTH, descendingSawtoothModulator);
+// #endregion
 
-export enum TIMEFORMATTYPE {
-  NUMBER,
-  TIME,
-}
-
+// #region soundfont
 // place to hold the soundfont file and the presets in it
 export type SoundFontGeneratorsType = {
   type: GENERATORTYPE;
@@ -460,6 +455,13 @@ export type SoundFontGeneratorsType = {
 // the soundfont file collection for algorithmic generators
 // used during loading a CMG file
 export const SoundFontGenerators = new Map<string, SoundFontGeneratorsType> ([]);
+// #endregion
+
+// #region timeline
+export enum TIMEFORMATTYPE {
+  NUMBER,
+  TIME,
+}
 
 export type TimeFormat = {
   value: string;
@@ -555,10 +557,11 @@ export enum TIMEINTERVALEDGE {
   Left,
   Right,
 }
+// #endregion
 
+// #region play
 export enum PLAYMODE {
-  record = "record",
-  preview = "preview",
+  play = "play",
   solo = "solo",
   idle = "idle",
 }
@@ -568,101 +571,103 @@ export type GainEnvelope = {
   g: number;
 }[];
 // the data that is needed to realize a source and manage it during preview and record
-export type RawSourceData = {
-  gen: GeneratorType;
-  index: number;
-  source: {
-    note: number; // pitch number of the source
-    sample: Float32Array[]; // the sf instrument sample converted to float32 or noise as float32 - length is sampleRate * totalTime * playbackRate
-    // or the audiofile or Stochastic samples
-    sampleRate: number; // hz/sec (includes the playbackRate sampleRate (instrument sample) * playbackRate (as calcuated) )
-    playbackRate: number; // sf playback rate or 1 for noise (will always be one)
-    startTime: number; // start time of the source within the generator
-    duration: number; // attackInterval + holdInterval + releaseInterval
-    stopTime: number; // startTime + duration
-    started: boolean; // whether or not the source has started playing during preview
-  };
-  panner: {
-    value: number; // pan value from generator
-  };
-  vol: { value: number };
-  instrument?: {
-    name: string;
-    sampleRate: number; // sample rate of the instrument
-    sample: Float32Array; // the instrument's samples
-    loopStart: number;
-    loopEnd: number;
-    loop: boolean;
-    rootKey: number;
-    pitchCorrection: number;
-    fineTune: number;
-    baseDetune: number;
-    cents: number;
-    attackEnabled: boolean;
-    delayVolEnv: number;
-    attackVolEnv: number;
-    holdVolEnv: number;
-    decayVolEnv: number;
-    releaseVolEnv: number;
-    sustainVolEnv: number;
-    delayEnd: number;
-    attackEnd: number;
-    holdEnd: number;
-    decayEnd: number;
-    noteEnd: number;
-    interval: number;
-    duration: number;
-    releaseEnd: number;
-    totalTime: number;
-    noteEndGain: number;
-    volumeValue: number;
-    volumeGain: number;
-    sustainGain: number;
-    initialAttenuation: number;
-    attenuation: number;
-    envelope: GainEnvelope;
-  };
-};
+// export type RawSourceData = {
+//   gen: GeneratorType;
+//   index: number;
+//   source: {
+//     note: number; // pitch number of the source
+//     sample: Float32Array[]; // the sf instrument sample converted to float32 or noise as float32 - length is sampleRate * totalTime * playbackRate
+//     // or the audiofile or Stochastic samples
+//     sampleRate: number; // hz/sec (includes the playbackRate sampleRate (instrument sample) * playbackRate (as calcuated) )
+//     playbackRate: number; // sf playback rate or 1 for noise (will always be one)
+//     startTime: number; // start time of the source within the generator
+//     duration: number; // attackInterval + holdInterval + releaseInterval
+//     stopTime: number; // startTime + duration
+//     started: boolean; // whether or not the source has started playing during preview
+//   };
+//   panner: {
+//     value: number; // pan value from generator
+//   };
+//   vol: { value: number };
+//   instrument?: {
+//     name: string;
+//     sampleRate: number; // sample rate of the instrument
+//     sample: Float32Array; // the instrument's samples
+//     loopStart: number;
+//     loopEnd: number;
+//     loop: boolean;
+//     rootKey: number;
+//     pitchCorrection: number;
+//     fineTune: number;
+//     baseDetune: number;
+//     cents: number;
+//     attackEnabled: boolean;
+//     delayVolEnv: number;
+//     attackVolEnv: number;
+//     holdVolEnv: number;
+//     decayVolEnv: number;
+//     releaseVolEnv: number;
+//     sustainVolEnv: number;
+//     delayEnd: number;
+//     attackEnd: number;
+//     holdEnd: number;
+//     decayEnd: number;
+//     noteEnd: number;
+//     interval: number;
+//     duration: number;
+//     releaseEnd: number;
+//     totalTime: number;
+//     noteEndGain: number;
+//     volumeValue: number;
+//     volumeGain: number;
+//     sustainGain: number;
+//     initialAttenuation: number;
+//     attenuation: number;
+//     envelope: GainEnvelope;
+//   };
+// };
 
 // the attributes of a source that is managed during preview
-export type ActiveSource = {
-  gen: GeneratorType;
-  source: AudioBufferSourceNode;
-  sourceIndex: number;
-  vol: GainNode;
-  stopTime: number;
-};
+// export type ActiveSource = {
+//   gen: GeneratorType;
+//   source: AudioBufferSourceNode;
+//   sourceIndex: number;
+//   vol: GainNode;
+//   stopTime: number;
+// };
 
-export enum SectionType {
-  "Instrument" = "Instrument",
-  "Percussion" = "Percussion",
-  "Audio" = "Audio",
-  "None" = "None",
-}
-export type DrawingSection = {
-  type: SectionType;
-  verticalOffset: number;
-  height: number;
-  loValue: number;
-  hiValue: number;
-};
-export type SourceToDrawingSectionEntry = {
-  sourceIndex: number;
-  sectionIndex: number;
-};
+// export enum SectionType {
+//   "Instrument" = "Instrument",
+//   "Percussion" = "Percussion",
+//   "Audio" = "Audio",
+//   "None" = "None",
+// }
+// export type DrawingSection = {
+//   type: SectionType;
+//   verticalOffset: number;
+//   height: number;
+//   loValue: number;
+//   hiValue: number;
+// };
+// export type SourceToDrawingSectionEntry = {
+//   sourceIndex: number;
+//   sectionIndex: number;
+// };
 
-export type SignalLevelsType = {
-  leftVolume: number;
-  leftMax: number;
-  rightVolume: number;
-  rightMax: number;
-  leftSpectrum: Uint8Array;
-  rightSpectrum: Uint8Array;
-};
+// export type SignalLevelsType = {
+//   leftVolume: number;
+//   leftMax: number;
+//   rightVolume: number;
+//   rightMax: number;
+//   leftSpectrum: Uint8Array;
+//   rightSpectrum: Uint8Array;
+// };
 
-export const MINDECIBELS: number = -100;
-export const MAXDECIBELS: number = -10;
+// export const MINDECIBELS: number = -100;
+// export const MAXDECIBELS: number = -10;
+// #endregion
 
+// #region externalinterfaces
 export enum ENTRYTYPE {
   BlockDevice = "BlockDevice",
   CharacterDevice = "CharacterDevice",
@@ -768,3 +773,24 @@ export type DbResponseType =
 
 export type ErrorMessage = string;
 export type ErrorMessages = ErrorMessage[];
+// #endregion
+
+// #region playtypes
+export type TimeMidiPoint = {
+  time: number;
+  midi: number;
+  hue: number;
+};
+export type TimeMidiLine = {
+  from: TimeMidiPoint;
+  to: TimeMidiPoint;
+};
+
+export type SourceData = {
+  audio: Blob; // in memory audio 
+  image: HTMLImageElement;
+  voiceHues: VoiceHues;
+}
+
+export type VoiceHues = Map<string, number>;
+// #endregion

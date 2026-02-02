@@ -1,10 +1,6 @@
 // Update various parts of the CMGFile based
 // various transactions within the system
 import CMGFile from "classes/cmgfile";
-import Compressor from "classes/roomnodes/compressor";
-import Equalizer from "classes/roomnodes/equalizer";
-import Reverb from "classes/roomnodes/reverb";
-import Volume from "classes/roomnodes/volume";
 import Track from "classes/track";
 import { Dispatch, SetStateAction } from "react";
 import { GeneratorType } from "types";
@@ -43,53 +39,53 @@ export function setDirty(
   }
 }
 
-export function setEqualizer(
-  newEqualizer: Equalizer,
-  setFileContents: Dispatch<SetStateAction<CMGFile>>,
-): void {
-  setFileContents((c: CMGFile) => {
-    const nc: CMGFile = c.copy();
-    nc.dirty = true;
-    nc.equalizer = newEqualizer;
-    return nc;
-  });
-}
+// export function setEqualizer(
+//   newEqualizer: Equalizer,
+//   setFileContents: Dispatch<SetStateAction<CMGFile>>,
+// ): void {
+//   setFileContents((c: CMGFile) => {
+//     const nc: CMGFile = c.copy();
+//     nc.dirty = true;
+//     nc.equalizer = newEqualizer;
+//     return nc;
+//   });
+// }
 
-export function setCompressor(
-  newCompressor: Compressor,
-  setFileContents: Dispatch<SetStateAction<CMGFile>>,
-): void {
-  setFileContents((c: CMGFile) => {
-    const nc: CMGFile = c.copy();
-    nc.dirty = true;
-    nc.compressor = newCompressor;
-    return nc;
-  });
-}
+// export function setCompressor(
+//   newCompressor: Compressor,
+//   setFileContents: Dispatch<SetStateAction<CMGFile>>,
+// ): void {
+//   setFileContents((c: CMGFile) => {
+//     const nc: CMGFile = c.copy();
+//     nc.dirty = true;
+//     nc.compressor = newCompressor;
+//     return nc;
+//   });
+// }
 
-export function setReverb(
-  newReverb: Reverb,
-  setFileContents: Dispatch<SetStateAction<CMGFile>>,
-): void {
-  setFileContents((c: CMGFile) => {
-    const nc: CMGFile = c.copy();
-    nc.dirty = true;
-    nc.reverb = newReverb;
-    return nc;
-  });
-}
+// export function setReverb(
+//   newReverb: Reverb,
+//   setFileContents: Dispatch<SetStateAction<CMGFile>>,
+// ): void {
+//   setFileContents((c: CMGFile) => {
+//     const nc: CMGFile = c.copy();
+//     nc.dirty = true;
+//     nc.reverb = newReverb;
+//     return nc;
+//   });
+// }
 
-export function setVolume(
-  newVolume: Volume,
-  setFileContents: Dispatch<SetStateAction<CMGFile>>,
-): void {
-  setFileContents((c: CMGFile) => {
-    const nc: CMGFile = c.copy();
-    nc.dirty = true;
-    nc.volume = newVolume;
-    return nc;
-  });
-}
+// export function setVolume(
+//   newVolume: Volume,
+//   setFileContents: Dispatch<SetStateAction<CMGFile>>,
+// ): void {
+//   setFileContents((c: CMGFile) => {
+//     const nc: CMGFile = c.copy();
+//     nc.dirty = true;
+//     nc.volume = newVolume;
+//     return nc;
+//   });
+// }
 
 export function addTrack(
   newTrack: Track,

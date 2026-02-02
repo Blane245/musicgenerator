@@ -29,7 +29,7 @@ export default function TimeLineDisplay() {
     setTimeLine,
     timeInterval,
     setTimeInterval,
-    playing
+    playing,
   } = useCMGContext();
   const [ticks, setTicks] = useState<TimeTicks>({
     majorTickCount: 0,
@@ -45,11 +45,11 @@ export default function TimeLineDisplay() {
   // the Mode of the timeinterval editor
   // the Edge of the timeinterval editor
   const [edgeMode, setEdgeMode] = useState<TIMEINTERVALMODE>(
-    TIMEINTERVALMODE.None
+    TIMEINTERVALMODE.None,
   );
   const [edge, setEdge] = useState<TIMEINTERVALEDGE>(TIMEINTERVALEDGE.None);
   const [mouseLocation, setMouseLocation] = useState<MouseLocation | null>(
-    null
+    null,
   );
   const [mouseDownTimeLine, setMouseDownTimeLine] = useState<boolean>(false);
   const [mouseDownTimeInterval, setMouseDownTimeInterval] =
@@ -57,14 +57,20 @@ export default function TimeLineDisplay() {
 
   // initialize the timeline and ticks when the size changes
   useEffect(() => {
-    if (playing.current) return;
-
     let newTimeLine: TimeLine | null = null;
     if (timelineHeight != 0 && timelineWidth != 0) {
-      if (!timeLine) {
-        newTimeLine = new TimeLine(timelineWidth, timelineHeight); // changed scrren size
-      } else {
-        newTimeLine = timeLine.copy(); // returning from preview
+      // if a timeline aldready exists, grab its location and starttime
+      // for setting to the new one
+      let oldZoom: number = -1;
+      let oldStart: number = -1;
+      if (timeLine) {
+        oldZoom = timeLine.currentZoomLevel;
+        oldStart = timeLine.startTime;
+      }
+      newTimeLine = new TimeLine(timelineWidth, timelineHeight); // changed screen size
+      if (oldZoom >= 0 && oldStart >= 0) {
+        newTimeLine.currentZoomLevel = oldZoom;
+        newTimeLine.startTime = oldStart;
       }
       setTimeLine(newTimeLine);
       const newTimeTicks: TimeTicks | null = updateTimeTicks(newTimeLine);
@@ -74,7 +80,7 @@ export default function TimeLineDisplay() {
         timelineWidth,
         timelineHeight,
         newTimeLine,
-        newTimeTicks
+        newTimeTicks,
       );
     }
   }, [timelineWidth, timelineHeight]);
@@ -87,7 +93,10 @@ export default function TimeLineDisplay() {
       if (newTimeTicks) setTicks(newTimeTicks);
       // const newTimeInterval: TimelineInterval | null = updateTimeInterval(timeInterval, timeLine);
       // if (newTimeInterval) setTimeInterval(newTimeInterval);
-      debug.info("TimeLineDisplay: update ticks on entering idle", newTimeTicks);
+      debug.info(
+        "TimeLineDisplay: update ticks on entering idle",
+        newTimeTicks,
+      );
     }
   }, [timeLine, mode]);
 
@@ -174,14 +183,14 @@ export default function TimeLineDisplay() {
         newInterval.startTime = precision(
           timeLine.startTime +
             (scale.extent * interval.startOffset) / timeLine.width,
-          1
+          1,
         );
       }
       if (interval.endOffset <= timeLine.width) {
         newInterval.endTime = precision(
           timeLine.startTime +
             (scale.extent * interval.endOffset) / timeLine.width,
-          1
+          1,
         );
       }
     }
@@ -201,12 +210,12 @@ export default function TimeLineDisplay() {
     setMouseLocation({ X: X, Y: Y, dX: 0, dY: 0 });
     const newInterval = getTimes({ startOffset: X, endOffset: X });
     setTimeInterval(newInterval);
-    debug.info("TimeLineDisplay: mouse down at", newInterval);
+    // debug.info("TimeLineDisplay: mouse down at", newInterval);
     setMouseDownTimeLine(true);
     setMouseDownTimeInterval(false);
   }
 
-  // when the mouse is moving in the timeline and the mouse is down 
+  // when the mouse is moving in the timeline and the mouse is down
   // in either define or move mode, track the new mouse location
   function onMouseMoveTimeLine(event: MouseEvent<SVGRectElement>) {
     if (mouseDownTimeLine || mouseDownTimeInterval) {
@@ -221,7 +230,7 @@ export default function TimeLineDisplay() {
         event.nativeEvent.offsetX,
         event.nativeEvent.offsetY,
         event.nativeEvent.movementX,
-        event.nativeEvent.movementY
+        event.nativeEvent.movementY,
       );
     }
   }
@@ -243,7 +252,7 @@ export default function TimeLineDisplay() {
   // when the mouse enters the time interval and the mouse is not down
   // change the cursor to 'grab'
   function onMouseEnterTimeIntervalBody(
-    event: MouseEvent<SVGRectElement>
+    event: MouseEvent<SVGRectElement>,
   ): void {
     if (!mouseDownTimeInterval && !mouseDownTimeLine) {
       setCursor("grab");
@@ -267,13 +276,13 @@ export default function TimeLineDisplay() {
     });
     setMouseDownTimeInterval(true);
     setMouseDownTimeLine(false);
-    debug.info("TimeLineDisplay: mouse down time interval");
+    // debug.info("TimeLineDisplay: mouse down time interval");
   }
 
   // when the mouse moves in the interval bosy with the mouse down
   // perform the movement
   function onMouseMoveTimeIntervalBody(
-    event: MouseEvent<SVGRectElement>
+    event: MouseEvent<SVGRectElement>,
   ): void {
     if (!mouseDownTimeInterval) return;
     event.stopPropagation();
@@ -289,7 +298,7 @@ export default function TimeLineDisplay() {
       event.nativeEvent.offsetX,
       event.nativeEvent.offsetY,
       event.nativeEvent.movementX,
-      event.nativeEvent.movementY
+      event.nativeEvent.movementY,
     );
   }
 
@@ -309,13 +318,13 @@ export default function TimeLineDisplay() {
   // when the mouse enters an interval edge, set the edge entered and the cursor.
   function onMouseEnterTimeIntervalEdge(
     event: MouseEvent<SVGPathElement>,
-    edge: TIMEINTERVALEDGE
+    edge: TIMEINTERVALEDGE,
   ): void {
     // when the mouse enters the time interval edge with mouse up
     if (!mouseDownTimeInterval && !mouseDownTimeLine) {
       setCursor("ew-resize");
       setEdge(edge);
-      debug.info("TimeLineDisplay: enter edge set cursor to ew-resize");
+      // debug.info("TimeLineDisplay: enter edge set cursor to ew-resize");
       event.stopPropagation();
       event.preventDefault();
     }
@@ -325,7 +334,7 @@ export default function TimeLineDisplay() {
   // initiate teh define move
   function onMouseDownTimeIntervalEdge(
     event: MouseEvent<SVGPathElement>,
-    edge: TIMEINTERVALEDGE
+    edge: TIMEINTERVALEDGE,
   ) {
     const X: number = event.nativeEvent.offsetX;
     const Y: number = event.nativeEvent.offsetY;
@@ -334,13 +343,13 @@ export default function TimeLineDisplay() {
     setEdge(edge);
     setMouseDownTimeInterval(true);
     setMouseDownTimeLine(false);
-    debug.info("TimeLineDisplay: mouse down time interval edge");
+    // debug.info("TimeLineDisplay: mouse down time interval edge");
   }
 
   // when the mouse moves in the interval edge with the mouse down
   // perform the movement
   function onMouseMoveTimeIntervalEdge(
-    event: MouseEvent<SVGPathElement>
+    event: MouseEvent<SVGPathElement>,
   ): void {
     if (!mouseDownTimeInterval) return;
     event.stopPropagation();
@@ -356,7 +365,7 @@ export default function TimeLineDisplay() {
       event.nativeEvent.offsetX,
       event.nativeEvent.offsetY,
       event.nativeEvent.movementX,
-      event.nativeEvent.movementY
+      event.nativeEvent.movementY,
     );
   }
 
@@ -429,13 +438,13 @@ export default function TimeLineDisplay() {
               height={timeLine.height}
               width={Math.min(
                 interval.endOffset - Math.max(interval.startOffset, 0),
-                timeLine.width
+                timeLine.width,
               )}
               onMouseDown={(e) => onMouseDownTimeIntervalBody(e)}
               onMouseEnter={(e) => onMouseEnterTimeIntervalBody(e)}
               onMouseUp={(e) => onMouseUpTimeIntervalBody(e)}
               onMouseMove={(e) => onMouseMoveTimeIntervalBody(e)}
-                  onMouseLeave={() => setCursor("default")}
+              onMouseLeave={() => setCursor("default")}
             />
             {/* is the start edge visible */}
             {interval.startOffset >= 0 ? (

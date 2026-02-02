@@ -1,119 +1,476 @@
-// turn the sound generators into a preview or recording based on
-// which generators are selected and which mode is selected
+// only displays the status
+import CMG2 from "assets/CMG2.svg";
 import { useCMGContext } from "cmgcontext";
-import Preview from "playfunctions/previewer/preview";
-import { useEffect, useState } from "react";
-import { GeneratorType, PLAYMODE, RawSourceData, SAMPLERATE } from "types";
-import { buildSources } from "./buildsources";
-import ReadyPlay from "./readyplay";
-import Record from "./record";
+import { useEffect, useRef, useState } from "react";
+import {
+  AiFillCloseCircle,
+  AiFillPauseCircle,
+  AiFillPlayCircle,
+  AiFillSave,
+  AiFillStepBackward,
+} from "react-icons/ai";
+import { FcAddressBook, FcOk } from "react-icons/fc";
+import { toNote } from "sfcomponents/util";
+import { PLAYMODE } from "types";
+import { debug } from "utils/debug";
+import secondsToMMSS from "utils/secondstommss";
 
-interface PlayProps {
-  setRecordHandle?: React.Dispatch<React.SetStateAction<FileSystemFileHandle | null>>;
-  recordFormat?: string;
-  recordHandle?: FileSystemFileHandle | null;
-  generator: GeneratorType | null;
+// as this function is non-reactive except for exit, stop, pause, resume, many of its props
+// are CMG context variables
+export interface PlayProps {
+  setMode: React.Dispatch<React.SetStateAction<PLAYMODE>>;
 }
-export default function Play(props: PlayProps) {
-  const { setRecordHandle, recordFormat, recordHandle, generator } = props;
+
+const IMAGEPADDING: number = 50; //px
+// this component uses many state variables as all subcomponents are
+// highly integrated
+export default function Play(params: PlayProps): JSX.Element {
+  const { setMode } = params;
   const {
+    screenWidth: windowWidth,
+    screenHeight: windowHeight,
     setStatus,
-    playing,
-    mode,
-    setMode,
+    headerHeight,
+    footerHeight,
+    appName,
+    appVersion,
     fileContents,
-    timeInterval,
+    sourceData,
+    setSourceData,
   } = useCMGContext();
-  const [error, setError] = useState<string>("");
+  const isPlaying = useRef<boolean>(false);
+  const [showLegend, setShowLegend] = useState<boolean>(false);
+  const [playLegendElem, setPlayLegendElem] = useState<HTMLDivElement | null>(
+    null,
+  );
+  const [containerElem, setContainerElem] = useState<HTMLDivElement | null>(
+    null,
+  );
+  const [audioElem, setAudioElem] = useState<HTMLAudioElement | null>(null);
+  const [imageElem, setImageElem] = useState<HTMLImageElement | null>(null);
+  const [audioSrc, setAudioSrc] = useState<string>("");
+  // const [scrollPosition, setScrollPosition] = useState<number>(0); // 0-1 on the range input when not seeking
+  const [audioDuration, setAudioDuration] = useState<number>(0); // total duration of the audio (sec)
+  const [imageDuration, setImageDuration] = useState<number>(0); // the time frame of the image (60 minute intervals)
+  const [imageWidth, setImageWidth] = useState<number>(0); // the window size times the number of minutes in the image
+  const [audioPosition, setAudioPosition] = useState<number>(0); // the current time of the audio, either playing or positioning
+  const timerId = useRef<number>(0);
+  const TIMERDELTA: number = 20; //ms
+  const timerIncrement = useRef<number>(0);
 
-  // all of the work of the generator is done by this hook when the
-  // mode changes to anything but idle
-  const [sourceData, setSourceData] = useState<RawSourceData[]>([]);
-  
+  // #region useeffect
+  // capture the audio and image elements at start up
+  // load the audiodata to the audio tag
   useEffect(() => {
+    const aElem: HTMLElement | null = document.getElementById("audio");
+    if (aElem) {
+      setAudioElem(aElem as HTMLAudioElement);
+      (aElem as HTMLAudioElement).pause();
+    }
+    const pElem: HTMLElement | null = document.getElementById("play-legend");
+    if (pElem) {
+      setPlayLegendElem(pElem as HTMLDivElement);
+    }
+    const cElem: HTMLElement | null =
+      document.getElementById("image-container");
+    if (cElem) {
+      setContainerElem(cElem as HTMLDivElement);
+    }
+  }, []);
 
-    // determine the selected generators and make sure they are ready to generate sound
-    const {
-      AlgorithmicGenerators,
-      AudioFileGenerators,
-      SilentGenerators,
-      StochasticGenerators,
-      error,
-    } = ReadyPlay({
-      mode,
-      generator,
-      fileContents,
-      timeInterval,
-    });
+  useEffect(() => {
+    if (!sourceData) return;
+    const objectUrl = URL.createObjectURL(sourceData.audio);
+    setAudioSrc(objectUrl);
+    debug.info("audio loaded");
+  }, [sourceData?.audio]);
 
-    // catch any errors will selecting generators
-    setError(error);
-    if (error != "") return;
+  // when sourcedata arrives load the image
+  // into the image element
+  useEffect(() => {
+    if (!containerElem || !playLegendElem || !sourceData || windowWidth == 0)
+      return;
+    const img: HTMLImageElement = sourceData.image;
+    img.style.paddingLeft = IMAGEPADDING.toString() + "px";
+    setImageElem(sourceData.image);
+    while (containerElem.firstChild) containerElem.firstChild.remove();
+    containerElem.appendChild(img);
 
-    // build the generator sources
-    const { sources: builtSourceData, error: buildError } = buildSources({
-      fileContents,
-      AlgorithmicGenerators,
-      AudioFileGenerators,
-      SilentGenerators,
-      StochasticGenerators,
-    });
+    // add the current time line and vertical axis labels
+    const labelElement: SVGSVGElement = buildLabels();
+    while (playLegendElem.firstChild) playLegendElem.firstChild.remove();
+    playLegendElem.appendChild(labelElement);
+    debug.info("image appended to image-container, width", img.style.width);
+  }, [sourceData?.image, containerElem, playLegendElem]);
 
-    // catch any errors during build
-    setError(buildError);
-    if (buildError != "") return;
-    setSourceData(builtSourceData);
-    // let the system know that playing is entered
-    playing.current = true;
-  }, [mode, fileContents, generator, playing, timeInterval]);
+  // #endregion
 
-  function handleErrorClose() {
-    setError("");
+  // #region utilities
+
+  // build the labels for the image
+  const buildLabels = (): SVGSVGElement => {
+    const svgElem: SVGSVGElement = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "svg",
+    );
+    svgElem.setAttribute("height", windowWidth.toString());
+    svgElem.setAttribute("width", "100px");
+    svgElem.setAttribute("x", "0px");
+    svgElem.setAttribute("y", "0px");
+
+    // add vertical labels
+    let currentY: number = 0;
+    for (let i = 127; i >= 0; i--) {
+      if (i % 12 == 0) {
+        const label: SVGTextElement = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "text",
+        );
+        label.setAttribute("x", (IMAGEPADDING - 10).toString() + "px");
+        label.setAttribute("y", (currentY - 6).toString() + "px");
+        label.textContent = toNote(i);
+        label.setAttribute("font-size", "10pt");
+        label.setAttribute("fill", "black");
+        svgElem.appendChild(label);
+      }
+      currentY += (windowHeight - 40) / 128;
+    }
+
+    // add current time line
+    const t0: SVGLineElement = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "line",
+    );
+    t0.setAttribute("x1", (IMAGEPADDING - 20).toString() + "px");
+    t0.setAttribute("y1", "0px");
+    t0.setAttribute("x2", (IMAGEPADDING - 20).toString() + "px");
+    t0.setAttribute("y2", windowWidth.toString() + "px");
+    t0.setAttribute("stroke", "red");
+    t0.setAttribute("fill", "red");
+    t0.setAttribute("stroke-width", "4px");
+    svgElem.appendChild(t0);
+
+    return svgElem;
+  };
+
+  // image scroll timer
+  const imageTimer = () => {
+    if (!imageElem) return;
+    if (isPlaying.current) {
+      timerId.current = window.setTimeout(imageTimer, TIMERDELTA);
+      timerIncrement.current += TIMERDELTA / 1000;
+      imageElem.style.transform = `translateX(-${(timerIncrement.current / imageDuration) * imageWidth}px)`;
+    } else clearTimeout(timerId.current);
+  };
+
+  // change the state of the system when isPlaying changes
+  // _time is the audio time to use to set the translation
+  const triggerPlayState = (_time: number) => {
+    if (!imageElem || !audioElem) return;
+    if (isPlaying.current) {
+      // stop the timer and adjust the position to the scroll position
+      if (timerId.current) {
+        clearTimeout(timerId.current);
+        debug.log("play: timerId cleared", timerId.current);
+      }
+
+      // discipline the image translation to cancel timer drift
+      imageElem.style.transform = `translateX(-${(_time / imageDuration) * imageWidth}px)`;
+
+      // tell the audio to play (it will already be playing if this is a audio position update)
+      if (audioElem.paused) audioElem.play();
+      // restart the timer at the current audio position
+      timerIncrement.current = _time;
+      timerId.current = window.setTimeout(imageTimer, TIMERDELTA);
+      debug.log("audio playing at audio time, timerId", _time, timerId.current);
+    } else {
+      if (timerId.current) {
+        clearTimeout(timerId.current);
+        debug.log("pause: timerId cleared", timerId.current);
+      }
+      if (!audioElem.paused) audioElem.pause();
+      // make the image align on the proper scroll position
+      imageElem.style.transform = `translateX(-${(_time / imageDuration) * imageWidth}px)`;
+      debug.log("audio paused at audio time, timerId", _time, timerId.current);
+    }
+  };
+
+  // #endregion
+
+  // #region pointeractions
+  const handleExit = () => {
     setMode(PLAYMODE.idle);
-    setStatus(`Error occurred during preview`);
-  }
+    setSourceData(undefined);
+    setShowLegend(false);
+    isPlaying.current = false;
+    if (timerId.current) clearTimeout(timerId.current);
+    setStatus(`Play Terminated`);
+  };
 
-  // the only thing displayed by this function is an error popup
-  // recording has its own progress bar
+  // either start the play or exit
+  const handlePlayPauseClick = () => {
+    isPlaying.current = !isPlaying.current;
+    triggerPlayState(audioPosition);
+    debug.log(`play mode toggled to ${isPlaying.current}`);
+  };
+
+  // restart the piece at the beginning
+  const handleRestart = () => {
+    if (!imageElem) {
+      debug.warn("handleRestart: image element not yet defined");
+      return;
+    }
+    setAudioPosition(0);
+    if (audioElem) audioElem.currentTime = 0;
+    imageElem.classList.remove("scrolling");
+    imageElem.style.setProperty("transform", "translateX(0px)");
+    imageElem.style.animationDelay = "0px";
+    isPlaying.current = false;
+    triggerPlayState(0);
+    debug.log("restart");
+  };
+
+  // TODO save the audio and scrolling image as a movie?
+  const handleSave = () => {};
+
+  const handleVoiceLegend = () => {
+    setShowLegend(true);
+  };
+  // pointer down on range input.
+  // cancel playing mode
+  // set the scroll position to the new range value
+  // enter manual image positionion mode
+  const handleRangeMouseDown = (event: React.MouseEvent<HTMLInputElement>) => {
+    if (!imageElem) {
+      debug.warn("handleRangeMouseDown: image is not yet defined");
+      return;
+    }
+    isPlaying.current = false;
+    const _time: number = parseFloat(event.currentTarget.value);
+    setAudioPosition(_time);
+    triggerPlayState(_time);
+    debug.log("start manual scrolling at time ", _time);
+  };
+
+  // pointer moved while down in range element
+  // move the scroll position and change the image offset
+  const handleRangeMouseChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    if (!imageElem) {
+      debug.warn("handleRangeMouseChange: image is not yet defined");
+      return;
+    }
+
+    const _time: number = parseFloat(event.currentTarget.value);
+    setAudioPosition(_time);
+    triggerPlayState(_time);
+    debug.log("continue manual scrolling at time", _time);
+  };
+
+  // mouse up on range element
+  // set the latest image position and audio time
+  // start audio playing and image scrolling
+  const handleRangeMouseUp = (event: React.MouseEvent<HTMLInputElement>) => {
+    if (!imageElem || !audioElem) {
+      debug.warn("handleRangeMouseChange: image and audio is not yet defined");
+      return;
+    }
+    const _time: number = parseFloat(event.currentTarget.value);
+    setAudioPosition(_time);
+    audioElem.currentTime = _time;
+    isPlaying.current = true;
+    triggerPlayState(_time);
+  };
+
+  // #endregion
+  // #region audioactions
+  // get the audio duration and set the duration and windowing parameters
+  // this should load the image data
+  const handleAudioMetaData = (
+    event: React.SyntheticEvent<HTMLAudioElement>,
+  ) => {
+    // when the audio duration is know, set the scales
+    // for the image time and width
+    // 60 seconds / window width
+    const _duration: number = event.currentTarget.duration;
+    setAudioDuration(_duration);
+    const _imageTime: number = (Math.trunc(_duration / 60) + 1) * 60;
+    setImageDuration(_imageTime);
+    setImageWidth((_imageTime * windowWidth) / 60);
+    debug.log("audio metadata loaded, duration", _duration);
+  };
+
+  // as the audio advances update the scroll position for user reporting
+  // on the range element
+  const handleAudioTimeUpdate = (
+    event: React.SyntheticEvent<HTMLAudioElement>,
+  ) => {
+    if (audioDuration == 0 || !imageElem) {
+      if (audioDuration == 0)
+        debug.warn(
+          "handleAudioTimeUpdate: audio time updating before duration has been defined",
+        );
+      if (!imageElem)
+        debug.warn(
+          "handleAudioTimeUpdate: attempt to update audio time when image has not been defined",
+        );
+      return;
+    }
+    const _currentTime: number = event.currentTarget.currentTime;
+    setAudioPosition(_currentTime);
+    // force pause when at the end
+    if (_currentTime >= audioDuration) isPlaying.current = false;
+    triggerPlayState(_currentTime);
+
+    debug.log(`new audio time ${_currentTime}`);
+  };
+
+  // stop the audio playing and the image scrolling
+  const handleAudioEnded = () => {
+    if (!imageElem) {
+      debug.warn("handleAudioEnded: image is not yet defined");
+      return;
+    }
+
+    isPlaying.current = false;
+    setAudioPosition(audioDuration);
+    triggerPlayState(audioDuration);
+    debug.log("playback ended");
+  };
+  // #endregion
+
+  // #region HTML
   return (
     <>
-      {mode == PLAYMODE.record &&
-      recordHandle &&
-      setRecordHandle &&
-      sourceData.length > 0 ? (
-        <Record
-          recordHandle={recordHandle}
-          setRecordHandle={setRecordHandle}
-          sourceData={sourceData}
-          sampleRate={SAMPLERATE}
-          recordFormat={recordFormat as string}
-          setMode={setMode}
-        />
-      ) : null}
-      {(mode == PLAYMODE.preview || mode == PLAYMODE.solo) &&
-      sourceData.length > 0 ? (
-        <Preview sourceData={sourceData} setMode={setMode} />
-      ) : null}
-
-      <div
-        style={{ display: error == "" ? "none" : "block" }}
-        className="modal-content"
-      >
-        <div className="modal-header">
-          <span className="close" onClick={handleErrorClose}>
-            &times;
-          </span>
-          <h2>Error occurred during audio generation</h2>
+      <div className="play">
+        <div
+          className="play-header"
+          style={{ width: windowWidth, height: headerHeight }}
+        >
+          <div className="icon">
+            <img src={CMG2} alt="CMG" />
+          </div>
+          <div className="buttons">
+            <button type="button" onClick={() => handlePlayPauseClick()}>
+              {isPlaying.current ? <AiFillPauseCircle /> : <AiFillPlayCircle />}
+            </button>
+            <button type="button" onClick={() => handleRestart()}>
+              <AiFillStepBackward />
+            </button>
+            <button type="button" onClick={() => handleVoiceLegend()}>
+              <FcAddressBook />
+            </button>
+            <label>
+              <span style={{ width: "6em" }}>
+                {secondsToMMSS(audioPosition)}
+              </span>
+              <input
+                type="range"
+                value={audioPosition}
+                min={0}
+                max={audioDuration}
+                step={1}
+                onMouseDownCapture={(event) => handleRangeMouseDown(event)}
+                onChange={(event) => handleRangeMouseChange(event)}
+                onMouseUp={(event) => handleRangeMouseUp(event)}
+              />
+              <span>{secondsToMMSS(audioDuration)}</span>
+            </label>
+            <button type="button" onClick={() => handleSave()}>
+              <AiFillSave />
+            </button>
+            <button type="button" onClick={() => handleExit()}>
+              <AiFillCloseCircle />
+            </button>
+          </div>
+          <div className="title" style={{ fontWeight: "bold" }}>
+            {`${appName}: ${appVersion} (${fileContents.name})${fileContents.dirty ? "*" : ""}`}
+          </div>
         </div>
+        <audio
+          id={"audio"}
+          src={audioSrc != "" ? audioSrc : undefined}
+          controls={false}
+          onLoadedMetadata={(event) => handleAudioMetaData(event)}
+          onTimeUpdate={(event) => handleAudioTimeUpdate(event)}
+          onEnded={() => handleAudioEnded()}
+        ></audio>
+        <div
+          className="play-body"
+          hidden={!imageElem}
+          style={{ width: `${windowWidth}px`, height: `${windowWidth}px` }}
+        >
+          <div id="image-container" style={{ backgroundColor: "white" }} />
+          <div
+            id="play-legend"
+            style={{
+              zIndex: 1001,
+              position: "absolute",
+              top: "40px",
+              left: "20px",
+              height: windowHeight.toString() + "px",
+            }}
+          />
+        </div>
+        <div
+          className="play-footer"
+          style={{ width: windowWidth, height: footerHeight }}
+        ></div>
+      </div>
+      <div
+        className="modal-content"
+        hidden={!showLegend}
+        style={{
+          position: "absolute",
+          top: "40px",
+          left: (windowWidth - 500).toString()+'px',
+          backgroundColor: "white",
+        }}
+      >
+        <div className="modal-header">Voice Legend</div>
         <div className="modal-body">
-          <p>{error}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>SoundFont</th>
+                <th>Preset</th>
+                <th>Hue</th>
+              </tr>
+            </thead>
+            <tbody>
+              <>
+                {!!sourceData &&
+                  Array.from(sourceData.voiceHues).map((value) => {
+                    const splitName: string[] = value[0].split("|");
+                    return (
+                      <tr key={value[0]}>
+                        <td>{splitName[0]}</td>
+                        <td>{splitName[1]}</td>
+                        <td style={{ backgroundColor: "lightgray" }}>
+                          <svg width="50px" height="50px">
+                            <rect
+                              fill={"hsl(" + value[1].toString() + ",100%,55%)"}
+                              stroke="none"
+                              width="50px"
+                              height="50px"
+                            ></rect>
+                          </svg>
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </>
+            </tbody>
+          </table>
         </div>
         <div className="modal-footer">
-          <button id={"generator-error"} onClick={handleErrorClose}>
-            OK
+          <button type="button" onClick={() => setShowLegend(false)}>
+            <FcOk />
           </button>
         </div>
       </div>
     </>
   );
+  // #endregion
 }

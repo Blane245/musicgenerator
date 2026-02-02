@@ -5,19 +5,23 @@ import Silent from "classes/generators/silent";
 import Stochastic from "classes/generators/stochastic";
 import Track from "classes/track";
 import { useCMGContext } from "cmgcontext";
-import { buildSources } from "playfunctions/buildsources";
-import Play from "playfunctions/play";
-import ReadyPlay from "playfunctions/readyplay";
+import buildSourceData from "playfunctions/buildsourcedata";
 import { ChangeEvent, FormEvent, MouseEvent, useEffect, useState } from "react";
 import { SFPool } from "sfcomponents/sfpool";
 import { Preset } from "sfcomponents/types";
 import { bankPresettoName, precision } from "sfcomponents/util";
 import { SoundFont2 } from "soundfont2";
-import { GeneratorType, GENERATORTYPE, PLAYMODE, TIMELINETYPE } from "types";
+import {
+  GeneratorType,
+  GENERATORTYPE,
+  PLAYMODE,
+  TIMELINETYPE,
+} from "types";
 import { addGenerator, modifyGenerator } from "utils/cmfiletransactions";
+import { debug } from "utils/debug";
 import { getGeneratorUID } from "utils/getgeneratoruid";
 import GeneratorTypeForm from "./generatortypeform";
-import { debug } from "utils/debug";
+import Play from "playfunctions/play";
 
 // The icon starts at the generator's start time and ends at the generators endtime
 export interface GeneratorDialogProps {
@@ -27,6 +31,7 @@ export interface GeneratorDialogProps {
   newGenerator: boolean;
 }
 
+//TODO when this becomes visible after playing, any changes made on the form are forgotten
 export default function GeneratorDialog(props: GeneratorDialogProps) {
   const { track, generatorType, generator, newGenerator } = props;
   type SFDataType = {
@@ -37,17 +42,21 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
   };
 
   const {
+    screenWidth,
     fileContents,
     setFileContents,
     setStatus,
+    setSourceData,
+    sourceData,
     timeLine,
     timeInterval,
     playing,
     setMode,
-    setSourceData,
     setGeneratorDialogVisible,
+    recordFormat,
   } = useCMGContext();
-  const [previewVisible, setPreviewVisible] = useState<boolean>(false);
+  const screenHeight: number = (screenWidth * 9) / 16;
+  const [playVisible, setPlayVisible] = useState<boolean>(false);
   const [oldName, setOldName] = useState<string>("");
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [formData, setFormData] = useState<GeneratorType>(new Silent(0, track));
@@ -58,7 +67,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     presetName: "",
   });
   const [audioFileData, setAudioFileData] = useState<AudioFile>(
-    new AudioFile(0, track)
+    new AudioFile(0, track),
   );
 
   useEffect(() => {
@@ -110,7 +119,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
       if (oldName == "") setOldName(generator.name);
     } else {
       setStatus(
-        "Generator dialog entered with wrong mode. newGenerator is false and generator is null"
+        "Generator dialog entered with wrong mode. newGenerator is false and generator is null",
       );
     }
     setErrorMessages([]);
@@ -136,9 +145,9 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     });
   }, [audioFileData]);
 
-  // when playing stops take down the stop preview popup
+  // handle changes to the data on the form
   function handleChange(
-    event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    event: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ): void {
     if (!timeLine) return;
     // update the form with the new attribute value
@@ -151,51 +160,74 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
 
       if (eventName == undefined || eventValue == undefined) return prev;
 
-      function measureBeatToTime (measure: number, beat: number, measureLength: number, beatsPerMeasure: number): number {
+      function measureBeatToTime(
+        measure: number,
+        beat: number,
+        measureLength: number,
+        beatsPerMeasure: number,
+      ): number {
         return (measure - 1 + (beat - 1) / beatsPerMeasure) * measureLength;
       }
 
-      // handle the measure and beat items, changing them to 
+      // handle the measure and beat items, changing them to
       // start and stop time changes
       switch (eventName) {
-        case 'startMeasure': {
-          eventName = 'startTime'
-          const startBeatValue:number = parseInt((document.getElementById('startBeat') as HTMLInputElement).value);
-          eventValue = measureBeatToTime(
-            parseInt(eventValue),
-            startBeatValue,
-            timeLine.measureSize,
-            timeLine.beatsPerMeasure).toString();
+        case "startMeasure":
+          {
+            eventName = "startTime";
+            const startBeatValue: number = parseInt(
+              (document.getElementById("startBeat") as HTMLInputElement).value,
+            );
+            eventValue = measureBeatToTime(
+              parseInt(eventValue),
+              startBeatValue,
+              timeLine.measureSize,
+              timeLine.beatsPerMeasure,
+            ).toString();
           }
           break;
-        case 'startBeat': {
-          eventName = 'startTime'
-          const startMeasureValue:number = parseInt((document.getElementById('startMeasure') as HTMLInputElement).value);
-          eventValue = measureBeatToTime(
-            startMeasureValue,
-            parseInt(eventValue),
-            timeLine.measureSize,
-            timeLine.beatsPerMeasure).toString();
+        case "startBeat":
+          {
+            eventName = "startTime";
+            const startMeasureValue: number = parseInt(
+              (document.getElementById("startMeasure") as HTMLInputElement)
+                .value,
+            );
+            eventValue = measureBeatToTime(
+              startMeasureValue,
+              parseInt(eventValue),
+              timeLine.measureSize,
+              timeLine.beatsPerMeasure,
+            ).toString();
           }
           break;
-        case 'stopMeasure': {
-          eventName = 'stopTime'
-          const stopBeatValue:number = parseInt((document.getElementById('stopBeat') as HTMLInputElement).value);
-          eventValue = measureBeatToTime(
-            parseInt(eventValue),
-            stopBeatValue,
-            timeLine.measureSize,
-            timeLine.beatsPerMeasure).toString();
+        case "stopMeasure":
+          {
+            eventName = "stopTime";
+            const stopBeatValue: number = parseInt(
+              (document.getElementById("stopBeat") as HTMLInputElement).value,
+            );
+            eventValue = measureBeatToTime(
+              parseInt(eventValue),
+              stopBeatValue,
+              timeLine.measureSize,
+              timeLine.beatsPerMeasure,
+            ).toString();
           }
           break;
-        case 'stopBeat': {
-          eventName = 'stopTime'
-          const stopMeasureValue:number = parseInt((document.getElementById('stopMeasure') as HTMLInputElement).value);
-          eventValue = measureBeatToTime(
-            stopMeasureValue,
-            parseInt(eventValue),
-            timeLine.measureSize,
-            timeLine.beatsPerMeasure).toString();
+        case "stopBeat":
+          {
+            eventName = "stopTime";
+            const stopMeasureValue: number = parseInt(
+              (document.getElementById("stopMeasure") as HTMLInputElement)
+                .value,
+            );
+            eventValue = measureBeatToTime(
+              stopMeasureValue,
+              parseInt(eventValue),
+              timeLine.measureSize,
+              timeLine.beatsPerMeasure,
+            ).toString();
           }
           break;
       }
@@ -208,9 +240,19 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           return newFormData;
         }
         case GENERATORTYPE.Algorithmic: {
-          const newFormData: Algorithmic = (prev as Algorithmic).copy(prev.parent);
-          const isSet: boolean = newFormData.setAttribute(eventName, eventValue);
-          if (!isSet) debug.warn('value not set eventname, eventvalue', eventName, eventValue);
+          const newFormData: Algorithmic = (prev as Algorithmic).copy(
+            prev.parent,
+          );
+          const isSet: boolean = newFormData.setAttribute(
+            eventName,
+            eventValue,
+          );
+          if (!isSet)
+            debug.warn(
+              "value not set eventname, eventvalue",
+              eventName,
+              eventValue,
+            );
 
           // when the soundfont filename changes, load the new soundfont and presets
           if (eventName == "soundfontfile") {
@@ -228,13 +270,15 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           return newFormData;
         }
         case GENERATORTYPE.Stochastic: {
-          const newFormData: Stochastic = (prev as Stochastic).copy(prev.parent);
+          const newFormData: Stochastic = (prev as Stochastic).copy(
+            prev.parent,
+          );
           newFormData.setAttribute(eventName, eventValue);
           return newFormData;
         }
         default:
           debug.info(
-            `generator dialog: improper generator type ${formData.type}`
+            `generator dialog: improper generator type ${formData.type}`,
           );
           return prev as Silent;
       }
@@ -249,7 +293,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           const newMessages = Silent.validate(
             formData as Silent,
             fileContents,
-            oldName
+            oldName,
           );
           msgs.push(...newMessages);
           setErrorMessages(msgs);
@@ -260,7 +304,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           const newMessages = Algorithmic.validate(
             formData as Algorithmic,
             fileContents,
-            oldName
+            oldName,
           );
           msgs.push(...newMessages);
           setErrorMessages(msgs);
@@ -271,7 +315,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           const newMessages = AudioFile.validate(
             formData as AudioFile,
             fileContents,
-            oldName
+            oldName,
           );
           msgs.push(...newMessages);
           setErrorMessages(msgs);
@@ -282,7 +326,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           const newMessages = Stochastic.validate(
             formData as Stochastic,
             fileContents,
-            oldName
+            oldName,
           );
           msgs.push(...newMessages);
           setErrorMessages(msgs);
@@ -304,62 +348,46 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
         // add a new generator to the current track
         addGenerator(formData, setFileContents);
         setStatus(
-          `Generator '${formData.name}' added to track '${track.name}'`
+          `Generator '${formData.name}' added to track '${track.name}'`,
         );
       } else {
         // this is a modify. change the generator on the active track
         modifyGenerator(formData, oldName, setFileContents);
         setStatus(
-          `Generator '${formData.name}' modified on track '${track.name}'`
+          `Generator '${formData.name}' modified on track '${track.name}'`,
         );
       }
       setGeneratorDialogVisible(false);
       setOldName("");
-      setStatus(`Generator ${formData.name} ${newGenerator?'added': 'modified'}.`)
+      setStatus(
+        `Generator ${formData.name} ${newGenerator ? "added" : "modified"}.`,
+      );
     }
   }
 
-  function handlePreview() {
+  async function handlePlay() {
     const msgs: string[] = validate();
-    if (formData.name != oldName)
-      msgs.push(
-        "Cannot preview after renaming the generator. Modify or add first and then preview."
-      );
+    // if (formData.name != oldName)
+    //   msgs.push(
+    //     "Cannot play after renaming the generator. Modify or add first and then play.",
+    //   );
     if (msgs.length != 0) return;
-    const {
-      AlgorithmicGenerators,
-      AudioFileGenerators,
-      SilentGenerators,
-      StochasticGenerators,
-      error,
-    } = ReadyPlay({
-      mode: PLAYMODE.solo,
+    const { sourceData: builtSourceData, error: buildError } = await buildSourceData({
+      fileContents,
       generator: formData,
-      fileContents,
+      mode: PLAYMODE.solo,
       timeInterval,
+      windowWidth: screenWidth,
+      windowHeight: screenHeight - 40,
+      recordFormat: recordFormat,
     });
-    setStatus(error);
-    if (error != "") return;
-    const { sources: builtSourceData, error: buildError } = buildSources({
-      fileContents,
-      AlgorithmicGenerators,
-      AudioFileGenerators,
-      SilentGenerators,
-      StochasticGenerators,
-    });
-    if (buildError != "") {
-      setStatus(
-        `Error occurred while building source to preview: ${buildError}`
-      );
+    if (buildError != "" || !builtSourceData) {
+      setStatus(`Error occurred while building source to play: ${buildError}`);
       return;
     }
-    // catch any errors during build
-    setStatus(buildError);
-    if (buildError != "") return;
     setSourceData(builtSourceData);
     playing.current = true;
-    
-    setPreviewVisible(true);
+    setPlayVisible(true);
     setMode(PLAYMODE.solo);
   }
 
@@ -382,7 +410,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
               if (a.header.bank < b.header.bank) return -1;
               if (a.header.bank > b.header.bank) return 1;
               return a.header.preset - b.header.preset;
-            }
+            },
           );
           const preset: Preset = presets[0] as Preset;
           const presetName: string = bankPresettoName(preset);
@@ -400,12 +428,13 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     }
   }
 
-  function timeToBeat (time: number): number {
+  function timeToBeat(time: number): number {
     if (!timeLine) return 1;
-    const beat: number = Math.trunc((time % timeLine.measureSize) * timeLine.beatsPerMeasure) + 1;
-        return beat;
+    const beat: number =
+      Math.trunc((time % timeLine.measureSize) * timeLine.beatsPerMeasure) + 1;
+    return beat;
   }
-  function timeToMeasure (time: number) : number {
+  function timeToMeasure(time: number): number {
     if (!timeLine) return 1;
     const measure: number = Math.trunc(time / timeLine.measureSize) + 1;
     return measure;
@@ -413,10 +442,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
 
   return (
     <>
-      <div
-        className="generator-content"
-        aria-modal="true"
-      >
+      <div className="generator-content" aria-modal="true" style={{zIndex:"1000"}}>
         <div className="generator-header">
           <span className="close" onClick={handleCancelClick}>
             &times;
@@ -428,104 +454,103 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           </span>
         </div>
         <div className="generator-body">
-
           <form
             name="generator_CRUD"
             id="generator_CRUD"
             onSubmit={handleSubmit}
           >
             <div className="id">
-            <label>
-              Name:&nbsp;
-              <input
-                name="name"
-                type="text"
-                onChange={handleChange}
-                value={formData.name}
-              />
-            </label>
-            {timeLine?.mode == TIMELINETYPE.Time ? (
-              <>
-                <label>
-                  Start Time:&nbsp;
-                  <input
-                    name="startTime"
-                    type="number"
-                    min={0}
-                    step={0.0001}
-                    onChange={handleChange}
-                    value={precision(formData.startTime, 4)}
-                  />
-                  <span> (sec) </span>
-                </label>
-                <label>
-                  Stop Time:&nbsp;
-                  <input
-                    name="stopTime"
-                    type="number"
-                    min={0}
-                    step={0.0001}
-                    onChange={handleChange}
-                    value={precision(formData.stopTime, 4)}
-                  />
-                  <span> (sec) </span>
-                </label>
-              </>
-            ) : null}
-            {timeLine?.mode == TIMELINETYPE.Measure? (
-              <>
               <label>
-                Start Measure:&nbsp;
-                <input 
-                name='startMeasure'
-                id='startMeasure'
-                type='number'
-                min={1}
-                step={1}
-                onChange={handleChange}
-                value={timeToMeasure(formData.startTime)}
+                Name:&nbsp;
+                <input
+                  name="name"
+                  type="text"
+                  onChange={handleChange}
+                  value={formData.name}
                 />
               </label>
-              <label>
-                Start Beat:&nbsp;
-                <input 
-                name='startBeat'
-                id='startBeat'
-                type='number'
-                min={1}
-                step={1}
-                max={timeLine.beatsPerMeasure}
-                onChange={handleChange}
-                value={timeToBeat(formData.startTime)}
-                />
-              </label>
-              <label>
-                Stop Measure:&nbsp;
-                <input 
-                name='stopMeasure'
-                id='stopMeasure'
-                type='number'
-                min={1}
-                step={1}
-                onChange={handleChange}
-                value={timeToMeasure(formData.stopTime)}
-                />
-              </label>
-              <label>
-                Stop Beat:&nbsp;
-                <input 
-                name='stopBeat'
-                id='stopBeat'
-                type='number'
-                min={1}
-                step={1}
-                max={timeLine.beatsPerMeasure}
-                onChange={handleChange}
-                value={timeToBeat(formData.stopTime)}
-                />
-              </label>
-              </>
-            ):null}
+              {timeLine?.mode == TIMELINETYPE.Time ? (
+                <>
+                  <label>
+                    Start Time:&nbsp;
+                    <input
+                      name="startTime"
+                      type="number"
+                      min={0}
+                      step={0.0001}
+                      onChange={handleChange}
+                      value={precision(formData.startTime, 4)}
+                    />
+                    <span> (sec) </span>
+                  </label>
+                  <label>
+                    Stop Time:&nbsp;
+                    <input
+                      name="stopTime"
+                      type="number"
+                      min={0}
+                      step={0.0001}
+                      onChange={handleChange}
+                      value={precision(formData.stopTime, 4)}
+                    />
+                    <span> (sec) </span>
+                  </label>
+                </>
+              ) : null}
+              {timeLine?.mode == TIMELINETYPE.Measure ? (
+                <>
+                  <label>
+                    Start Measure:&nbsp;
+                    <input
+                      name="startMeasure"
+                      id="startMeasure"
+                      type="number"
+                      min={1}
+                      step={1}
+                      onChange={handleChange}
+                      value={timeToMeasure(formData.startTime)}
+                    />
+                  </label>
+                  <label>
+                    Start Beat:&nbsp;
+                    <input
+                      name="startBeat"
+                      id="startBeat"
+                      type="number"
+                      min={1}
+                      step={1}
+                      max={timeLine.beatsPerMeasure}
+                      onChange={handleChange}
+                      value={timeToBeat(formData.startTime)}
+                    />
+                  </label>
+                  <label>
+                    Stop Measure:&nbsp;
+                    <input
+                      name="stopMeasure"
+                      id="stopMeasure"
+                      type="number"
+                      min={1}
+                      step={1}
+                      onChange={handleChange}
+                      value={timeToMeasure(formData.stopTime)}
+                    />
+                  </label>
+                  <label>
+                    Stop Beat:&nbsp;
+                    <input
+                      name="stopBeat"
+                      id="stopBeat"
+                      type="number"
+                      min={1}
+                      step={1}
+                      max={timeLine.beatsPerMeasure}
+                      onChange={handleChange}
+                      value={timeToBeat(formData.stopTime)}
+                    />
+                  </label>
+                </>
+              ) : null}
             </div>
             <GeneratorTypeForm
               formData={formData}
@@ -537,13 +562,13 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           </form>
           <button
             type="button"
-            id={"generator-preview:" + formData.name}
-            onClick={handlePreview}
+            id={"generator-play:" + formData.name}
+            onClick={handlePlay}
           >
-            Preview
+            Play
           </button>
           <button
-          type="button"
+            type="button"
             id={"generator-update:" + formData.name}
             onClick={handleCancelClick}
           >
@@ -552,13 +577,15 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
         </div>
         <div className="generator-footer">
           {errorMessages.map((m, i) => (
-            <h3 style={{color:"white"}} key={`error-${i}`}>
+            <h3 style={{ color: "white" }} key={`error-${i}`}>
               {m}
             </h3>
           ))}
         </div>
       </div>
-      {previewVisible ? <Play generator={formData} /> : null}
+      {!!(playVisible && sourceData) && (
+        <Play setMode={setMode} />
+      )}
     </>
   );
 }

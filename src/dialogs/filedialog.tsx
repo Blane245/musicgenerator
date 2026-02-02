@@ -351,7 +351,7 @@ export default function FileDialog(props: FileDialogProps): JSX.Element {
 
   return (
     <div
-      className="filedialog" /* style={{border:'thin solid black', borderRadius: '20px'}} */
+      className="filedialog"
     >
       <div className="filedialog-header">
         <div className="titlerow">

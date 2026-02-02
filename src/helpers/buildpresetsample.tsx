@@ -14,9 +14,9 @@ export default function buildPresetSample(props: {
 	pitch2: number; // second pitch for glissando
 	volume: number; // volume (dB) of the voice
 	velocity: number; // soundfont instrument velocity
-}): number[][] {
+}): Float32Array[] {
 	const { preset, interval, duration, pitch1, pitch2, volume, velocity } = props;
-	const result: number[][] = [];
+	const result: Float32Array[] = [];
 	const gain: number = dBToGain(volume);
 	debug.info('buildPresetSample: gain for pitch', gain, pitch1);
 	if (preset == undefined) return result;
@@ -95,7 +95,7 @@ export default function buildPresetSample(props: {
 		}
 
 		// build the sample using resampling
-		const sample: number[] = buildElementSamples({
+		const sample: Float32Array = buildElementSamples({
 			interval,
 			duration,
 			instrumentSample,

@@ -1,18 +1,18 @@
-import Compressor from "classes/roomnodes/compressor";
-import Equalizer from "classes/roomnodes/equalizer";
-import Reverb from "classes/roomnodes/reverb";
+// import Compressor from "classes/roomnodes/compressor";
+// import Equalizer from "classes/roomnodes/equalizer";
+// import Reverb from "classes/roomnodes/reverb";
 import Track from "classes/track";
 import { GeneratorType } from "types";
 import { getAttributeValue } from "utils/xmlfunctions";
-import Volume from "./roomnodes/volume";
+// import Volume from "./roomnodes/volume";
 export default class CMGFile {
   dirty: boolean; // if the contents of the file has been changed since loaded, it is marked dirty
   name: string; // the name of the file on the disk or null if not saved
   version: string; // version of the file
-  compressor: Compressor;
-  equalizer: Equalizer;
-  volume: Volume;
-  reverb: Reverb;
+  // compressor: Compressor;
+  // equalizer: Equalizer;
+  // volume: Volume;
+  // reverb: Reverb;
   tracks: Track[];
   comment: string;
 
@@ -20,10 +20,10 @@ export default class CMGFile {
     this.dirty = false;
     this.name = "";
     this.version = import.meta.env.VERSION;
-    this.compressor = new Compressor();
-    this.equalizer = new Equalizer();
-    this.volume = new Volume();
-    this.reverb = new Reverb();
+    // this.compressor = new Compressor();
+    // this.equalizer = new Equalizer();
+    // this.volume = new Volume();
+    // this.reverb = new Reverb();
     this.tracks = [];
     this.comment = "";
   }
@@ -33,10 +33,10 @@ export default class CMGFile {
     newFile.name = this.name;
     newFile.dirty = this.dirty;
     const newTracks: Track[] = [];
-    newFile.compressor = this.compressor.copy();
-    newFile.equalizer = this.equalizer.copy();
-    newFile.reverb = this.reverb.copy();
-    newFile.volume = this.volume.copy();
+    // newFile.compressor = this.compressor.copy();
+    // newFile.equalizer = this.equalizer.copy();
+    // newFile.reverb = this.reverb.copy();
+    // newFile.volume = this.volume.copy();
     this.tracks.forEach((t) => {
       const newTrack: Track = t.copy();
       const newGenerators: GeneratorType[] = [];
@@ -51,15 +51,15 @@ export default class CMGFile {
     return newFile;
   }
 
-  appendXML(doc: XMLDocument, elem: Element, fileName: string): void {
+  appendXML(_doc: XMLDocument, elem: Element, fileName: string): void {
     const nameParts: string[] = fileName.split("/");
     elem.setAttribute("name", nameParts[nameParts.length - 1]);
     elem.setAttribute("version", this.version);
     elem.setAttribute("comment", this.comment);
-    this.compressor.appendXML(doc, elem);
-    this.equalizer.appendXML(doc, elem);
-    this.volume.appendXML(doc, elem);
-    this.reverb.appendXML(doc, elem);
+    // this.compressor.appendXML(doc, elem);
+    // this.equalizer.appendXML(doc, elem);
+    // this.volume.appendXML(doc, elem);
+    // this.reverb.appendXML(doc, elem);
   }
 
   async getXML(fcElem: Element, fileName: string) {
@@ -74,9 +74,9 @@ export default class CMGFile {
     } catch {
       this.version = "1";
     }
-    this.compressor.getXML(fcElem, this.version);
-    this.equalizer.getXML(fcElem, this.version);
-    this.volume.getXML(fcElem, this.version);
-    this.reverb.getXML(fcElem, this.version);
+    // this.compressor.getXML(fcElem, this.version);
+    // this.equalizer.getXML(fcElem, this.version);
+    // this.volume.getXML(fcElem, this.version);
+    // this.reverb.getXML(fcElem, this.version);
   }
 }

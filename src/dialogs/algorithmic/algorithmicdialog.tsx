@@ -7,7 +7,7 @@ import { MODULATOR } from "types";
 import { generateRandomString } from "utils/randomstring";
 import MidiFrequencyDialog from "../midifrequencydialog";
 import AlgorithmicTable from "./algorithmictable";
-import PresetDialog from "./presetdialog";
+// import PresetDialog from "./presetdialog";
 
 // provides the form fields and validators for the algorithmic generator
 
@@ -24,7 +24,7 @@ export default function AlgorithmicDialog(
   const { SFFileList } = useCMGContext();
   const { formData, handleChange } = props;
   const [open, setOpen] = useState<boolean>(false);
-  const [viewPreset, setViewPreset] = useState<boolean>(false);
+  // const [viewPreset, setViewPreset] = useState<boolean>(false);
   function getSeed(): void {
     const newSeed: string = generateRandomString(15);
     const event = {
@@ -81,9 +81,9 @@ export default function AlgorithmicDialog(
                   );
                 })}
               </select>
-              <button type="button" style={{fontSize:'10px'}} onClick={() => setViewPreset(true)}>
+              {/* <button type="button" style={{fontSize:'10px'}} onClick={() => setViewPreset(true)}>
                 View Preset
-              </button>
+              </button> */}
             </td>
             <td>
               <label>
@@ -345,9 +345,9 @@ export default function AlgorithmicDialog(
       <hr />
       <AlgorithmicTable formData={formData} handleChange={handleChange} />
       {open ? <MidiFrequencyDialog setOpen={setOpen} /> : null}
-      {viewPreset ? (
+      {/* {viewPreset ? (
         <PresetDialog generator={formData} setViewPreset={setViewPreset} />
-      ) : null}
+      ) : null} */}
     </>
   );
 }

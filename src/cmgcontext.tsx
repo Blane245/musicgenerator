@@ -19,7 +19,7 @@ import {
   EnsembleType,
   GeneratorType,
   PLAYMODE,
-  RawSourceData,
+  SourceData,
   TimelineInterval
 } from "./types";
 
@@ -45,10 +45,6 @@ interface CMGContextType {
   setControlWidth: Dispatch<SetStateAction<number>>;
   timelineHeight: number;
   setTimelineHeight: Dispatch<SetStateAction<number>>;
-  previewHeight: number;
-  setPreviewHeight: Dispatch<SetStateAction<number>>;
-  previewWidth: number;
-  setPreviewWidth: Dispatch<SetStateAction<number>>;
   bodyHeight: number;
   setBodyHeight: Dispatch<SetStateAction<number>>;
   footerHeight: number;
@@ -82,8 +78,8 @@ interface CMGContextType {
   setPlaybackLength: Dispatch<SetStateAction<number>>;
   offsetTime: number;
   setOffsetTime: Dispatch<SetStateAction<number>>;
-  sourceData: RawSourceData[];
-  setSourceData: Dispatch<SetStateAction<RawSourceData[]>>;
+  sourceData: SourceData | undefined;
+  setSourceData: Dispatch<SetStateAction<SourceData | undefined>>;
   timeProgress: number;
   setTimeProgress: Dispatch<SetStateAction<number>>;
   timeInterval: TimelineInterval;
@@ -96,10 +92,6 @@ interface CMGContextType {
   setEditGeneratorData: Dispatch<SetStateAction<EditGenerator>>;
   generatorsPlaying: GeneratorType[];
   setGeneratorsPlaying: Dispatch<SetStateAction<GeneratorType[]>>;
-  FFTSize: number;
-  setFFTSize: Dispatch<SetStateAction<number>>;
-  frequencyDisplay: string;
-  setFrequencyDisplay: Dispatch<SetStateAction<string>>;
   initialParams?: {
     file?: string;
     debug?: string;
@@ -130,8 +122,6 @@ export const CMGProvider = ({ children, initialParams }: CMGProviderProps) => {
   const [timelineWidth, setTimelineWidth] = useState<number>(0);
   const [controlWidth, setControlWidth] = useState<number>(0);
   const [bodyHeight, setBodyHeight] = useState<number>(0);
-  const [previewHeight, setPreviewHeight] = useState<number>(0);
-  const [previewWidth, setPreviewWidth] = useState<number>(0);
   const [footerHeight, setFooterHeight] = useState<number>(0);
   const [verticalScrollWidth, setVerticalScrollWidth] = useState<number>(0);
 
@@ -153,7 +143,7 @@ export const CMGProvider = ({ children, initialParams }: CMGProviderProps) => {
   const [mode, setMode] = useState<PLAYMODE>(PLAYMODE.idle);
   const [playbackLength, setPlaybackLength] = useState<number>(0);
   const [offsetTime, setOffsetTime] = useState<number>(0);
-  const [sourceData, setSourceData] = useState<RawSourceData[]>([]);
+  const [sourceData, setSourceData] = useState<SourceData | undefined>(undefined);
   const [timeProgress, setTimeProgress] = useState<number>(0);
   const [timeInterval, setTimeInterval] = useState<TimelineInterval>({
     startOffset: -1,
@@ -165,8 +155,6 @@ export const CMGProvider = ({ children, initialParams }: CMGProviderProps) => {
   const [generatorsPlaying, setGeneratorsPlaying] = useState<GeneratorType[]>(
     []
   );
-  const [FFTSize, setFFTSize] = useState<number>(2048);
-  const [frequencyDisplay, setFrequencyDisplay] = useState<string>('spectrum');
 
   const contextValue = {
     appName,
@@ -189,10 +177,6 @@ export const CMGProvider = ({ children, initialParams }: CMGProviderProps) => {
     setHeaderHeight,
     timelineHeight,
     setTimelineHeight,
-    previewHeight,
-    setPreviewHeight,
-    previewWidth,
-    setPreviewWidth,
     bodyHeight,
     setBodyHeight,
     footerHeight,
@@ -240,10 +224,6 @@ export const CMGProvider = ({ children, initialParams }: CMGProviderProps) => {
     setTrackIndex,
     generatorsPlaying,
     setGeneratorsPlaying,
-    FFTSize,
-    setFFTSize,
-    frequencyDisplay,
-    setFrequencyDisplay,
     initialParams,
   };
 

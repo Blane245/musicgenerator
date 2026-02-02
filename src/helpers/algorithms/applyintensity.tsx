@@ -4,19 +4,19 @@ import RandomNumber from 'classes/randomnumber';
 
 
 // execute the selected intensity transition option
-export default function applyIntensity(sample: number[][], option: IntensityTransitionOption , parameters: IntensityParameters, rN: RandomNumber): number[][] {
+export default function applyIntensity(sample: Float32Array[], option: IntensityTransitionOption , parameters: IntensityParameters, rN: RandomNumber) {
     // newSample.push(new Array(sample.length)); // left
     // newSample.push(new Array(sample.length)); // right
     switch (option) {
         case INTENSITYTRANSITIONOPTION.persistent: {
-            const newSample = intensityPersist({sample: sample, parameters: parameters, rN: rN});
-            return newSample;
+            intensityPersist({sample: sample, parameters: parameters, rN: rN});
+            return;
         }
         case INTENSITYTRANSITIONOPTION.random: {
-            const newSample = intensityRandom({sample: sample, parameters: parameters, rN: rN});
-            return newSample;
+            intensityRandom({sample: sample, parameters: parameters, rN: rN});
+            return;
         }
         default:
-            return [sample[0], sample[1]];
+            return;
     }
 }
