@@ -21,7 +21,8 @@ export default function buildSampleArray(
   attenuation: number
 ): Float32Array {
   debug.info("buildSample: building sample with envelope", envelope);
-  const basePlaybackRate = 1.0 * Math.pow(2, (inputCents) / 1200) * SAMPLERATE / inputRate;
+  const basePlaybackRate = 1.0 * Math.pow(2, (inputCents) / 1200);
+  const resampleRatio: number = inputRate / SAMPLERATE;
   const inputCount: number = Math.ceil(inputRate * totalTime);
   const result: Float32Array = new Float32Array(inputCount);
   const deltaT: number = 1 / inputRate; // time spacing between input samples
@@ -107,12 +108,12 @@ export default function buildSampleArray(
       generator.vibrato.values.depth == 0 ||
       generator.vibrato.values.speed == 0
     )
-      currentIndex += basePlaybackRate;
+      currentIndex += basePlaybackRate * resampleRatio;
     else {
       const newCents: number =
         inputCents + generator.vibrato.getCurrentValue(t, 0);
       const playbackRate: number = 1.0 * Math.pow(2, newCents / 1200);
-      currentIndex += playbackRate;
+      currentIndex += playbackRate * resampleRatio;
     }
     t += deltaT;
   }
