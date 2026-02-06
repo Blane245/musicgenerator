@@ -3,22 +3,24 @@ import { getAttributeValueWithDefault } from "utils/xmlfunctions";
 
 // the tremolo class defines a generator's volume tremolo and pitch vibrator effects
 export default class Tremolo {
-    values: {
-        speed: number; // mHz
-        depth: number; // dB
-        waveForm: MODULATOR; // waveform 
-    } = {speed: 0, depth: 0, waveForm: MODULATOR.SINE}
-copy(): Tremolo {
+  values: {
+    speed: number; // mHz
+    depth: number; // dB
+    waveForm: MODULATOR; // waveform
+  } = { speed: 0, depth: 0, waveForm: MODULATOR.SINE };
+  copy(): Tremolo {
     const n = new Tremolo();
-    n.values = {...this.values};
+    n.values = { ...this.values };
     return n;
-}
+  }
 
-isEqual (newTremolo: Tremolo): boolean {
-    return this.values.depth == newTremolo.values.depth &&
-    this.values.speed == newTremolo.values.speed &&
-    this.values.waveForm == newTremolo.values.waveForm
-}
+  isEqual(newTremolo: Tremolo): boolean {
+    return (
+      this.values.depth == newTremolo.values.depth &&
+      this.values.speed == newTremolo.values.speed &&
+      this.values.waveForm == newTremolo.values.waveForm
+    );
+  }
   setAttribute(name: string, value: string): boolean {
     if (name == "speed") {
       this.values.speed = parseFloat(value);
@@ -36,23 +38,17 @@ isEqual (newTremolo: Tremolo): boolean {
     return false;
   }
 
-  // Tremolo is an oscillator. Use Oscillator algorithm methof
-getCurrentValue(time: number, _beat?: number): number {
+  // Tremolo is an oscillator. Use Oscillator algorithm method
+  getCurrentValue(time: number, _beat?: number): number {
     let value: number = 0;
+    if (this.values.speed == 0 || this.values.depth == 0) return value;
     const valueFunction = ModulatorMap.get(this.values.waveForm);
     if (!valueFunction) return value;
-    value = valueFunction(
-      time,
-      0,
-      this.values.speed,
-      this.values.depth,
-      0
-    );
+    value = valueFunction(time, 0, this.values.speed, this.values.depth, 0);
     return value;
   }
 
-
- async appendXML(_doc: XMLDocument, elem: Element): Promise<Element> {
+  async appendXML(_doc: XMLDocument, elem: Element): Promise<Element> {
     try {
       elem.setAttribute("waveForm", this.values.waveForm);
       elem.setAttribute("speed", this.values.speed.toString());
@@ -63,15 +59,27 @@ getCurrentValue(time: number, _beat?: number): number {
     }
   }
 
-  static async getXML(
-    elem: Element,
-    _version: string
-  ): Promise<Tremolo> {
+  static async getXML(elem: Element, _version: string): Promise<Tremolo> {
     try {
       const g: Tremolo = new Tremolo();
-      g.values.speed = getAttributeValueWithDefault(elem, "speed", "float", 0) as number;
-      g.values.depth = getAttributeValueWithDefault(elem, "depth", "float", 0) as number;
-      g.values.waveForm  = getAttributeValueWithDefault(elem, "waveForm", "string", 0) as MODULATOR;
+      g.values.speed = getAttributeValueWithDefault(
+        elem,
+        "speed",
+        "float",
+        0,
+      ) as number;
+      g.values.depth = getAttributeValueWithDefault(
+        elem,
+        "depth",
+        "float",
+        0,
+      ) as number;
+      g.values.waveForm = getAttributeValueWithDefault(
+        elem,
+        "waveForm",
+        "string",
+        0,
+      ) as MODULATOR;
 
       return Promise.resolve(g);
     } catch (e) {
@@ -83,7 +91,4 @@ getCurrentValue(time: number, _beat?: number): number {
     const result: string[] = [];
     return result;
   }
-
-
-
 }

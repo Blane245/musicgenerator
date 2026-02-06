@@ -1,45 +1,27 @@
-# restucture of tone generation
-The idea is to do the basic signal processing on a preset. KISS
-  - given a preset 
-    - get all of the instruments
-    - for each instrument get the sample
-      - generate the basic resampled array applying the playback rate (tuning and adjusting for difference between instrument's cents and sample rate) and unrolling the repeat. This will be a sample at the SAMPLERATE that is at pitch1. It's length will either be the full interval, duration percentage, or shortend by not looping.
-      - apply the ADSDR volume filter to each instrument
-      - merge the instrument sample into a composite single channel.
-  - for algorithmic generators
-    - apply noise, tremolo, vibrato, and pan depending on generator settings
-    - send the dual channels for integration into the audio buffer at the proper time
-  - for stochastic generators
-    - merge each signal into its voice at the proper time
-    - handle cloud level pan and intensity processing. This results in a dual channel output
-    -   merge result a voice sample
-    - handle voice level pan and intensity processing. Merge result into the audio buffer
-    - handle composition level pan and intensity processing on the audi buffer.
 
-  - once the dual channel has been created
-  - unroll the looping, apply the basic playrate rate to get the tone in tune, apply the envelop. This give a signal sample array that has enough samples for the entire 
-  - combine this into a singal sample array 
 # Bugs
-- filedialog is obscured by generatoricon names
-- sound mapping (midi?) is way off. bass can't be heard
+- after making some changes to ensemble voice in the db, the genertors using them seem to have lost their preset. I reloaded the voices in the compoistion and it started working. 
+- timeimterval acting up
+- check first stocastic in the land. last pizz is missing
+- after a play, menus do not work and time interval don't work
+- no notification when dbserver is not accessible
 - there is a jump when play first gets started
-- play legend defults to on and won't turn off
-- play time scale off by 5 seconds. must screen should end at 1:00 not 1:05
-- getting a lot of popping during stochastic playback of one of the SMW presets. tried an attack ramp of 50ms but no difference
 - when a note sequence id reloaded, the duration of the generator should be recalculated.
 - when previewing in the generator dialog, changes made to the parameters are lost after the preview. Somehow the dialog has to be reactivated after a preview with these changes but not update the fileContents with the formData. This is a result of the use of the .copy() method which signals a change similar to the stop time calculation method above
 # Enhancements
+- add volume levels to play in header as sliders with max indicator
 - add volume control to play
 - add vibrato objects to ti play image
-- change cursor to spinning when buzy. 
+- change cursor to spinning when busy. 
 - develop an svg for a stochastic generator that is similar to the algorithmic one. This will have to be done during the build source phase and then displayed during preview. Other alternative is to change mechanism to generate the sources during draw sources in real time. In fact, build the svgs during build sources for both would give me the opportunity to save the svg and use it for publication purposes. 
-  - the entire cmposition would have to be built in svg and then scrolled through the preview timeline (maybe smooth could be done). A Save Preview button could be implemented to save the svg to a file. Could implement this with Record as well, so the audio/video could be saved together. Record saving would not be able to highlight sources being played. Maybe remove this feature from preview as well. 
+  - the entire composition would have to be built in svg and then scrolled through the preview timeline (maybe smooth could be done). A Save Preview button could be implemented to save the svg to a file. Could implement this with Record as well, so the audio/video could be saved together. Record saving would not be able to highlight sources being played. Maybe remove this feature from preview as well. 
 - display channel signals for and audiofile preview. This cold be incorporated in the svg mentioned above. 
 - implement microtone option in both algorithmic and stochastic generators. 
 - consider using slow time line scrolling during preview
 - pipe dream - add a video producer that takes hints from the composer and does drawings based on the sounds and those hints. See the ChatGPT chat on scribble for some guidance on structural hints from the composer. 
 
 # things to do
+- save audio and video
 - add measure timing and use measure length as beats/measure in sequencer algorithm. Use preferences as default when sequencer selected. On beats stays as is.
 - measure lengths are not constant in time when the speed attribute is changed. Now, I have a measure length in seconds in preferences and that is what is used to draw the timeline. This is incorrect and in fact I'm not sure that the conversion from time to measures makes sense when generators can all run at their own speeds. The sequencers conversion is particularly bad. Maybe I should abandon measure display and data entry unless I can think of a solution. (haven't thought of one yet)
 

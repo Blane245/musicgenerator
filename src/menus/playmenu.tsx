@@ -61,7 +61,10 @@ export default function PlayMenu() {
 
     // catch any errors while selecting generators
     setStatus(error);
-    if (error != "") return;
+    if (error != "") {
+      setMode(PLAYMODE.idle);
+      return;
+    }
 
     // let the system know that playing is entered
     setSourceData(sourceData);

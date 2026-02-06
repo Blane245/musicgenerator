@@ -190,6 +190,8 @@ export default async function buildSourceData(
   });
   if (error != "") return { error };
 
+  // noramlize he audio buffer
+  normalize(audioBuffer);
   // convert the chart to an image and the audio to an mpeg or wav file
   const audio: Blob =
     recordFormat == "wav"
@@ -203,3 +205,28 @@ export default async function buildSourceData(
     error: "",
   });
 }
+  const normalize = (buffer: Float32Array[]) => {
+    if (buffer[0].length == 0) return;
+    // TODO skipping normalize for now
+    let max: number = 0;
+    let rms: number = 0;
+    let sum: number = 0;
+    for (let i = 0; i < buffer[0].length; i++) {
+      if (buffer[0][i] != 0 || buffer[1][i] != 0) {
+        max = Math.max(max, Math.abs(buffer[0][i]), Math.abs(buffer[1][i]));
+        if (Number.isNaN(max)) {
+          throw new Error(`buffer processing error in normalize at sample ${i}`);
+        }
+        sum += Math.abs(buffer[0][i]) + Math.abs(buffer[1][i]);
+        rms += buffer[0][i] * buffer[0][i] + buffer[1][i] * buffer[1][i];
+      }
+    }
+    // const average: number = sum / (2 * count);
+    rms = Math.sqrt(rms / (2 * buffer[0].length));
+    for (let i = 0; i < buffer[0].length; i++) {
+      buffer[0][i] /= max;
+      buffer[1][i] /= max;
+    }
+    return;
+  }
+

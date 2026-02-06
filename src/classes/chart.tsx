@@ -46,7 +46,7 @@ export default class Chart {
     );
     bgRect.setAttribute("width", this.chartWidth.toString());
     bgRect.setAttribute("height", this.chartHeight.toString());
-    bgRect.setAttribute("fill", "white");
+    bgRect.setAttribute("fill", "lightgray");
     bgRect.setAttribute("position", "absolute");
     this.#svgElem.appendChild(bgRect);
     this.#drawScales();

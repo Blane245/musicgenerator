@@ -1,33 +1,81 @@
-import Algorithmic from "classes/generators/algorithmic";
-import { pantoLeftRight } from "helpers/algorithms/panutils";
+import RandomNumber from "classes/randomnumber";
 import { samplePool } from "sfcomponents/samplepool";
 import { Preset } from "sfcomponents/types";
-import { attenuate, dBToGain, precision, tc2s } from "sfcomponents/util";
-import { SAMPLERATE } from "types";
+import {
+  attenuate,
+  dBToGain,
+  midiToFrequency,
+  precision,
+  tc2s,
+  toNote,
+} from "sfcomponents/util";
+import { EPS, SAMPLERATE } from "types";
+import { linearInterpolate, resampleAudio, resampleAudioCubic } from "utils/interpolation";
+import { getSampleWithNoise } from "./applynoise";
 import buildEnvelope from "./buildenvelope";
-import buildSampleArray from "./buildsample";
 import getActiveZones from "./getactivezones";
 
-export const getPresetNote = (
-  gen: Algorithmic,
-  preset: Preset,
-  interval: number, // the note's time interval
-  duration: number, // the note's duration within that interval
-  pitchValue: number, // pitch
-  attack: number,
-  generatorVolume: number, // dB
-  panValue: number,
-  time: number,
-): Float32Array[] => {
-  const zones = getActiveZones(preset, Math.round(pitchValue), attack);
-  const mergedInstrumentSamples: Float32Array = new Float32Array(
-    SAMPLERATE * interval,
-  ).fill(0);
+interface GetPresetNoteProps {
+  preset: Preset;
+  isLooping?: boolean;
+  pitch: number | { startPitch: number; endPitch: number };
+  interval: number;
+  duration: number;
+  attackEnabled?: boolean;
+  velocity: number;
+  volume: number;
+  vibrato?: { getCurrentValue(t: number): number };
+  tremolo?: { getCurrentValue(t: number): number };
+  noise?: {
+    enabled: boolean;
+    frequency: number;
+    amplitude: number;
+    rn: RandomNumber;
+  };
+}
 
-  // get all of the instruments for the preset and merge their samples into a single array
+/**
+ * Generates a preset note with resampling, envelopes, and effects
+ * @param preset - The soundfont preset to use
+ * @param isLooping? - Optional override to instrument's loop setting. True if omitted
+ * @param pitch - MIDI pitch value or glissando range {startPitch, endPitch}
+ * @param interval - Note interval in seconds
+ * @param duration - Length of note (<=interval) sample within the interval
+ * @param attackEnabled - Option flag to enable the attack phase of the envelope (true if omitted)
+ * @param velocity - MIDI velocity (0-127)
+ * @param volume - Volume level in dB
+ * @param vibrato - Optional Vibrato modulation object with getCurrentValue(t) method
+ * @param tremolo - Optional Tremolo modulation object with getCurrentValue(t) method
+ * @param noise - Optional noise specification
+ * @returns Generated audio sample as Float32Array
+ */
+export const getPresetNote = ({
+  preset,
+  isLooping,
+  pitch,
+  interval,
+  duration,
+  attackEnabled,
+  velocity,
+  volume,
+  vibrato,
+  tremolo,
+  noise,
+}: GetPresetNoteProps): Float32Array => {
+  attackEnabled = attackEnabled != undefined ? attackEnabled : true;
+  const glissandoStart: number =
+    typeof pitch === "object" ? pitch.startPitch : pitch;
+  const glissandoEnd: number =
+    typeof pitch === "object" ? pitch.endPitch : pitch;
+  const volumeGain: number = dBToGain(volume);
+  const result: Float32Array = new Float32Array(SAMPLERATE * duration).fill(0);
+
+  // get all of the instruments for the preset and merge their samples into
+  // a single array
+  const zones = getActiveZones(preset, Math.round(glissandoStart), velocity);
   zones.map((zone) => {
     // get the instrument's sample
-    const { sample: instrumentSample, header } = samplePool(zone.sample);
+    const { sample: inputSample, header } = samplePool(zone.sample);
 
     // get the preset merged generator attributes
     const {
@@ -35,7 +83,7 @@ export const getPresetNote = (
       endLoop,
       originalPitch,
       pitchCorrection,
-      sampleRate: instrumentSampleRate,
+      sampleRate: inputRate,
     } = header;
     const {
       // @ts-expect-error name cannot be found?
@@ -66,22 +114,28 @@ export const getPresetNote = (
       sampleModes = 0,
       // @ts-expect-error name cannot be found?
       initialAttenuation = 0,
+      // @ts-expect-error name cannot be found?
+      CoarseTune = 0,
+      // @ts-expect-error name cannot be found?
+      ScaleTuning = 100,
     } = zone.mergedGenerators;
 
-    // get the playback rate
+    // get the start and end cents
     const rootKey =
       overridingRootKey !== undefined && overridingRootKey !== -1
         ? overridingRootKey
         : originalPitch;
-    const baseDetune = 100 * rootKey + pitchCorrection - fineTune; //sine wave test shows pitch correction to be wrong on the sine wave
-    // const baseDetune = 100 * rootKey - fineTune;
-    const cents = pitchValue * 100 - baseDetune;
+    const baseDetune = 100 * rootKey - pitchCorrection - fineTune;
 
-    // combining the instrument's sampleRate with the playbackRate
-    // const playbackRate = 1.0 * Math.pow(2, cents / 1200);
-    const sampleRate: number = instrumentSampleRate;
-    // playbackRate = 1;
-
+    // get the cents for the starting and ending pitch
+    // NOTE: the ending pitch may be out of tune if the glissando is
+    // far from the starting one since the zones are based on the starting pitch
+    // the alternative is to use a pitch half way between the two.
+    const glissandoCents = {
+      startCents: glissandoStart * 100 - baseDetune,
+      endCents: glissandoEnd * 100 - baseDetune,
+    };
+    // console.log(`${toNote(glissandoStart)}zone generators:`, zone.mergedGenerators);
     // get the sample looping parameters and override looping if requested
     let loopStart: number = 0;
     let loopEnd: number = 0;
@@ -90,35 +144,42 @@ export const getPresetNote = (
       loopStart =
         startLoop + startloopAddrsOffset + startloopAddrsCoarseOffset * 32768;
       loopEnd = endLoop + endloopAddrsOffset + endloopAddrsCoarseOffset * 32768;
-      loop = (gen as Algorithmic).isLooping;
+      // optionally override the sample's loop setting
+      loop = isLooping != undefined ? isLooping : true;
     } else if (sampleModes == 0) {
       loop = false;
     }
+    const looping = { enabled: loop, start: loopStart, end: loopEnd };
 
-    // get the end times for the amplitude envelope, handling the diabling of the delay/attack phase
-    const delayEnd: number = gen.attackEnabled
+    const instrumentSample = resampleAudio(
+      inputSample,
+      inputRate,
+      SAMPLERATE,
+      duration,
+      glissandoCents,
+      looping,
+      vibrato,
+    );
+
+    // get the end times for the amplitude envelope, 
+    // handling the disabling of the delay/attack phase
+    const delayEnd: number = attackEnabled
       ? precision(tc2s(delayVolEnv), 3)
       : 0;
     const attackEnd: number =
-      delayEnd + (gen.attackEnabled ? precision(tc2s(attackVolEnv), 3) : 0);
+      delayEnd + (attackEnabled ? precision(tc2s(attackVolEnv), 3) : 0);
     const holdEnd: number = attackEnd + precision(tc2s(holdVolEnv), 3);
     const decayEnd: number = holdEnd + precision(tc2s(decayVolEnv), 3);
     // this last two number may be less than the others
     // the end of the note may be cutoff if not looping
-    const noteEnd: number = loop
-      ? duration
-      : Math.min(instrumentSample.length / instrumentSampleRate, duration);
+    const noteEnd: number = duration;
     // release is cutoff if this is a staccatto or the sample is not looping
     const releaseEnd: number =
-      loop && Math.abs(duration - interval) < 0.0001
+      Math.abs(duration - interval) < EPS
         ? noteEnd + precision(tc2s(releaseVolEnv), 3)
         : noteEnd;
-    const totalTime: number = releaseEnd;
 
-    const volumeGain: number = dBToGain(generatorVolume);
-    // const volumeValue: number = generatorVolume;
-    // const attenuationdB: number = initialAttenuation / 10;
-    //TODO never could get soundofnt attenutation to work properly
+    //TODO never could get soundfont attenutation to work properly
     // const attenuation: number = attenuate(1.0, attenuationdB);
     const attenuation: number = 1;
     const sustainGain: number = attenuate(
@@ -139,39 +200,49 @@ export const getPresetNote = (
       attenuation,
     );
 
-    // build the sample using resampling
-    const sample: Float32Array = buildSampleArray(
-      time,
-      gen,
-      pitchValue,
-      instrumentSample,
-      sampleRate,
-      cents,
-      loop,
-      loopStart,
-      loopEnd,
-      totalTime,
-      volumeGain,
-      envelope,
-      attenuation,
-    );
+    // apply the optional noise, required envelope, and optional tremolo
+    let envelopeGain: number = 1.0;
+    let iEnvelope: number = 0;
+    const maxEnvelope: number = envelope.length - 1;
+
+    for (let i = 0; i < instrumentSample.length; i++) {
+      const t: number = i / SAMPLERATE;
+
+      // apply noise
+      if (noise != undefined && noise.enabled && noise.frequency != 0) {
+        instrumentSample[i] = getSampleWithNoise(
+          instrumentSample[i],
+          t,
+          midiToFrequency(glissandoStart),
+          noise.frequency,
+          dBToGain(noise.amplitude),
+          noise.rn,
+        );
+      }
+
+      // apply envelope
+      if (t >= envelope[iEnvelope].t && iEnvelope < maxEnvelope) iEnvelope++;
+      envelopeGain = linearInterpolate(
+        t,
+        envelope[iEnvelope - 1].t,
+        envelope[iEnvelope].t,
+        envelope[iEnvelope - 1].g,
+        envelope[iEnvelope].g,
+      );
+      instrumentSample[i] *= envelopeGain;
+
+      // apply tremolo
+      if (tremolo != undefined) {
+        const tremoloGain: number = dBToGain(tremolo.getCurrentValue(t));
+        instrumentSample[i] *= tremoloGain;
+      }
+    }
 
     // add this sample to the total
-    for (let i = 0; i < sample.length; i++) {
-      mergedInstrumentSamples[i] += sample[i];
+    for (let i = 0; i < instrumentSample.length; i++) {
+      result[i] += instrumentSample[i];
     }
   });
 
-  // handle pan on the merged sample
-  const { left, right } = pantoLeftRight(panValue);
-  const panSample: Float32Array[] = [
-    new Float32Array(mergedInstrumentSamples),
-    new Float32Array(mergedInstrumentSamples),
-  ];
-  for (let i = 0; i < mergedInstrumentSamples.length; i++) {
-    panSample[0][i] = panSample[0][i] * left;
-    panSample[1][i] = panSample[1][i] * right;
-  }
-
-  return panSample;
+  return result;
 };

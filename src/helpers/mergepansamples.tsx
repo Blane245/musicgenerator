@@ -10,10 +10,12 @@
 import Chart from "classes/chart";
 import { SAMPLERATE } from "types";
 import { debug } from "utils/debug";
+import { pantoLeftRight } from "./algorithms/panutils";
+import addBuffer from "utils/addbuffer";
 
-interface MergedPanSamplesProps {
-  time: number; // the time of the output sample
-  panSamples: Float32Array[]; // two channels, both of same length
+interface MergePanSamplesProps {
+  sample: Float32Array; // two channels, both of same length
+  pan: number; // the pan value
   pitch1: number;
   pitch2: number;
   sampletime: number; // the time of this sample relative to the output sample
@@ -21,10 +23,10 @@ interface MergedPanSamplesProps {
   chart: Chart;
   hue: number | undefined;
 }
-export default function mergePanSamples(props: MergedPanSamplesProps) {
+export default function mergePanSamples(props: MergePanSamplesProps) {
   const {
-    time,
-    panSamples,
+    sample,
+    pan,
     pitch1,
     pitch2,
     sampletime,
@@ -33,42 +35,41 @@ export default function mergePanSamples(props: MergedPanSamplesProps) {
     hue,
   } = props;
 
-  // add the input sample to the output with possible extension
-  const startOutput: number = Math.trunc(sampletime * SAMPLERATE);
-  // NOTE: this is where sound truncation could occur. see 'buildsourcedata'
-  const endOutput: number = Math.min(
-    startOutput + panSamples[0].length,
-    audioBuffer[0].length,
-  );
-  for (let i = startOutput; i < endOutput; i++) {
-    audioBuffer[0][i] += panSamples[0][i - startOutput];
-    audioBuffer[1][i] += panSamples[1][i - startOutput];
+  // pan the sample 
+  const panSample: Float32Array[] = [new Float32Array(sample.length), new Float32Array(sample.length)];
+  const {left, right} = pantoLeftRight(pan);
+    for (let i = 0; i < sample.length; i++) {
+    panSample[0][i] = sample[i] * left;
+    panSample[1][i] = sample[i] * right;
   }
+
+  // add the input sample to the output
+  addBuffer(audioBuffer, panSample, Math.trunc(sampletime * SAMPLERATE) )
 
   // add the sound to the chart by
   // finding the last sound in pan sample that is not zero
   // and using that as the duration of the note
   // NOTE: this could extend past the end of the composition. So be it.
   let endSample: number = -1;
-  for (let i = panSamples[0].length - 1; i >= 0 && endSample < 0; i--) {
-    if (panSamples[0][i] != 0 || panSamples[0][i] != 0) {
+  for (let i = panSample[0].length - 1; i >= 0 && endSample < 0; i--) {
+    if (panSample[0][i] != 0 || panSample[0][i] != 0) {
       endSample = i;
     }
   }
   const sampleLength: number =
-    (endSample < 0 ? panSamples[0].length : endSample) / SAMPLERATE;
+    (endSample < 0 ? panSample[0].length : endSample) / SAMPLERATE;
   chart.addSource({
-    from: { midi: pitch1, time: time + sampletime, hue: hue ? hue : 0 },
+    from: { midi: pitch1, time: sampletime, hue: hue ? hue : 0 },
     to: {
       midi: pitch2,
-      time: time + sampletime + sampleLength,
+      time: sampletime + sampleLength,
       hue: hue ? hue : 0,
     },
   });
   debug.info(
     "mergePanSamples: added source to audio and to chart @ time1, time2, midi1, midi2, hue",
-    time + sampletime,
-    time + sampletime + sampleLength,
+    sampletime,
+    sampletime + sampleLength,
     pitch1,
     pitch2,
     hue,

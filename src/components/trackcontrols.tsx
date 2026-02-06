@@ -260,8 +260,8 @@ export default function TrackControls(props: TrackControlsProps) {
       <div>
         <button
           className="track-button"
-          id={`track-gen:${track.name}`}
-          key={`track-gen:${track.name}`}
+          id={`track-tools:${track.name}`}
+          key={`track-tools:${track.name}`}
           onClick={(event) => handleTools(event, trackIndex)}
         >
           <FaTools />
@@ -341,7 +341,7 @@ export default function TrackControls(props: TrackControlsProps) {
             left: menu.x.toString() + "px",
             width: "180px",
             height: "20px",
-            zIndex: 99,
+            zIndex: 1001,
           }}
         >
           <div
@@ -414,7 +414,7 @@ export default function TrackControls(props: TrackControlsProps) {
             left: tool.x.toString() + "px",
             width: "80px",
             height: "20px",
-            zIndex: 99,
+            zIndex: 1001,
           }}
         >
           <div

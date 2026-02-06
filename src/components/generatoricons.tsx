@@ -130,7 +130,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
       text.innerHTML = g.name + ":" + g.type;
       const nameWidth:number = Math.ceil(text.clientWidth);
       document.body.removeChild(text);
-      const stackOrder: number = 1000 - trackIndex * 100 - i;
+      const stackOrder: number = 1000 - trackIndex * 10 - i;
 
 
       if (iWidth > 0 && iHeight > 0) {

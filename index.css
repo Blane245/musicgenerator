@@ -150,6 +150,8 @@ button:focus-visible {
 .navbar {
   height: 40px;
   overflow: visible;
+  position: relative;
+  z-index: 1001;
 }
 
 .navbar a {
@@ -160,11 +162,15 @@ button:focus-visible {
   padding: 10px 5px;
   text-decoration: none;
   overflow: visible;
+  z-index: inherit;
 }
 
 .dropdown {
   position: absolute;
   display: inline-block;
+  z-index: inherit;
+}
+
 /* The container <div> - needed to position the dropdown content */
 .dropbtn {
   font-size: 14px;
@@ -172,8 +178,7 @@ button:focus-visible {
   border: none;
   color: var(--body-text-color);
   background-color: var(--body-background-color);
-}
-
+  z-index: inherit;
 }
 
 /* Dropdown Content (Hidden by Default) */
@@ -183,6 +188,7 @@ button:focus-visible {
   background-color: var(--inactive-background-color);
   min-width: 80px;
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: inherit;
 }
 
 /* Links inside the dropdown */
@@ -193,15 +199,26 @@ button:focus-visible {
   text-decoration: none;
   font-size: 14px;
   display: block;
+  z-index: inherit;
 }
 /* Change color of dropdown links on hover */
-.dropdown-content a:hover {background-color: darkgray; color: white}
+.dropdown-content a:hover {
+  background-color: darkgray; 
+  color: white;
+  z-index: inherit;
+}
 
 /* Show the dropdown menu on hover */
-.dropdown:hover .dropdown-content {display: block;}
+.dropdown:hover .dropdown-content {
+  display: block;
+  z-index: inherit;
+}
 
 /* Change the background color of the dropdown button when the dropdown content is shown */
-.dropdown:hover .dropbtn {background-color:darkgray;}
+.dropdown:hover .dropbtn {
+  background-color:darkgray;
+  z-index: inherit;
+}
 
 .dropdown-one {
   cursor: pointer;
@@ -212,6 +229,7 @@ button:focus-visible {
   min-width: 100px;
   box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
   overflow: visible;
+  z-index: inherit;
 }
 
 .dropdown-two {
@@ -224,13 +242,14 @@ button:focus-visible {
   background-color: white;
   color: black;
   box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-  z-index: 99;
+  z-index: inherit;
   overflow: visible;
 }
 
 .dropdown:hover .dropdown-one,
 #link1:hover > .dropdown-two {
   display: block;
+  z-index: inherit;
 }
 
 .dropdown-one .dItem {
@@ -241,11 +260,26 @@ button:focus-visible {
   text-align: left;
   overflow: visible;
   width: max-content;
+  position: relative;
+  z-index: inherit;
 }
 
 .dropdown-one .dItem:hover,
 .dropdown-two a:hover {
   background-color: #ddd;
+  z-index: inherit;
+}
+
+.dropdown-two .dItem {
+  color: black;
+  background-color: white;
+  padding: 10px 10px;
+  display: block;
+  text-align: left;
+  overflow: visible;
+  width: max-content;
+  position: relative;
+  z-index: inherit;
 }
 
 .page {
@@ -273,6 +307,7 @@ button:focus-visible {
     grid-template-columns: 50px 300px 1fr 350px;
     grid-template-areas: "icon menu title .";
     gap: 0;
+    z-index: 1002;
     .icon {
       grid-area: icon;
     }
@@ -601,7 +636,7 @@ button:focus-visible {
 .modal-content {
   position: absolute;
   display: grid;
-  z-index: 10;
+  z-index: 1001;
   top: 160px;
   left: 200px;
   width:auto;
@@ -615,6 +650,7 @@ button:focus-visible {
   grid-template-rows: auto auto auto;
   grid-template-areas: 'header' 'body' 'footer';
   .modal-header {
+    z-index:1001;
     grid-area: header;
     padding: 2px 16px;
     display: block;
@@ -626,6 +662,7 @@ button:focus-visible {
 
   /* Modal Body */
   .modal-body {
+    z-index:1001;
     grid-area: body;
     padding: 2px 16px;
     text-align: left;
@@ -636,6 +673,7 @@ button:focus-visible {
 
   /* Modal Footer */
   .modal-footer {
+    z-index:1001;
     grid-area: footer;
     display:block;
     padding: 2px 16px;
@@ -653,10 +691,10 @@ button:focus-visible {
 }
 
 .generator-content {
-  z-index: 2;
-  top: 0;
+  top: 40px;
   left: 0;
-  position:fixed;
+  z-index: 1000;
+  position:absolute;
   background-color: #fefefe;
   margin: auto;
   padding: 0;
@@ -1145,7 +1183,7 @@ button:focus-visible {
   }
   .play-body {
     grid-area: drawing;
-    background-color: white;
+    background-color: lightgray;
   }
   .play-footer {
     position: fixed;

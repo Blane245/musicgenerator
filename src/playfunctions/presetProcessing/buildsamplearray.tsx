@@ -6,7 +6,6 @@ import { getSampleWithNoise } from "./applynoise";
 import { debug } from "utils/debug";
 
 export default function buildSampleArray(
-  sampleStartTime: number,
   generator: Algorithmic,
   pitchValue: number,
   inputSample: Float32Array,
@@ -108,12 +107,12 @@ export default function buildSampleArray(
       generator.vibrato.values.depth == 0 ||
       generator.vibrato.values.speed == 0
     )
-      currentIndex += basePlaybackRate * resampleRatio;
+      currentIndex += basePlaybackRate / resampleRatio;
     else {
       const newCents: number =
         inputCents + generator.vibrato.getCurrentValue(t, 0);
       const playbackRate: number = 1.0 * Math.pow(2, newCents / 1200);
-      currentIndex += playbackRate * resampleRatio;
+      currentIndex += playbackRate / resampleRatio;
     }
     t += deltaT;
   }

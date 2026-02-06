@@ -70,17 +70,24 @@ export default function getSourcesFromAlgorithmic(props: {
 
       const duration = (interval * noteDuration) / 100;
       if (hitBeat) {
-        const presetSamples: Float32Array[] = getPresetNote(
-          generator,
+        const presetSample: Float32Array = getPresetNote({
           preset,
+          isLooping: generator.isLooping,
+          pitch: note,
           interval,
           duration,
-          note,
-          attack,
-          volume, // in dB
-          pan,
-          time,
-        );
+          attackEnabled: generator.attackEnabled,
+          velocity: attack,
+          volume,
+          vibrato: generator.vibrato,
+          tremolo: generator.tremolo,
+          noise: {
+            enabled: generator.noiseEnabled,
+            frequency: generator.noiseFrequency,
+            amplitude: generator.noiseAmplitude,
+            rn: generator.rn,
+          },
+        });
 
         // merge the instrument samples with the total samples
         // and add it to the graphics
@@ -89,8 +96,8 @@ export default function getSourcesFromAlgorithmic(props: {
         );
 
         mergePanSamples({
-          time: startTime,
-          panSamples: presetSamples,
+          pan,
+          sample: presetSample,
           pitch1: note,
           pitch2: note,
           sampletime: time,
@@ -139,31 +146,38 @@ export default function getSourcesFromAlgorithmic(props: {
         pan,
       } = generator.getCurrentValues(time - startTime, beats);
 
-      const totalVolume: number = volume + parent.volume;
       const interval: number = (beat * 60.0) / speed;
       const duration = (interval * noteDuration) / 100;
 
       if (note >= 0) {
         // Note may be a rest
         // get the pan samples and merge them with the total audio
-        const presetSamples: Float32Array[] = getPresetNote(
-          generator,
+        const presetSample: Float32Array = getPresetNote({
           preset,
+          isLooping: generator.isLooping,
+          pitch: note,
           interval,
           duration,
-          note,
-          attack,
-          totalVolume, // in dB
-          pan,
-          time,
-        );
+          attackEnabled: generator.attackEnabled,
+          velocity: attack,
+          volume,
+          vibrato: generator.vibrato,
+          tremolo: generator.tremolo,
+          noise: {
+            enabled: generator.noiseEnabled,
+            frequency: generator.noiseFrequency,
+            amplitude: generator.noiseAmplitude,
+            rn: generator.rn,
+          },
+        });
+
         const hue: number | undefined = voiceHues.get(
           soundFontFile + "|" + presetName,
         );
 
         mergePanSamples({
-          time: startTime,
-          panSamples: presetSamples,
+          sample: presetSample,
+          pan,
           pitch1: note,
           pitch2: note,
           sampletime: time,

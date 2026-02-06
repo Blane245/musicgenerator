@@ -442,7 +442,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
 
   return (
     <>
-      <div className="generator-content" aria-modal="true" style={{zIndex:"1000"}}>
+      <div className="generator-content" aria-modal="true" >
         <div className="generator-header">
           <span className="close" onClick={handleCancelClick}>
             &times;

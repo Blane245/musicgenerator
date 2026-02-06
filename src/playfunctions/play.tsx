@@ -78,6 +78,18 @@ export default function Play(params: PlayProps): JSX.Element {
     }
   }, []);
 
+  // Cleanup on unmount to ensure timers and listeners are cleared
+  useEffect(() => {
+    return () => {
+      if (timerId.current) {
+        clearTimeout(timerId.current);
+      }
+      if (audioElem) {
+        audioElem.pause();
+      }
+    };
+  }, [audioElem]);
+
   useEffect(() => {
     if (!sourceData) return;
     const objectUrl = URL.createObjectURL(sourceData.audio);
@@ -199,6 +211,10 @@ export default function Play(params: PlayProps): JSX.Element {
 
   // #region pointeractions
   const handleExit = () => {
+    // Reset focus to document body to prevent trapped focus
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     setMode(PLAYMODE.idle);
     setSourceData(undefined);
     setShowLegend(false);
@@ -233,9 +249,6 @@ export default function Play(params: PlayProps): JSX.Element {
   // TODO save the audio and scrolling image as a movie?
   const handleSave = () => {};
 
-  const handleVoiceLegend = () => {
-    setShowLegend(true);
-  };
   // pointer down on range input.
   // cancel playing mode
   // set the scroll position to the new range value
@@ -358,7 +371,7 @@ export default function Play(params: PlayProps): JSX.Element {
             <button type="button" onClick={() => handleRestart()}>
               <AiFillStepBackward />
             </button>
-            <button type="button" onClick={() => handleVoiceLegend()}>
+            <button type="button" onClick={() => setShowLegend(!showLegend)}>
               <FcAddressBook />
             </button>
             <label>
@@ -401,7 +414,7 @@ export default function Play(params: PlayProps): JSX.Element {
           hidden={!imageElem}
           style={{ width: `${windowWidth}px`, height: `${windowWidth}px` }}
         >
-          <div id="image-container" style={{ backgroundColor: "white" }} />
+          <div id="image-container"/>
           <div
             id="play-legend"
             style={{
@@ -418,58 +431,61 @@ export default function Play(params: PlayProps): JSX.Element {
           style={{ width: windowWidth, height: footerHeight }}
         ></div>
       </div>
-      <div
-        className="modal-content"
-        hidden={!showLegend}
-        style={{
-          position: "absolute",
-          top: "40px",
-          left: (windowWidth - 500).toString()+'px',
-          backgroundColor: "white",
-        }}
-      >
-        <div className="modal-header">Voice Legend</div>
-        <div className="modal-body">
-          <table>
-            <thead>
-              <tr>
-                <th>SoundFont</th>
-                <th>Preset</th>
-                <th>Hue</th>
-              </tr>
-            </thead>
-            <tbody>
-              <>
-                {!!sourceData &&
-                  Array.from(sourceData.voiceHues).map((value) => {
-                    const splitName: string[] = value[0].split("|");
-                    return (
-                      <tr key={value[0]}>
-                        <td>{splitName[0]}</td>
-                        <td>{splitName[1]}</td>
-                        <td style={{ backgroundColor: "lightgray" }}>
-                          <svg width="50px" height="50px">
-                            <rect
-                              fill={"hsl(" + value[1].toString() + ",100%,55%)"}
-                              stroke="none"
-                              width="50px"
-                              height="50px"
-                            ></rect>
-                          </svg>
-                        </td>
-                      </tr>
-                    );
-                  })}
-              </>
-            </tbody>
-          </table>
+      {!!showLegend && (
+        <div
+          className="modal-content"
+          style={{
+            position: "absolute",
+            top: "40px",
+            left: (windowWidth - 500).toString() + "px",
+            backgroundColor: "white",
+          }}
+        >
+          <div className="modal-header">Voice Legend</div>
+          <div className="modal-body">
+            <table>
+              <thead>
+                <tr>
+                  <th>SoundFont</th>
+                  <th>Preset</th>
+                  <th>Hue</th>
+                </tr>
+              </thead>
+              <tbody>
+                <>
+                  {!!sourceData &&
+                    Array.from(sourceData.voiceHues).map((value) => {
+                      const splitName: string[] = value[0].split("|");
+                      return (
+                        <tr key={value[0]}>
+                          <td>{splitName[0]}</td>
+                          <td>{splitName[1]}</td>
+                          <td style={{ backgroundColor: "lightgray" }}>
+                            <svg width="50px" height="50px">
+                              <rect
+                                fill={
+                                  "hsl(" + value[1].toString() + ",100%,55%)"
+                                }
+                                stroke="none"
+                                width="50px"
+                                height="50px"
+                              ></rect>
+                            </svg>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </>
+              </tbody>
+            </table>
+          </div>
+          <div className="modal-footer">
+            <button type="button" onClick={() => setShowLegend(false)}>
+              <FcOk />
+            </button>
+          </div>
         </div>
-        <div className="modal-footer">
-          <button type="button" onClick={() => setShowLegend(false)}>
-            <FcOk />
-          </button>
-        </div>
-      </div>
+      )}
     </>
   );
   // #endregion

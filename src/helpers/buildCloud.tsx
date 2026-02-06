@@ -7,7 +7,10 @@
 // the pitch is determined by the second law of continuous probability
 // in the case of glissando, a second pitch is drawn
 
+import Chart from "classes/chart";
 import Stochastic from "classes/generators/stochastic";
+import { getPresetNote } from "playfunctions/presetProcessing/getpresetnote";
+import { debug } from "utils/debug";
 import { gaussianRandom } from "utils/probability/gaussianrandom";
 import {
   CloudState,
@@ -24,22 +27,28 @@ import intervalProbabilty from "../utils/probability/intervalprobability";
 import probabilityLookup from "../utils/probability/probabilitylookup";
 import applyIntensity from "./algorithms/applyintensity";
 import applyPan from "./algorithms/applypan";
-import buildPresetSample from "./buildpresetsample";
-import { debug } from "utils/debug";
-import Chart from "classes/chart";
+import addBuffer from "utils/addbuffer";
 
-const UNIT: number = 100;
-
-// build a cloud of sounds for the given voice
-export default function cloudSample(props: {
+/**
+ * Construct a cloud of samples for a voice in a time cell, tracking the state of the cloud elements
+ * @param {Stochastic} generator - a Stochastic generator containing dynamic parameters
+ * @param {Voice} voice - the voice for which the cloud is being constructed
+ * @param {number} cloudDuration - the length (seconds) of the time cell conatining the cloud
+ * @param {CloudState} cloudState - the initial state of the cloud from the previous cloud
+ * @param {Chart} chart - the graphic object that will contain the visible representation of each element in the cloud
+ * @param {VoiceHues} voiceHues - the map of hues setting for all voices
+ * @param {number} cloudTime - the start time (seconds) of the cloud in the composition
+ * @returns {Float32Array[], CloudState} - the cloud sample as a two channel Float32Array and the final state of the cloud
+ */
+export default function buildCloud(props: {
   generator: Stochastic;
   voice: Voice;
   cloudDuration: number;
   cloudState: CloudState;
   chart: Chart;
   voiceHues: VoiceHues;
-  time: number;
-}): { cloud: Float32Array[]; cloudState: CloudState } {
+  cloudTime: number;
+}): { cloudBuffer: Float32Array[]; cloudState: CloudState } {
   const {
     generator,
     voice,
@@ -47,7 +56,7 @@ export default function cloudSample(props: {
     cloudState,
     chart,
     voiceHues,
-    time,
+    cloudTime,
   } = props;
   const {
     delta,
@@ -59,9 +68,15 @@ export default function cloudSample(props: {
     panParameters,
     dynamicsRN: rN,
   } = { ...generator.values };
+
+  const UNIT: number = 100; // units for the probability table
+
   const newCloudState: CloudState = { ...cloudState };
-  const sampleCount = Math.ceil(SAMPLERATE * cloudDuration);
-  const sample: Float32Array = new Float32Array(sampleCount).fill(0); // initialize size, may grow
+  const cloudCount = Math.ceil(SAMPLERATE * cloudDuration);
+  const cloudBuffer: Float32Array[] = [];
+  // initialize size bigger than necessary to handle element extensions
+  cloudBuffer.push(new Float32Array(2 * cloudCount).fill(0));
+  cloudBuffer.push(new Float32Array(2 * cloudCount).fill(0));
   const lo: number = voice.registerLo;
   const hi: number = voice.registerHi;
 
@@ -71,18 +86,16 @@ export default function cloudSample(props: {
     cloudDuration,
     cloudDuration / UNIT,
   );
-  debug.info(
-    `cloudSample: duration density table for voice ${voice.name}, delta=${delta}, cloud duration=${cloudDuration}, Pd=${Pd}, Nd=${Nd}`,
-  );
+
   // check that not all of the durations are 0
   if (Pd.length == 1) {
-    debug.info(
-      `cloudSample: duration table for timbre=${voice.timbre}, delta=${delta}, cloud duration=${cloudDuration} has only zero elements`,
+    debug.error(
+      `buildCloud: duration table for timbre=${voice.timbre}, delta=${delta}, cloud duration=${cloudDuration} has only zero elements`,
     );
-    return { cloud: [], cloudState: { offset: -1, pitch: 0 } };
+    return { cloudBuffer: [], cloudState: { offset: -1, pitch: 0 } };
   }
 
-  // initialize the starting time and starting pitch based for the current element state
+  // initialize the starting time and starting pitch based for the current cloud state
   let t1: number =
     cloudState.offset < 0
       ? probabilityLookup(Pd, Nd, rN.rand())
@@ -95,14 +108,17 @@ export default function cloudSample(props: {
   let t2: number = 0;
   let pitch2: number = 0;
   let finished: boolean = false;
+
   // get the duration of the sound, ignoring zero
   let interval: number = 0; // get the initial, throwing out all zeroes
   do {
     interval = probabilityLookup(Pd, Nd, rN.rand()); // the initial duration
   } while (interval == 0);
   debug.info(
-    `cloudSample: initial conditions for voice ${voice.timbre}, t1=${t1}, pitch1=${pitch1}, interval=${interval}`,
+    `buildCloud: initial conditions for voice ${voice.timbre}, t1=${t1}, pitch1=${pitch1}, interval=${interval}`,
   );
+
+  // loop until we are finished (t2 > cloud duration)
   do {
     t2 = t1 + interval; // the time of the end of the sound
     if (voice.timbre == TIMBRE.Glissando) {
@@ -114,7 +130,7 @@ export default function cloudSample(props: {
         Math.min(hi, Math.max(lo, pitch1 + speed * interval)),
       );
       debug.info(
-        `cloudSample: glissando for voice ${voice.name}, pitch1=${pitch1}, pitch2=${pitch2}, speed=${speed}, interval=${interval}, t1=${t1}, t2=${t2}`,
+        `buildCloud: glissando for voice ${voice.name}, pitch1=${pitch1}, pitch2=${pitch2}, speed=${speed}, interval=${interval}, t1=${t1}, t2=${t2}`,
       );
     } else {
       // timbre is Sustained
@@ -122,64 +138,58 @@ export default function cloudSample(props: {
     }
 
     // get the samples for the instruments that make up this voice
-    debug.info(
-      `cloudSample: build preset sample of ${voice.preset?.header.name}, pitchs=(${pitch1}, ${pitch2}) starting at ${t1}, with interval ${interval}`,
-    );
-    // build the cloud element sample
-    const eSample = buildPresetSample({
-      preset: voice.preset,
-      interval: interval,
-      duration: voice.duration,
-      pitch1: pitch1,
-      pitch2: pitch2,
-      volume: voice.volume,
-      velocity: voice.velocity,
-    });
+    // this is single channel
+    // stochastic genertors have no noise, vibrato, or tremolo
+    const eSample =
+      voice.preset != undefined
+        ? getPresetNote({
+            preset: voice.preset,
+            pitch: { startPitch: pitch1, endPitch: pitch2 },
+            interval: interval,
+            duration: voice.duration == 0 ? interval : voice.duration,
+            volume: voice.volume + generator.parent.volume,
+            velocity: voice.velocity,
+          })
+        : new Float32Array(0);
 
-    // put the instrument samples in the cloud sample,
-    for (let instr = 0; instr < eSample.length; instr++) {
-      const iStart = Math.floor(sampleCount * (t1 / cloudDuration));
-      const iEnd = Math.min(iStart + eSample[instr].length, sample.length);
-      for (let j = iStart; j < iEnd; j++) {
-        sample[j] = eSample[instr][j - iStart];
-      }
-    }
+    // put the element sample in the cloud sample,
+    addBuffer(cloudBuffer, [eSample, eSample], Math.trunc(t1 * SAMPLERATE));
+    debug.info(`buildCloud: cloud element added to cloud @ time=${t1}, sample=${Math.trunc(t1 * SAMPLERATE)}`)
 
     // add the source to the chart
-    // determine the true length of the sound from all of the instrument's samples
-    let endSample: number = -1; // the latest non-zero sample of all the instruments
-    let maxLength: number = -1; // the largest sample of all of the intruments
-    for (let instr = 0; instr < eSample.length; instr++) {
-      maxLength = Math.max(eSample[instr].length, maxLength);
-      let endInstrumentSample: number = -1;
-      for (
-        let i = eSample[instr].length - 1;
-        i < 0 && endInstrumentSample < 0;
-        i--
-      ) {
-        if (Math.abs(eSample[instr][i]) != 0) {
-          endInstrumentSample = i;
-        }
-      }
-      if (endInstrumentSample >= 0)
-        endSample = Math.max(endSample, endInstrumentSample);
-    }
 
-    // the sound duration for the chart is either the largest of all of the 
-    // instrument's samples or the latest nonzero length
+    // determine the true length of the sound from all of the instrument's samples
+    let endElementSample: number = -1;
+    for (let i = eSample.length - 1; i > 0 && endElementSample < 0; i--) {
+      if (Math.abs(eSample[i]) != 0) {
+        endElementSample = i;
+      }
+    }
     const tDuration: number =
-      (endSample < 0 ? maxLength : endSample) / SAMPLERATE;
+      (endElementSample < 0 ? eSample.length - 1 : endElementSample) /
+      SAMPLERATE;
+
+    // pick up the hue
     const hue: number | undefined = voiceHues.get(
       voice.soundFontFile + "|" + voice.presetName,
     );
+
     chart.addSource({
-      from: { time: time + t1, midi: pitch1, hue: hue ? hue : 0 },
-      to: { time: time + t1 + tDuration, midi: pitch2, hue: hue ? hue : 0 },
+      from: {
+        time: generator.startTime + cloudTime + t1,
+        midi: pitch1,
+        hue: hue ? hue : 0,
+      },
+      to: {
+        time: generator.startTime + cloudTime + t1 + tDuration,
+        midi: pitch2,
+        hue: hue ? hue : 0,
+      },
     });
     debug.info(
-      "cloudSample: added chart source t1, t2, n1, n2",
-      time + t1,
-      time + t1 + tDuration,
+      "buildCloud: added chart source t1, t2, n1, n2",
+      cloudTime + t1,
+      cloudTime + t1 + tDuration,
       pitch1,
       pitch2,
     );
@@ -194,7 +204,7 @@ export default function cloudSample(props: {
       pitch1 =
         voice.timbre == TIMBRE.Glissando
           ? pitch2
-          : intervalProbabilty(hi - lo, rN) + lo;
+          : Math.round(intervalProbabilty(hi - lo, rN)) + lo;
 
       // get a new interval
       do {
@@ -208,10 +218,9 @@ export default function cloudSample(props: {
   newCloudState.pitch = pitch2;
 
   // apply the cloud level intensity
-  let stereo: Float32Array[] = [sample, sample];
   if (intensityOption == INTENSITYOPTION.cloud) {
     applyIntensity(
-      stereo,
+      cloudBuffer,
       intensityTransitionOption,
       intensityParameters,
       rN,
@@ -219,9 +228,9 @@ export default function cloudSample(props: {
   }
   // apply cloud level pan
   if (panOption == PANOPTION.cloud)
-    applyPan(stereo, panAlgorithm, panParameters, rN);
+    applyPan(cloudBuffer, panAlgorithm, panParameters, rN);
   debug.info(
-    `cloudSample: cloud for timbre type ${voice.timbre}, cloud size ${sample.length}`,
+    `buildCloud: cloud for timbre type ${voice.timbre}, cloud size ${cloudBuffer[0].length}`,
   );
-  return { cloud: stereo, cloudState: newCloudState };
+  return { cloudBuffer, cloudState: newCloudState };
 }

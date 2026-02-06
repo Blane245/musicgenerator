@@ -40,7 +40,7 @@ export function TrackDuplicateDialog(props: ToolsProps): JSX.Element {
 
   // ask the user to confirm that the track is to be duplcated
   return (
-    <div className="modal-content">
+    <div className="modal-content" style={{zIndex:1001}}>
       <div className="modal-header">
         <span className="close" onClick={()=>enabled(false)}>
           &times;
@@ -118,7 +118,7 @@ export function TrackShiftDialog(props: ToolsProps): JSX.Element {
 
   // present a form for the user to identify the shift amount
   return (
-    <div className="modal-content">
+    <div className="modal-content" style={{zIndex:1001}}>
       <div className="modal-header">
         <span className="close" onClick={()=>enabled(false)}>
           &times;
@@ -198,7 +198,7 @@ export function TrackVolumeDialog(props: ToolsProps): JSX.Element {
   }
 
   return (
-    <div className="modal-content">
+    <div className="modal-content" style={{zIndex: 1001}}>
       <div className="modal-header">
         <span className="close" onClick={()=>enabled(false)}>
           &times;

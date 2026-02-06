@@ -1,7 +1,7 @@
 import { samplePool } from 'sfcomponents/samplepool';
 import { Preset } from 'sfcomponents/types';
 import buildElementSamples from './buildelementsamples';
-import getActiveZones from './getactivezones';
+import getActiveZones from 'playfunctions/presetProcessing/getactivezones';
 import { dBToGain } from 'sfcomponents/util';
 import { debug } from 'utils/debug';
 
@@ -73,13 +73,13 @@ export default function buildPresetSample(props: {
 				? overridingRootKey
 				: originalPitch;
 		const baseDetune = 100 * rootKey + pitchCorrection - fineTune;
-		const cents1 = pitch1 * 100 - baseDetune - 45;
+		const cents1 = pitch1 * 100 - baseDetune;
 
 		//TODO all sort of nastiness can occur here if pitch2 is 
 		// a long way from pitch1. It may be in a different zone
 		// and other tuning and different instruments may apply there.
 		// for now, we just assume it's in the same zone. 
-		const cents2 = pitch1 == pitch2 ? cents1 : pitch2 * 100 - baseDetune - 45;
+		const cents2 = pitch1 == pitch2 ? cents1 : pitch2 * 100 - baseDetune;
 		const sampleRate: number = instrumentSampleRate;
 
 		// get the sample looping parameters and override looping if requested
