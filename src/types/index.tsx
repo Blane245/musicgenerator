@@ -448,7 +448,6 @@ ModulatorMap.set(MODULATOR.DESCENDINGSAWTOOTH, descendingSawtoothModulator);
 // #region soundfont
 // place to hold the soundfont file and the presets in it
 export type SoundFontGeneratorsType = {
-  type: GENERATORTYPE;
   users: {generator:(Algorithmic | Stochastic), voiceNumber: number}[]; // the generators/voices that are using this soundfont
 };
 

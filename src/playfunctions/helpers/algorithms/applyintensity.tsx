@@ -1,5 +1,5 @@
 import { IntensityParameters, INTENSITYTRANSITIONOPTION, IntensityTransitionOption } from 'types';
-import { intensityPersist, intensityRandom } from './intensitymethods';
+import { intensityPersist, intensityRandom } from 'playfunctions/helpers/algorithms/intensitymethods';
 import RandomNumber from 'classes/randomnumber';
 
 

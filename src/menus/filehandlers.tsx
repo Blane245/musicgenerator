@@ -46,7 +46,7 @@ export async function writeCMGFile(
   fileName: string,
   overWrite: boolean,
   fileContents: CMGFile,
-  timeLine: TimeLine | null
+  timeLine: TimeLine | null,
 ): Promise<string | undefined> {
   // create the XML document and file element
   const doc: XMLDocument = document.implementation.createDocument("", "", null);
@@ -107,7 +107,7 @@ export async function writeCMGFile(
 export async function readCMGFile(
   fileName: string,
   width: number,
-  height: number
+  height: number,
 ): Promise<{ fileContents: CMGFile | null; timeLine: TimeLine | null }> {
   try {
     const uri: string = `/file/read?name=${fileName}`;
@@ -156,7 +156,7 @@ export async function readCMGFile(
         const track: Track = new Track(0);
         const trackPromise: Promise<Track> = track.getXML(
           child,
-          fileContents.version
+          fileContents.version,
         );
         trackPromises.push(trackPromise);
       }
@@ -178,42 +178,41 @@ export async function readCMGFile(
       });
       // wait for the all of the soundfont files to load, then update the
       // generators with the soundfont file and preset
-      const data: { name: string; soundFont: SoundFont2 }[] = await Promise.all(
-        soundFontPromises
-      );
+      const neededSoundFonts: { name: string; soundFont: SoundFont2 }[] =
+        await Promise.all(soundFontPromises);
 
-      data.forEach((d) => {
+      neededSoundFonts.forEach((value:{ name: string; soundFont: SoundFont2 }) => {
         const thisOne: SoundFontGeneratorsType | undefined =
-          SoundFontGenerators.get(d.name);
+          SoundFontGenerators.get(value.name);
         if (thisOne != undefined) {
-          if (thisOne.type == GENERATORTYPE.Algorithmic) {
-            thisOne.users.forEach((user) => {
+          const soundFont: SoundFont2 = value.soundFont;
+          const users: {generator: Stochastic | Algorithmic, voiceNumber: number}[] = thisOne.users;
+          users.forEach((user: {generator: Stochastic | Algorithmic, voiceNumber: number}) => {
+            if (user.generator.type == GENERATORTYPE.Algorithmic) {
               const g: Algorithmic = user.generator as Algorithmic;
-              g.soundFont = d.soundFont;
-              g.presets = (d.soundFont.presets as Preset[]).sort((a, b) => {
+              g.soundFont = soundFont;
+              g.presets = (soundFont.presets as Preset[]).sort((a, b) => {
                 if (a.header.bank < b.header.bank) return -1;
                 if (a.header.bank > b.header.bank) return 1;
                 return a.header.preset - b.header.preset;
               });
               const { preset } = presetNameToPreset(
                 (g as Algorithmic).presetName,
-                (g as Algorithmic).presets
+                (g as Algorithmic).presets,
               );
               (g as Algorithmic).preset = preset;
-            });
-          } else if (thisOne.type == GENERATORTYPE.Stochastic) {
-            thisOne.users.forEach((user) => {
+            } else if (user.generator.type == GENERATORTYPE.Stochastic) {
               const g: Stochastic = user.generator as Stochastic;
               const voice: Voice = g.values.voices[user.voiceNumber];
-              voice.soundFontFile = d.name;
-              const soundFont: SoundFont2 = d.soundFont;
+              voice.soundFontFile = value.name;
+              const soundFont: SoundFont2 = value.soundFont;
               const { preset } = presetNameToPreset(
                 voice.presetName,
-                soundFont.presets as Preset[]
+                soundFont.presets as Preset[],
               );
               voice.preset = preset;
-            });
-          }
+            }
+          });
         }
       });
     } else fileContents.tracks = [];

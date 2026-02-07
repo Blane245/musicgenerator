@@ -10,7 +10,6 @@ export default function PlayMenu() {
   const {
     fileContents,
     setStatus,
-    playing,
     mode,
     setMode,
     timeInterval,
@@ -26,22 +25,10 @@ export default function PlayMenu() {
   useHotkeys(
     "ctrl+p",
     () => {
-      if (!playing.current) handleReadyPlay(PLAYMODE.play);
+      handleReadyPlay(PLAYMODE.play);
     },
     { preventDefault: true },
   );
-
-  // useHotkeys(
-  //   "ctrl+r",
-  //   () => {
-  //     if (!playing.current) handleReport();
-  //   },
-  //   { preventDefault: true },
-  // );
-
-  // function handleReport() {
-  //   writeReport(fileContents, setStatus);
-  // }
 
   // parse the generators and prepare for playing
   // this will build all of the generator samples and put the source graphic on the chart

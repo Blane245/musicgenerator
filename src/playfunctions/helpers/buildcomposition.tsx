@@ -1,6 +1,6 @@
 import RandomNumber from "classes/randomnumber";
-import { Composition } from "../types";
-import poisson from "../utils/probability/poisson";
+import { Composition } from "../../types";
+import poisson from "../../utils/probability/poisson";
 import { debug } from "utils/debug";
 
 interface buildCompositionProps {

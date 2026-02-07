@@ -1,6 +1,6 @@
 import { PanAlgorithm, PANALGORITHM, PanParameters } from 'types';
 import RandomNumber from 'classes/randomnumber';
-import { panGlide, panWalk } from './panmethods';
+import { panGlide, panWalk } from 'playfunctions/helpers/algorithms/panmethods';
 
 
 // execute the selected pan algorithm

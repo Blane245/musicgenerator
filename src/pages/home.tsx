@@ -22,6 +22,7 @@ import loadEnsembleList from "utils/loadEnsembleList";
 import { useCMGContext } from "../cmgcontext";
 export default function Home() {
   const {
+    cursor,
     initialParams,
     appName,
     fileContents,
@@ -97,7 +98,9 @@ export default function Home() {
       setTimelineHeight(timelineHeight);
       setTimelineWidth(timelineWidth);
       setControlWidth(controlWidth);
-      setBodyHeight(displayHeight - headerHeight - timelineHeight - footerHeight);
+      setBodyHeight(
+        displayHeight - headerHeight - timelineHeight - footerHeight,
+      );
       setFooterHeight(footerHeight);
       setVerticalScrollWidth(
         screenWidth - document.documentElement.clientWidth,
@@ -174,7 +177,6 @@ export default function Home() {
     } else {
       setRecentRecordDirectory(recentRecordDirectory);
     }
-
   }, []);
 
   // notify the user that the SF file list has been loaded
@@ -220,15 +222,17 @@ export default function Home() {
         <title> {appName} </title>
       </Helmet>
       {!!(mode != PLAYMODE.play && mode != PLAYMODE.solo) && (
-        <div className="page" id="page">
+        <div className="page" id="page" style={{ cursor: cursor }}>
           <Header fileName={fileContents ? fileContents.name : ""} />
           <Body />
           <Footer />
         </div>
       )}
-        {!!(sourceData && mode != PLAYMODE.idle)&&<Play 
-        setMode={setMode} 
-        />}
+      {!!(sourceData && mode != PLAYMODE.idle) && (
+        <div className="page" id="page" style={{ cursor: cursor }}>
+          <Play setMode={setMode} />
+        </div>
+      )}
       {mode == PLAYMODE.idle &&
       generatorDialogVisible &&
       editGeneratorData.track &&

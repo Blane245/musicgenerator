@@ -4,7 +4,7 @@ import SequenceValues from "classes/algorithms/sequencevalues";
 import Chart from "classes/chart";
 import Algorithmic from "classes/generators/algorithmic";
 import RandomNumber from "classes/randomnumber";
-import mergePanSamples from "helpers/mergepansamples";
+import mergePanSamples from "playfunctions/helpers/mergepansamples";
 import { ALGORITHMTYPE, VoiceHues } from "types";
 import { getPresetNote } from "./presetProcessing/getpresetnote";
 

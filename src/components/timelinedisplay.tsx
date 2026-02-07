@@ -18,10 +18,10 @@ import {
 } from "types";
 import { debug } from "utils/debug";
 import getTickLinesandLabels from "utils/getticklinesandlabels";
-import setCursor from "utils/setcursor";
 import updateTimeTicks from "utils/updatetimeticks";
 export default function TimeLineDisplay() {
   const {
+    setCursor,
     mode,
     timelineHeight,
     timelineWidth,
@@ -29,7 +29,6 @@ export default function TimeLineDisplay() {
     setTimeLine,
     timeInterval,
     setTimeInterval,
-    playing,
   } = useCMGContext();
   const [ticks, setTicks] = useState<TimeTicks>({
     majorTickCount: 0,
@@ -87,7 +86,6 @@ export default function TimeLineDisplay() {
 
   // when the timeline or the generation mode changes to idle, update the ticks and the controls
   useEffect(() => {
-    if (playing.current) return;
     if (mode == PLAYMODE.idle && timeLine) {
       const newTimeTicks: TimeTicks | null = updateTimeTicks(timeLine);
       if (newTimeTicks) setTicks(newTimeTicks);
@@ -102,7 +100,6 @@ export default function TimeLineDisplay() {
 
   // useeffect handler for mouse move in time interval Define and Move modes
   useEffect(() => {
-    if (playing.current) return;
     if (!mouseDownTimeLine && !mouseDownTimeInterval) {
       // debug.info(
       //   "mouse is not down anywhere. Leaving time interval mode",

@@ -50,7 +50,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     sourceData,
     timeLine,
     timeInterval,
-    playing,
     setMode,
     setGeneratorDialogVisible,
     recordFormat,
@@ -386,7 +385,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
       return;
     }
     setSourceData(builtSourceData);
-    playing.current = true;
     setPlayVisible(true);
     setMode(PLAYMODE.solo);
   }

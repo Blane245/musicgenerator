@@ -17,7 +17,7 @@ export default function StochasticDialog(
   const { formData, handleChange, setMessages } = props;
 
   return (
-    <div className="stochastic-preamble">
+    <div>
       <StochasticValues
         formData={formData}
         handleChange={handleChange}

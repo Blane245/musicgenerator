@@ -1,7 +1,7 @@
 // only displays the status
 import CMG2 from "assets/CMG2.svg";
 import { useCMGContext } from "cmgcontext";
-import { useEffect, useRef, useState } from "react";
+import React, { SyntheticEvent, useEffect, useRef, useState } from "react";
 import {
   AiFillCloseCircle,
   AiFillPauseCircle,
@@ -10,7 +10,7 @@ import {
   AiFillStepBackward,
 } from "react-icons/ai";
 import { FcAddressBook, FcOk } from "react-icons/fc";
-import { toNote } from "sfcomponents/util";
+import { dBToGain, toNote } from "sfcomponents/util";
 import { PLAYMODE } from "types";
 import { debug } from "utils/debug";
 import secondsToMMSS from "utils/secondstommss";
@@ -27,6 +27,7 @@ const IMAGEPADDING: number = 50; //px
 export default function Play(params: PlayProps): JSX.Element {
   const { setMode } = params;
   const {
+    setCursor,
     screenWidth: windowWidth,
     screenHeight: windowHeight,
     setStatus,
@@ -49,6 +50,7 @@ export default function Play(params: PlayProps): JSX.Element {
   const [audioElem, setAudioElem] = useState<HTMLAudioElement | null>(null);
   const [imageElem, setImageElem] = useState<HTMLImageElement | null>(null);
   const [audioSrc, setAudioSrc] = useState<string>("");
+  const [audioVolume, setAudioVolume] = useState<number>(10);
   // const [scrollPosition, setScrollPosition] = useState<number>(0); // 0-1 on the range input when not seeking
   const [audioDuration, setAudioDuration] = useState<number>(0); // total duration of the audio (sec)
   const [imageDuration, setImageDuration] = useState<number>(0); // the time frame of the image (60 minute intervals)
@@ -66,6 +68,7 @@ export default function Play(params: PlayProps): JSX.Element {
     if (aElem) {
       setAudioElem(aElem as HTMLAudioElement);
       (aElem as HTMLAudioElement).pause();
+      (aElem as HTMLAudioElement).addEventListener("timeupdate", (event)=> handleAudioTimeUpdate(event))
     }
     const pElem: HTMLElement | null = document.getElementById("play-legend");
     if (pElem) {
@@ -76,16 +79,19 @@ export default function Play(params: PlayProps): JSX.Element {
     if (cElem) {
       setContainerElem(cElem as HTMLDivElement);
     }
+    setCursor("wait");
   }, []);
 
   // Cleanup on unmount to ensure timers and listeners are cleared
   useEffect(() => {
     return () => {
+      setCursor("default");
       if (timerId.current) {
         clearTimeout(timerId.current);
       }
       if (audioElem) {
         audioElem.pause();
+    audioElem.removeEventListener("timeupdate", handleAudioTimeUpdate);
       }
     };
   }, [audioElem]);
@@ -95,6 +101,7 @@ export default function Play(params: PlayProps): JSX.Element {
     const objectUrl = URL.createObjectURL(sourceData.audio);
     setAudioSrc(objectUrl);
     debug.info("audio loaded");
+      setCursor("default");
   }, [sourceData?.audio]);
 
   // when sourcedata arrives load the image
@@ -211,15 +218,17 @@ export default function Play(params: PlayProps): JSX.Element {
 
   // #region pointeractions
   const handleExit = () => {
+    if (timerId.current) clearTimeout(timerId.current);
     // Reset focus to document body to prevent trapped focus
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
+    // if (document.activeElement instanceof HTMLElement) {
+    //   document.activeElement.blur();
+    // }
+    if (audioElem) audioElem.removeEventListener("timeupdate", handleAudioTimeUpdate);
     setMode(PLAYMODE.idle);
     setSourceData(undefined);
     setShowLegend(false);
     isPlaying.current = false;
-    if (timerId.current) clearTimeout(timerId.current);
+      setCursor("default");
     setStatus(`Play Terminated`);
   };
 
@@ -301,7 +310,7 @@ export default function Play(params: PlayProps): JSX.Element {
   // get the audio duration and set the duration and windowing parameters
   // this should load the image data
   const handleAudioMetaData = (
-    event: React.SyntheticEvent<HTMLAudioElement>,
+    event: SyntheticEvent<HTMLAudioElement>,
   ) => {
     // when the audio duration is know, set the scales
     // for the image time and width
@@ -317,7 +326,7 @@ export default function Play(params: PlayProps): JSX.Element {
   // as the audio advances update the scroll position for user reporting
   // on the range element
   const handleAudioTimeUpdate = (
-    event: React.SyntheticEvent<HTMLAudioElement>,
+    event: Event,
   ) => {
     if (audioDuration == 0 || !imageElem) {
       if (audioDuration == 0)
@@ -330,7 +339,7 @@ export default function Play(params: PlayProps): JSX.Element {
         );
       return;
     }
-    const _currentTime: number = event.currentTarget.currentTime;
+    const _currentTime: number = event.currentTarget?event.currentTarget["currentTime"]: 0;
     setAudioPosition(_currentTime);
     // force pause when at the end
     if (_currentTime >= audioDuration) isPlaying.current = false;
@@ -338,6 +347,12 @@ export default function Play(params: PlayProps): JSX.Element {
 
     debug.log(`new audio time ${_currentTime}`);
   };
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!audioElem) return;
+    const value: number = parseFloat(e.currentTarget.value);
+    setAudioVolume(value);
+    audioElem.volume = dBToGain((value-10) * 2);
+  }
 
   // stop the audio playing and the image scrolling
   const handleAudioEnded = () => {
@@ -368,6 +383,12 @@ export default function Play(params: PlayProps): JSX.Element {
             <button type="button" onClick={() => handlePlayPauseClick()}>
               {isPlaying.current ? <AiFillPauseCircle /> : <AiFillPlayCircle />}
             </button>
+            <input type="range" onChange={(e) => handleVolumeChange(e)}
+            min={-10}
+          max={10}
+          step={1}
+          value={audioVolume}
+            />
             <button type="button" onClick={() => handleRestart()}>
               <AiFillStepBackward />
             </button>
@@ -406,7 +427,7 @@ export default function Play(params: PlayProps): JSX.Element {
           src={audioSrc != "" ? audioSrc : undefined}
           controls={false}
           onLoadedMetadata={(event) => handleAudioMetaData(event)}
-          onTimeUpdate={(event) => handleAudioTimeUpdate(event)}
+          // onTimeUpdate={(event) => handleAudioTimeUpdate(event)}
           onEnded={() => handleAudioEnded()}
         ></audio>
         <div

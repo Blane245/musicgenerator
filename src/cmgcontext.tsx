@@ -5,12 +5,10 @@
 import {
   createContext,
   Dispatch,
-  MutableRefObject,
   ReactNode,
   SetStateAction,
   useContext,
-  useRef,
-  useState,
+  useState
 } from "react";
 import CMGFile from "./classes/cmgfile";
 import TimeLine from "./classes/timeline";
@@ -25,6 +23,8 @@ import {
 
 // the elements of this application that are used at many levels
 interface CMGContextType {
+  cursor: string;
+  setCursor: Dispatch<SetStateAction<string>>;
   appName: string;
   setAppName: Dispatch<SetStateAction<string>>;
   appVersion: string;
@@ -71,7 +71,6 @@ interface CMGContextType {
   setStatus: Dispatch<SetStateAction<string>>;
   timeLine: TimeLine | null;
   setTimeLine: Dispatch<SetStateAction<TimeLine | null>>;
-  playing: MutableRefObject<boolean>;
   mode: PLAYMODE;
   setMode: Dispatch<SetStateAction<PLAYMODE>>;
   playbackLength: number;
@@ -110,6 +109,7 @@ interface CMGProviderProps {
 
 export const CMGProvider = ({ children, initialParams }: CMGProviderProps) => {
   // application data
+  const [cursor, setCursor] = useState<string>("default");
   const [appName, setAppName] = useState<string>("");
   const [appVersion, setAppVersion] = useState<string>('');
   // items used to define the window layout
@@ -139,7 +139,6 @@ export const CMGProvider = ({ children, initialParams }: CMGProviderProps) => {
   const [fileContents, setFileContents] = useState<CMGFile>(new CMGFile());
   const [status, setStatus] = useState<string>("");
   const [timeLine, setTimeLine] = useState<TimeLine | null>(null);
-  const playing = useRef<boolean>(false);
   const [mode, setMode] = useState<PLAYMODE>(PLAYMODE.idle);
   const [playbackLength, setPlaybackLength] = useState<number>(0);
   const [offsetTime, setOffsetTime] = useState<number>(0);
@@ -157,6 +156,8 @@ export const CMGProvider = ({ children, initialParams }: CMGProviderProps) => {
   );
 
   const contextValue = {
+    cursor,
+    setCursor,
     appName,
     setAppName,
     appVersion,
@@ -203,7 +204,6 @@ export const CMGProvider = ({ children, initialParams }: CMGProviderProps) => {
     setStatus,
     timeLine,
     setTimeLine,
-    playing,
     mode,
     setMode,
     playbackLength,

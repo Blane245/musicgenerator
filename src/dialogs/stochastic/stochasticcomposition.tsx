@@ -1,7 +1,7 @@
 import Stochastic from "classes/generators/stochastic";
 import RandomNumber from "classes/randomnumber";
 import { useCMGContext } from "cmgcontext";
-import buildComposition from "helpers/buildcomposition";
+import buildComposition from "playfunctions/helpers/buildcomposition";
 import { ChangeEvent, MouseEvent, useEffect, useState } from "react";
 import {
   AiFillCaretDown,

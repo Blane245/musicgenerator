@@ -1,8 +1,8 @@
 import Chart from "classes/chart";
 import Stochastic from "classes/generators/stochastic";
-import applyIntensity from "helpers/algorithms/applyintensity";
-import applyPan from "helpers/algorithms/applypan";
-import buildCloud from "helpers/buildCloud";
+import applyIntensity from "playfunctions/helpers/algorithms/applyintensity";
+import applyPan from "playfunctions/helpers/algorithms/applypan";
+import buildCloud from "playfunctions/helpers/buildCloud";
 import {
   CloudState,
   CloudStates,

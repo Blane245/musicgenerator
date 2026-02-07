@@ -21,10 +21,10 @@ import {
   TIMBRE,
   Voice,
   VoiceHues,
-} from "../types";
-import continuousProbability from "../utils/probability/continuousprobability";
-import intervalProbabilty from "../utils/probability/intervalprobability";
-import probabilityLookup from "../utils/probability/probabilitylookup";
+} from "../../types";
+import continuousProbability from "../../utils/probability/continuousprobability";
+import intervalProbabilty from "../../utils/probability/intervalprobability";
+import probabilityLookup from "../../utils/probability/probabilitylookup";
 import applyIntensity from "./algorithms/applyintensity";
 import applyPan from "./algorithms/applypan";
 import addBuffer from "utils/addbuffer";
@@ -195,7 +195,7 @@ export default function buildCloud(props: {
     );
 
     // move forward unless we are finished
-    if (t2 >= cloudDuration)
+    if (t1 >= cloudDuration)
       finished = true; // allow one segment past the end of the cloud
     else {
       t1 = t2; // move to the next time

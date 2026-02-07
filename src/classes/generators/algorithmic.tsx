@@ -677,7 +677,6 @@ export default class Algorithmic extends Silent {
         SoundFontGenerators.get(g.soundFontFile);
       if (foundSoundFont == undefined) {
         SoundFontGenerators.set(g.soundFontFile, {
-          type: GENERATORTYPE.Algorithmic,
           users: [{ generator: g, voiceNumber: 0 }],
         });
       } else {

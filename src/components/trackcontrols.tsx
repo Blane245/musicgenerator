@@ -36,7 +36,6 @@ export default function TrackControls(props: TrackControlsProps) {
     fileContents,
     setFileContents,
     timeLine,
-    playing,
     setStatus,
     setTrackIndex,
     setEditGeneratorData,
@@ -133,7 +132,6 @@ export default function TrackControls(props: TrackControlsProps) {
     event: MouseEvent<Element>,
     trackIndex: number
   ): void {
-    if (playing.current) return;
     event.preventDefault();
     event.stopPropagation();
     setMenu({x:controlWidth / 4 , y: 100 / 3 + trackIndex * 100});
@@ -141,7 +139,6 @@ export default function TrackControls(props: TrackControlsProps) {
   }
 
   function handleTools(event: MouseEvent<Element>, trackIndex: number) {
-    if (playing.current) return;
     event.preventDefault();
     event.stopPropagation();
     setTool({x:controlWidth / 4, y: 100 * 2 / 3 + trackIndex * 100});
@@ -169,7 +166,6 @@ export default function TrackControls(props: TrackControlsProps) {
     setGeneratorDialogVisible(true);
   }
   function handleToolSelect(event: MouseEvent, type: string) {
-    if (playing.current) return;
     setToolsEnabled(false);
     event.stopPropagation();
     event.preventDefault();

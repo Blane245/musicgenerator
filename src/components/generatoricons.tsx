@@ -24,7 +24,6 @@ import {
 import { debug } from "utils/debug";
 import { linearInterpolate } from "utils/interpolation";
 import { measureScaling } from "utils/measurescaling";
-import setCursor from "utils/setcursor";
 
 export interface GeneratorIconProps {
   track: Track;
@@ -44,6 +43,7 @@ type GeneratorBox = {
 export default function GeneratorIcons(props: GeneratorIconProps) {
   const { track, trackIndex } = props;
   const {
+    setCursor,
     setFileContents,
     screenHeight: windowHeight,
     screenWidth: windowWidth,
@@ -58,7 +58,6 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     setSourceData,
     sourceData,
     fileContents,
-    playing,
     setGeneratorDialogVisible,
   } = useCMGContext();
   const [boxIndex, setBoxIndex] = useState<number>(-1);
@@ -447,7 +446,6 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     );
     if (index < 0) return;
     flipGeneratorMute(track, index, setFileContents);
-    // setCursor("default");
     setStatus(`Generator mute toggled`);
   }
 
@@ -470,7 +468,6 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     setStatus(error);
     if (error != "") return;
     setSourceData(sourceData);
-    playing.current = true;
   }
 
   return (

@@ -11,61 +11,61 @@
   width: 100%;
   height: 100%;
   margin: 0;
-	padding: 0;
-	text-align: center;
-	--layout-background-color: lightgray;
-	--header-background-color: white;
-	--header-text-color: black;
-	--menu-background-color: green;
-	--menu-text-color: white;
-	--body--background-color: white;
-	--body-text-color: black;
-	--edit-background-color: white;
-	--edit-header-background-color: green;
-	--edit-body-background-color: white;
-	--edit-footer-background-color: white;
-	--edit-header-text-color: white;
-	--edit-body-text-color: black;
-	--edit-footer-text-color: black;
-	--footer-background-color: white;
-	--footer-text-color: black;
-	--add-background-color: green;
-	--add-text-color: white;
-	--modify-background-color: blue;
-	--modify-text-color: black;
-	--delete-background-color: red;
-	--delete-text-color: white;
-	--rename-background-color: rgb(0, 255, 85);
-	--rename-text-color: black;
-	--duplicate-background-color: rgb(0, 255, 85);
-	--dupicate-text-color: black;
-	--list-background-color: yellow;
-	--list-text-color: black;
-	--inactive-background-color:lightGray;
-	--inactive-text-color: black;
-	--large-font-size: 24pt;
-	--small-font-size: 12pt;
-	--error-background-color: red;
-	--info-background-color: white;
-	--error-text-color: white;
-	--info-info-color: black;
-	--yes-background-color: green;
-	--yes-text-color: white;
-	--no-background-color: red;
-	--no-text-color: white;
-	--submit-background-color: green;
-	--submit-text-color: white;
-	--ok-background-color: green;
-	--ok-text-color: white;
-	--cancel-background-color: red;
-	--cancel-text-color: white;
-	--modal-background-color: white;
-	--modal-header-background-color: rgb(49, 175, 49);
-	--modal-header-color: white;
-	--modal-body-background-color: white;
-	--modal-body-color: black;
-	--modal-footer-background-color: rgb(49, 175, 49);
-	--modal-footer-color: white;
+  padding: 0;
+  text-align: center;
+  --layout-background-color: lightgray;
+  --header-background-color: white;
+  --header-text-color: black;
+  --menu-background-color: green;
+  --menu-text-color: white;
+  --body--background-color: white;
+  --body-text-color: black;
+  --edit-background-color: white;
+  --edit-header-background-color: green;
+  --edit-body-background-color: white;
+  --edit-footer-background-color: white;
+  --edit-header-text-color: white;
+  --edit-body-text-color: black;
+  --edit-footer-text-color: black;
+  --footer-background-color: white;
+  --footer-text-color: black;
+  --add-background-color: green;
+  --add-text-color: white;
+  --modify-background-color: blue;
+  --modify-text-color: black;
+  --delete-background-color: red;
+  --delete-text-color: white;
+  --rename-background-color: rgb(0, 255, 85);
+  --rename-text-color: black;
+  --duplicate-background-color: rgb(0, 255, 85);
+  --dupicate-text-color: black;
+  --list-background-color: yellow;
+  --list-text-color: black;
+  --inactive-background-color: lightGray;
+  --inactive-text-color: black;
+  --large-font-size: 24pt;
+  --small-font-size: 12pt;
+  --error-background-color: red;
+  --info-background-color: white;
+  --error-text-color: white;
+  --info-info-color: black;
+  --yes-background-color: green;
+  --yes-text-color: white;
+  --no-background-color: red;
+  --no-text-color: white;
+  --submit-background-color: green;
+  --submit-text-color: white;
+  --ok-background-color: green;
+  --ok-text-color: white;
+  --cancel-background-color: red;
+  --cancel-text-color: white;
+  --modal-background-color: white;
+  --modal-header-background-color: rgb(49, 175, 49);
+  --modal-header-color: white;
+  --modal-body-background-color: white;
+  --modal-body-color: black;
+  --modal-footer-background-color: rgb(49, 175, 49);
+  --modal-footer-color: white;
 }
 
 html {
@@ -90,39 +90,45 @@ th,
 td {
   border: 1px solid black;
 }
-table { width: 100%;}
-td { text-align: left;}
-th { text-align: center;}
+table {
+  width: 100%;
+}
+td {
+  text-align: left;
+}
+th {
+  text-align: center;
+}
 label {
   padding: 5px;
-	font-size: var(--small-font-size);
+  font-size: var(--small-font-size);
 }
 input {
-	font-size: var(--small-font-size);
+  font-size: var(--small-font-size);
   background-color: lightgray;
 }
 textarea {
-	font-size: var(--small-font-size);
+  font-size: var(--small-font-size);
 }
 div {
-	font-size: var(--small-font-size);
+  font-size: var(--small-font-size);
 }
 h1 {
-	font-size: var(--large-font-size);
+  font-size: var(--large-font-size);
 }
 p {
-	font-size: var(--small-font-size);
-	margin: 0;
+  font-size: var(--small-font-size);
+  margin: 0;
 }
 a {
-	font-weight: 500;
-	background-color: var(--submit-background-color);
-	color: var(--submit-text-color);
-	text-decoration: inherit;
-	margin: 5px;
+  font-weight: 500;
+  background-color: var(--submit-background-color);
+  color: var(--submit-text-color);
+  text-decoration: inherit;
+  margin: 5px;
 }
 a:hover {
-	color: #535bf2;
+  color: #535bf2;
 }
 button {
   border-radius: 8px;
@@ -135,7 +141,7 @@ button {
   font-weight: 500;
   font-family: inherit;
   background-color: white;
-  cursor: inherit;
+
   transition: border-color 0.25s;
   margin: 1px;
 }
@@ -187,7 +193,7 @@ button:focus-visible {
   position: absolute;
   background-color: var(--inactive-background-color);
   min-width: 80px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
   z-index: inherit;
 }
 
@@ -203,7 +209,7 @@ button:focus-visible {
 }
 /* Change color of dropdown links on hover */
 .dropdown-content a:hover {
-  background-color: darkgray; 
+  background-color: darkgray;
   color: white;
   z-index: inherit;
 }
@@ -216,12 +222,11 @@ button:focus-visible {
 
 /* Change the background color of the dropdown button when the dropdown content is shown */
 .dropdown:hover .dropbtn {
-  background-color:darkgray;
+  background-color: darkgray;
   z-index: inherit;
 }
 
 .dropdown-one {
-  cursor: pointer;
   display: none;
   position: absolute;
   background-color: white;
@@ -233,7 +238,6 @@ button:focus-visible {
 }
 
 .dropdown-two {
-  cursor: pointer;
   display: none;
   position: relative;
   left: 0px;
@@ -374,8 +378,8 @@ button:focus-visible {
     background-color: lightskyblue;
     display: grid;
     grid-area: footer;
-    grid-template-columns: 1fr 300px 300px 300px 40px;
-    grid-template-areas: "status reverb compressor equalizer volume";
+    grid-template-columns: 1fr;
+    grid-template-areas: "status";
     position: fixed;
     width: 100%;
     top: auto;
@@ -392,226 +396,6 @@ button:focus-visible {
       font-weight: bold;
       color: hsl(32, 100%, 21%);
     }
-    .compressor {
-      background-color: white;
-      display: block;
-      grid-area: compressor;
-      justify-self: right;
-      max-width: 300px;
-      width: 100%;
-      height: 180px;
-      justify-content: center;
-      align-items: center;
-      outline: solid #5c75b8;
-
-      .title {
-        line-height: normal;
-        font-size: 10px;
-        text-align: center;
-        color: black;
-        .button {
-          font-size: 5px;
-        }
-      }
-
-      .sliders {
-        display: flex;
-
-        .slider {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          width: 40px;
-          height: 150px;
-          flex-direction: column;
-          justify-content: space-between;
-          padding: 0;
-          margin: 0;
-          cursor: inherit;
-
-          .param {
-            color: black;
-            font-size: 10px;
-            line-height: 10px;
-            text-align: center;
-            cursor: inherit;
-          }
-          input[type="range"] {
-            writing-mode: vertical-lr;
-            direction: rtl;
-            height: 90px;
-            width: 30px;
-            cursor: inherit;
-          }
-        }
-      }
-    }
-    .reverb {
-      background-color: white;
-      display: block;
-      grid-area: reverb;
-      justify-self: right;
-      max-width: 300px;
-      width: 100%;
-      height: 180px;
-      justify-content: center;
-      align-items: center;
-      outline: solid #5c75b8;
-      cursor: inherit;
-
-      .title {
-        line-height: normal;
-        font-size: 10px;
-        text-align: center;
-        color: black;
-        cursor: inherit;
-        .button {
-          font-size: 5px;
-        }
-      }
-
-      .sliders {
-        display: flex;
-        cursor: inherit;
-      }
-      .slider {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        width: 40px;
-        height: 150px;
-        flex-direction: column;
-        justify-content: space-between;
-        padding: 0;
-        margin: 0;
-        cursor: inherit;
-
-        .param {
-          color: black;
-          font-size: 10px;
-          line-height: 10px;
-          text-align: center;
-          cursor: inherit;
-        }
-        input[type="range"] {
-          writing-mode: vertical-lr;
-          direction: rtl;
-          height: 90px;
-          width: 30px;
-          cursor: inherit;
-        }
-      }
-    }
-
-    .equalizer {
-      background-color: white;
-      display: block;
-      grid-column: equalizer;
-      justify-self: right;
-      max-width: 300px;
-      width: 100%;
-      height: 180px;
-      justify-content: center;
-      align-items: center;
-      outline: solid #5c75b8;
-      cursor: inherit;
-
-      .title {
-        line-height: normal;
-        font-size: 10px;
-        text-align: center;
-        color: black;
-        .button {
-          font-size: 5px;
-        }
-        cursor: inherit;
-      }
-
-      .sliders {
-        display: flex;
-        cursor: inherit;
-      }
-      .slider {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        width: 30px;
-        height: 150px;
-        flex-direction: column;
-        justify-content: space-between;
-        padding: 0;
-        margin: 0;
-        cursor: inherit;
-
-        .param {
-          color: black;
-          font-size: 10px;
-          line-height: 10px;
-          cursor: inherit;
-        }
-
-        input[type="range"] {
-          writing-mode: vertical-lr;
-          direction: rtl;
-          height: 100px;
-          width: 30px;
-          cursor: inherit;
-        }
-      }
-    }
-
-    .volume {
-      background-color: white;
-      display: block;
-      grid-area: volume;
-      justify-self: right;
-      max-width: 300px;
-      width: 100%;
-      height: 180px;
-      justify-content: center;
-      align-items: center;
-      outline: solid #5c75b8;
-      cursor: inherit;
-
-      .title {
-        line-height: normal;
-        font-size: 10px;
-        text-align: center;
-        color: black;
-        cursor: inherit;
-      }
-      .sliders {
-        display: flex;
-        cursor: inherit;
-      }
-      .slider {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        width: 30px;
-        height: 150px;
-        flex-direction: column;
-        justify-content: space-between;
-        padding: 0;
-        margin: 0;
-        cursor: inherit;
-
-        .param {
-          color: black;
-          font-size: 10px;
-          line-height: 10px;
-          cursor: inherit;
-        }
-
-        input[type="range"] {
-          writing-mode: vertical-lr;
-          direction: rtl;
-          height: 100px;
-          width: 30px;
-          cursor: inherit;
-        }
-      }
-    }
   }
 }
 
@@ -620,7 +404,6 @@ button:focus-visible {
   width: 60px;
   height: 30px;
   font-size: 8pt;
-  cursor: inherit;
 }
 
 .track-name-button {
@@ -629,7 +412,6 @@ button:focus-visible {
   height: 30px;
   text-align: left;
   font-size: 8pt;
-  cursor: inherit;
 }
 
 /* Modal Content */
@@ -639,18 +421,20 @@ button:focus-visible {
   z-index: 1001;
   top: 160px;
   left: 200px;
-  width:auto;
+  width: auto;
   background-color: #fefefe;
   margin: 0;
   padding: 0;
   border: 1px solid #888;
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  box-shadow:
+    0 4px 8px 0 rgba(0, 0, 0, 0.2),
+    0 6px 20px 0 rgba(0, 0, 0, 0.19);
   animation-name: animatetop;
   animation-duration: 0.4s;
   grid-template-rows: auto auto auto;
-  grid-template-areas: 'header' 'body' 'footer';
+  grid-template-areas: "header" "body" "footer";
   .modal-header {
-    z-index:1001;
+    z-index: 1001;
     grid-area: header;
     padding: 2px 16px;
     display: block;
@@ -662,7 +446,7 @@ button:focus-visible {
 
   /* Modal Body */
   .modal-body {
-    z-index:1001;
+    z-index: 1001;
     grid-area: body;
     padding: 2px 16px;
     text-align: left;
@@ -673,9 +457,9 @@ button:focus-visible {
 
   /* Modal Footer */
   .modal-footer {
-    z-index:1001;
+    z-index: 1001;
     grid-area: footer;
-    display:block;
+    display: block;
     padding: 2px 16px;
     background-color: #5cb85c;
     color: white;
@@ -694,7 +478,7 @@ button:focus-visible {
   top: 40px;
   left: 0;
   z-index: 1000;
-  position:absolute;
+  position: absolute;
   background-color: #fefefe;
   margin: auto;
   padding: 0;
@@ -707,7 +491,7 @@ button:focus-visible {
   flex-direction: column;
   flex-wrap: nowrap;
   grid-template-rows: 40px 1fr 80px;
-  grid-template-areas: 'header' 'body' 'footer';
+  grid-template-areas: "header" "body" "footer";
   .generator-header {
     grid-area: header;
     flex-shrink: 0;
@@ -733,372 +517,76 @@ button:focus-visible {
   padding: 5px;
 }
 
-.algorithmic-table {
-  display: grid;
-  grid-template-columns: 1fr 1fr 10fr;
-  grid-template-areas: "attribute gentype parameters";
-  gap: 5px;
-  .attribute {
-    grid-area: attribute;
-    align-self: center;
-  }
-  .gentype {
-    grid-area: gentype;
-    align-self: center;
-  }
-  .parameters {
-    grid-area: parameters;
-    .sequencer {
-      display: grid;
-      grid-template-columns: 3fr 1fr 1fr 1fr 7fr;
-      grid-template-areas: "name reload view transpose transform";
-      .name {
-        grid-area: name;
-      }
-      .reload {
-        grid-area: reload;
-      }
-      .view {
-        grid-area: view;
-      }
-      .transpose {
-        grid-area: transpose;
-      }
-      .transform {
-        grid-area: transform;
-      }
-    }
-    .constant {
-      display: grid;
-      grid-template-columns: 1fr 1fr 8fr;
-      grid-template-areas: "valuetitle value .";
-      gap: 0;
-      .valuetitle {
-        grid-area: valuetitle;
-      }
-      div.value {
-        grid-area: value;
-      }
-    }
-    .oscillator {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      grid-template-areas:
-        "typetitle centertitle frequencytitle amplitudetitle phasetitle"
-        "type center frequency amplitude phase";
-      gap: 0;
-      .typetitle {
-        grid-area: typetitle;
-      }
-      .centertitle {
-        grid-area: centertitle;
-      }
-      .frequencytitle {
-        grid-area: frequencytitle;
-      }
-      .amplitudetitle {
-        grid-area: amplitudetitle;
-      }
-      .phasetitle {
-        grid-area: phasetitle;
-      }
-      .type {
-        grid-area: type;
-      }
-      .center {
-        grid-area: center;
-      }
-      .frequency {
-        grid-area: frequency;
-      }
-      .amplitude {
-        grid-area: amplitude;
-      }
-      .phase {
-        grid-area: phase;
-      }
-    }
-    .autoregressive {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      grid-template-areas:
-        "initialvaluetitle seedtitle alphatitle sigmatitle lotitle hititle"
-        "initialvalue seed alpha sigma lo hi";
-      gap: 0;
-      .seedtitle {
-        grid-area: seedtitle;
-      }
-      .initialvaluetitle {
-        grid-area: initialvaluetitle;
-      }
-      .alphatitle {
-        grid-area: alphatitle;
-      }
-      .sigmatitle {
-        grid-area: sigmatitle;
-      }
-      .lotitle {
-        grid-area: lotitle;
-      }
-      .hititle {
-        grid-area: hititle;
-      }
-      .seed {
-        grid-area: seed;
-      }
-      .initialvalue {
-        grid-area: initialvalue;
-      }
-      .alpha {
-        grid-area: alpha;
-      }
-      .sigma {
-        grid-area: sigma;
-      }
-      .lo {
-        grid-area: lo;
-      }
-      .hi {
-        grid-area: hi;
-      }
-    }
-    .markovian {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      grid-template-areas:
-        "seed start lo hi step"
-        "transition tosame toup todown ."
-        "fromsame ss su sd ."
-        "fromup us uu ud ."
-        "fromdown ds du dd .";
-      gap: 0;
-      .seed {
-        grid-area: seed;
-      }
-      .start {
-        grid-area: start;
-      }
-      .lo {
-        grid-area: lo;
-      }
-      .hi {
-        grid-area: hi;
-      }
-      .step {
-        grid-area: step;
-      }
-      .transition {
-        grid-area: transition;
-      }
-      .tosame {
-        grid-area: tosame;
-      }
-      .toup {
-        grid-area: toup;
-      }
-      .todown {
-        grid-area: todown;
-      }
-      .fromsame {
-        grid-area: fromsame;
-      }
-      .fromup {
-        grid-area: fromup;
-      }
-      .fromdown {
-        grid-area: fromdown;
-      }
-      .ss {
-        grid-area: ss;
-      }
-      .su {
-        grid-area: su;
-      }
-      .sd {
-        grid-area: sd;
-      }
-      .us {
-        grid-area: us;
-      }
-      .uu {
-        grid-area: uu;
-      }
-      .ud {
-        grid-area: ud;
-      }
-      .ds {
-        grid-area: ds;
-      }
-      .du {
-        grid-area: du;
-      }
-      .dd {
-        grid-area: dd;
-      }
-    }
-    .wiener {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      grid-template-areas:
-        "seedtitle initialtitle trendtitle dispersiontitle lotitle hititle"
-        "seed initialv trend dispersion lo hi";
-      gap: 2px;
-      .seedtitle {
-        grid-area: seedtitle;
-        size: 10em;
-      }
-      .initialtitle {
-        grid-area: initial;
-      }
-      .trendtitle {
-        grid-area: trendtitle;
-      }
-      .dispersiontitle {
-        grid-area: dispersiontitle;
-      }
-      .lotitle {
-        grid-area: lotitle;
-      }
-      .hititle {
-        grid-area: hititle;
-      }
-      .seed {
-        grid-area: seed;
-        size: 10em;
-      }
-      .initial {
-        grid-area: initialv;
-      }
-      .trend {
-        grid-area: trend;
-      }
-      .dispersion {
-        grid-area: dispersion;
-      }
-      .lo {
-        grid-area: lo;
-      }
-      .hi {
-        grid-area: hi;
-      }
-    }
-  }
-}
-
-.stochastic-preamble {
-  display: block;
-}
-
-.control-content {
-  position: fixed;
-  z-index: 2;
-  top: 5%;
-  left: 5%;
-  background-color: #fefefe;
-  margin: auto;
-  padding: 0;
-  border: 1px solid #888;
-  width: 80%;
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-  animation-name: animateleft;
-  animation-duration: 0.4s;
-  cursor: inherit;
-  display: grid;
-  grid-template-rows: 20px 1fr auto;
-  grid-template-areas: "header" "body" "footer";
-  .content-header {
-    grid-area: header;
-    background-color: #5c75b8;
-    color: white;
-  }
-  .content-body {
-    grid-area: body;
-    background-color: white;
-    color: black;
-  }
-  .content-footer {
-    grid-area: footer;
-    background-color: #5c75b8;
-    color: white;
-  }
-}
-.control-button {
-  padding: 0px;
-  width: 30px;
-  height: 30px;
-  border: none;
-  fill: none;
-}
 .addbutton {
-	background-color: var(--add-background-color);
-	color: var(--add-text-color);
-	font-size: var(--large-font-size);
+  background-color: var(--add-background-color);
+  color: var(--add-text-color);
+  font-size: var(--large-font-size);
 }
 .editbutton {
-	background-color: var(--modify-background-color);
-	color: var(--modify-text-color);
-	background-color: lightgreen;
-	font-size: var(--large-font-size);
+  background-color: var(--modify-background-color);
+  color: var(--modify-text-color);
+  background-color: lightgreen;
+  font-size: var(--large-font-size);
 }
 .deletebutton {
-	background-color: var(--delete-background-color);
-	color: var(--delete-text-color);
-	font-size: var(--large-font-size);
+  background-color: var(--delete-background-color);
+  color: var(--delete-text-color);
+  font-size: var(--large-font-size);
 }
 .renamebutton {
-	background-color: var(--rename-background-color);
-	color: var(--delete-rename-color);
-	font-size: var(--large-font-size);
+  background-color: var(--rename-background-color);
+  color: var(--delete-rename-color);
+  font-size: var(--large-font-size);
 }
 .duplicatebutton {
-	background-color: var(--duplicate-background-color);
-	color: var(--delete-duplicate-color);
-	font-size: var(--large-font-size);
+  background-color: var(--duplicate-background-color);
+  color: var(--delete-duplicate-color);
+  font-size: var(--large-font-size);
 }
 .listbutton {
-	background-color: var(--list-background-color);
-	color: var(--list-text-color);
-	font-size: var(--large-font-size);
+  background-color: var(--list-background-color);
+  color: var(--list-text-color);
+  font-size: var(--large-font-size);
 }
 .inactivebutton {
-	background-color: var(--inactive-background-color);
-	color: var(--inactive-text-color);
-	font-size: var(--large-font-size);
+  background-color: var(--inactive-background-color);
+  color: var(--inactive-text-color);
+  font-size: var(--large-font-size);
 }
 .yesbutton {
-	background-color: var(--yes-background-color);
-	color: var(--yes-text-color);
-	font-size: var(--large-font-size);
+  background-color: var(--yes-background-color);
+  color: var(--yes-text-color);
+  font-size: var(--large-font-size);
 }
 .nobutton {
-	background-color: var(--no-background-color);
-	color: var(--no-text-color);
-	font-size: var(--large-font-size);
+  background-color: var(--no-background-color);
+  color: var(--no-text-color);
+  font-size: var(--large-font-size);
 }
 .okbutton {
-	background-color: var(--ok-background-color);
-	color: var(--ok-text-color);
-	font-size: var(--small-font-size);
+  background-color: var(--ok-background-color);
+  color: var(--ok-text-color);
+  font-size: var(--small-font-size);
 }
 .submitbutton {
-	background-color: var(--submit-background-color);
-	color: var(--submit-text-color);
-	font-size: var(--small-font-size);
+  background-color: var(--submit-background-color);
+  color: var(--submit-text-color);
+  font-size: var(--small-font-size);
 }
 .cancelbutton {
-	background-color: var(--cancel-background-color);
-	color: var(--cancel-text-color);
-	font-size: var(--small-font-size);
+  background-color: var(--cancel-background-color);
+  color: var(--cancel-text-color);
+  font-size: var(--small-font-size);
 }
 .errormessage {
-	background-color: var(--error-background-color);
-	color: var(--error-text-color);
-	font-size: var(--small-font-size);
+  background-color: var(--error-background-color);
+  color: var(--error-text-color);
+  font-size: var(--small-font-size);
 }
 .infomessage {
-	background-color: var(--info-background-color);
-	color: var(--info-text-color);
-	font-size: var(--small-font-size);
+  background-color: var(--info-background-color);
+  color: var(--info-text-color);
+  font-size: var(--small-font-size);
 }
 
 .track-control {
@@ -1125,7 +613,6 @@ button:focus-visible {
 
 .modal-menu {
   background: rgba(219, 215, 208, 1);
-  cursor: inherit;
   overflow: visible;
 }
 
@@ -1133,17 +620,14 @@ button:focus-visible {
   stroke: black;
   stroke-width: 1;
   fill: rgba(169, 169, 169, 0.5);
-  cursor: inherit;
 }
 .intervalmarker {
   fill: black;
-  cursor: inherit;
 }
 
 .intervaledge {
   stroke: black;
   stroke-width: 5;
-  cursor: inherit;
 }
 
 .play {
@@ -1166,14 +650,15 @@ button:focus-visible {
   .play-header {
     grid-area: header;
     display: grid;
-    grid-template-columns: 50px 600px 1fr 650px;
+    grid-template-columns: 50px 700px 1fr;
     grid-template-rows: 30px;
-    grid-template-areas: "icon buttons title .";
+    grid-template-areas: "icon buttons title";
     .icon {
       grid-area: icon;
       padding-left: 2px;
     }
     .buttons {
+      text-align: left;
       grid-area: buttons;
     }
     .title {
@@ -1210,7 +695,7 @@ button:focus-visible {
     display: grid;
     top: 0;
     left: 0;
-    width:100%;
+    width: 100%;
     background-color: lightskyblue;
     grid-area: header;
     grid-template-columns: 1fr;
@@ -1299,7 +784,7 @@ button:focus-visible {
     width: inherit;
     grid-area: footer;
     display: grid;
-    grid-template-columns: 1fr;;
+    grid-template-columns: 1fr;
     grid-template-rows: 60px 1fr;
     grid-template-areas: "filerow" "status";
     .filerow {
@@ -1307,7 +792,7 @@ button:focus-visible {
       grid-template-areas: "filename" "filetypes";
       grid-template-rows: 1fr 1fr;
       grid-area: filerow;
-      margin-top: 2px;;
+      margin-top: 2px;
       .filename {
         grid-area: filename;
         display: block;
@@ -1397,7 +882,5 @@ input:hover {
   }
   button:hover {
     background-color: cyan;
-    
   }
 }
-

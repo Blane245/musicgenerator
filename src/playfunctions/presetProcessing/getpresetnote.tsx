@@ -6,11 +6,10 @@ import {
   dBToGain,
   midiToFrequency,
   precision,
-  tc2s,
-  toNote,
+  tc2s
 } from "sfcomponents/util";
 import { EPS, SAMPLERATE } from "types";
-import { linearInterpolate, resampleAudio, resampleAudioCubic } from "utils/interpolation";
+import { linearInterpolate, resampleAudio } from "utils/interpolation";
 import { getSampleWithNoise } from "./applynoise";
 import buildEnvelope from "./buildenvelope";
 import getActiveZones from "./getactivezones";

@@ -1,30 +1,6 @@
 import RandomNumber from "classes/randomnumber";
 import { gaussianRandom } from "utils/probability/gaussianrandom";
 
-// export default function applyNoise(
-//   sample: Float32Array,
-//   sampleRate: number,
-//   centerFrequency: number,
-//   frequency: number,
-//   amplitude: number,
-//   rn: RandomNumber
-// ): Float32Array {
-//   const newSample: Float32Array = new Float32Array(sample.length);
-//   const deltaT: number = 1 / sampleRate;
-//   let t: number = 0;
-//   for (let i = 0; i < sample.length; i++) {
-//     newSample[i] = getSampleWithNoise(
-//       sample[i],
-//       t,
-//       centerFrequency,
-//       frequency,
-//       amplitude,
-//       rn
-//     );
-//     t += deltaT;
-//   }
-//   return newSample;
-// }
 export function getSampleWithNoise(
   sample: number,
   t: number,

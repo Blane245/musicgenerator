@@ -11,7 +11,7 @@ import {
   SoundFontGeneratorsType,
   StochasticValues,
   TIMBRETYPE,
-  Voice,
+  Voice
 } from "types";
 import {
   getAttributeValueWithDefault,
@@ -343,7 +343,9 @@ export default class Stochastic extends Silent {
             "string",
             ""
           ) as string;
+
           const timbre: TIMBRETYPE = getAttributeValueWithDefault(
+
             child,
             "timbre",
             "string",
@@ -407,7 +409,6 @@ export default class Stochastic extends Silent {
             SoundFontGenerators.get(soundFontFile);
           if (foundSoundFont == undefined) {
             SoundFontGenerators.set(soundFontFile, {
-              type: GENERATORTYPE.Stochastic,
               users: [
                 { generator: g, voiceNumber: g.values.voices.length - 1 },
               ],

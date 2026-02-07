@@ -1,12 +1,10 @@
 // The file menu handles creating new files, opening existing ones,
 
-import { useCMGContext } from "cmgcontext";
 import MidiFrequencyDialog from "dialogs/midifrequencydialog";
 import { useState } from "react";
 
 // saving current ones, and adding tracks to current ones
 export default function HelpMenu() {
-  const { playing } = useCMGContext();
   const [open, setOpen] = useState<boolean>(false);
   const [about, setAbout] = useState<boolean>(false);
 
@@ -14,7 +12,6 @@ export default function HelpMenu() {
     setOpen(true);
   }
   function handleMenuSelect(action: string) {
-    if (playing.current) return;
     switch (action) {
       case "about":
         setAbout(true);

@@ -26,7 +26,6 @@ export default function EditMenu() {
     setStatus,
     setRecordFormat,
     setSFFileList,
-    playing,
     recordFormat,
     SFLocalDirectory,
   } = useCMGContext();
@@ -136,7 +135,6 @@ export default function EditMenu() {
     setPreferencesModal(false);
   }
   function handleMenuSelect(action: string) {
-    if (playing.current) return;
     switch (action) {
       case "comment":
         handleEditComment();
