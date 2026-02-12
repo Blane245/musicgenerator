@@ -1,35 +1,20 @@
 
 # Bugs
-- too many scroll bars
-- after making some changes to ensemble voice in the db, the genertors using them seem to have lost their preset. I reloaded the voices in the composition and it started working. need to make sure presets are current at all times. Maybe the cmg should not contain more than the ensemble name and the voice parameters that are not in the db rather than the entire definition of the voices
-- check first stochastic in the land. last pizz is missing
-- after a play, menus do not work and time interval don't work
+- WATCH: after a play, menus do not work and time interval don't work
 - no notification when dbserver is not accessible
 - there is a jump when play first gets started
-- when a note sequence id reloaded, the duration of the generator should be recalculated.
+- when a note sequence is reloaded, the duration of the generator should be recalculated.
 - when previewing in the generator dialog, changes made to the parameters are lost after the preview. Somehow the dialog has to be reactivated after a preview with these changes but not update the fileContents with the formData. This is a result of the use of the .copy() method which signals a change similar to the stop time calculation method above
 # Enhancements
-- add volume levels to play in header as sliders with max indicator
-  - this involves writing the amplitude analyzer basedf on the content of the audiobuffer. 
-  - The audio buffer needs to be retained alogn with the mp3 stream
-  - the analyzer must track the current location of the playback as does the audio component
-  - level displayed should be the current level plus the maximum that persists either the entire playback or more some period of 
-  time before reset.
-  - to calcualte: 
-    load the sample for period from the current time (determined by a timing) to some number od sample prior. The analysis interval and the reporting interval can be the same for starters. The Analysis should report the average and the maximum signal. 
-
+- add ctrl+n to open recent files
+- add progress popup to play. How many generators done compared to how many to do. 
 - add vibrato objects to play image
 - change cursor to spinning when busy. tried but failed :-( 
-- develop an svg for a stochastic generator that is similar to the algorithmic one. This will have to be done during the build source phase and then displayed during preview. Other alternative is to change mechanism to generate the sources during draw sources in real time. In fact, build the svgs during build sources for both would give me the opportunity to save the svg and use it for publication purposes. 
-  - the entire composition would have to be built in svg and then scrolled through the preview timeline (maybe smooth could be done). A Save Preview button could be implemented to save the svg to a file. Could implement this with Record as well, so the audio/video could be saved together. Record saving would not be able to highlight sources being played. Maybe remove this feature from preview as well. 
-- display channel signals for and audiofile preview. This cold be incorporated in the svg mentioned above. 
 - implement microtone option in both algorithmic and stochastic generators. 
 - consider using slow time line scrolling during preview
 - pipe dream - add a video producer that takes hints from the composer and does drawings based on the sounds and those hints. See the ChatGPT chat on scribble for some guidance on structural hints from the composer. 
 
 # things to do
-- save audio and video - for now its snipping tool
-- complete report writer
 - add measure timing and use measure length as beats/measure in sequencer algorithm. Use preferences as default when sequencer selected. On beats stays as is.
 - measure lengths are not constant in time when the speed attribute is changed. Now, I have a measure length in seconds in preferences and that is what is used to draw the timeline. This is incorrect and in fact I'm not sure that the conversion from time to measures makes sense when generators can all run at their own speeds. The sequencers conversion is particularly bad. Maybe I should abandon measure display and data entry unless I can think of a solution. (haven't thought of one yet)
 

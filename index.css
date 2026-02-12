@@ -1,4 +1,5 @@
 #root {
+
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1;
   font-weight: 400;
@@ -145,12 +146,49 @@ button {
   transition: border-color 0.25s;
   margin: 1px;
 }
-button:hover {
+/* button:hover {
   border-color: #646cff;
-}
+} */
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
+}
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  /* position: absolute;
+  z-index: 1001;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -60px; */
+  position: relative;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
 }
 
 .navbar {
@@ -294,7 +332,7 @@ button:focus-visible {
   height: 100%;
   text-align: left;
   display: grid;
-  grid-template-rows: 40px 45px 1fr 180px;
+  grid-template-rows: 40px 45px 1fr 40px;
   grid-template-areas:
     "header"
     "timeline"
@@ -366,13 +404,14 @@ button:focus-visible {
     display: grid;
     grid-area: body;
     grid-template-columns: 200px 1fr;
-    grid-template-rows: repeat(9, 100px);
+    grid-template-rows: repeat(8, 100px);
     gap: 0;
     position: absolute;
     top: 85px;
     left: 0;
     overflow: auto;
     overflow-x: hidden;
+    overflow-y: auto;
   }
   .page-footer {
     background-color: lightskyblue;
@@ -650,9 +689,9 @@ button:focus-visible {
   .play-header {
     grid-area: header;
     display: grid;
-    grid-template-columns: 50px 700px 1fr;
+    grid-template-columns: 50px 700px 300px 1fr;
     grid-template-rows: 30px;
-    grid-template-areas: "icon buttons title";
+    grid-template-areas: "icon buttons levels title";
     .icon {
       grid-area: icon;
       padding-left: 2px;
@@ -660,6 +699,11 @@ button:focus-visible {
     .buttons {
       text-align: left;
       grid-area: buttons;
+    }
+    .levels {
+      padding-top: 5px;
+      text-align: left;
+      grid-area:levels;
     }
     .title {
       grid-area: title;
@@ -880,7 +924,7 @@ input:hover {
   a:hover {
     color: #747bff;
   }
-  button:hover {
+  /* button:hover {
     background-color: cyan;
-  }
+  } */
 }

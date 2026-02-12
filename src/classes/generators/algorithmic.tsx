@@ -37,8 +37,8 @@ import { debug } from "utils/debug";
 export default class Algorithmic extends Silent {
   soundFontFile: string;
   soundFont: SoundFont2 | undefined;
-  presets: Preset[]; // the soundfont preset list (not needed for AudioFile or Noise)
-  presetName: string; // the soundfont preset name (not needed for AudioFile or Noise)
+  presets: Preset[]; // the soundfont preset list
+  presetName: string; // the soundfont preset name
   preset: Preset | undefined; // the soundfont preset object (derived from the presetName and the soundFont file)
   isLooping: boolean; // should the sample loop?
   measureLength: number; // the number of beats in a measure

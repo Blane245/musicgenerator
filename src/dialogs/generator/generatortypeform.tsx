@@ -1,10 +1,8 @@
 // provides the tie to the form fields and validators for all generators
 
 import Algorithmic from "classes/generators/algorithmic";
-import AudioFile from "classes/generators/audiofile";
 import Stochastic from "classes/generators/stochastic";
 import AlgorithmicDialog from "dialogs/algorithmic/algorithmicdialog";
-import AudioFileDialog from "dialogs/audiofiledialog";
 import StochasticDialog from "dialogs/stochastic/stochasticdialog";
 import { ChangeEvent } from "react";
 import { GeneratorType, GENERATORTYPE } from "types";
@@ -23,25 +21,19 @@ export default function GeneratorTypeForm(
   const { formData, handleChange, setMessages} = props;
   return (
     <>
-      {formData.type == GENERATORTYPE.Algorithmic ? (
+      {!!(formData.type == GENERATORTYPE.Algorithmic) && (
         <AlgorithmicDialog
           formData={formData as Algorithmic}
           handleChange={handleChange}
         />
-      ) : null}
-      {formData.type == GENERATORTYPE.AudioFile ? (
-        <AudioFileDialog
-          formData={formData as AudioFile}
-          handleChange={handleChange}
-        />
-      ) : null}
-      {formData.type == GENERATORTYPE.Stochastic ? (
+      )}
+      {!!(formData.type == GENERATORTYPE.Stochastic) && (
         <StochasticDialog
           formData={formData as Stochastic}
           handleChange={handleChange}
           setMessages={setMessages}
         />
-      ) : null}
+      )}
     </>
   );
 }

@@ -42,11 +42,10 @@ The data structure is hierarchial:
 * *Track*: this is an instance of the track collection belonging to a CMGFile. Each track has position, name, solo, and mute attributes and a collection of generators. This provides the means by which generators can be assigned to different tracks for organizational purposes.
 * *Generator*: this is an instance of a generator collection and is the source of the sound that is produced by CMG.
 
-There are three types of four generators in this version. Each generator may use a different soundfont and preset. See the section on Algorithms for a more detailed discussion.
+There are three types of three generators in this version. Each generator may use a different soundfont and preset. See the section on Algorithms for a more detailed discussion.
 1. A silent (**Silent**) generator, which produces silence. It most commonly used at the beginning or end of a composition to offset its start or end time.
 2. An algorithmic (**Algorithmic**) generator, which uses selectable algorithms for the assigned voice's parameter. Each of the voice's attributes (note, attack, speed, duration, volume, and pan) may be assigned a different algorithm. The algorithm assigned to the note parameter uses pitch numbers to select presets from a soundfont file. Each generator obtains its audio sample from a preset in a soundfont file. 
 3. A stochastic (**Stochastic**) generator, which an uses ensemble or voices and Poisson, continuous, and random probability functions to create a composition.   
-3. An Audio File (**AudioFile**) generator, which contains the samples from an existing audio file. 
 
 # Web Audio Routing Graph
 

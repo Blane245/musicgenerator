@@ -1,4 +1,4 @@
-/* html {
+html {
   width: 11in;
   tab-size: 20px;
 }
@@ -30,10 +30,6 @@ h6 {
   text-align: left;
   font-size: 13px;
 }
-h6 {
-  text-align: left;
-  font-size: 12px;
-}
 p {
   font-size: 10px;
 }
@@ -41,16 +37,15 @@ p {
 table {
   width:fit-content;
   border-collapse: collapse;
-  margin-top: 20px;
 }
 
 th {
   border: 1px solid #ddd;
-  padding: 8px;
+  padding: 2px;
   font-style: italics;
 }
 
 td {
   border: 1px solid #ddd;
-  padding: 8px;
-} */
+  padding: 2px;
+}

@@ -19,12 +19,13 @@ import {
   RMSFACTOR,
   SAMPLERATE,
   TIMBRE,
+  UNIT,
   Voice,
   VoiceHues,
-} from "../../types";
-import continuousProbability from "../../utils/probability/continuousprobability";
-import intervalProbabilty from "../../utils/probability/intervalprobability";
-import probabilityLookup from "../../utils/probability/probabilitylookup";
+} from "types";
+import continuousProbability from "utils/probability/continuousprobability";
+import intervalProbabilty from "utils/probability/intervalprobability";
+import probabilityLookup from "utils/probability/probabilitylookup";
 import applyIntensity from "./algorithms/applyintensity";
 import applyPan from "./algorithms/applypan";
 import addBuffer from "utils/addbuffer";
@@ -69,7 +70,7 @@ export default function buildCloud(props: {
     dynamicsRN: rN,
   } = { ...generator.values };
 
-  const UNIT: number = 100; // units for the probability table
+  
 
   const newCloudState: CloudState = { ...cloudState };
   const cloudCount = Math.ceil(SAMPLERATE * cloudDuration);

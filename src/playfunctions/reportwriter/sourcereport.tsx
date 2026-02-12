@@ -1,135 +1,131 @@
-// import CMGFile from "classes/cmgfile";
-// import Algorithmic from "classes/generators/algorithmic"
-// import AudioFile from "classes/generators/audiofile"
-// import Silent from "classes/generators/silent";
-// import { buildSources } from "playfunctions/buildsources";
-// import ReadyPlay from "playfunctions/readyplay";
-// import { signalLevel } from "utils/signallevel";
-// import {
-//   GENERATORTYPE,
-//   GeneratorType,
-//   PLAYMODE,
-//   RawSourceData,
-// } from "../../types";
-// import Stochastic from "classes/generators/stochastic";
-// import buildSourceData from "playfunctions/buildsourcedata";
+import { Fragment } from "react";
+import { GeneratorType, ReportInstrument, ReportSourceData } from "../../types";
 
-// export interface SourceReportProps {
-//   generator: GeneratorType | undefined; // undefined if for all generators
-//   fileContents: CMGFile;
-// }
+export interface SourceReportProps {
+  generator: GeneratorType | null; // undefined if for all generators
+  sourceData: ReportSourceData[];
+}
 
-// export default function SourceReport(props: SourceReportProps): JSX.Element {
-//   const { generator, fileContents } = props;
-//   let sources: RawSourceData[] = [];
-//   let error: string = "";
-//   if (generator != undefined) {
-//   } else {
-//     const result = buildSourceData({
-//       mode: PLAYMODE.play,
-//       fileContents,
-//       generator: null,
-//       timelineInterval: null,
-//       windowWidth: screenWidth,
-//       windowHeight: screenHeight,
-//       recordFormat: recordFormat,
-//     });
-//     sources = result.sources;
-//     error = result.error;
-//   }
-//   return (
-//     <>
-//       {error != "" ? <h5>Error in source construction - {error}</h5> : null}
-//       {generator ? (
-//         <h5>
-//           Generators Sources for {generator.name}:{generator.type}, start/stop{" "}
-//           {generator.startTime.toFixed(3)}/{generator.stopTime.toFixed(3)}
-//         </h5>
-//       ) : (
-//         <h5>Generator Sources for Composition in Start Time Order</h5>
-//       )}
-//       <table>
-//         <thead>
-//           <tr>
-//             <th>Start Time (sec)</th>
-//             <th>Stop Time (sec)</th>
-//             <th>Instrument Name</th>
-//             <th>Sample Rate (samples/sec)</th>
-//             <th>Sample Count</th>
-//             <th>Looping?</th>
-//             <th>Root Key (pitch)</th>
-//             <th>Pitch Correction (cents)</th>
-//             <th>Playback Rate</th>
-//             <th>Attack Enabled?</th>
-//             <th>Delay (sec)</th>
-//             <th>Attack (sec)</th>
-//             <th>Hold (sec)</th>
-//             <th>Decay (sec)</th>
-//             <th>End (sec)</th>
-//             <th>Release (sec)</th>
-//             <th>Total Duration (sec)</th>
-//           </tr>
-//           <tr>
-//             <th></th>
-//             <th></th>
-//             <th></th>
-//             <th></th>
-//             <th></th>
-//             <th></th>
-//             <th></th>
-//             <th></th>
-//             <th></th>
-//             <th></th>
-//             <th>Volume Gain</th>
-//             <th>Attenuation Gain</th>
-//             <th>Sustain Gain</th>
-//             <th>End Gain</th>
-//             <th>Average Signal Level</th>
-//           </tr>
-//         </thead>
-//         <tbody>
-//           {sources.map((s: RawSourceData) => (
-//             <>
-//               <tr>
-//                 <td>{s.source.startTime.toFixed(2)}</td>
-//                 <td>{s.source.stopTime.toFixed(2)}</td>
-//                 <td>{s.instrument?.name}</td>
-//                 <td>{s.source.sampleRate.toFixed(0)}</td>
-//                 <td>{s.source.sample[0].length}</td>
-//                 <td>{s.instrument?.loop ? "true" : "false"}</td>
-//                 <td>{s.instrument?.rootKey.toFixed(0)}</td>
-//                 <td>{s.instrument?.cents.toFixed(0)}</td>
-//                 <td>{s.source.playbackRate.toFixed(6)}</td>
-//                 <td>{(s.gen as Algorithmic).attackEnabled? "true": "false"}</td>
-//                 <td>{s.instrument?.delayEnd.toFixed(3)}</td>
-//                 <td>{s.instrument?.attackEnd.toFixed(3)}</td>
-//                 <td>{s.instrument?.holdEnd.toFixed(3)}</td>
-//                 <td>{s.instrument?.decayEnd.toFixed(3)}</td>
-//                 <td>{s.instrument?.noteEnd.toFixed(3)}</td>
-//                 <td>{s.instrument?.releaseEnd.toFixed(3)}</td>
-//                 <td>{s.instrument?.totalTime.toFixed(3)}</td>
-//               </tr>
-//               <tr>
-//                 <td></td>
-//                 <td></td>
-//                 <td></td>
-//                 <td></td>
-//                 <td></td>
-//                 <td></td>
-//                 <td></td>
-//                 <td></td>
-//                 <td></td>
-//                 <td></td>
-//                 <td>{s.instrument?.volumeGain.toFixed(3)}</td>
-//                 <td>{s.instrument?.attenuation.toFixed(3)}</td>
-//                 <td>{s.instrument?.sustainGain.toFixed(3)}</td>
-//                 <td>{s.instrument?.noteEndGain.toFixed(3)}</td>
-//                 <td>{signalLevel(s.source.sample[0]).toFixed(5)}</td>
-//               </tr>
-//             </>
-//           ))}
-//         </tbody>
-//       </table>
-//     </>
-//   );
-// }
+export default function SourceReport(props: SourceReportProps): JSX.Element {
+  // this will report on a single generator or all generators
+
+  const { generator, sourceData: sourceData } = props;
+
+  // report produced for all generators or a specific one
+  const sources: ReportSourceData[] = generator
+    ? sourceData.filter(
+        (s: ReportSourceData) => generator.name == s.generatorName,
+      )
+    : sourceData;
+      const key: string = generator? generator.name: 'all';
+  // draw the gain envelope for one instrument, scaling the time to account for all of the instrument's in the source
+  const ENVELOPEWIDTH: number = 500;
+  const ENVELOPEHEIGHT: number = 50;
+  const getGainEnvelope = (
+    instrument: ReportInstrument,
+    source: ReportSourceData,
+  ): JSX.Element[] => {
+    const result: JSX.Element[] = [];
+
+    // get the longest total time of all of the instruments for scaling
+    let maxTime: number = 0;
+    source.instrument.forEach((i) => {
+      i.envelope.forEach((e) => {
+        maxTime = Math.max(e.t, maxTime);
+      });
+    });
+    if (maxTime == 0 || instrument.envelope.length == 0)
+      return [<div>No Signal Envelopes to Display</div>];
+
+    const xScale: number = ENVELOPEWIDTH / maxTime;
+    const yScale: number = ENVELOPEHEIGHT / 1; // max gain is one
+
+    const lineTo = (x: number, y: number): string => {
+      return `L${x * xScale} ${yScale * (1 - y)} `;
+    };
+
+    let path: string = "";
+    path += `M0 ${ENVELOPEHEIGHT} `;
+    instrument.envelope.forEach((e: { t: number; g: number }) => {
+      path += lineTo(e.t, e.g);
+    });
+    path += "Z";
+    result.push(
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        height={ENVELOPEHEIGHT.toString() + "px"}
+        width={ENVELOPEWIDTH.toString() + "px"}
+        key={`envelope-${source.generatorName}-${instrument.name}`}
+      >
+        <path d={path} fill="black" />
+      </svg>,
+    );
+    result.push(<div>{`duration: ${maxTime.toFixed(2)} (sec)`}</div>);
+    return result;
+  };
+  return (
+    <>
+      {sources.length > 0 ? (
+        <>
+          {generator ? (
+            <h4>Sources</h4>
+          ) : (
+            <h1>Generator Sources for Composition</h1>
+          )}
+          <table>
+            <thead>
+              <tr>
+                <th>Start Time (sec)</th>
+                <th>Stop Time (sec)</th>
+                <th>SoundFont</th>
+                <th>Preset</th>
+                <th>Start Pitch (midi)</th>
+                <th>End Pitch (midi)</th>
+                <th>Instrument Name</th>
+                <th>Looping?</th>
+                <th>Start Loop (samples)</th>
+                <th>End Loop (samples)</th>
+                <th>Root Key (midi)</th>
+                <th>Start cents</th>
+                <th>End cents</th>
+                <th>Sample Rate (samples/sec)</th>
+                <th>Sample Count</th>
+                <th>Attack Enabled?</th>
+                <th>Gain Envelope</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sources.map((s: ReportSourceData, sIndex: number) => (
+                <Fragment key={`g-${key}-source-${sIndex}`}>
+                  {s.instrument.map((i: ReportInstrument, iIndex: number) => (
+                    <tr key={`g-${key}-source-${sIndex}-instrument${iIndex}`}>
+                      <td>{s.startTime.toFixed(2)}</td>
+                      <td>{s.stopTime.toFixed(2)}</td>
+                      <td>{s.soundFontName}</td>
+                      <td>{s.presetName}</td>
+                      <td>{s.startPitch.toFixed(2)}</td>
+                      <td>{s.endPitch.toFixed(2)}</td>
+                      <td>{i.name}</td>
+                      <td>{i.loopEnabled ? "true" : "false"}</td>
+                      <td>{i.loopStart.toFixed(0)}</td>
+                      <td>{i.loopEnd.toFixed(0)}</td>
+                      <td>{i.rootKey.toFixed(0)}</td>
+                      <td>{i.startCents.toFixed(0)}</td>
+                      <td>{i.endCents.toFixed(0)}</td>
+                      <td>{i.sampleRate.toFixed(0)}</td>
+                      <td>{i.sampleCount.toFixed(0)}</td>
+                      <td>{i.attackEnabled ? "true" : "false"}</td>
+                      <td>{getGainEnvelope(i, s)}</td>
+                    </tr>
+                  ))}
+                </Fragment>
+              ))}
+            </tbody>
+          </table>
+        </>
+      ) : (
+        <h4>No sources</h4>
+      )}
+    </>
+  );
+}

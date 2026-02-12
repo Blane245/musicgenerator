@@ -24,7 +24,6 @@ Computer Music Generator (CMG) User's Guide, Version 6.0.0
     - [Silent](#silent)
     - [Algorithmic](#algorithmic)
     - [Stochastic](#stochastic)
-    - [AudioFile](#audiofile)
   - [Generator Pulldown Menu](#generator-pulldown-menu)
   - [Moving a Generator Within Its Track](#moving-a-generator-within-its-track)
 - [Timeline](#timeline)
@@ -391,16 +390,6 @@ The ***Build Composition** button will cause the composition to be rebuilt using
 
 The rows and columns can be rearranged by the user. Rows may be moved up and down the table, and columns may be moved left and right. This provides some creativity to the composition, giving control of dynamic progression and voice prominence. The order of the rows and columns are maintained through the life of the composition and is saved with the CMG file. If any compositional parameters are changed the composition is erased and all previous reorder is forgotten.
  
-### AudioFile.
-This is not really a generator as it will play a saved audio file rather than generate a new sound. The user specifies the start time of the playback and its volume. The entire audio file is then played from beginning to end. A good use of an audio file generator is to build up a new composition from the recording of other compositions.  
-- **Volume:** This is the volume at which the audio file will be played back. It must be between -10 and 10 with a step size of 1. The default value is 0.
-- **Audio File:** All files are displayed and the one selected will be read. If it is not an valid audio file, at error message will be display and the file will not be loaded. The stop time an the information about the audio file (sample rate, duration, and number of channels) is not updated until the volume is changed or the next time the generator is viewed.
-<p align="center">
-  <img src="./images/AudioFileGenerator.png" width="50%" height: auto; alt="description">
-  <br>
-  <em>The definition of an audiofile generator </em>
-</p>
-
 ## Generator Pulldown Menu
 
 Each generator has a pulldown menu that is activated by clicking on the name of the generator in the track timeline display. The following functions are available:
@@ -485,6 +474,7 @@ The equalizer values may be reset to defaults by clicking the equalizer reset bu
 ## Room Volume
 The volume slider affects the final volume of the generated sound. The slider has a default value of 0. It ranges from -10 dB to +10 dB in steps of 1. Positive values increase the volume, while negative values decrease the volume. 
 
+TODO rewrite
 # Previewing, Recording, and Reporting
 The whole purpose of this application is to produce sound from the defined generators. This is accomplished using the Preview and Record menu options on the *Play* menu. A *Report* option is also available. 
 

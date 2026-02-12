@@ -5,7 +5,6 @@ import {
   getElementElement,
 } from "utils/xmlfunctions";
 import Silent from "./generators/silent";
-import AudioFile from "./generators/audiofile";
 import Algorithmic from "./generators/algorithmic";
 import Stochastic from "./generators/stochastic";
 import { debug } from "utils/debug";
@@ -107,16 +106,6 @@ export default class Track {
           case GENERATORTYPE.Silent:
             {
               const generatorPromise: Promise<Silent> = Silent.getXML(
-                child,
-                version,
-                this
-              );
-              generatorPromises.push(generatorPromise);
-            }
-            break;
-          case GENERATORTYPE.AudioFile:
-            {
-              const generatorPromise: Promise<AudioFile> = AudioFile.getXML(
                 child,
                 version,
                 this

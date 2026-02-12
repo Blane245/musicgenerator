@@ -3,7 +3,11 @@
 // and add generator
 import Track from "classes/track";
 import { useCMGContext } from "cmgcontext";
-import { TrackDuplicateDialog, TrackShiftDialog, TrackVolumeDialog } from "dialogs/tracktooldialogs";
+import {
+  TrackDuplicateDialog,
+  TrackShiftDialog,
+  TrackVolumeDialog,
+} from "dialogs/tracktooldialogs";
 import { ChangeEvent, FormEvent, MouseEvent, useState } from "react";
 import {
   AiFillCaretDown,
@@ -47,18 +51,18 @@ export default function TrackControls(props: TrackControlsProps) {
   const [message, setMessage] = useState<string>("");
   const [menuEnabled, setMenuEnabled] = useState<boolean>(false);
   const [toolsEnabled, setToolsEnabled] = useState<boolean>(false);
-  const [menu, setMenu] = useState<{x:number, y:number}>({x:0, y:0});
-  const [tool, setTool] = useState<{x:number, y:number}>({x:0, y:0});
-  const [duplicateEnabled, setDuplicateEnabled] = useState<boolean> (false);
-  const [volumeEnabled, setVolumeEnabled] = useState<boolean> (false);
-  const [shiftEnabled, setShiftEnabled] = useState<boolean> (false);
+  const [menu, setMenu] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [tool, setTool] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [duplicateEnabled, setDuplicateEnabled] = useState<boolean>(false);
+  const [volumeEnabled, setVolumeEnabled] = useState<boolean>(false);
+  const [shiftEnabled, setShiftEnabled] = useState<boolean>(false);
 
   function handleDeleteTrack(): void {
     setDeleteModal(true);
   }
   function handleDeleteOK(): void {
     const thisIndex = fileContents.tracks.findIndex(
-      (t) => t.name == track.name
+      (t) => t.name == track.name,
     );
     if (thisIndex < 0) return;
     setStatus(`Track ${track.name} deleted`);
@@ -88,7 +92,7 @@ export default function TrackControls(props: TrackControlsProps) {
       return;
     }
     const thisIndex = fileContents.tracks.findIndex(
-      (t) => t.name == track.name
+      (t) => t.name == track.name,
     );
     if (thisIndex < 0) return;
     setStatus(`Track '${track.name}' renamed`);
@@ -110,7 +114,7 @@ export default function TrackControls(props: TrackControlsProps) {
 
   function handleMuteTrack(): void {
     const thisIndex = fileContents.tracks.findIndex(
-      (t) => t.name == track.name
+      (t) => t.name == track.name,
     );
     if (thisIndex >= 0) {
       setStatus(`Track '${track.name} mute toggled`);
@@ -120,7 +124,7 @@ export default function TrackControls(props: TrackControlsProps) {
 
   function handleSoloTrack(): void {
     const thisIndex = fileContents.tracks.findIndex(
-      (t) => t.name == track.name
+      (t) => t.name == track.name,
     );
     if (thisIndex >= 0) {
       setStatus(`Track '${track.name} solo toggled`);
@@ -130,18 +134,18 @@ export default function TrackControls(props: TrackControlsProps) {
 
   function handleAddGenerator(
     event: MouseEvent<Element>,
-    trackIndex: number
+    trackIndex: number,
   ): void {
     event.preventDefault();
     event.stopPropagation();
-    setMenu({x:controlWidth / 4 , y: 100 / 3 + trackIndex * 100});
+    setMenu({ x: controlWidth / 4, y: 100 / 3 + trackIndex * 100 });
     setMenuEnabled(true);
   }
 
   function handleTools(event: MouseEvent<Element>, trackIndex: number) {
     event.preventDefault();
     event.stopPropagation();
-    setTool({x:controlWidth / 4, y: 100 * 2 / 3 + trackIndex * 100});
+    setTool({ x: controlWidth / 4, y: (100 * 2) / 3 + trackIndex * 100 });
     setToolsEnabled(true);
   }
 
@@ -173,13 +177,13 @@ export default function TrackControls(props: TrackControlsProps) {
     setTrackIndex(trackIndex);
     if (trackIndex < 0) return;
     switch (type) {
-      case 'Duplicate':
+      case "Duplicate":
         setDuplicateEnabled(true);
         break;
-      case 'Shift':
+      case "Shift":
         setShiftEnabled(true);
         break;
-      case 'Volume':
+      case "Volume":
         setVolumeEnabled(true);
         break;
       default:
@@ -231,6 +235,45 @@ export default function TrackControls(props: TrackControlsProps) {
         >
           <RiAiGenerate />
         </button>
+        {!!menuEnabled && (
+          <div className="navbar">
+            <div className="dropdown">
+              <div className="dropbtn">
+                Type
+                <i className="fa fa-caret-down" />
+              </div>
+              <div className="dropdown-one">
+                <div
+                  className="dItem"
+                  onClick={(e) =>
+                    handleSelectGenerator(e, GENERATORTYPE.Silent)
+                  }
+                >
+                  Silent
+                </div>
+                <div
+                  className="dItem"
+                  onClick={(e) =>
+                    handleSelectGenerator(e, GENERATORTYPE.Algorithmic)
+                  }
+                >
+                  Algorithmic
+                </div>
+                <div
+                  className="dItem"
+                  onClick={(e) =>
+                    handleSelectGenerator(e, GENERATORTYPE.Stochastic)
+                  }
+                >
+                  Stochastic
+                </div>
+                <div className="dItem" onClick={() => setMenuEnabled(false)}>
+                  Exit
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       <div>
         <button
@@ -262,7 +305,43 @@ export default function TrackControls(props: TrackControlsProps) {
         >
           <FaTools />
         </button>
+      </div>
+      {!!toolsEnabled && (
+        <div className="model-content">
+          <div className="navbar">
+            <div className="dropdown">
+              <div className="dropbtn">
+                Tools
+                <i className="fa fa-caret-down" />
+              </div>
+              <div className="dropdown-one">
+                <div
+                  className="dItem"
+                  onClick={(e) => handleToolSelect(e, "Duplicate")}
+                >
+                  Duplicate
+                </div>
+                <div
+                  className="dItem"
+                  onClick={(e) => handleToolSelect(e, "Shift")}
+                >
+                  Shift
+                </div>
+                <div
+                  className="dItem"
+                  onClick={(e) => handleToolSelect(e, "Volume")}
+                >
+                  Volume
+                </div>
+                <div className="dItem" onClick={() => setToolsEnabled(false)}>
+                  Exit
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+      )}
+
       <div>
         <button
           disabled={trackIndex == tracks.length - 1}
@@ -326,168 +405,33 @@ export default function TrackControls(props: TrackControlsProps) {
           </div>
         </div>
       ) : null}
-      {menuEnabled ? (
-        <div
-          className="modal-menu"
-          id={"addgenmenu"}
-          key={"addgenmenu"}
-          style={{
-            position: "absolute",
-            top: menu.y.toString() + "px",
-            left: menu.x.toString() + "px",
-            width: "180px",
-            height: "20px",
-            zIndex: 1001,
-          }}
-        >
-          <div
-            className="navbar"
-            style={{
-              position: "relative",
-              top: "0px",
-              visibility: "hidden",
-            }}
-          >
-            <div
-              className="dropdown"
-              style={{
-                visibility: "visible",
-              }}
-            >
-              <div className="dropbtn" >
-                Select Generator Type
-                <i className="fa fa-caret-down" />
-              </div>
-              <div className="dropdown-one">
-                <div
-                  className="dItem"
-                  onClick={(e) =>
-                    handleSelectGenerator(e, GENERATORTYPE.Silent)
-                  }
-                >
-                  Silent
-                </div>
-                <div
-                  className="dItem"
-                  onClick={(e) =>
-                    handleSelectGenerator(e, GENERATORTYPE.Algorithmic)
-                  }
-                >
-                  Algorithmic
-                </div>
-                <div
-                  className="dItem"
-                  onClick={(e) =>
-                    handleSelectGenerator(e, GENERATORTYPE.AudioFile)
-                  }
-                >
-                  AudioFile
-                </div>
-                <div
-                  className="dItem"
-                  onClick={(e) =>
-                    handleSelectGenerator(e, GENERATORTYPE.Stochastic)
-                  }
-                >
-                  Stochastic
-                </div>
-                <div className="dItem" onClick={() => setMenuEnabled(false)}>
-                  Exit
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      {duplicateEnabled ? (
+        <TrackDuplicateDialog
+          fileContents={fileContents}
+          setFileContents={setFileContents}
+          timeLine={timeLine}
+          track={track}
+          enabled={setDuplicateEnabled}
+        />
       ) : null}
-      {toolsEnabled ? (
-        <div
-          className="modal-menu"
-          id={"toolsmenu"}
-          key={"toolsmenu"}
-          style={{
-            position: "absolute",
-            top: tool.y.toString() + "px",
-            left: tool.x.toString() + "px",
-            width: "80px",
-            height: "20px",
-            zIndex: 1001,
-          }}
-        >
-          <div
-            className="navbar"
-            style={{
-              position: "relative",
-              top: "0px",
-              visibility: "hidden",
-            }}
-          >
-            <div
-              className="dropdown"
-              style={{
-                visibility: "visible",
-              }}
-            >
-              <div className="dropbtn">
-                Tools
-                <i className="fa fa-caret-down" />
-              </div>
-              <div className="dropdown-one">
-                <div
-                  className="dItem"
-                  onClick={(e) =>
-                    handleToolSelect(e, 'Duplicate')
-                  }
-                >
-                  Duplicate
-                </div>
-                <div
-                  className="dItem"
-                  onClick={(e) =>
-                    handleToolSelect(e, 'Shift')
-                  }
-                >
-                  Shift
-                </div>
-                <div
-                  className="dItem"
-                  onClick={(e) =>
-                    handleToolSelect(e, 'Volume')
-                  }
-                >
-                  Volume
-                </div>
-                <div className="dItem" onClick={() => setToolsEnabled(false)}>
-                  Exit
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      {shiftEnabled ? (
+        <TrackShiftDialog
+          fileContents={fileContents}
+          setFileContents={setFileContents}
+          timeLine={timeLine}
+          track={track}
+          enabled={setShiftEnabled}
+        />
       ) : null}
-      {duplicateEnabled? (
-        <TrackDuplicateDialog 
-        fileContents={fileContents} 
-        setFileContents={setFileContents} 
-        timeLine={timeLine}
-        track={track} 
-        enabled={setDuplicateEnabled}/>
-      ): null}
-      {shiftEnabled? (
-        <TrackShiftDialog         
-        fileContents={fileContents} 
-        setFileContents={setFileContents} 
-        timeLine={timeLine}
-        track={track} 
-        enabled={setShiftEnabled}/>
-      ): null}
-      {volumeEnabled? (
-        <TrackVolumeDialog         
-        fileContents={fileContents} 
-        setFileContents={setFileContents} 
-        timeLine={timeLine}
-        track={track} 
-        enabled={setVolumeEnabled}/>
-      ): null}
+      {volumeEnabled ? (
+        <TrackVolumeDialog
+          fileContents={fileContents}
+          setFileContents={setFileContents}
+          timeLine={timeLine}
+          track={track}
+          enabled={setVolumeEnabled}
+        />
+      ) : null}
     </>
   );
 }

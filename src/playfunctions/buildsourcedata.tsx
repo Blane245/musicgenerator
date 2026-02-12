@@ -177,14 +177,6 @@ export default async function buildSourceData(
           voiceHues,
         });
         break;
-      // TODO maybe eliminate audiofiles
-      //   case GENERATORTYPE.AudioFile:
-      //     error = getSourcesFromAudioFile(
-      //       g as AudioFile,
-      //       audioBuffer,
-      //       chart,
-      //     );
-      //     break;
     }
     if (error != "") return;
   });
@@ -201,7 +193,7 @@ export default async function buildSourceData(
   const image: HTMLImageElement = await chart.toImgElem();
 
   return Promise.resolve({
-    sourceData: { audio, image, voiceHues },
+    sourceData: { audioBuffer, audio, image, voiceHues },
     error: "",
   });
 }

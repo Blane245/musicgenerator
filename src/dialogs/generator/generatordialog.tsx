@@ -1,6 +1,5 @@
 // provides CRUD for all types of generators
 import Algorithmic from "classes/generators/algorithmic";
-import AudioFile from "classes/generators/audiofile";
 import Silent from "classes/generators/silent";
 import Stochastic from "classes/generators/stochastic";
 import Track from "classes/track";
@@ -65,10 +64,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     preset: undefined,
     presetName: "",
   });
-  const [audioFileData, setAudioFileData] = useState<AudioFile>(
-    new AudioFile(0, track),
-  );
-
   useEffect(() => {
     // either get the generator from the track or build a new one if being added
     if (newGenerator && !generator) {
@@ -85,13 +80,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
         case GENERATORTYPE.Algorithmic:
           {
             const g = new Algorithmic(next, track);
-            setFormData(g);
-            setOldName(g.name);
-          }
-          break;
-        case GENERATORTYPE.AudioFile:
-          {
-            const g = new AudioFile(next, track);
             setFormData(g);
             setOldName(g.name);
           }
@@ -135,14 +123,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
       return n;
     });
   }, [soundFontData]);
-
-  // when the audio file is loaded, update the form to reveal its properties
-  useEffect(() => {
-    setFormData((prev: GeneratorType) => {
-      const n: AudioFile = (prev as AudioFile).copy(prev.parent);
-      return n;
-    });
-  }, [audioFileData]);
 
   // handle changes to the data on the form
   function handleChange(
@@ -259,15 +239,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           }
           return newFormData;
         }
-        case GENERATORTYPE.AudioFile: {
-          const newFormData: AudioFile = (prev as AudioFile).copy(prev.parent);
-          newFormData.setAttribute(eventName, eventValue);
-          // when the filename is given, the stop time will been to update
-          if (newFormData.fileName != "") {
-            setAudioFileData(newFormData);
-          }
-          return newFormData;
-        }
         case GENERATORTYPE.Stochastic: {
           const newFormData: Stochastic = (prev as Stochastic).copy(
             prev.parent,
@@ -302,17 +273,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
         {
           const newMessages = Algorithmic.validate(
             formData as Algorithmic,
-            fileContents,
-            oldName,
-          );
-          msgs.push(...newMessages);
-          setErrorMessages(msgs);
-        }
-        break;
-      case GENERATORTYPE.AudioFile:
-        {
-          const newMessages = AudioFile.validate(
-            formData as AudioFile,
             fileContents,
             oldName,
           );

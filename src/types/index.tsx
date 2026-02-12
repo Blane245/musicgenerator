@@ -7,7 +7,6 @@ import OscillatorValues from "classes/algorithms/oscillatorvalues";
 import SequenceValues from "classes/algorithms/sequencevalues";
 import WienerValues from "classes/algorithms/wienervalues";
 import Algorithmic from "classes/generators/algorithmic";
-import AudioFile from "classes/generators/audiofile";
 import Silent from "classes/generators/silent";
 import Stochastic from "classes/generators/stochastic";
 import Track from "classes/track";
@@ -60,7 +59,7 @@ export type MouseLocation = {
 
 // #region generators
 
-export type GeneratorType = Silent | Algorithmic | AudioFile | Stochastic;
+export type GeneratorType = Silent | Algorithmic | Stochastic;
 
 export type EditGenerator = {
   track: Track | null;
@@ -72,7 +71,6 @@ export type EditGenerator = {
 export enum GENERATORTYPE {
   "Silent" = "Silent",
   "Algorithmic" = "Algorithmic",
-  "AudioFile" = "AudioFile",
   "Stochastic" = "Stochastic",
 }
 
@@ -212,6 +210,7 @@ export type SequenceType = {
 
 // Stochastic generator types
 // export const RMSFACTOR: number = 0.75; // speed standard deviation factor
+export const UNIT: number = 100; // units for the probability table
 export const RMSFACTOR: number = 2; // speed standard devision factor
 
 // the number of clouds in each cell
@@ -569,101 +568,6 @@ export type GainEnvelope = {
   t: number;
   g: number;
 }[];
-// the data that is needed to realize a source and manage it during preview and record
-// export type RawSourceData = {
-//   gen: GeneratorType;
-//   index: number;
-//   source: {
-//     note: number; // pitch number of the source
-//     sample: Float32Array[]; // the sf instrument sample converted to float32 or noise as float32 - length is sampleRate * totalTime * playbackRate
-//     // or the audiofile or Stochastic samples
-//     sampleRate: number; // hz/sec (includes the playbackRate sampleRate (instrument sample) * playbackRate (as calcuated) )
-//     playbackRate: number; // sf playback rate or 1 for noise (will always be one)
-//     startTime: number; // start time of the source within the generator
-//     duration: number; // attackInterval + holdInterval + releaseInterval
-//     stopTime: number; // startTime + duration
-//     started: boolean; // whether or not the source has started playing during preview
-//   };
-//   panner: {
-//     value: number; // pan value from generator
-//   };
-//   vol: { value: number };
-//   instrument?: {
-//     name: string;
-//     sampleRate: number; // sample rate of the instrument
-//     sample: Float32Array; // the instrument's samples
-//     loopStart: number;
-//     loopEnd: number;
-//     loop: boolean;
-//     rootKey: number;
-//     pitchCorrection: number;
-//     fineTune: number;
-//     baseDetune: number;
-//     cents: number;
-//     attackEnabled: boolean;
-//     delayVolEnv: number;
-//     attackVolEnv: number;
-//     holdVolEnv: number;
-//     decayVolEnv: number;
-//     releaseVolEnv: number;
-//     sustainVolEnv: number;
-//     delayEnd: number;
-//     attackEnd: number;
-//     holdEnd: number;
-//     decayEnd: number;
-//     noteEnd: number;
-//     interval: number;
-//     duration: number;
-//     releaseEnd: number;
-//     totalTime: number;
-//     noteEndGain: number;
-//     volumeValue: number;
-//     volumeGain: number;
-//     sustainGain: number;
-//     initialAttenuation: number;
-//     attenuation: number;
-//     envelope: GainEnvelope;
-//   };
-// };
-
-// the attributes of a source that is managed during preview
-// export type ActiveSource = {
-//   gen: GeneratorType;
-//   source: AudioBufferSourceNode;
-//   sourceIndex: number;
-//   vol: GainNode;
-//   stopTime: number;
-// };
-
-// export enum SectionType {
-//   "Instrument" = "Instrument",
-//   "Percussion" = "Percussion",
-//   "Audio" = "Audio",
-//   "None" = "None",
-// }
-// export type DrawingSection = {
-//   type: SectionType;
-//   verticalOffset: number;
-//   height: number;
-//   loValue: number;
-//   hiValue: number;
-// };
-// export type SourceToDrawingSectionEntry = {
-//   sourceIndex: number;
-//   sectionIndex: number;
-// };
-
-// export type SignalLevelsType = {
-//   leftVolume: number;
-//   leftMax: number;
-//   rightVolume: number;
-//   rightMax: number;
-//   leftSpectrum: Uint8Array;
-//   rightSpectrum: Uint8Array;
-// };
-
-// export const MINDECIBELS: number = -100;
-// export const MAXDECIBELS: number = -10;
 // #endregion
 
 // #region externalinterfaces
@@ -786,10 +690,34 @@ export type TimeMidiLine = {
 };
 
 export type SourceData = {
+  audioBuffer: Float32Array[];
   audio: Blob; // in memory audio 
   image: HTMLImageElement;
   voiceHues: VoiceHues;
 }
 
 export type VoiceHues = Map<string, number>;
+export type ReportInstrument = {
+    name: string;
+    loopEnabled: boolean;
+    loopStart: number;
+    loopEnd: number;
+    rootKey: number;
+    startCents: number;
+    endCents: number;
+    sampleRate: number;
+    sampleCount: number;
+    attackEnabled: boolean;
+    envelope: GainEnvelope;
+}
+export type ReportSourceData = {
+  generatorName: string;
+  startTime: number;
+  stopTime: number;
+  soundFontName: string;
+  presetName: string;
+  startPitch: number;
+  endPitch: number;
+  instrument: ReportInstrument[];
+}
 // #endregion

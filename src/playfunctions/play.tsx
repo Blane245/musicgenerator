@@ -1,5 +1,6 @@
 // only displays the status
 import CMG2 from "assets/CMG2.svg";
+import SignalLevel from "classes/signallevel";
 import { useCMGContext } from "cmgcontext";
 import React, { SyntheticEvent, useEffect, useRef, useState } from "react";
 import {
@@ -11,7 +12,7 @@ import {
 } from "react-icons/ai";
 import { FcAddressBook, FcOk } from "react-icons/fc";
 import { dBToGain, toNote } from "sfcomponents/util";
-import { PLAYMODE } from "types";
+import { PLAYMODE, SAMPLERATE } from "types";
 import { debug } from "utils/debug";
 import secondsToMMSS from "utils/secondstommss";
 
@@ -27,7 +28,6 @@ const IMAGEPADDING: number = 50; //px
 export default function Play(params: PlayProps): JSX.Element {
   const { setMode } = params;
   const {
-    setCursor,
     screenWidth: windowWidth,
     screenHeight: windowHeight,
     setStatus,
@@ -38,6 +38,7 @@ export default function Play(params: PlayProps): JSX.Element {
     fileContents,
     sourceData,
     setSourceData,
+    recordFormat,
   } = useCMGContext();
   const isPlaying = useRef<boolean>(false);
   const [showLegend, setShowLegend] = useState<boolean>(false);
@@ -56,9 +57,21 @@ export default function Play(params: PlayProps): JSX.Element {
   const [imageDuration, setImageDuration] = useState<number>(0); // the time frame of the image (60 minute intervals)
   const [imageWidth, setImageWidth] = useState<number>(0); // the window size times the number of minutes in the image
   const [audioPosition, setAudioPosition] = useState<number>(0); // the current time of the audio, either playing or positioning
+  const [signalLevel, setSignalLevel] = useState<{
+    average: number[];
+    maximum: number[];
+  }>({ average: Array<number>(2).fill(0), maximum: Array<number>(2).fill(0) });
+  const resetTime = useRef<number>(0);
+  const RESETINCREMENT: number = 10000; // sec
+  const levelObject = useRef<SignalLevel>(new SignalLevel(2));
   const timerId = useRef<number>(0);
   const TIMERDELTA: number = 20; //ms
   const timerIncrement = useRef<number>(0);
+  const LEVELHEIGHT: string = "20";
+  const LEVELWIDTH: number = 150;
+  const LEVELSTROKE: string[] = ["green", "red"];
+  const LEVELAVERAGE: string = "black";
+  const LEVELMAXIMUM: string = "gray";
 
   // #region useeffect
   // capture the audio and image elements at start up
@@ -68,7 +81,9 @@ export default function Play(params: PlayProps): JSX.Element {
     if (aElem) {
       setAudioElem(aElem as HTMLAudioElement);
       (aElem as HTMLAudioElement).pause();
-      (aElem as HTMLAudioElement).addEventListener("timeupdate", (event)=> handleAudioTimeUpdate(event))
+      // (aElem as HTMLAudioElement).addEventListener("timeupdate", (event) =>
+      //   handleAudioTimeUpdate(event),
+      // );
     }
     const pElem: HTMLElement | null = document.getElementById("play-legend");
     if (pElem) {
@@ -79,19 +94,17 @@ export default function Play(params: PlayProps): JSX.Element {
     if (cElem) {
       setContainerElem(cElem as HTMLDivElement);
     }
-    setCursor("wait");
   }, []);
 
   // Cleanup on unmount to ensure timers and listeners are cleared
   useEffect(() => {
     return () => {
-      setCursor("default");
       if (timerId.current) {
         clearTimeout(timerId.current);
       }
       if (audioElem) {
         audioElem.pause();
-    audioElem.removeEventListener("timeupdate", handleAudioTimeUpdate);
+        // audioElem.removeEventListener("timeupdate", handleAudioTimeUpdate);
       }
     };
   }, [audioElem]);
@@ -101,7 +114,6 @@ export default function Play(params: PlayProps): JSX.Element {
     const objectUrl = URL.createObjectURL(sourceData.audio);
     setAudioSrc(objectUrl);
     debug.info("audio loaded");
-      setCursor("default");
   }, [sourceData?.audio]);
 
   // when sourcedata arrives load the image
@@ -122,8 +134,38 @@ export default function Play(params: PlayProps): JSX.Element {
     debug.info("image appended to image-container, width", img.style.width);
   }, [sourceData?.image, containerElem, playLegendElem]);
 
+  // starting and stopping the aignal level calculation
+  useEffect(() => {
+    setSignalLevel(signalLevel);
+  }, []);
+
   // #endregion
 
+  // #region signal level
+  // when playing get the signal level from the current time to some number of samples in the past
+  const SIGNALWINDOW: number = 1024;
+  const getLevel = (time: number) => {
+    if (!sourceData) return;
+    // console.log(`signal level requested at t=${time}`);
+    const startSample: number = Math.trunc(time * SAMPLERATE - SIGNALWINDOW);
+    if (startSample >= 0) {
+      const { average, maximum } = levelObject.current.getSignalLevel(
+        sourceData.audioBuffer,
+        startSample,
+        SIGNALWINDOW,
+      );
+      setSignalLevel({ average, maximum });
+      // console.log(`signal level requested at t=${time}, start sample=${startSample}`, average, maximum);
+    } else {
+      // console.log(`start sample less than zero ${startSample}`);
+      setSignalLevel({
+        average: Array<number>(2).fill(0),
+        maximum: Array<number>(2).fill(0),
+      });
+    }
+  };
+  //
+  // #endregion
   // #region utilities
 
   // build the labels for the image
@@ -186,6 +228,14 @@ export default function Play(params: PlayProps): JSX.Element {
   // _time is the audio time to use to set the translation
   const triggerPlayState = (_time: number) => {
     if (!imageElem || !audioElem) return;
+
+    // reset the maximum every RESETINCREMENT seconds
+    if (_time > resetTime.current) {
+      resetTime.current += RESETINCREMENT;
+      levelObject.current.resetMaximum();
+    }
+
+    getLevel(_time);
     if (isPlaying.current) {
       // stop the timer and adjust the position to the scroll position
       if (timerId.current) {
@@ -223,12 +273,12 @@ export default function Play(params: PlayProps): JSX.Element {
     // if (document.activeElement instanceof HTMLElement) {
     //   document.activeElement.blur();
     // }
-    if (audioElem) audioElem.removeEventListener("timeupdate", handleAudioTimeUpdate);
+    // if (audioElem)
+    //   audioElem.removeEventListener("timeupdate", handleAudioTimeUpdate);
     setMode(PLAYMODE.idle);
     setSourceData(undefined);
     setShowLegend(false);
     isPlaying.current = false;
-      setCursor("default");
     setStatus(`Play Terminated`);
   };
 
@@ -246,6 +296,8 @@ export default function Play(params: PlayProps): JSX.Element {
       return;
     }
     setAudioPosition(0);
+    levelObject.current.resetMaximum();
+    setSignalLevel({ average: [0, 0], maximum: [0, 0] });
     if (audioElem) audioElem.currentTime = 0;
     imageElem.classList.remove("scrolling");
     imageElem.style.setProperty("transform", "translateX(0px)");
@@ -255,8 +307,55 @@ export default function Play(params: PlayProps): JSX.Element {
     debug.log("restart");
   };
 
-  // TODO save the audio and scrolling image as a movie?
-  const handleSave = () => {};
+  // save the audio file
+  const handleSave = async () => {
+    if (isPlaying.current) return;
+    try {
+      if (!sourceData) return;
+
+      // Determine file extension and MIME type
+      const isMP3 = recordFormat === "mp3";
+      const fileExt = isMP3 ? ".mp3" : ".wav";
+      const mimeType = isMP3 ? "audio/mpeg" : "audio/wav";
+
+      // Extract base filename from CMG file
+      const cmgTypeIndex: number = fileContents.name.lastIndexOf(".cmg");
+      let suggestedName = "output" + fileExt;
+      if (cmgTypeIndex > 0) {
+        const baseName = fileContents.name.substring(
+          fileContents.name.lastIndexOf("\\") + 1,
+          cmgTypeIndex,
+        );
+        suggestedName = baseName + fileExt;
+      }
+
+      // Ask user where to save the file
+      const handle: FileSystemFileHandle = await window.showSaveFilePicker({
+        suggestedName: suggestedName,
+        types: [
+          {
+            description: isMP3 ? "MP3 Audio File" : "WAV Audio File",
+            accept: { [mimeType]: [fileExt] },
+          },
+        ],
+      });
+
+      // Write the audio blob to the file
+      const writable: FileSystemWritableFileStream =
+        await handle.createWritable();
+      await writable.write(sourceData.audio);
+      await writable.close();
+
+      window.alert(`File saved successfully as ${handle.name}`);
+    } catch (e) {
+      const error = e as Error;
+      // Don't show error if user cancelled the dialog
+      if (error.name !== "AbortError") {
+        debug.error(`Error while writing audio file - ${error.message}`);
+        window.alert(`Error saving file: ${error.message}`);
+      }
+    }
+  };
 
   // pointer down on range input.
   // cancel playing mode
@@ -299,6 +398,8 @@ export default function Play(params: PlayProps): JSX.Element {
       return;
     }
     const _time: number = parseFloat(event.currentTarget.value);
+    levelObject.current.resetMaximum();
+    setSignalLevel({ average: [0, 0], maximum: [0, 0] });
     setAudioPosition(_time);
     audioElem.currentTime = _time;
     isPlaying.current = true;
@@ -309,9 +410,7 @@ export default function Play(params: PlayProps): JSX.Element {
   // #region audioactions
   // get the audio duration and set the duration and windowing parameters
   // this should load the image data
-  const handleAudioMetaData = (
-    event: SyntheticEvent<HTMLAudioElement>,
-  ) => {
+  const handleAudioMetaData = (event: SyntheticEvent<HTMLAudioElement>) => {
     // when the audio duration is know, set the scales
     // for the image time and width
     // 60 seconds / window width
@@ -326,7 +425,7 @@ export default function Play(params: PlayProps): JSX.Element {
   // as the audio advances update the scroll position for user reporting
   // on the range element
   const handleAudioTimeUpdate = (
-    event: Event,
+    event: SyntheticEvent<HTMLAudioElement, Event>,
   ) => {
     if (audioDuration == 0 || !imageElem) {
       if (audioDuration == 0)
@@ -339,7 +438,9 @@ export default function Play(params: PlayProps): JSX.Element {
         );
       return;
     }
-    const _currentTime: number = event.currentTarget?event.currentTarget["currentTime"]: 0;
+    const _currentTime: number = event.currentTarget
+      ? event.currentTarget["currentTime"]
+      : 0;
     setAudioPosition(_currentTime);
     // force pause when at the end
     if (_currentTime >= audioDuration) isPlaying.current = false;
@@ -350,9 +451,11 @@ export default function Play(params: PlayProps): JSX.Element {
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!audioElem) return;
     const value: number = parseFloat(e.currentTarget.value);
+    levelObject.current.resetMaximum();
+    setSignalLevel({ average: [0, 0], maximum: [0, 0] });
     setAudioVolume(value);
-    audioElem.volume = dBToGain((value-10) * 2);
-  }
+    audioElem.volume = dBToGain((value - 10) * 2);
+  };
 
   // stop the audio playing and the image scrolling
   const handleAudioEnded = () => {
@@ -383,11 +486,13 @@ export default function Play(params: PlayProps): JSX.Element {
             <button type="button" onClick={() => handlePlayPauseClick()}>
               {isPlaying.current ? <AiFillPauseCircle /> : <AiFillPlayCircle />}
             </button>
-            <input type="range" onChange={(e) => handleVolumeChange(e)}
-            min={-10}
-          max={10}
-          step={1}
-          value={audioVolume}
+            <input
+              type="range"
+              onChange={(e) => handleVolumeChange(e)}
+              min={-10}
+              max={10}
+              step={1}
+              value={audioVolume}
             />
             <button type="button" onClick={() => handleRestart()}>
               <AiFillStepBackward />
@@ -404,19 +509,73 @@ export default function Play(params: PlayProps): JSX.Element {
                 value={audioPosition}
                 min={0}
                 max={audioDuration}
-                step={1}
+                step={5}
                 onMouseDownCapture={(event) => handleRangeMouseDown(event)}
                 onChange={(event) => handleRangeMouseChange(event)}
                 onMouseUp={(event) => handleRangeMouseUp(event)}
               />
               <span>{secondsToMMSS(audioDuration)}</span>
             </label>
-            <button type="button" onClick={() => handleSave()}>
+            <button
+              type="button"
+              disabled={isPlaying.current}
+              onClick={() => handleSave()}
+            >
               <AiFillSave />
             </button>
             <button type="button" onClick={() => handleExit()}>
               <AiFillCloseCircle />
             </button>
+          </div>
+          <div className="levels">
+            <svg
+              width={LEVELWIDTH.toString() + "px"}
+              height={LEVELHEIGHT + "px"}
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d={`M 0 0 V ${LEVELHEIGHT} H ${LEVELWIDTH.toString()} V 0`}
+                stroke={LEVELSTROKE[0]}
+                fill="transparent"
+                strokeWidth={2}
+              />
+              <path
+                d={`M ${Math.min(signalLevel.average[0] * LEVELWIDTH, LEVELWIDTH)} 0 V ${LEVELHEIGHT}`}
+                stroke={LEVELAVERAGE}
+                fill="transparent"
+                strokeWidth={2}
+              />
+              <path
+                d={`M ${Math.min(signalLevel.maximum[0] * LEVELWIDTH, LEVELWIDTH)} 0 V ${LEVELHEIGHT}`}
+                stroke={LEVELMAXIMUM}
+                fill="transparent"
+                strokeWidth={2}
+              />
+            </svg>
+            <svg
+              width={LEVELWIDTH.toString() + "px"}
+              height={LEVELHEIGHT + "px"}
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d={`M 0 0 V ${LEVELHEIGHT} H ${LEVELWIDTH.toString()} V 0`}
+                stroke={LEVELSTROKE[1]}
+                fill="transparent"
+                strokeWidth={2}
+              />
+              <path
+                d={`M ${Math.min(signalLevel.average[1] * LEVELWIDTH, LEVELWIDTH)} 0 V ${LEVELHEIGHT}`}
+                stroke={LEVELAVERAGE}
+                fill="transparent"
+                strokeWidth={2}
+              />
+              <path
+                d={`M ${Math.min(signalLevel.maximum[1] * LEVELWIDTH, LEVELWIDTH)} 0 V ${LEVELHEIGHT}`}
+                stroke={LEVELMAXIMUM}
+                fill="transparent"
+                strokeWidth={2}
+              />
+            </svg>
           </div>
           <div className="title" style={{ fontWeight: "bold" }}>
             {`${appName}: ${appVersion} (${fileContents.name})${fileContents.dirty ? "*" : ""}`}
@@ -427,7 +586,7 @@ export default function Play(params: PlayProps): JSX.Element {
           src={audioSrc != "" ? audioSrc : undefined}
           controls={false}
           onLoadedMetadata={(event) => handleAudioMetaData(event)}
-          // onTimeUpdate={(event) => handleAudioTimeUpdate(event)}
+          onTimeUpdate={(event) => handleAudioTimeUpdate(event)}
           onEnded={() => handleAudioEnded()}
         ></audio>
         <div
@@ -435,7 +594,7 @@ export default function Play(params: PlayProps): JSX.Element {
           hidden={!imageElem}
           style={{ width: `${windowWidth}px`, height: `${windowWidth}px` }}
         >
-          <div id="image-container"/>
+          <div id="image-container" />
           <div
             id="play-legend"
             style={{
