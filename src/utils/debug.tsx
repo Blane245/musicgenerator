@@ -12,6 +12,8 @@ export const setDebugMode = (level: string) => {
   debugLevel = DEBUGLEVEL[level];
 };
 
+export const getDebugMode = ():DEBUGLEVEL => {return debugLevel};
+
 export const debug = {
   log: (...args: any[]) => {
     if (debugLevel != DEBUGLEVEL.none) console.log(...args);

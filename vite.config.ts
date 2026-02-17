@@ -31,6 +31,22 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: 3006,
+      middlewareMode: false,
+      // Add headers required for SharedArrayBuffer support
+      // These enable Web Workers to use SharedArrayBuffer for efficient memory sharing
+      headers: {
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        'Cross-Origin-Embedder-Policy': 'require-corp',
+      },
     },
+    // NOTE: For production deployment, ensure your web server also sends these headers:
+    // - Cross-Origin-Opener-Policy: same-origin
+    // - Cross-Origin-Embedder-Policy: require-corp
+    // 
+    // Examples:
+    // - nginx: add_header Cross-Origin-Opener-Policy "same-origin";
+    // - Apache: Header set Cross-Origin-Opener-Policy "same-origin"
+    // - Node/Express: app.use((req, res, next) => { res.header('Cross-Origin-Opener-Policy', 'same-origin'); ... })
+    // - Vercel: Use vercel.json headers configuration
   };
 });

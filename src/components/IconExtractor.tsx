@@ -14,6 +14,7 @@ import { FaTools } from "react-icons/fa";
 import { RiAiGenerate } from "react-icons/ri";
 import { GoArrowLeft, GoArrowRight, GoArrowUp } from "react-icons/go";
 import { PiEnvelopeThin } from "react-icons/pi";
+import { debug } from "utils/debug";
 
 // Icon mapping for export
 const icons = {
@@ -86,7 +87,7 @@ export const IconExtractor: React.FC<IconExtractorProps> = ({ onIconsExtracted }
       setExtractedSVGs(svgs);
       onIconsExtracted?.(svgs);
       
-      console.log('Extracted SVGs:', svgs);
+      debug.info('Extracted SVGs:', svgs);
     } catch (error) {
       console.error('Error extracting SVGs:', error);
     } finally {

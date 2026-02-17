@@ -15,6 +15,7 @@ import { FaTools } from "react-icons/fa";
 import { RiAiGenerate } from "react-icons/ri";
 import { GoArrowLeft, GoArrowRight, GoArrowUp } from "react-icons/go";
 import { PiEnvelopeThin } from "react-icons/pi";
+import { debug } from "./debug";
 
 // Icon mapping for export
 const icons = {
@@ -88,7 +89,7 @@ export async function exportIconsToSVG() {
     try {
       const svgString = await getIconSVG(IconComponent, 24);
       exports[name] = svgString;
-      console.log(`Exported ${name}.svg`);
+      debug.info(`Exported ${name}.svg`);
     } catch (error) {
       console.error(`Failed to export ${name}:`, error);
     }

@@ -40,6 +40,7 @@ export default class Algorithmic extends Silent {
   presets: Preset[]; // the soundfont preset list
   presetName: string; // the soundfont preset name
   preset: Preset | undefined; // the soundfont preset object (derived from the presetName and the soundFont file)
+  microtones: boolean; // wether or not the generator produces microtones
   isLooping: boolean; // should the sample loop?
   measureLength: number; // the number of beats in a measure
   beatCount: number; // the number of strokes in a measure
@@ -84,6 +85,7 @@ export default class Algorithmic extends Silent {
     this.preset = undefined;
     this.presets = [];
     this.isLooping = true;
+    this.microtones = true;
     this.measureLength = 4;
     this.beatCount = 4;
     this.offsetSequence = 0;
@@ -209,6 +211,7 @@ export default class Algorithmic extends Silent {
     n.preset = this.preset;
     n.presets = this.presets;
     n.isLooping = this.isLooping;
+    n.microtones = this.microtones;
     n.measureLength = this.measureLength;
     n.beatCount = this.beatCount;
     n.offsetSequence = this.offsetSequence;
@@ -262,6 +265,9 @@ export default class Algorithmic extends Silent {
       }
       case "isLooping":
         this.isLooping = value == "true";
+        return true;
+      case "microtones":
+        this.microtones = value == "true";
         return true;
       case "measureLength":
         this.measureLength = parseInt(value);
@@ -527,6 +533,7 @@ export default class Algorithmic extends Silent {
     let pan: number = 0;
     note = this.noteP.getCurrentValue(time, beats);
     note = Math.min(127, Math.max(0, note));
+    if (!this.microtones) note = Math.round(note);
 
     attack = this.attackP.getCurrentValue(time, beats);
     attack = Math.min(127, Math.max(0, attack));
@@ -553,7 +560,7 @@ export default class Algorithmic extends Silent {
 
   #getSelectedNote(note: number): number {
     // get the pitch integer and fraction parts
-    let pitch = Math.round(note);
+    let pitch = this.microtones? note: Math.round(note);
     const midiFraction = note - pitch;
 
     // get the octave and offset values
@@ -599,6 +606,7 @@ export default class Algorithmic extends Silent {
         );
       returnElem.setAttribute("presetName", this.presetName);
       returnElem.setAttribute("isLooping", this.isLooping ? "true" : "false");
+      returnElem.setAttribute("microtones", this.microtones ? "true" : "false");
       returnElem.setAttribute("measureLength", this.measureLength.toString());
       returnElem.setAttribute("beatCount", this.beatCount.toString());
       returnElem.setAttribute("offsetSequence", this.offsetSequence.toString());
@@ -642,6 +650,82 @@ export default class Algorithmic extends Silent {
     }
   }
 
+  // Restore methods after deserialization (e.g., from web worker transfer)
+  static fromPlainObject(obj: any): Algorithmic {
+    // Create a new instance with dummy parent to initialize private fields
+    const instance = new Algorithmic(0, obj.parent);
+    
+    // Copy all public properties from the deserialized object
+    Object.assign(instance, obj);
+    
+    // Restore algorithm objects' prototypes
+    if (instance.noteP) {
+      instance.noteP = this.#restoreAlgorithmType(instance.noteP);
+    }
+    if (instance.attackP) {
+      instance.attackP = this.#restoreAlgorithmType(instance.attackP);
+    }
+    if (instance.speedP) {
+      instance.speedP = this.#restoreAlgorithmType(instance.speedP);
+    }
+    if (instance.durationP) {
+      instance.durationP = this.#restoreAlgorithmType(instance.durationP);
+    }
+    if (instance.volumeP) {
+      instance.volumeP = this.#restoreAlgorithmType(instance.volumeP);
+    }
+    if (instance.panP) {
+      instance.panP = this.#restoreAlgorithmType(instance.panP);
+    }
+    if (instance.tremolo) {
+      Object.setPrototypeOf(instance.tremolo, Tremolo.prototype);
+    }
+    if (instance.vibrato) {
+      Object.setPrototypeOf(instance.vibrato, Tremolo.prototype);
+    }
+    if (instance.rn) {
+      Object.setPrototypeOf(instance.rn, RandomNumber.prototype);
+    }
+    
+    // Restore private fields that depend on public properties
+    instance.#activeNotes = euclideanRhythm(instance.noteCount, 12, instance.offsetNotes);
+    
+    return instance;
+  }
+
+  static #restoreAlgorithmType(alg: any): any {
+    switch (alg.algorithmType) {
+      case ALGORITHMTYPE.Constant:
+        Object.setPrototypeOf(alg, ConstantValues.prototype);
+        break;
+      case ALGORITHMTYPE.Oscillator:
+        Object.setPrototypeOf(alg, OscillatorValues.prototype);
+        break;
+      case ALGORITHMTYPE.Markovian:
+        Object.setPrototypeOf(alg, MarkovianValues.prototype);
+        if (alg.values?.rn) {
+          Object.setPrototypeOf(alg.values.rn, RandomNumber.prototype);
+        }
+        break;
+      case ALGORITHMTYPE.Wiener:
+        Object.setPrototypeOf(alg, WienerValues.prototype);
+        if (alg.values?.rn) {
+          Object.setPrototypeOf(alg.values.rn, RandomNumber.prototype);
+        }
+        break;
+      case ALGORITHMTYPE.Autoregressive:
+        Object.setPrototypeOf(alg, AutoregressiveValues.prototype);
+        if (alg.values?.rn) {
+          Object.setPrototypeOf(alg.values.rn, RandomNumber.prototype);
+        }
+        break;
+      case ALGORITHMTYPE.Sequencer:
+        Object.setPrototypeOf(alg, SequenceValues.prototype);
+        break;
+    }
+    return alg;
+  }
+
   static override async getXML(
     elem: Element,
     version: string,
@@ -682,6 +766,13 @@ export default class Algorithmic extends Silent {
       } else {
         foundSoundFont.users.push({ generator: g, voiceNumber: 0 });
       }
+      g.microtones =
+        (getAttributeValueWithDefault(
+          elem,
+          "microtones",
+          "string",
+          "true"
+        ) as string) == "true";
       g.isLooping =
         (getAttributeValueWithDefault(
           elem,

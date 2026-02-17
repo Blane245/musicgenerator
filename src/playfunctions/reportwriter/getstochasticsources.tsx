@@ -1,13 +1,23 @@
 import Stochastic from "classes/generators/stochastic";
 import { getPresetReport } from "playfunctions/presetProcessing/getpresetreport";
 import { Preset } from "sfcomponents/types";
-import { CloudState, CloudStates, ReportSourceData, RMSFACTOR, TIMBRE, UNIT, Voice } from "types";
+import {
+  CloudState,
+  CloudStates,
+  ReportSourceData,
+  RMSFACTOR,
+  TIMBRE,
+  UNIT,
+  Voice,
+} from "types";
 import continuousProbability from "utils/probability/continuousprobability";
 import { gaussianRandom } from "utils/probability/gaussianrandom";
 import intervalProbabilty from "utils/probability/intervalprobability";
 import probabilityLookup from "utils/probability/probabilitylookup";
 
-export default function getStochasticSources (generator: Stochastic): ReportSourceData[] {
+export default function getStochasticSources(
+  generator: Stochastic,
+): ReportSourceData[] {
   // mimic the build sources from stochastic
   const { Nt, Tc, voices, composition } = { ...generator.values };
   const { startTime } = generator;
@@ -59,7 +69,7 @@ export default function getStochasticSources (generator: Stochastic): ReportSour
   }
 
   return result;
-};
+}
 
 interface GetCloudProps {
   generator: Stochastic;
@@ -109,9 +119,9 @@ const getCloud = (
       : cloudState.offset;
   let pitch1: number =
     cloudState.offset < 0
-      ? Math.round(intervalProbabilty(hi - lo, rN) + lo)
+      ? intervalProbabilty(hi - lo, rN) + lo
       : cloudState.pitch;
-
+  if (!generator.values.microtones) pitch1 = Math.round(pitch1);
   let t2: number = 0;
   let pitch2: number = 0;
   let finished: boolean = false;
@@ -131,9 +141,8 @@ const getCloud = (
       // get a speed and pitch2
       const speed: number = gaussianRandom(0, delta * RMSFACTOR, rN);
       // restrict the glissando to remain in the range of the voice
-      pitch2 = Math.round(
-        Math.min(hi, Math.max(lo, pitch1 + speed * interval)),
-      );
+      pitch2 = Math.min(hi, Math.max(lo, pitch1 + speed * interval));
+      if (!generator.values.microtones) pitch2 = Math.round(pitch2);
     } else {
       // timbre is Sustained
       pitch2 = pitch1;
@@ -142,7 +151,7 @@ const getCloud = (
     // get the samples for the instruments that make up this voice
     // this is single channel
     // stochastic genertors have no noise, vibrato, or tremolo
-    const duration: number = voice.duration == 0 ? interval : voice.duration
+    const duration: number = voice.duration == 0 ? interval : voice.duration;
     const theReport = getPresetReport({
       generatorName: generator.name,
       startTime: startTime + t1,
@@ -167,7 +176,8 @@ const getCloud = (
       pitch1 =
         voice.timbre == TIMBRE.Glissando
           ? pitch2
-          : Math.round(intervalProbabilty(hi - lo, rN)) + lo;
+          : intervalProbabilty(hi - lo, rN) + lo;
+      if (!generator.values.microtones) pitch1 = Math.round(pitch1);
 
       // get a new interval
       do {

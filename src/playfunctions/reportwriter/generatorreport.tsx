@@ -1,4 +1,3 @@
-import CMGFile from "classes/cmgfile";
 import Algorithmic from "classes/generators/algorithmic";
 import Stochastic from "classes/generators/stochastic";
 import { GENERATORTYPE, GeneratorType, ReportSourceData } from "types";
@@ -8,13 +7,13 @@ import StochasticReport from "./stochasticreport";
 
 export interface GeneratorReportProps {
   generator: GeneratorType;
-  sourceData: ReportSourceData[]; 
+  reportData: ReportSourceData[]; 
 }
 
 export default function GeneratorReport(
   props: GeneratorReportProps,
 ): JSX.Element {
-  const { generator, sourceData } = props;
+  const { generator, reportData } = props;
 
   return (
     <>
@@ -25,7 +24,7 @@ export default function GeneratorReport(
       {!!(generator.type == GENERATORTYPE.Stochastic) && (
         <StochasticReport generator={generator as Stochastic} />
       )}
-      <SourceReport generator={generator} sourceData={sourceData} />
+      <SourceReport generator={generator} playData={reportData} />
     </>
   );
 }

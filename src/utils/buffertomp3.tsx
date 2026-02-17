@@ -9,8 +9,10 @@ export function bufferToMp3(
   sampleRate: number
 ): Blob {
   const encoder = new lamejs.Mp3Encoder(2, sampleRate, 256);
+  
   const mp3Data: Uint8Array[] = [];
   const length: number = waveform[0].length;
+  
   for (let i = 0; i < length; i += BLOCKSIZE) {
     const blockLength: number = Math.min(BLOCKSIZE, length - i);
     if (blockLength > 0) {
@@ -24,8 +26,10 @@ export function bufferToMp3(
       if (buffer.length > 0) mp3Data.push(buffer);
     }
   }
+  
   const buffer: Uint8Array = encoder.flush();
   if (buffer.length) mp3Data.push(buffer);
+  
   // @ts-expect-error arraybufferlike and arraybuffer are not the same thing
   const blob = new Blob(mp3Data, { type: "audio/mp3" });
   return blob;

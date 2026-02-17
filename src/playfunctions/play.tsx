@@ -12,21 +12,23 @@ import {
 } from "react-icons/ai";
 import { FcAddressBook, FcOk } from "react-icons/fc";
 import { dBToGain, toNote } from "sfcomponents/util";
-import { PLAYMODE, SAMPLERATE } from "types";
+import { SAMPLERATE, PlayData } from "types";
 import { debug } from "utils/debug";
 import secondsToMMSS from "utils/secondstommss";
 
 // as this function is non-reactive except for exit, stop, pause, resume, many of its props
 // are CMG context variables
 export interface PlayProps {
-  setMode: React.Dispatch<React.SetStateAction<PLAYMODE>>;
+  playData: PlayData | null;
 }
-
 const IMAGEPADDING: number = 50; //px
-// this component uses many state variables as all subcomponents are
-// highly integrated
+
+// Display the Play window to render the audio and play image
+// UI includes play/pause/restart/exit controls
+// along with volume, voice legend, and save audio functions
+// the playData will be nulled to signal completion of this component
 export default function Play(params: PlayProps): JSX.Element {
-  const { setMode } = params;
+  let { playData } = params;
   const {
     screenWidth: windowWidth,
     screenHeight: windowHeight,
@@ -36,23 +38,21 @@ export default function Play(params: PlayProps): JSX.Element {
     appName,
     appVersion,
     fileContents,
-    sourceData,
-    setSourceData,
     recordFormat,
+    setPlayData,
   } = useCMGContext();
   const isPlaying = useRef<boolean>(false);
   const [showLegend, setShowLegend] = useState<boolean>(false);
-  const [playLegendElem, setPlayLegendElem] = useState<HTMLDivElement | null>(
+  const [containerElem, setContainerElem] = useState<HTMLDivElement | null>(
     null,
   );
-  const [containerElem, setContainerElem] = useState<HTMLDivElement | null>(
+  const [labelElem, setLabelElem] = useState<HTMLDivElement | null>(
     null,
   );
   const [audioElem, setAudioElem] = useState<HTMLAudioElement | null>(null);
   const [imageElem, setImageElem] = useState<HTMLImageElement | null>(null);
   const [audioSrc, setAudioSrc] = useState<string>("");
-  const [audioVolume, setAudioVolume] = useState<number>(10);
-  // const [scrollPosition, setScrollPosition] = useState<number>(0); // 0-1 on the range input when not seeking
+  const [audioVolume, setAudioVolume] = useState<number>(0);
   const [audioDuration, setAudioDuration] = useState<number>(0); // total duration of the audio (sec)
   const [imageDuration, setImageDuration] = useState<number>(0); // the time frame of the image (60 minute intervals)
   const [imageWidth, setImageWidth] = useState<number>(0); // the window size times the number of minutes in the image
@@ -61,12 +61,14 @@ export default function Play(params: PlayProps): JSX.Element {
     average: number[];
     maximum: number[];
   }>({ average: Array<number>(2).fill(0), maximum: Array<number>(2).fill(0) });
+
   const resetTime = useRef<number>(0);
-  const RESETINCREMENT: number = 10000; // sec
+  const RESETINCREMENT: number = 100; // sec
   const levelObject = useRef<SignalLevel>(new SignalLevel(2));
   const timerId = useRef<number>(0);
   const TIMERDELTA: number = 20; //ms
   const timerIncrement = useRef<number>(0);
+  const SIGNALWINDOW: number = 1024;
   const LEVELHEIGHT: string = "20";
   const LEVELWIDTH: number = 150;
   const LEVELSTROKE: string[] = ["green", "red"];
@@ -81,18 +83,16 @@ export default function Play(params: PlayProps): JSX.Element {
     if (aElem) {
       setAudioElem(aElem as HTMLAudioElement);
       (aElem as HTMLAudioElement).pause();
-      // (aElem as HTMLAudioElement).addEventListener("timeupdate", (event) =>
-      //   handleAudioTimeUpdate(event),
-      // );
-    }
-    const pElem: HTMLElement | null = document.getElementById("play-legend");
-    if (pElem) {
-      setPlayLegendElem(pElem as HTMLDivElement);
     }
     const cElem: HTMLElement | null =
       document.getElementById("image-container");
     if (cElem) {
       setContainerElem(cElem as HTMLDivElement);
+    }
+    const lElem: HTMLElement | null =
+      document.getElementById("play-label");
+    if (lElem) {
+      setLabelElem(lElem as HTMLDivElement);
     }
   }, []);
 
@@ -104,69 +104,57 @@ export default function Play(params: PlayProps): JSX.Element {
       }
       if (audioElem) {
         audioElem.pause();
-        // audioElem.removeEventListener("timeupdate", handleAudioTimeUpdate);
       }
     };
   }, [audioElem]);
 
   useEffect(() => {
-    if (!sourceData) return;
-    const objectUrl = URL.createObjectURL(sourceData.audio);
+    if (!playData) return;
+    const objectUrl = URL.createObjectURL(playData.audio);
     setAudioSrc(objectUrl);
-    debug.info("audio loaded");
-  }, [sourceData?.audio]);
+    debug.info("Play: audio loaded");
+  }, [playData?.audio]);
 
-  // when sourcedata arrives load the image
-  // into the image element
+  // when playdata image arrives load the image
+  // into the image element and add the annotations
   useEffect(() => {
-    if (!containerElem || !playLegendElem || !sourceData || windowWidth == 0)
+    if (!containerElem || !labelElem || !playData)
       return;
-    const img: HTMLImageElement = sourceData.image;
+    const img: HTMLImageElement = playData.image;
     img.style.paddingLeft = IMAGEPADDING.toString() + "px";
-    setImageElem(sourceData.image);
+    setImageElem(playData.image);
     while (containerElem.firstChild) containerElem.firstChild.remove();
     containerElem.appendChild(img);
 
     // add the current time line and vertical axis labels
     const labelElement: SVGSVGElement = buildLabels();
-    while (playLegendElem.firstChild) playLegendElem.firstChild.remove();
-    playLegendElem.appendChild(labelElement);
-    debug.info("image appended to image-container, width", img.style.width);
-  }, [sourceData?.image, containerElem, playLegendElem]);
-
-  // starting and stopping the aignal level calculation
-  useEffect(() => {
-    setSignalLevel(signalLevel);
-  }, []);
+    while (labelElem.firstChild) labelElem.firstChild.remove();
+    labelElem.appendChild(labelElement);
+    debug.info("Play: image appended to image-container, width", img.style.width);
+  }, [playData?.image, containerElem, labelElem]);
 
   // #endregion
 
-  // #region signal level
+  // #region utilities
+
   // when playing get the signal level from the current time to some number of samples in the past
-  const SIGNALWINDOW: number = 1024;
-  const getLevel = (time: number) => {
-    if (!sourceData) return;
-    // console.log(`signal level requested at t=${time}`);
+  const getSignalLevel = (time: number) => {
+    if (!playData) return;
     const startSample: number = Math.trunc(time * SAMPLERATE - SIGNALWINDOW);
     if (startSample >= 0) {
       const { average, maximum } = levelObject.current.getSignalLevel(
-        sourceData.audioBuffer,
+        playData.audioBuffer,
         startSample,
         SIGNALWINDOW,
       );
       setSignalLevel({ average, maximum });
-      // console.log(`signal level requested at t=${time}, start sample=${startSample}`, average, maximum);
     } else {
-      // console.log(`start sample less than zero ${startSample}`);
       setSignalLevel({
         average: Array<number>(2).fill(0),
         maximum: Array<number>(2).fill(0),
       });
     }
   };
-  //
-  // #endregion
-  // #region utilities
 
   // build the labels for the image
   const buildLabels = (): SVGSVGElement => {
@@ -210,7 +198,6 @@ export default function Play(params: PlayProps): JSX.Element {
     t0.setAttribute("fill", "red");
     t0.setAttribute("stroke-width", "4px");
     svgElem.appendChild(t0);
-
     return svgElem;
   };
 
@@ -225,42 +212,42 @@ export default function Play(params: PlayProps): JSX.Element {
   };
 
   // change the state of the system when isPlaying changes
-  // _time is the audio time to use to set the translation
-  const triggerPlayState = (_time: number) => {
+  // time is the audio time to use to set the image translation
+  const triggerPlayState = (time: number) => {
     if (!imageElem || !audioElem) return;
 
     // reset the maximum every RESETINCREMENT seconds
-    if (_time > resetTime.current) {
+    if (time > resetTime.current) {
       resetTime.current += RESETINCREMENT;
       levelObject.current.resetMaximum();
     }
 
-    getLevel(_time);
+    getSignalLevel(time);
     if (isPlaying.current) {
       // stop the timer and adjust the position to the scroll position
       if (timerId.current) {
         clearTimeout(timerId.current);
-        debug.log("play: timerId cleared", timerId.current);
+        debug.log("Play: timerId cleared", timerId.current);
       }
 
-      // discipline the image translation to cancel timer drift
-      imageElem.style.transform = `translateX(-${(_time / imageDuration) * imageWidth}px)`;
+      // discipline the image translation to account for timer drift
+      imageElem.style.transform = `translateX(-${(time / imageDuration) * imageWidth}px)`;
 
       // tell the audio to play (it will already be playing if this is a audio position update)
       if (audioElem.paused) audioElem.play();
       // restart the timer at the current audio position
-      timerIncrement.current = _time;
+      timerIncrement.current = time;
       timerId.current = window.setTimeout(imageTimer, TIMERDELTA);
-      debug.log("audio playing at audio time, timerId", _time, timerId.current);
+      debug.log("Play: audio playing at audio time, timerId", time, timerId.current);
     } else {
       if (timerId.current) {
         clearTimeout(timerId.current);
-        debug.log("pause: timerId cleared", timerId.current);
+        debug.log("Play: pause: timerId cleared", timerId.current);
       }
       if (!audioElem.paused) audioElem.pause();
       // make the image align on the proper scroll position
-      imageElem.style.transform = `translateX(-${(_time / imageDuration) * imageWidth}px)`;
-      debug.log("audio paused at audio time, timerId", _time, timerId.current);
+      imageElem.style.transform = `translateX(-${(time / imageDuration) * imageWidth}px)`;
+      debug.log("Play: audio paused at audio time, timerId", time, timerId.current);
     }
   };
 
@@ -269,14 +256,7 @@ export default function Play(params: PlayProps): JSX.Element {
   // #region pointeractions
   const handleExit = () => {
     if (timerId.current) clearTimeout(timerId.current);
-    // Reset focus to document body to prevent trapped focus
-    // if (document.activeElement instanceof HTMLElement) {
-    //   document.activeElement.blur();
-    // }
-    // if (audioElem)
-    //   audioElem.removeEventListener("timeupdate", handleAudioTimeUpdate);
-    setMode(PLAYMODE.idle);
-    setSourceData(undefined);
+    setPlayData(null);
     setShowLegend(false);
     isPlaying.current = false;
     setStatus(`Play Terminated`);
@@ -286,13 +266,13 @@ export default function Play(params: PlayProps): JSX.Element {
   const handlePlayPauseClick = () => {
     isPlaying.current = !isPlaying.current;
     triggerPlayState(audioPosition);
-    debug.log(`play mode toggled to ${isPlaying.current}`);
+    debug.log(`Play: playing toggled to ${isPlaying.current} at time ${audioPosition}`);
   };
 
   // restart the piece at the beginning
   const handleRestart = () => {
     if (!imageElem) {
-      debug.warn("handleRestart: image element not yet defined");
+      debug.warn("Play: handleRestart: image element not yet defined");
       return;
     }
     setAudioPosition(0);
@@ -311,7 +291,7 @@ export default function Play(params: PlayProps): JSX.Element {
   const handleSave = async () => {
     if (isPlaying.current) return;
     try {
-      if (!sourceData) return;
+      if (!playData) return;
 
       // Determine file extension and MIME type
       const isMP3 = recordFormat === "mp3";
@@ -339,19 +319,18 @@ export default function Play(params: PlayProps): JSX.Element {
           },
         ],
       });
-
+      if (!handle) return;
       // Write the audio blob to the file
       const writable: FileSystemWritableFileStream =
-        await handle.createWritable();
-      await writable.write(sourceData.audio);
+      await handle.createWritable();
+      await writable.write(playData.audio);
       await writable.close();
-
       window.alert(`File saved successfully as ${handle.name}`);
     } catch (e) {
       const error = e as Error;
       // Don't show error if user cancelled the dialog
       if (error.name !== "AbortError") {
-        debug.error(`Error while writing audio file - ${error.message}`);
+        debug.error(`Play: Exception error while writing audio file - ${error.message}`);
         window.alert(`Error saving file: ${error.message}`);
       }
     }
@@ -363,14 +342,14 @@ export default function Play(params: PlayProps): JSX.Element {
   // enter manual image positionion mode
   const handleRangeMouseDown = (event: React.MouseEvent<HTMLInputElement>) => {
     if (!imageElem) {
-      debug.warn("handleRangeMouseDown: image is not yet defined");
+      debug.warn("Play: handleRangeMouseDown: image is not yet defined");
       return;
     }
     isPlaying.current = false;
-    const _time: number = parseFloat(event.currentTarget.value);
-    setAudioPosition(_time);
-    triggerPlayState(_time);
-    debug.log("start manual scrolling at time ", _time);
+    const time: number = parseFloat(event.currentTarget.value);
+    setAudioPosition(time);
+    triggerPlayState(time);
+    debug.log("Play: start manual scrolling at time ", time);
   };
 
   // pointer moved while down in range element
@@ -379,14 +358,14 @@ export default function Play(params: PlayProps): JSX.Element {
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     if (!imageElem) {
-      debug.warn("handleRangeMouseChange: image is not yet defined");
+      debug.warn("Play: handleRangeMouseChange: image is not yet defined");
       return;
     }
 
-    const _time: number = parseFloat(event.currentTarget.value);
-    setAudioPosition(_time);
-    triggerPlayState(_time);
-    debug.log("continue manual scrolling at time", _time);
+    const time: number = parseFloat(event.currentTarget.value);
+    setAudioPosition(time);
+    triggerPlayState(time);
+    debug.log("Play: continue manual scrolling at time", time);
   };
 
   // mouse up on range element
@@ -394,32 +373,33 @@ export default function Play(params: PlayProps): JSX.Element {
   // start audio playing and image scrolling
   const handleRangeMouseUp = (event: React.MouseEvent<HTMLInputElement>) => {
     if (!imageElem || !audioElem) {
-      debug.warn("handleRangeMouseChange: image and audio is not yet defined");
+      debug.warn("Play: handleRangeMouseChange: image and audio is not yet defined");
       return;
     }
-    const _time: number = parseFloat(event.currentTarget.value);
+    const time: number = parseFloat(event.currentTarget.value);
     levelObject.current.resetMaximum();
     setSignalLevel({ average: [0, 0], maximum: [0, 0] });
-    setAudioPosition(_time);
-    audioElem.currentTime = _time;
+    setAudioPosition(time);
+    audioElem.currentTime = time;
     isPlaying.current = true;
-    triggerPlayState(_time);
+    triggerPlayState(time);
   };
 
   // #endregion
+
   // #region audioactions
   // get the audio duration and set the duration and windowing parameters
   // this should load the image data
   const handleAudioMetaData = (event: SyntheticEvent<HTMLAudioElement>) => {
-    // when the audio duration is know, set the scales
+    // when the audio duration is known, set the scales
     // for the image time and width
     // 60 seconds / window width
-    const _duration: number = event.currentTarget.duration;
-    setAudioDuration(_duration);
-    const _imageTime: number = (Math.trunc(_duration / 60) + 1) * 60;
-    setImageDuration(_imageTime);
-    setImageWidth((_imageTime * windowWidth) / 60);
-    debug.log("audio metadata loaded, duration", _duration);
+    const duration: number = event.currentTarget.duration;
+    setAudioDuration(duration);
+    const imageTime: number = (Math.trunc(duration / 60) + 1) * 60;
+    setImageDuration(imageTime);
+    setImageWidth((imageTime * windowWidth) / 60);
+    debug.log("Play: audio metadata loaded, duration", duration);
   };
 
   // as the audio advances update the scroll position for user reporting
@@ -430,24 +410,26 @@ export default function Play(params: PlayProps): JSX.Element {
     if (audioDuration == 0 || !imageElem) {
       if (audioDuration == 0)
         debug.warn(
-          "handleAudioTimeUpdate: audio time updating before duration has been defined",
+          "Play: handleAudioTimeUpdate: audio time updating before duration has been defined",
         );
       if (!imageElem)
         debug.warn(
-          "handleAudioTimeUpdate: attempt to update audio time when image has not been defined",
+          "Play: handleAudioTimeUpdate: attempt to update audio time when image has not been defined",
         );
       return;
     }
-    const _currentTime: number = event.currentTarget
+    const currentTime: number = event.currentTarget
       ? event.currentTarget["currentTime"]
       : 0;
-    setAudioPosition(_currentTime);
+    setAudioPosition(currentTime);
     // force pause when at the end
-    if (_currentTime >= audioDuration) isPlaying.current = false;
-    triggerPlayState(_currentTime);
+    if (currentTime >= audioDuration) isPlaying.current = false;
+    triggerPlayState(currentTime);
 
-    debug.log(`new audio time ${_currentTime}`);
+    debug.log(`Play: new audio time ${currentTime}`);
   };
+
+  // adjust the playback volume
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!audioElem) return;
     const value: number = parseFloat(e.currentTarget.value);
@@ -463,11 +445,10 @@ export default function Play(params: PlayProps): JSX.Element {
       debug.warn("handleAudioEnded: image is not yet defined");
       return;
     }
-
     isPlaying.current = false;
     setAudioPosition(audioDuration);
     triggerPlayState(audioDuration);
-    debug.log("playback ended");
+    debug.log("Play: playback ended");
   };
   // #endregion
 
@@ -514,7 +495,7 @@ export default function Play(params: PlayProps): JSX.Element {
                 onChange={(event) => handleRangeMouseChange(event)}
                 onMouseUp={(event) => handleRangeMouseUp(event)}
               />
-              <span>{secondsToMMSS(audioDuration)}</span>
+              <span style={{ width: "6em" }}>{secondsToMMSS(audioDuration)}</span>
             </label>
             <button
               type="button"
@@ -596,9 +577,9 @@ export default function Play(params: PlayProps): JSX.Element {
         >
           <div id="image-container" />
           <div
-            id="play-legend"
+            id="play-label"
             style={{
-              zIndex: 1001,
+              // zIndex: 2001,
               position: "absolute",
               top: "40px",
               left: "20px",
@@ -611,7 +592,7 @@ export default function Play(params: PlayProps): JSX.Element {
           style={{ width: windowWidth, height: footerHeight }}
         ></div>
       </div>
-      {!!showLegend && (
+      {showLegend && (
         <div
           className="modal-content"
           style={{
@@ -619,6 +600,7 @@ export default function Play(params: PlayProps): JSX.Element {
             top: "40px",
             left: (windowWidth - 500).toString() + "px",
             backgroundColor: "white",
+            zIndex:2001,
           }}
         >
           <div className="modal-header">Voice Legend</div>
@@ -633,8 +615,8 @@ export default function Play(params: PlayProps): JSX.Element {
               </thead>
               <tbody>
                 <>
-                  {!!sourceData &&
-                    Array.from(sourceData.voiceHues).map((value) => {
+                  {!!playData &&
+                    Array.from(playData.voiceHues).map((value) => {
                       const splitName: string[] = value[0].split("|");
                       return (
                         <tr key={value[0]}>

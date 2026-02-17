@@ -4,7 +4,8 @@ import Silent from "classes/generators/silent";
 import Stochastic from "classes/generators/stochastic";
 import Track from "classes/track";
 import { useCMGContext } from "cmgcontext";
-import buildSourceData from "playfunctions/buildsourcedata";
+import { useAudioWorkerShared } from "hooks/useAudioWorkerShared";
+import readyPlay from "playfunctions/readyplay";
 import { ChangeEvent, FormEvent, MouseEvent, useEffect, useState } from "react";
 import { SFPool } from "sfcomponents/sfpool";
 import { Preset } from "sfcomponents/types";
@@ -13,14 +14,14 @@ import { SoundFont2 } from "soundfont2";
 import {
   GeneratorType,
   GENERATORTYPE,
-  PLAYMODE,
+  SAMPLERATE,
+  PlayData,
   TIMELINETYPE,
 } from "types";
 import { addGenerator, modifyGenerator } from "utils/cmfiletransactions";
 import { debug } from "utils/debug";
 import { getGeneratorUID } from "utils/getgeneratoruid";
 import GeneratorTypeForm from "./generatortypeform";
-import Play from "playfunctions/play";
 
 // The icon starts at the generator's start time and ends at the generators endtime
 export interface GeneratorDialogProps {
@@ -41,20 +42,20 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
   };
 
   const {
+    setCursor,
     screenWidth,
     fileContents,
     setFileContents,
     setStatus,
-    setSourceData,
-    sourceData,
     timeLine,
     timeInterval,
-    setMode,
     setGeneratorDialogVisible,
     recordFormat,
+    setPlayData,
   } = useCMGContext();
+  const { startProcessing, sharedBuffers, audioBlob, image, voiceHues } =
+    useAudioWorkerShared();
   const screenHeight: number = (screenWidth * 9) / 16;
-  const [playVisible, setPlayVisible] = useState<boolean>(false);
   const [oldName, setOldName] = useState<string>("");
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [formData, setFormData] = useState<GeneratorType>(new Silent(0, track));
@@ -64,6 +65,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
     preset: undefined,
     presetName: "",
   });
+
   useEffect(() => {
     // either get the generator from the track or build a new one if being added
     if (newGenerator && !generator) {
@@ -123,6 +125,21 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
       return n;
     });
   }, [soundFontData]);
+
+  // Handle play when data available from worker
+  useEffect(() => {
+    if (audioBlob && image && voiceHues && sharedBuffers) {
+      // The audio buffers are in shared memory - no copying needed!
+      const playData: PlayData = {
+        audioBuffer: sharedBuffers.audioChannels,
+        audio: audioBlob,
+        image,
+        voiceHues,
+      };
+      setPlayData(playData);
+      setCursor("default");
+    }
+  }, [audioBlob, image, voiceHues, sharedBuffers]);
 
   // handle changes to the data on the form
   function handleChange(
@@ -326,27 +343,30 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
 
   async function handlePlay() {
     const msgs: string[] = validate();
-    // if (formData.name != oldName)
-    //   msgs.push(
-    //     "Cannot play after renaming the generator. Modify or add first and then play.",
-    //   );
     if (msgs.length != 0) return;
-    const { sourceData: builtSourceData, error: buildError } = await buildSourceData({
+    const { generators, duration, error } = readyPlay({
+      generator: null,
       fileContents,
-      generator: formData,
-      mode: PLAYMODE.solo,
+      timeInterval,
+    });
+    // catch any errors while selecting generators
+    setStatus(error);
+    if (error != "") {
+      setCursor("default");
+      return;
+    }
+    setCursor("wait");
+
+    // Start processing in the worker with shared buffers
+    startProcessing({
+      generators,
+      duration,
+      sampleRate: SAMPLERATE,
+      recordFormat,
       timeInterval,
       windowWidth: screenWidth,
       windowHeight: screenHeight - 40,
-      recordFormat: recordFormat,
     });
-    if (buildError != "" || !builtSourceData) {
-      setStatus(`Error occurred while building source to play: ${buildError}`);
-      return;
-    }
-    setSourceData(builtSourceData);
-    setPlayVisible(true);
-    setMode(PLAYMODE.solo);
   }
 
   function handleCancelClick(event: MouseEvent<Element>) {
@@ -400,7 +420,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
 
   return (
     <>
-      <div className="generator-content" aria-modal="true" >
+      <div className="generator-content" aria-modal="true">
         <div className="generator-header">
           <span className="close" onClick={handleCancelClick}>
             &times;
@@ -427,7 +447,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                   value={formData.name}
                 />
               </label>
-              {timeLine?.mode == TIMELINETYPE.Time ? (
+              {timeLine?.mode == TIMELINETYPE.Time && (
                 <>
                   <label>
                     Start Time:&nbsp;
@@ -454,8 +474,8 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                     <span> (sec) </span>
                   </label>
                 </>
-              ) : null}
-              {timeLine?.mode == TIMELINETYPE.Measure ? (
+              )}
+              {timeLine?.mode == TIMELINETYPE.Measure && (
                 <>
                   <label>
                     Start Measure:&nbsp;
@@ -508,7 +528,7 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
                     />
                   </label>
                 </>
-              ) : null}
+              )}
             </div>
             <GeneratorTypeForm
               formData={formData}
@@ -541,9 +561,6 @@ export default function GeneratorDialog(props: GeneratorDialogProps) {
           ))}
         </div>
       </div>
-      {!!(playVisible && sourceData) && (
-        <Play setMode={setMode} />
-      )}
     </>
   );
 }

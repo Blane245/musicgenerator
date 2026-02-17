@@ -5,11 +5,11 @@ import GeneratorReport from "./generatorreport";
 
 export interface TrackReportProps {
   track: Track;
-  sourceData: ReportSourceData[];
+  reportData: ReportSourceData[];
 }
 
 export default function TrackReport(props: TrackReportProps): JSX.Element {
-  const { track, sourceData } = props;
+  const { track, reportData } = props;
 
   return (
     <>
@@ -18,7 +18,7 @@ export default function TrackReport(props: TrackReportProps): JSX.Element {
         .sort((a, b) => a.startTime - b.startTime)
         .map((g: GeneratorType) => (
           <Fragment key={`t-${track.name}-g-${g.name}`}>
-            <GeneratorReport generator={g} sourceData={sourceData} />
+            <GeneratorReport generator={g} reportData={reportData} />
             <hr />
           </Fragment>
         ))}

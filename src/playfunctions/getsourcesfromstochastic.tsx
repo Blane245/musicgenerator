@@ -1,15 +1,15 @@
 // convert a generator to its audio samples and put sources 
 
-import Chart from "classes/chart";
 import Stochastic from "classes/generators/stochastic";
 import RandomNumber from "classes/randomnumber";
 import { VoiceHues } from "types";
+import ChartCollector from "workers/chartcollector";
 import buildStochasticAudioChart from "./buildstochasticaudiochart";
 
 export default function getSourcesFromStochastic (props:{
     generator: Stochastic,
     audioBuffer: Float32Array[],
-    chart: Chart,
+    chart: ChartCollector,
     voiceHues: VoiceHues,
 }): string {
     const {generator, audioBuffer, chart, voiceHues} = props;

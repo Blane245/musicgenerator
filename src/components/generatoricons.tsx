@@ -6,13 +6,14 @@ import Track from "classes/track";
 import { useCMGContext } from "cmgcontext";
 import GeneratorCopyMoveDialog from "dialogs/generator/generatorcopymovedialog";
 import GeneratorDeleteDialog from "dialogs/generator/generatordeletedialog";
-import buildSourceData from "playfunctions/buildsourcedata";
-import Play from "playfunctions/play";
+import { useAudioWorkerShared } from "hooks/useAudioWorkerShared";
+import readyPlay from "playfunctions/readyplay";
 import React, { MouseEvent, useEffect, useState } from "react";
 import {
   GeneratorType,
   MouseLocation,
-  PLAYMODE,
+  SAMPLERATE,
+  PlayData,
   TimeLineScales,
   TIMELINETYPE,
 } from "types";
@@ -43,23 +44,23 @@ type GeneratorBox = {
 export default function GeneratorIcons(props: GeneratorIconProps) {
   const { track, trackIndex } = props;
   const {
+    cursor,
     setCursor,
     setFileContents,
-    screenHeight: windowHeight,
-    screenWidth: windowWidth,
+    screenHeight,
+    screenWidth,
     recordFormat,
     timeLine,
     setStatus,
     timeInterval,
-    setOffsetTime,
-    setMode,
     setTrackIndex,
     setEditGeneratorData,
-    setSourceData,
-    sourceData,
     fileContents,
+    setPlayData,
     setGeneratorDialogVisible,
   } = useCMGContext();
+  const { startProcessing, sharedBuffers, audioBlob, image, voiceHues } =
+    useAudioWorkerShared();
   const [boxIndex, setBoxIndex] = useState<number>(-1);
   const [generatorBoxes, setGeneratorBoxes] = useState<GeneratorBox[]>([]);
   const [editMode, setEditMode] = useState<string>("None");
@@ -72,10 +73,6 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     null,
   );
   const [mouseDown, setMouseDown] = useState<boolean>(false);
-  const [playVisible, setPlayVisible] = useState<{
-    visible: boolean;
-    generator?: GeneratorType;
-  }>({ visible: false });
   const [copyMoveMode, setCopyMoveMode] = useState<{
     mode: string;
     generator?: GeneratorType;
@@ -94,7 +91,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     if (!timeLine) return;
     setTrackWidth(timeLine.width);
     setTrackHeight(100);
-    // get all of the generator boxes
+    // get all of the generator boxes by filtering the generators by the timeLine
     const boxes: GeneratorBox[] = [];
     track.generators.forEach((g: GeneratorType, i: number) => {
       // is the generator out of the currently displayed current time?
@@ -117,22 +114,21 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
       const iWidth: number = (width * (iStop - iStart)) / (tStop - tStart);
       const iHeight: number = height / 3.0;
 
-      // build the name of the generator so its size is known
-      const text: HTMLSpanElement = document.createElement("span");
-      document.body.appendChild(text);
-      text.style.font="Arial"
-      text.style.fontSize = "10px";
-      text.style.height = "auto";
-      text.style.fontSize = "auto";
-      text.style.position = "absolute";
-      text.style.whiteSpace = "no-wrap";
-      text.innerHTML = g.name + ":" + g.type;
-      const nameWidth:number = Math.ceil(text.clientWidth);
-      document.body.removeChild(text);
-      const stackOrder: number = 1000 - trackIndex * 10 - i;
-
-
+      // only use the generators whose icons have a positive width on this timeline
       if (iWidth > 0 && iHeight > 0) {
+        // build the name of the generator text so its size is known
+        const text: HTMLSpanElement = document.createElement("span");
+        document.body.appendChild(text);
+        text.style.font = "Arial";
+        text.style.fontSize = "10px";
+        text.style.height = "auto";
+        text.style.fontSize = "auto";
+        text.style.position = "absolute";
+        text.style.whiteSpace = "no-wrap";
+        text.innerHTML = g.name + ":" + g.type;
+        const nameWidth: number = Math.ceil(text.clientWidth);
+        document.body.removeChild(text);
+        const stackOrder: number = 1000 - trackIndex * 10 - i;
         boxes.push({
           generator: g,
           generatorIndex: i,
@@ -190,7 +186,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
       }
       return false;
     }
-  }, [track.generators, timeLine, timeInterval]);
+  }, [fileContents, timeLine, timeInterval]);
 
   // handle vertical movements
   useEffect(() => {
@@ -282,9 +278,24 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     );
   }, [mouseLocation, mouseDown]);
 
+  // Handle play when data is available
+  useEffect(() => {
+    if (audioBlob && image && voiceHues && sharedBuffers) {
+      // The audio buffers are in shared memory - no copying needed!
+      const playData: PlayData = {
+        audioBuffer: sharedBuffers.audioChannels,
+        audio: audioBlob,
+        image,
+        voiceHues,
+      };
+      setPlayData(playData);
+      setCursor("default");
+    }
+  }, [audioBlob, image, voiceHues, sharedBuffers]);
+
   // when the mouse enters an icon body with the mouse up change the cursor to ns
   function onBodyEnter(e: MouseEvent<SVGRectElement>): void {
-    if (mouseDown) return;
+    if (mouseDown || cursor == "wait") return;
     e.preventDefault();
     e.stopPropagation();
     setCursor("ns-resize");
@@ -325,7 +336,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
   // when the mouse leaves the icon body or goes up, terminate
   // vertical movement
   function onMouseLeaveBody(e: MouseEvent<SVGRectElement>): void {
-    if (mouseDown) return;
+    if (mouseDown || cursor == "wait") return;
     e.preventDefault();
     e.stopPropagation();
     setCursor("default");
@@ -337,6 +348,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
   }
 
   function onMouseUpBody(e: MouseEvent<SVGRectElement>): void {
+    if (cursor == "wait") return;
     e.preventDefault();
     e.stopPropagation();
     setCursor("default");
@@ -350,7 +362,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
   // when the mouse enters an icon edge with the mouse up,
   // set the move cursor
   function onEdgeEnter(e: MouseEvent<SVGLineElement>): void {
-    if (mouseDown) return;
+    if (mouseDown || cursor == "wait") return;
     e.preventDefault();
     e.stopPropagation();
     setCursor("ew-resize");
@@ -362,6 +374,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     boxIndex: number,
     edge: string,
   ): void {
+    if (cursor == "wait") return;
     setBoxIndex(boxIndex);
     setEditMode("MoveHorizontal");
     setMouseLocation({
@@ -378,7 +391,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
   function onMouseMoveEdge(
     e: MouseEvent<SVGPathElement | SVGSVGElement>,
   ): void {
-    if (!mouseDown) return;
+    if (!mouseDown || cursor == "wait") return;
     setMouseLocation({
       X: e.nativeEvent.offsetX,
       Y: e.nativeEvent.offsetY,
@@ -392,7 +405,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
   function onMouseLeaveEdge(
     e: MouseEvent<SVGRectElement | SVGPathElement>,
   ): void {
-    if (mouseDown) return;
+    if (mouseDown || cursor == "wait") return;
     e.preventDefault();
     e.stopPropagation();
     setCursor("default");
@@ -403,6 +416,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
   }
 
   function onMouseUpEdge(e: MouseEvent<SVGRectElement | SVGPathElement>): void {
+    if (cursor == "wait") return;
     e.preventDefault();
     e.stopPropagation();
     setCursor("default");
@@ -417,11 +431,30 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
     return "generator-normal";
   }
   function onPlayClick(generator: GeneratorType) {
-    handleReadySolo(generator);
-    setOffsetTime(generator.startTime);
-    setPlayVisible({ visible: true, generator });
-    setMode(PLAYMODE.solo);
+    const { generators, duration, error } = readyPlay({
+      generator,
+      fileContents,
+      timeInterval,
+    });
+    // catch any errors while selecting generators
+    setStatus(error);
+    if (error != "") {
+      setCursor("default");
+      return;
+    }
+    setCursor("wait");
+    // Start processing in the worker with shared buffers
+    startProcessing({
+      generators,
+      duration,
+      sampleRate: SAMPLERATE,
+      recordFormat,
+      timeInterval,
+      windowWidth: screenWidth,
+      windowHeight: screenHeight - 40,
+    });
   }
+
   function onEditClick(generator: GeneratorType) {
     setTrackIndex(-1);
     setGeneratorDialogVisible(true);
@@ -452,27 +485,12 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
   function onDeleteClick(generator: GeneratorType) {
     setDeleteModal({ visible: true, generator });
   }
-  async function handleReadySolo(generator: GeneratorType) {
-    const {
-      sourceData,
-      error,
-    } = await buildSourceData({
-      mode: PLAYMODE.solo,
-      generator: generator,
-      fileContents,
-      timeInterval,
-      windowWidth,
-      windowHeight: windowHeight- 40,
-      recordFormat,
-    });
-    setStatus(error);
-    if (error != "") return;
-    setSourceData(sourceData);
-  }
 
   return (
     <>
-      <div style={{ position: "relative", width: trackWidth, height: trackHeight }}>
+      <div
+        style={{ position: "relative", width: trackWidth, height: trackHeight }}
+      >
         <svg
           id={track.name.concat(": Generators")}
           key={track.name.concat(": Generators")}
@@ -482,130 +500,141 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
           viewBox={`0 0 ${trackWidth} ${trackHeight}`}
           onMouseMove={onMouseMoveEdge}
         >
-        {generatorBoxes.map((generatorBox, i) => (
-          <React.Fragment key={"genbox-" + generatorBox.generator.name}>
-            <rect
-              className={selectClass(generatorBoxes[i].selected)}
-              pointerEvents={"all"}
-              x={generatorBox.position.x}
-              y={generatorBox.position.y}
-              width={generatorBox.width}
-              height={generatorBox.height}
-              fill="white"
-              stroke="black"
-              strokeWidth={1}
-              onMouseEnter={(event) => onBodyEnter(event)}
-              onMouseDown={(event) => onMouseDownBody(event, i)}
-              onMouseMove={(event) => onMouseMoveBody(event)}
-              onMouseLeave={(event) => onMouseLeaveBody(event)}
-              onMouseUp={(event) => onMouseUpBody(event)}
-            />
-            <line
-              pointerEvents={"all"}
-              stroke="blue"
-              strokeWidth={5}
-              x1={generatorBox.position.x}
-              y1={generatorBox.position.y}
-              x2={generatorBox.position.x}
-              y2={generatorBox.position.y + generatorBox.height}
-              onMouseEnter={(e) => onEdgeEnter(e)}
-              onMouseDown={(e) => onMouseDownEdge(e, i, "start")}
-              onMouseMove={(e) => onMouseMoveEdge(e)}
-              onMouseLeave={(e) => onMouseLeaveEdge(e)}
-              onMouseUp={(e) => onMouseUpEdge(e)}
-            />
-            <line
-              pointerEvents={"all"}
-              stroke="blue"
-              strokeWidth={5}
-              x1={generatorBox.position.x + generatorBox.width}
-              y1={generatorBox.position.y}
-              x2={generatorBox.position.x + generatorBox.width}
-              y2={generatorBox.position.y + generatorBox.height}
-              onMouseEnter={(e) => onEdgeEnter(e)}
-              onMouseDown={(e) => onMouseDownEdge(e, i, "stop")}
-              onMouseMove={(e) => onMouseMoveEdge(e)}
-              onMouseLeave={(e) => onMouseLeaveEdge(e)}
-              onMouseUp={(e) => onMouseUpEdge(e)}
-            />
-          </React.Fragment>
-        ))}
-      </svg>
-      {/* create the dropdown buttons for the generator menus */}
-      {generatorBoxes.map((generatorBox: GeneratorBox, i) => (
-        <div
-          className="dropdown"
-          key={`gmenu-${i}`}
-          style={{
-            left: generatorBox.position.x + generatorBox.width / 2.0 - generatorBox.nameWidth / 2 - 4,
-            top: generatorBox.position.y,
-            zIndex:generatorBox.stackOrder,
-          }}
-        >
-          <button className="dropbtn">
-            {generatorBox.generator.name
-              .concat(":")
-              .concat(generatorBox.generator.type)}
-          </button>
-          <div className="dropdown-content" style={{zIndex:generatorBox.stackOrder}}>
-            <a
-              href="#"
-              onClick={() =>
-                onPlayClick(track.generators[generatorBox.generatorIndex])
-              }
-            >
-              Play
-            </a>
-            <a
-              href="#"
-              onClick={() =>
-                onEditClick(track.generators[generatorBox.generatorIndex])
-              }
-            >
-              Edit
-            </a>
-            <a
-              href="#"
-              onClick={() =>
-                onCopyClick(track.generators[generatorBox.generatorIndex])
-              }
-            >
-              Copy
-            </a>
-            <a
-              href="#"
-              onClick={() =>
-                onMoveClick(track.generators[generatorBox.generatorIndex])
-              }
-            >
-              Move
-            </a>
-            <a
-              href="#"
-              onClick={() =>
-                onMuteClick(track.generators[generatorBox.generatorIndex])
-              }
-            >
-              {track.generators[generatorBox.generatorIndex].mute
-                ? "Unmute"
-                : "Mute"}
-            </a>
-            <a
-              href="#"
-              onClick={() =>
-                onDeleteClick(track.generators[generatorBox.generatorIndex])
-              }
-            >
-              Delete
-            </a>
-          </div>
-        </div>
-      ))}
+          {generatorBoxes.map((generatorBox, i) => (
+            <React.Fragment key={"genbox-" + generatorBox.generator.name}>
+              <rect
+                className={selectClass(generatorBoxes[i].selected)}
+                pointerEvents={"all"}
+                x={generatorBox.position.x}
+                y={generatorBox.position.y}
+                width={generatorBox.width}
+                height={generatorBox.height}
+                fill="white"
+                stroke="black"
+                strokeWidth={1}
+                onMouseEnter={(event) => onBodyEnter(event)}
+                onMouseDown={(event) => onMouseDownBody(event, i)}
+                onMouseMove={(event) => onMouseMoveBody(event)}
+                onMouseLeave={(event) => onMouseLeaveBody(event)}
+                onMouseUp={(event) => onMouseUpBody(event)}
+              />
+              <line
+                pointerEvents={"all"}
+                stroke="blue"
+                strokeWidth={5}
+                x1={generatorBox.position.x}
+                y1={generatorBox.position.y}
+                x2={generatorBox.position.x}
+                y2={generatorBox.position.y + generatorBox.height}
+                onMouseEnter={(e) => onEdgeEnter(e)}
+                onMouseDown={(e) => onMouseDownEdge(e, i, "start")}
+                onMouseMove={(e) => onMouseMoveEdge(e)}
+                onMouseLeave={(e) => onMouseLeaveEdge(e)}
+                onMouseUp={(e) => onMouseUpEdge(e)}
+              />
+              <line
+                pointerEvents={"all"}
+                stroke="blue"
+                strokeWidth={5}
+                x1={generatorBox.position.x + generatorBox.width}
+                y1={generatorBox.position.y}
+                x2={generatorBox.position.x + generatorBox.width}
+                y2={generatorBox.position.y + generatorBox.height}
+                onMouseEnter={(e) => onEdgeEnter(e)}
+                onMouseDown={(e) => onMouseDownEdge(e, i, "stop")}
+                onMouseMove={(e) => onMouseMoveEdge(e)}
+                onMouseLeave={(e) => onMouseLeaveEdge(e)}
+                onMouseUp={(e) => onMouseUpEdge(e)}
+              />
+            </React.Fragment>
+          ))}
+        </svg>
+        {/* create the dropdown buttons for the generator menus */}
+        {cursor != "wait" && (
+          <>
+            {generatorBoxes.map((generatorBox: GeneratorBox, i) => (
+              <div
+                className="dropdown"
+                key={`gmenu-${i}`}
+                style={{
+                  left:
+                    generatorBox.position.x +
+                    generatorBox.width / 2.0 -
+                    generatorBox.nameWidth / 2 -
+                    4,
+                  top: generatorBox.position.y,
+                  zIndex: generatorBox.stackOrder,
+                }}
+              >
+                <button className="dropbtn">
+                  {generatorBox.generator.name
+                    .concat(":")
+                    .concat(generatorBox.generator.type)}
+                </button>
+                <div
+                  className="dropdown-content"
+                  style={{ zIndex: generatorBox.stackOrder }}
+                >
+                  <a
+                    href="#"
+                    onClick={() =>
+                      onPlayClick(track.generators[generatorBox.generatorIndex])
+                    }
+                  >
+                    Play
+                  </a>
+                  <a
+                    href="#"
+                    onClick={() =>
+                      onEditClick(track.generators[generatorBox.generatorIndex])
+                    }
+                  >
+                    Edit
+                  </a>
+                  <a
+                    href="#"
+                    onClick={() =>
+                      onCopyClick(track.generators[generatorBox.generatorIndex])
+                    }
+                  >
+                    Copy
+                  </a>
+                  <a
+                    href="#"
+                    onClick={() =>
+                      onMoveClick(track.generators[generatorBox.generatorIndex])
+                    }
+                  >
+                    Move
+                  </a>
+                  <a
+                    href="#"
+                    onClick={() =>
+                      onMuteClick(track.generators[generatorBox.generatorIndex])
+                    }
+                  >
+                    {track.generators[generatorBox.generatorIndex] &&
+                    track.generators[generatorBox.generatorIndex].mute
+                      ? "Unmute"
+                      : "Mute"}
+                  </a>
+                  <a
+                    href="#"
+                    onClick={() =>
+                      onDeleteClick(
+                        track.generators[generatorBox.generatorIndex],
+                      )
+                    }
+                  >
+                    Delete
+                  </a>
+                </div>
+              </div>
+            ))}
+          </>
+        )}
       </div>
-      {!!(playVisible.visible && sourceData) && (
-        <Play setMode={setMode}/>
-      )}
-      {!!(copyMoveDialogVisible && copyMoveMode.generator) && (
+      {copyMoveDialogVisible && copyMoveMode.generator && (
         <GeneratorCopyMoveDialog
           mode={copyMoveMode.mode}
           trackName={track.name}
@@ -613,7 +642,7 @@ export default function GeneratorIcons(props: GeneratorIconProps) {
           setDialogVisible={setCopyMoveDialogVisible}
         />
       )}
-      {!!(deleteModal.visible && deleteModal.generator) && (
+      {deleteModal.visible && deleteModal.generator && (
         <GeneratorDeleteDialog
           trackName={track.name}
           generator={deleteModal.generator}

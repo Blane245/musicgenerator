@@ -11,7 +11,7 @@ import {
   SoundFontGeneratorsType,
   StochasticValues,
   TIMBRETYPE,
-  Voice
+  Voice,
 } from "types";
 import {
   getAttributeValueWithDefault,
@@ -27,6 +27,7 @@ export default class Stochastic extends Silent {
     Nt: 0, // cells
     lambda: 0,
     delta: 0,
+    microtones: false,
     voices: [],
     intensityOption: INTENSITYOPTION.none,
     intensityTransitionOption: INTENSITYTRANSITIONOPTION.none,
@@ -106,6 +107,9 @@ export default class Stochastic extends Silent {
       case "lambda":
         this.values.lambda = parseFloat(stringValue);
         return true;
+      case "microtones":
+        this.values.microtones = value == "true";
+        return true;
       case "delta":
         this.values.delta = parseFloat(stringValue);
         return true;
@@ -161,7 +165,7 @@ export default class Stochastic extends Silent {
   static override validate(
     g: Stochastic,
     fileContent?: CMGFile,
-    oldName?: string
+    oldName?: string,
   ): string[] {
     const e: string[] = [];
     if (fileContent != undefined && oldName != undefined)
@@ -206,7 +210,7 @@ export default class Stochastic extends Silent {
         ensembleElem.setAttribute("name", this.values.ensemble.name);
         ensembleElem.setAttribute(
           "description",
-          this.values.ensemble.description
+          this.values.ensemble.description,
         );
         const voicesElem: Element = doc.createElement("voices");
         ensembleElem.appendChild(voicesElem);
@@ -231,6 +235,10 @@ export default class Stochastic extends Silent {
       returnElem.setAttribute("Nt", this.values.Nt.toString());
       returnElem.setAttribute("lambda", this.values.lambda.toString());
       returnElem.setAttribute("delta", this.values.delta.toString());
+      returnElem.setAttribute(
+        "microtones",
+        this.values.microtones ? "true" : "false",
+      );
       returnElem.setAttribute("compositionSeed", this.values.compositionSeed);
       returnElem.setAttribute("dynamicsSeed", this.values.dynamicsSeed);
 
@@ -238,15 +246,15 @@ export default class Stochastic extends Silent {
       returnElem.appendChild(intensityElem);
       intensityElem.setAttribute(
         "intensityOption",
-        this.values.intensityOption
+        this.values.intensityOption,
       );
       intensityElem.setAttribute(
         "intensityTransitionOption",
-        this.values.intensityTransitionOption
+        this.values.intensityTransitionOption,
       );
       intensityElem.setAttribute(
         "cycleTime",
-        this.values.intensityParameters.cycleTime.toString()
+        this.values.intensityParameters.cycleTime.toString(),
       );
 
       const panElem: Element = doc.createElement("pan");
@@ -255,7 +263,7 @@ export default class Stochastic extends Silent {
       panElem.setAttribute("panAlgorithm", this.values.panAlgorithm);
       panElem.setAttribute(
         "cycleTime",
-        this.values.panParameters.cycleTime.toString()
+        this.values.panParameters.cycleTime.toString(),
       );
 
       // add the composition as a string in row/column order
@@ -273,10 +281,35 @@ export default class Stochastic extends Silent {
     }
   }
 
+  // Restore methods after deserialization (e.g., from web worker transfer)
+  static fromPlainObject(obj: any): Stochastic {
+    // Create a new instance with dummy parent to initialize private fields
+    const instance = new Stochastic(0, obj.parent);
+    
+    // Copy all public properties from the deserialized object
+    Object.assign(instance, obj);
+    
+    // Restore RandomNumber prototypes
+    if (instance.values?.compositionRN) {
+      Object.setPrototypeOf(instance.values.compositionRN, RandomNumber.prototype);
+    }
+    if (instance.values?.dynamicsRN) {
+      Object.setPrototypeOf(instance.values.dynamicsRN, RandomNumber.prototype);
+    }
+    
+    // Restore private fields from the copied values
+    instance.#Ne = instance.values.voices.length;
+    if (instance.values.Nt != 0) {
+      instance.#deltaT = instance.values.Tc / instance.values.Nt;
+    }
+    
+    return instance;
+  }
+
   static override async getXML(
     elem: Element,
     version: string,
-    parent: Track
+    parent: Track,
   ): Promise<Stochastic> {
     try {
       const CMGgen: Silent = await Silent.getXML(elem, version, parent);
@@ -289,7 +322,7 @@ export default class Stochastic extends Silent {
 
       const ensembleElement: Element | null = getElementElement(
         elem,
-        "ensemble"
+        "ensemble",
       );
       if (!ensembleElement)
         throw new Error(`Stochastic getXML missing ensemble attribute`);
@@ -298,19 +331,19 @@ export default class Stochastic extends Silent {
         ensembleElement,
         "name",
         "string",
-        ""
+        "",
       ) as string;
       g.values.ensembleName = g.values.ensemble.name;
       g.values.ensemble.description = getAttributeValueWithDefault(
         ensembleElement,
         "description",
         "string",
-        ""
+        "",
       ) as string;
       g.values.voices = [];
       const voicesElement: Element | null = getElementElement(
         ensembleElement,
-        "voices"
+        "voices",
       );
       if (!voicesElement) {
         g.values.voices = [];
@@ -322,70 +355,69 @@ export default class Stochastic extends Silent {
             child,
             "name",
             "string",
-            ""
+            "",
           ) as string;
           voiceList.push(name);
           const description: string = getAttributeValueWithDefault(
             child,
             "description",
             "string",
-            ""
+            "",
           ) as string;
           const soundFontFile: string = getAttributeValueWithDefault(
             child,
             "soundFontFile",
             "string",
-            ""
+            "",
           ) as string;
           const presetName: string = getAttributeValueWithDefault(
             child,
             "presetName",
             "string",
-            ""
+            "",
           ) as string;
 
           const timbre: TIMBRETYPE = getAttributeValueWithDefault(
-
             child,
             "timbre",
             "string",
-            ""
+            "",
           ) as TIMBRETYPE;
           const registerLo: number = getAttributeValueWithDefault(
             child,
             "registerLo",
             "float",
-            ""
+            "",
           ) as number;
           const registerHi: number = getAttributeValueWithDefault(
             child,
             "registerHi",
             "float",
-            ""
+            "",
           ) as number;
           const duration: number = getAttributeValueWithDefault(
             child,
             "duration",
             "float",
-            ""
+            "",
           ) as number;
           const muted: boolean = getAttributeValueWithDefault(
             child,
             "muted",
             "boolean",
-            ""
+            "",
           ) as boolean;
           const volume: number = getAttributeValueWithDefault(
             child,
             "volume",
             "int",
-            0
+            0,
           ) as number;
           const velocity: number = getAttributeValueWithDefault(
             child,
             "velocity",
             "int",
-            0
+            0,
           ) as number;
           const voice: Voice = {
             name,
@@ -425,41 +457,48 @@ export default class Stochastic extends Silent {
           elem,
           "Tc",
           "float",
-          0
+          0,
         ) as number;
         g.values.Nt = getAttributeValueWithDefault(
           elem,
           "Nt",
           "float",
-          0
+          0,
         ) as number;
         g.values.lambda = getAttributeValueWithDefault(
           elem,
           "lambda",
           "float",
-          0
+          0,
         ) as number;
         g.values.delta = getAttributeValueWithDefault(
           elem,
           "delta",
           "float",
-          0
+          0,
         ) as number;
+        g.values.microtones =
+          (getAttributeValueWithDefault(
+            elem,
+            "microtones",
+            "string",
+            "false",
+          ) as string) == "true";
         g.values.compositionSeed = getAttributeValueWithDefault(
           elem,
           "compositionSeed",
           "string",
-          ""
+          "",
         ) as string;
         g.values.dynamicsSeed = getAttributeValueWithDefault(
           elem,
           "dynamicsSeed",
           "string",
-          ""
+          "",
         ) as string;
         const intensityElem: Element | null = getElementElement(
           elem,
-          "intensity"
+          "intensity",
         );
         if (!intensityElem) {
           g.values.intensityOption = INTENSITYOPTION.none;
@@ -470,19 +509,19 @@ export default class Stochastic extends Silent {
             intensityElem,
             "intensityOption",
             "string",
-            INTENSITYOPTION.none
+            INTENSITYOPTION.none,
           ) as string;
           g.values.intensityTransitionOption = getAttributeValueWithDefault(
             intensityElem,
             "intensityTransitionOption",
             "string",
-            INTENSITYTRANSITIONOPTION.none
+            INTENSITYTRANSITIONOPTION.none,
           ) as string;
           g.values.intensityParameters.cycleTime = getAttributeValueWithDefault(
             intensityElem,
             "cycleTime",
             "float",
-            0
+            0,
           ) as number;
         }
         const panElem: Element | null = getElementElement(elem, "pan");
@@ -495,19 +534,19 @@ export default class Stochastic extends Silent {
             panElem,
             "panOption",
             "string",
-            PANOPTION.none
+            PANOPTION.none,
           ) as string;
           g.values.panAlgorithm = getAttributeValueWithDefault(
             panElem,
             "panAlgorithm",
             "string",
-            PANALGORITHM.none
+            PANALGORITHM.none,
           ) as string;
           g.values.panParameters.cycleTime = getAttributeValueWithDefault(
             panElem,
             "cycleTime",
             "float",
-            0
+            0,
           ) as number;
         }
         g.values.composition = [];
@@ -515,7 +554,7 @@ export default class Stochastic extends Silent {
           elem,
           "composition",
           "string",
-          ""
+          "",
         ) as string;
         if (compositionString != "") {
           const nVoices: number = g.values.voices.length;
@@ -526,7 +565,7 @@ export default class Stochastic extends Silent {
             alert(
               `loaded composition is ill formed. Length is ${
                 compositionList.length
-              } and should be ${Nt * nVoices}. Composition reset.`
+              } and should be ${Nt * nVoices}. Composition reset.`,
             );
           } else {
             let counter: number = 0;

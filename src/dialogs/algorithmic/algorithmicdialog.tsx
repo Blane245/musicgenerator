@@ -39,7 +39,7 @@ export default function AlgorithmicDialog(
           <tr>
             <th>Sound Font File</th>
             <th>Preset</th>
-            <th colSpan={2}>Enabled?</th>
+            <th colSpan={3}>Enabled?</th>
             <th>Generator Tools</th>
             <th>Noise Seed</th>
             <th>Noise Frequency (Hz)</th>
@@ -81,9 +81,6 @@ export default function AlgorithmicDialog(
                   );
                 })}
               </select>
-              {/* <button type="button" style={{fontSize:'10px'}} onClick={() => setViewPreset(true)}>
-                View Preset
-              </button> */}
             </td>
             <td>
               <label>
@@ -103,6 +100,17 @@ export default function AlgorithmicDialog(
                 name="attackEnabled"
                 type="checkbox"
                 checked={formData.attackEnabled ? true : false}
+                onChange={handleChange}
+              />
+              </label>
+            </td>
+            <td>
+              <label>
+                Microtones:&nbsp;
+              <input
+                name="microtones"
+                type="checkbox"
+                checked={formData.microtones ? true : false}
                 onChange={handleChange}
               />
               </label>

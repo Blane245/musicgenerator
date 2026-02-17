@@ -3,20 +3,20 @@ import { GeneratorType, ReportInstrument, ReportSourceData } from "../../types";
 
 export interface SourceReportProps {
   generator: GeneratorType | null; // undefined if for all generators
-  sourceData: ReportSourceData[];
+  playData: ReportSourceData[];
 }
 
 export default function SourceReport(props: SourceReportProps): JSX.Element {
   // this will report on a single generator or all generators
 
-  const { generator, sourceData: sourceData } = props;
+  const { generator, playData: playData } = props;
 
   // report produced for all generators or a specific one
   const sources: ReportSourceData[] = generator
-    ? sourceData.filter(
+    ? playData.filter(
         (s: ReportSourceData) => generator.name == s.generatorName,
       )
-    : sourceData;
+    : playData;
       const key: string = generator? generator.name: 'all';
   // draw the gain envelope for one instrument, scaling the time to account for all of the instrument's in the source
   const ENVELOPEWIDTH: number = 500;

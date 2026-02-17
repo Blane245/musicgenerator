@@ -21,8 +21,9 @@ export default function AlgorithmicReport(
           <tr>
             <th> Soundfont File </th>
             <th> Preset </th>
-            <th> Looping </th>
+            <th> Looping? </th>
             <th> Attack Enabled? </th>
+            <th> Microtones? </th>
             <th> Measure Length (beats) </th>
             <th> On Beats </th>
             <th> Notes in Octave </th>
@@ -39,6 +40,7 @@ export default function AlgorithmicReport(
             <td> {g.presetName} </td>
             <td> {g.isLooping.toString()} </td>
             <td> {g.attackEnabled.toString()} </td>
+            <td> {g.microtones.toString()} </td>
             <td> {g.measureLength} </td>
             <td> {g.beatCount} </td>
             <td> {g.noteCount} </td>

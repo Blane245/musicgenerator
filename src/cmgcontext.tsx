@@ -15,9 +15,7 @@ import TimeLine from "./classes/timeline";
 import {
   EditGenerator,
   EnsembleType,
-  GeneratorType,
-  PLAYMODE,
-  SourceData,
+  PlayData,
   TimelineInterval
 } from "./types";
 
@@ -71,14 +69,8 @@ interface CMGContextType {
   setStatus: Dispatch<SetStateAction<string>>;
   timeLine: TimeLine | null;
   setTimeLine: Dispatch<SetStateAction<TimeLine | null>>;
-  mode: PLAYMODE;
-  setMode: Dispatch<SetStateAction<PLAYMODE>>;
   playbackLength: number;
   setPlaybackLength: Dispatch<SetStateAction<number>>;
-  offsetTime: number;
-  setOffsetTime: Dispatch<SetStateAction<number>>;
-  sourceData: SourceData | undefined;
-  setSourceData: Dispatch<SetStateAction<SourceData | undefined>>;
   timeProgress: number;
   setTimeProgress: Dispatch<SetStateAction<number>>;
   timeInterval: TimelineInterval;
@@ -89,11 +81,12 @@ interface CMGContextType {
   setTrackIndex: Dispatch<SetStateAction<number>>;
   editGeneratorData: EditGenerator;
   setEditGeneratorData: Dispatch<SetStateAction<EditGenerator>>;
-  generatorsPlaying: GeneratorType[];
-  setGeneratorsPlaying: Dispatch<SetStateAction<GeneratorType[]>>;
-  initialParams?: {
-    file?: string;
-    debug?: string;
+  playData: PlayData | null;
+  setPlayData: Dispatch<SetStateAction<PlayData | null>>;
+  initialParams: {
+    file: string;
+    debug: string;
+    // pool: string;
   };
 }
 
@@ -101,9 +94,10 @@ const CMGContext = createContext<CMGContextType | undefined>(undefined);
 
 interface CMGProviderProps {
   children: ReactNode;
-  initialParams?: {
-    file?: string;
-    debug?: string;
+  initialParams: {
+    file: string;
+    debug: string;
+    // pool: string;
   };
 }
 
@@ -139,10 +133,7 @@ export const CMGProvider = ({ children, initialParams }: CMGProviderProps) => {
   const [fileContents, setFileContents] = useState<CMGFile>(new CMGFile());
   const [status, setStatus] = useState<string>("");
   const [timeLine, setTimeLine] = useState<TimeLine | null>(null);
-  const [mode, setMode] = useState<PLAYMODE>(PLAYMODE.idle);
   const [playbackLength, setPlaybackLength] = useState<number>(0);
-  const [offsetTime, setOffsetTime] = useState<number>(0);
-  const [sourceData, setSourceData] = useState<SourceData | undefined>(undefined);
   const [timeProgress, setTimeProgress] = useState<number>(0);
   const [timeInterval, setTimeInterval] = useState<TimelineInterval>({
     startOffset: -1,
@@ -150,10 +141,8 @@ export const CMGProvider = ({ children, initialParams }: CMGProviderProps) => {
   });
   const [generatorDialogVisible, setGeneratorDialogVisible] = useState<boolean>(false);
   const [editGeneratorData, setEditGeneratorData] = useState<EditGenerator>({track: null, generator: null, type: null, newGenerator: false})
+  const [playData, setPlayData] = useState<PlayData | null>(null);
   const [trackIndex, setTrackIndex] = useState<number>(-1);
-  const [generatorsPlaying, setGeneratorsPlaying] = useState<GeneratorType[]>(
-    []
-  );
 
   const contextValue = {
     cursor,
@@ -204,14 +193,8 @@ export const CMGProvider = ({ children, initialParams }: CMGProviderProps) => {
     setStatus,
     timeLine,
     setTimeLine,
-    mode,
-    setMode,
     playbackLength,
     setPlaybackLength,
-    offsetTime,
-    setOffsetTime,
-    sourceData,
-    setSourceData,
     timeProgress,
     setTimeProgress,
     timeInterval,
@@ -222,8 +205,8 @@ export const CMGProvider = ({ children, initialParams }: CMGProviderProps) => {
     setEditGeneratorData,
     trackIndex,
     setTrackIndex,
-    generatorsPlaying,
-    setGeneratorsPlaying,
+    playData,
+    setPlayData,
     initialParams,
   };
 
@@ -234,10 +217,8 @@ export const CMGProvider = ({ children, initialParams }: CMGProviderProps) => {
 
 export const useCMGContext = (): CMGContextType => {
   const context = useContext(CMGContext);
-
   if (context === undefined) {
     throw new Error("useCMGContext must be used within an CMGProvider");
   }
-
   return context;
 };

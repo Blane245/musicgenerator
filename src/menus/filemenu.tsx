@@ -40,12 +40,14 @@ import { useCMGContext } from "cmgcontext";
 import FileDialog from "dialogs/filedialog";
 import { useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+import { HotkeysEvent } from "react-hotkeys-hook/dist/types";
 import { RECENTFILES } from "types";
 import { newFile, setDirty } from "utils/cmfiletransactions";
 import { readCMGFile, writeCMGFile } from "./filehandlers";
 
 export default function FileMenu() {
   const {
+    setCursor,
     timelineWidth,
     timelineHeight,
     fileContents,
@@ -77,6 +79,29 @@ export default function FileMenu() {
     "ctrl+o",
     () => {
       handleOpen("");
+    },
+    { preventDefault: true },
+  );
+  useHotkeys(
+    [
+      "ctrl+0",
+      "ctrl+1",
+      "ctrl+2",
+      "ctrl+3",
+      "ctrl+4",
+      "ctrl+5",
+      "ctrl+6",
+      "ctrl+7",
+      "ctrl+8",
+      "ctrl+9",
+    ],
+    (_keys: KeyboardEvent, handler: HotkeysEvent) => {
+      if (!handler.keys) return;
+      const fileIndex: number = parseInt(handler.keys.join(""));
+      if (fileIndex >= recentFiles.length) return;
+      const name: string = recentFiles[fileIndex];
+      handleOpen(name);
+      setDialogMode("");
     },
     { preventDefault: true },
   );
@@ -236,7 +261,7 @@ export default function FileMenu() {
   async function saveFileContents(name: string, overWrite: boolean) {
     // save the xml data
     try {
-      document.body.style.cursor = "wait";
+      setCursor("wait");
       const error: string | undefined = await writeCMGFile(
         name,
         overWrite,
@@ -251,18 +276,18 @@ export default function FileMenu() {
         setDirty(false, fileContents, setFileContents);
         setStatus(`File '${name}' saved.`);
       } else if (error != undefined) setStatus(error);
-      document.body.style.cursor = "default";
+      setCursor("default");
     } catch (err) {
       const e = err as Error;
       setStatus(
         `Error saving cmg file '${name}': '${e.name}' message: '${e.message}'`,
       );
-      document.body.style.cursor = "default";
+      setCursor("default");
     }
   }
 
   async function readFileContents(name: string) {
-    document.body.style.cursor = "wait";
+      setCursor("wait");
     try {
       const { fileContents, timeLine: thisTimeLine } = await readCMGFile(
         name,
@@ -280,13 +305,13 @@ export default function FileMenu() {
         setTimeInterval({ startOffset: 0, endOffset: 0 });
         setStatus("Error reading cmg file");
       }
-      document.body.style.cursor = "default";
+      setCursor("default");
     } catch (err) {
       const e = err as Error;
       setStatus(
         `Error reading cmg file, type: '${e.name}' message: '${e.message}'`,
       );
-      document.body.style.cursor = "default";
+      setCursor("default");
     }
   }
 

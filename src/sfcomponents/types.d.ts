@@ -1,6 +1,7 @@
 import { SoundFont2 } from "../soundfont2";
 
 export interface SampleHeader {
+  soundfont: string;
   name: string;
   end: number;
   endLoop: number;

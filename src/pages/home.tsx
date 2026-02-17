@@ -4,13 +4,11 @@ import Body from "layouts/body";
 import Footer from "layouts/footer";
 import Header from "layouts/header";
 import { readCMGFile } from "menus/filehandlers";
-import Play from "playfunctions/play";
 import { useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import {
   DEFAULTLOCALSFURI,
   DEFAULTRECORDFORMAT,
-  PLAYMODE,
   RECENTCMGDIRECTORY,
   RECENTFILES,
   RECENTRECORDDIRECTORY,
@@ -20,6 +18,7 @@ import {
 import { getDirectoryList } from "utils/getdirectorylist";
 import loadEnsembleList from "utils/loadEnsembleList";
 import { useCMGContext } from "../cmgcontext";
+import Play from "playfunctions/play";
 export default function Home() {
   const {
     cursor,
@@ -50,34 +49,22 @@ export default function Home() {
     setEnsembleList,
     setRecordFormat,
     setRecentFiles,
+    recentFiles,
     setRecentCMGDirectory,
     setRecentRecordDirectory,
     editGeneratorData,
     generatorDialogVisible,
-    mode,
-    setMode,
-    sourceData,
+    playData,
     setStatus,
   } = useCMGContext();
 
-  // set up the the layout and handle screen size changes
-  // for height:
-  // the page header is set to 160px to accommodate the
-  // title, menu, controls, and timeline display
-  // the page footer is set to 170px to accommodate
-  // the status area and compressor, equalizer and volume controls
-  // the page body is set the the remainder of the screen hight
-  // for width:
-  // all elements are set screen width (css is 100%)
-  // when a window.resize event occurs, the screenHeight and screenWidth
-  // context attributes are set, affording components to make necessary
-  // adjusts to sizes
-
-  // const movement = useRef<MouseLocation>({ X: 0, Y: 0, dX: 0, dY: 0 });
-
+  useEffect(()=> {
+    document.body.style.cursor = cursor;
+  }, [cursor])
   useEffect(() => {
     setAppName("CMG");
     setAppVersion(import.meta.env.VERSION);
+    // set up the the layout and handle screen size changes
     const handleResize = () => {
       const root: HTMLElement | null = document.getElementById("root");
       if (!root) return;
@@ -108,6 +95,8 @@ export default function Home() {
       setTimeLine(null);
     };
     handleResize();
+
+    // add an event handler for window resizing
     window.addEventListener("resize", handleResize);
 
     // load the ensemble list at startup
@@ -180,10 +169,14 @@ export default function Home() {
   }, []);
 
   // notify the user that the SF file list has been loaded
-  // also start with a given file name if provided in the initial parameters
   useEffect(() => {
     setStatus(`${SFFileList.length} Soundfont files loaded.`);
+  }, [SFFileList]);
 
+  // handle a startup when a file name has been provided in the parameters
+  useEffect(() => {
+    if (initialParams.file == "" || timelineHeight == 0 || timelineWidth == 0)
+      return;
     async function readFile(name: string) {
       try {
         // copy of readfilecontents from filemenu
@@ -197,7 +190,7 @@ export default function Home() {
           setStatus(`File '${name}' loaded`);
           setTimeLine(timeLine);
           setTimeInterval({ startOffset: 0, endOffset: 0 });
-          // TODO set recent
+          addRecent(name);
         } else {
           setTimeLine(new TimeLine(timelineWidth, timelineHeight));
           setTimeInterval({ startOffset: 0, endOffset: 0 });
@@ -205,12 +198,23 @@ export default function Home() {
         }
       } catch (e) {
         setStatus(
-          `Error reading cmg file, ${name}. Either it was not foun dor it is in the wrong format`,
+          `Error reading cmg file, ${name} at startup. Either it was not found or it is in the wrong format`,
         );
       }
+
+      // add file to recent files list. if it is already there, move to the top
+      function addRecent(fileName: string) {
+        let theList: string[] = [...recentFiles];
+        theList = theList.filter((f) => f != fileName).filter((f) => f != "");
+        theList.unshift(fileName);
+        // trim the list to 10 names
+        theList = theList.filter((_f, i) => i < 10);
+        setRecentFiles(theList);
+        window.localStorage.setItem(RECENTFILES, theList.join("|"));
+      }
     }
-    if (initialParams?.file) readFile(initialParams.file);
-  }, [SFFileList, initialParams?.file, timelineHeight, timelineWidth]);
+    readFile(initialParams.file);
+  }, [initialParams.file, timelineHeight, timelineWidth]);
 
   // the home page has two windows. One is for editing a composition
   // the other is for playing a composition.
@@ -221,29 +225,26 @@ export default function Home() {
       <Helmet>
         <title> {appName} </title>
       </Helmet>
-      {!!(mode != PLAYMODE.play && mode != PLAYMODE.solo) && (
+      <div className="page" id="page" style={{ cursor: cursor }}>
+        <Header fileName={fileContents ? fileContents.name : ""} />
+        <Body />
+        <Footer />
+      </div>
+      {playData && (
         <div className="page" id="page" style={{ cursor: cursor }}>
-          <Header fileName={fileContents ? fileContents.name : ""} />
-          <Body />
-          <Footer />
+          <Play playData={playData} />
         </div>
       )}
-      {!!(sourceData && mode != PLAYMODE.idle) && (
-        <div className="page" id="page" style={{ cursor: cursor }}>
-          <Play setMode={setMode} />
-        </div>
-      )}
-      {mode == PLAYMODE.idle &&
-      generatorDialogVisible &&
-      editGeneratorData.track &&
-      editGeneratorData.type ? (
-        <GeneratorDialog
-          track={editGeneratorData.track}
-          generatorType={editGeneratorData.type}
-          generator={editGeneratorData.generator}
-          newGenerator={editGeneratorData.newGenerator}
-        />
-      ) : null}
+      {generatorDialogVisible &&
+        editGeneratorData.track &&
+        editGeneratorData.type && (
+          <GeneratorDialog
+            track={editGeneratorData.track}
+            generatorType={editGeneratorData.type}
+            generator={editGeneratorData.generator}
+            newGenerator={editGeneratorData.newGenerator}
+          />
+        )}
     </>
   );
 }

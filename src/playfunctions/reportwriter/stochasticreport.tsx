@@ -23,6 +23,7 @@ export default function StochasticReport(props: StochasticReportProps): JSX.Elem
             <th>Events/Cell</th>
             <th>Random Seed</th>
             <th>Sounds/sec</th>
+            <th>Microtones?</th>
             <th>Dynamics Seed</th>
             <th>Pan Controls</th>
             <th>Intensity Controls</th>
@@ -37,6 +38,7 @@ export default function StochasticReport(props: StochasticReportProps): JSX.Elem
           <td>{v.lambda}</td>
           <td>{v.compositionSeed}</td>
           <td>{v.delta}</td>
+          <td>{v.microtones?"true":"false"}</td>
           <td>{v.dynamicsSeed}</td>
           <td>
             {`Scope: ${v.panOption}`}

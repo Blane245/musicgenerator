@@ -1,8 +1,7 @@
-import { FormEvent } from "react";
-import Track from "classes/track";
 import { useCMGContext } from "cmgcontext";
-import { deleteGenerator } from "utils/cmfiletransactions";
+import { FormEvent } from "react";
 import { GeneratorType } from "types";
+import { deleteGenerator } from "utils/cmfiletransactions";
 
 export interface GeneratorDeleteProps {
   trackName: string;
@@ -13,7 +12,7 @@ export interface GeneratorDeleteProps {
 // handles copy and move generator between tracks.
 export default function GeneratorDeleteDialog(props: GeneratorDeleteProps) {
   const { trackName, generator, setDialogVisible } = props;
-  const { fileContents, setFileContents, setStatus } = useCMGContext();
+  const { setFileContents, setStatus } = useCMGContext();
 
   function onCancel() {
     setDialogVisible({visible:false});
@@ -23,13 +22,10 @@ export default function GeneratorDeleteDialog(props: GeneratorDeleteProps) {
     event.preventDefault();
     event.stopPropagation();
     setDialogVisible({visible:false});
+
     // handle delete
-    const currentTrack: Track | undefined = fileContents.tracks.find(
-      (t) => t.name == trackName
-    );
-    if (!currentTrack) return;
     deleteGenerator(generator, setFileContents);
-    setStatus(`Generator '${generator.name}' deleted from ${trackName}`);
+    setStatus(`Generator '${generator.name}' deleted from ${generator.parent.name}`);
   }
   return (
     <div className="modal-content">

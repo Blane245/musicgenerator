@@ -1,17 +1,17 @@
 // convert a generator to its audio samples and put sources
 
 import SequenceValues from "classes/algorithms/sequencevalues";
-import Chart from "classes/chart";
 import Algorithmic from "classes/generators/algorithmic";
 import RandomNumber from "classes/randomnumber";
 import mergePanSamples from "playfunctions/helpers/mergepansamples";
 import { ALGORITHMTYPE, VoiceHues } from "types";
+import ChartCollector from "workers/chartcollector";
 import { getPresetNote } from "./presetProcessing/getpresetnote";
 
 export default function getSourcesFromAlgorithmic(props: {
   generator: Algorithmic;
   audioBuffer: Float32Array[];
-  chart: Chart;
+  chart: ChartCollector;
   voiceHues: VoiceHues;
 }): string {
   const { generator, audioBuffer, chart, voiceHues } = props;
@@ -54,6 +54,8 @@ export default function getSourcesFromAlgorithmic(props: {
     // not algorithm is a sequencer or not
     // loop through time from start to stop
 
+
+    while (time < stopTime - 0.001) {
     let {
       beat: hitBeat,
       note,
@@ -64,8 +66,6 @@ export default function getSourcesFromAlgorithmic(props: {
       pan,
     } = generator.getCurrentValues(time - startTime, 0);
     volume = volume + parent.volume;
-
-    while (time < stopTime - 0.001) {
       const interval: number = Math.min(60.0 / speed, stopTime - time);
 
       const duration = (interval * noteDuration) / 100;
@@ -108,16 +108,6 @@ export default function getSourcesFromAlgorithmic(props: {
       }
       time += interval;
 
-      ({
-        beat: hitBeat,
-        note,
-        speed,
-        duration: noteDuration,
-        attack,
-        volume,
-        pan,
-      } = generator.getCurrentValues(time - startTime, 0));
-      volume = volume + parent.volume;
     }
   } else {
     // sequencing based on note beats

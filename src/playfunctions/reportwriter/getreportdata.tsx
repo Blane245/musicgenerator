@@ -5,15 +5,15 @@ import { GENERATORTYPE, GeneratorType, ReportSourceData } from "types";
 import getAlgorithmicSources from "./getalgorithmicsources";
 import getStochasticSources from "./getstochasticsources";
 
-interface GetSourceDataProps {
+interface GetReportDataProps {
   fileContents: CMGFile;
   generator: GeneratorType | null;
 }
 
 // load the source data for a specific generator or all of the generators
 // in the file
-export default function getSourceData(
-  props: GetSourceDataProps,
+export default function getReportData(
+  props: GetReportDataProps,
 ): ReportSourceData[] {
   const { fileContents, generator } = props;
   const generatorList: GeneratorType[] = [];

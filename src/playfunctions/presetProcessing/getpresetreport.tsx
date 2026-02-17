@@ -1,5 +1,5 @@
 import RandomNumber from "classes/randomnumber";
-import { samplePool } from "sfcomponents/samplepool";
+// import { samplePool } from "sfcomponents/samplepool";
 import { Preset } from "sfcomponents/types";
 import { attenuate, dBToGain, precision, tc2s } from "sfcomponents/util";
 import { EPS, ReportInstrument, ReportSourceData } from "types";
@@ -58,7 +58,11 @@ export const getPresetReport = ({
   const instrument: ReportInstrument[] = [];
   zones.map((zone) => {
     // get the instrument's sample
-    const { sample: inputSample, header } = samplePool(zone.sample);
+    // const { sample: inputSample, header } = samplePool(soundFontName, zone.sample);
+    const sample = zone.sample.data;
+    const header = zone.sample.header;
+    const inputSample: Float32Array = new Float32Array(sample.length);
+    for (let i = 0; i < sample.length; i++) inputSample[i] = sample[i]/ 32768;
 
     // get the preset merged generator attributes
     const {

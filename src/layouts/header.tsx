@@ -4,7 +4,7 @@ import { useCMGContext } from "cmgcontext";
 import EditMenu from "menus/editmenu";
 import FileMenu from "menus/filemenu";
 import HelpMenu from "menus/helpmenu";
-import PlayMenu from "menus/playmenu";
+import PlayMenu from "menus/playmenu.shared";
 import ToolsMenu from "menus/toolsmenu";
 import TimeLineControls from "components/timelinecontrols";
 import TimeLineDisplay from "components/timelinedisplay";

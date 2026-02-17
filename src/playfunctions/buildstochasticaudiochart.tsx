@@ -1,4 +1,3 @@
-import Chart from "classes/chart";
 import Stochastic from "classes/generators/stochastic";
 import applyIntensity from "playfunctions/helpers/algorithms/applyintensity";
 import applyPan from "playfunctions/helpers/algorithms/applypan";
@@ -14,11 +13,12 @@ import {
 } from "types";
 import addBuffer from "utils/addbuffer";
 import { debug } from "utils/debug";
+import ChartCollector from "workers/chartcollector";
 interface buildStochasticAudioChartProps {
   generator: Stochastic;
   voices: Voices;
   audioBuffer: Float32Array[];
-  chart: Chart;
+  chart: ChartCollector;
   voiceHues: VoiceHues;
 }
 export default function buildStochasticAudioChart(

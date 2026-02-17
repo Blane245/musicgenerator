@@ -1,5 +1,5 @@
 import RandomNumber from "classes/randomnumber";
-import { samplePool } from "sfcomponents/samplepool";
+// import { samplePool } from "sfcomponents/samplepool";
 import { Preset } from "sfcomponents/types";
 import {
   attenuate,
@@ -35,6 +35,7 @@ interface GetPresetNoteProps {
 
 /**
  * Generates a preset note with resampling, envelopes, and effects
+ * @param soundfont - The soundfont containing the preset
  * @param preset - The soundfont preset to use
  * @param isLooping? - Optional override to instrument's loop setting. True if omitted
  * @param pitch - MIDI pitch value or glissando range {startPitch, endPitch}
@@ -74,7 +75,11 @@ export const getPresetNote = ({
   const zones = getActiveZones(preset, Math.round(glissandoStart), velocity);
   zones.map((zone) => {
     // get the instrument's sample
-    const { sample: inputSample, header } = samplePool(zone.sample);
+    // const { sample: inputSample, header } = samplePool(soundfont, zone.sample);
+    const sample:Int16Array = zone.sample.data;
+    const header = zone.sample.header;
+    const inputSample: Float32Array = new Float32Array(sample.length);
+    for (let i = 0; i < sample.length; i++) inputSample[i] = sample[i] / 32768;
 
     // get the preset merged generator attributes
     const {

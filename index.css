@@ -1,5 +1,4 @@
 #root {
-
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1;
   font-weight: 400;
@@ -338,18 +337,20 @@ button:focus-visible {
     "timeline"
     "body"
     "footer";
+    overflow-x: hidden;
+
   .header {
     background-color: lightblue;
     position: absolute;
     grid-area: header;
     top: 0;
     left: 0;
-    width: 100%;
     display: grid;
     grid-template-columns: 50px 300px 1fr 350px;
     grid-template-areas: "icon menu title .";
     gap: 0;
-    z-index: 1002;
+    overflow: visible;
+    z-index: 2001;
     .icon {
       grid-area: icon;
     }
@@ -357,7 +358,7 @@ button:focus-visible {
       grid-area: menu;
       display: grid;
       grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
-      z-index: 2;
+      z-index: 2001;
       grid-template-areas: "file edit tools play help";
       .file-menu {
         grid-area: file;
@@ -390,6 +391,7 @@ button:focus-visible {
     grid-area: timeline;
     grid-template-columns: 200px 1fr;
     grid-template-areas: "control display";
+    overflow-x: hidden;
 
     .control {
       grid-area: control;
@@ -409,7 +411,6 @@ button:focus-visible {
     position: absolute;
     top: 85px;
     left: 0;
-    overflow: auto;
     overflow-x: hidden;
     overflow-y: auto;
   }
@@ -424,6 +425,7 @@ button:focus-visible {
     top: auto;
     bottom: 0;
     left: 0;
+    overflow-x: hidden;
     z-index: 10;
     .status {
       display: block;
@@ -514,7 +516,7 @@ button:focus-visible {
 }
 
 .generator-content {
-  top: 40px;
+  top: 0;
   left: 0;
   z-index: 1000;
   position: absolute;
@@ -531,23 +533,26 @@ button:focus-visible {
   flex-wrap: nowrap;
   grid-template-rows: 40px 1fr 80px;
   grid-template-areas: "header" "body" "footer";
+  overflow-x: hidden;
   .generator-header {
     grid-area: header;
     flex-shrink: 0;
     background-color: #5c75b8;
+    overflow-x: hidden;
     color: white;
   }
   .generator-body {
     grid-area: body;
     flex-grow: 1;
     background-color: white;
-    overflow: scroll;
+    overflow-x: hidden;
     color: black;
   }
   .generator-footer {
     grid-area: footer;
     background-color: #5c75b8;
     color: white;
+    overflow-x: hidden;
     flex-shrink: 0;
   }
 }
@@ -643,6 +648,7 @@ button:focus-visible {
   font-size: 14px;
   font-weight: bold;
   text-align: center;
+  height: 30px;;
 }
 .track-display {
   display: block;
@@ -686,12 +692,14 @@ button:focus-visible {
   left: 0;
   background-color: lightblue;
   overflow: hidden;
+  z-index: 2000;
   .play-header {
     grid-area: header;
     display: grid;
     grid-template-columns: 50px 700px 300px 1fr;
     grid-template-rows: 30px;
     grid-template-areas: "icon buttons levels title";
+    z-index: inherit;
     .icon {
       grid-area: icon;
       padding-left: 2px;
@@ -713,6 +721,7 @@ button:focus-visible {
   .play-body {
     grid-area: drawing;
     background-color: lightgray;
+    z-index: inherit;
   }
   .play-footer {
     position: fixed;
@@ -721,6 +730,7 @@ button:focus-visible {
     background-color: lightskyblue;
     grid-area: footer;
     display: block;
+    z-index: inherit;
   }
 }
 

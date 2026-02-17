@@ -8,7 +8,6 @@ import { MouseEvent, useEffect, useState } from "react";
 import { precision } from "sfcomponents/util";
 import {
   MouseLocation,
-  PLAYMODE,
   TIMEINTERVALEDGE,
   TIMEINTERVALMODE,
   TimelineInterval,
@@ -21,8 +20,8 @@ import getTickLinesandLabels from "utils/getticklinesandlabels";
 import updateTimeTicks from "utils/updatetimeticks";
 export default function TimeLineDisplay() {
   const {
+    cursor,
     setCursor,
-    mode,
     timelineHeight,
     timelineWidth,
     timeLine,
@@ -86,25 +85,18 @@ export default function TimeLineDisplay() {
 
   // when the timeline or the generation mode changes to idle, update the ticks and the controls
   useEffect(() => {
-    if (mode == PLAYMODE.idle && timeLine) {
-      const newTimeTicks: TimeTicks | null = updateTimeTicks(timeLine);
-      if (newTimeTicks) setTicks(newTimeTicks);
-      // const newTimeInterval: TimelineInterval | null = updateTimeInterval(timeInterval, timeLine);
-      // if (newTimeInterval) setTimeInterval(newTimeInterval);
-      debug.info(
-        "TimeLineDisplay: update ticks on entering idle",
-        newTimeTicks,
-      );
-    }
-  }, [timeLine, mode]);
+    if (!timeLine) return;
+    const newTimeTicks: TimeTicks | null = updateTimeTicks(timeLine);
+    if (newTimeTicks) setTicks(newTimeTicks);
+    // const newTimeInterval: TimelineInterval | null = updateTimeInterval(timeInterval, timeLine);
+    // if (newTimeInterval) setTimeInterval(newTimeInterval);
+    debug.info("TimeLineDisplay: update ticks on entering idle", newTimeTicks);
+  }, [timeLine]);
 
   // useeffect handler for mouse move in time interval Define and Move modes
   useEffect(() => {
+    if (cursor == 'wait') return;
     if (!mouseDownTimeLine && !mouseDownTimeInterval) {
-      // debug.info(
-      //   "mouse is not down anywhere. Leaving time interval mode",
-      //   edgeMode
-      // );
       setEdgeMode(TIMEINTERVALMODE.None);
       setEdge(TIMEINTERVALEDGE.None);
       setCursor("default");
@@ -197,6 +189,7 @@ export default function TimeLineDisplay() {
   // when the mouse goes down on the time line initiate a time interval definition
   // on the left edge and cancel any interval moves
   function onMouseDownTimeLine(event: MouseEvent<SVGRectElement>) {
+    if (cursor == 'wait') return;
     event.preventDefault();
     event.stopPropagation();
     setEdgeMode(TIMEINTERVALMODE.Define);
@@ -215,6 +208,7 @@ export default function TimeLineDisplay() {
   // when the mouse is moving in the timeline and the mouse is down
   // in either define or move mode, track the new mouse location
   function onMouseMoveTimeLine(event: MouseEvent<SVGRectElement>) {
+    if (cursor == 'wait') return;
     if (mouseDownTimeLine || mouseDownTimeInterval) {
       setMouseLocation({
         X: event.nativeEvent.offsetX,
@@ -235,6 +229,7 @@ export default function TimeLineDisplay() {
   // when the mouse goes up in the time line, terminate the interval definition
   // and movement
   function onMouseUpTimeLine(event: MouseEvent<SVGRectElement>) {
+    if (cursor == 'wait') return;
     event.preventDefault();
     event.stopPropagation();
     setEdgeMode(TIMEINTERVALMODE.None);
@@ -251,6 +246,7 @@ export default function TimeLineDisplay() {
   function onMouseEnterTimeIntervalBody(
     event: MouseEvent<SVGRectElement>,
   ): void {
+    if (cursor == 'wait') return;
     if (!mouseDownTimeInterval && !mouseDownTimeLine) {
       setCursor("grab");
       event.stopPropagation();
@@ -261,6 +257,7 @@ export default function TimeLineDisplay() {
   // when the mouse goes down on the time interval and its not down
   // already for interval defintion, set the mode to move
   function onMouseDownTimeIntervalBody(event: MouseEvent<SVGRectElement>) {
+    if (cursor == 'wait') return;
     event.stopPropagation();
     event.preventDefault();
     setEdgeMode(TIMEINTERVALMODE.Move);
@@ -281,6 +278,7 @@ export default function TimeLineDisplay() {
   function onMouseMoveTimeIntervalBody(
     event: MouseEvent<SVGRectElement>,
   ): void {
+    if (cursor == 'wait') return;
     if (!mouseDownTimeInterval) return;
     event.stopPropagation();
     event.preventDefault();
@@ -302,6 +300,7 @@ export default function TimeLineDisplay() {
   // when the mouse goes up in the interval cancel all actions
   function onMouseUpTimeIntervalBody(event: MouseEvent<SVGRectElement>): void {
     // when the mouse leaves the time interval body with mouse up, change the cursor to default
+    if (cursor == 'wait') return;
     setCursor("default");
     event.stopPropagation();
     event.preventDefault();
@@ -317,6 +316,7 @@ export default function TimeLineDisplay() {
     event: MouseEvent<SVGPathElement>,
     edge: TIMEINTERVALEDGE,
   ): void {
+    if (cursor == 'wait') return;
     // when the mouse enters the time interval edge with mouse up
     if (!mouseDownTimeInterval && !mouseDownTimeLine) {
       setCursor("ew-resize");
@@ -333,6 +333,7 @@ export default function TimeLineDisplay() {
     event: MouseEvent<SVGPathElement>,
     edge: TIMEINTERVALEDGE,
   ) {
+    if (cursor == 'wait') return;
     const X: number = event.nativeEvent.offsetX;
     const Y: number = event.nativeEvent.offsetY;
     setMouseLocation({ X: X, Y: Y, dX: 0, dY: 0 });
@@ -348,6 +349,7 @@ export default function TimeLineDisplay() {
   function onMouseMoveTimeIntervalEdge(
     event: MouseEvent<SVGPathElement>,
   ): void {
+    if (cursor == 'wait') return;
     if (!mouseDownTimeInterval) return;
     event.stopPropagation();
     event.preventDefault();
@@ -368,6 +370,7 @@ export default function TimeLineDisplay() {
 
   // when the mouse goes up on the interval edge, cancel all changes
   function onMouseUpTimeIntervalEdge(event: MouseEvent<SVGPathElement>): void {
+    if (cursor == 'wait') return;
     setCursor("default");
     // debug.info("mouse up interval edge");
     event.stopPropagation();

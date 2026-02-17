@@ -7,11 +7,11 @@
 // 'sampleTime' is relative to the start of the input sample
 // the longest nonzero left/right channel sample determines the length of the chart graphic
 
-import Chart from "classes/chart";
 import { SAMPLERATE } from "types";
-import { debug } from "utils/debug";
-import { pantoLeftRight } from "./algorithms/panutils";
 import addBuffer from "utils/addbuffer";
+import { debug } from "utils/debug";
+import ChartCollector from "workers/chartcollector";
+import { pantoLeftRight } from "./algorithms/panutils";
 
 interface MergePanSamplesProps {
   sample: Float32Array; // two channels, both of same length
@@ -20,7 +20,7 @@ interface MergePanSamplesProps {
   pitch2: number;
   sampletime: number; // the time of this sample relative to the output sample
   audioBuffer: Float32Array[]; // the current comnposition sample
-  chart: Chart;
+  chart: ChartCollector;
   hue: number | undefined;
 }
 export default function mergePanSamples(props: MergePanSamplesProps) {

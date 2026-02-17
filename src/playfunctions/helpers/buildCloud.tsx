@@ -7,11 +7,8 @@
 // the pitch is determined by the second law of continuous probability
 // in the case of glissando, a second pitch is drawn
 
-import Chart from "classes/chart";
 import Stochastic from "classes/generators/stochastic";
 import { getPresetNote } from "playfunctions/presetProcessing/getpresetnote";
-import { debug } from "utils/debug";
-import { gaussianRandom } from "utils/probability/gaussianrandom";
 import {
   CloudState,
   INTENSITYOPTION,
@@ -23,12 +20,15 @@ import {
   Voice,
   VoiceHues,
 } from "types";
+import addBuffer from "utils/addbuffer";
+import { debug } from "utils/debug";
 import continuousProbability from "utils/probability/continuousprobability";
+import { gaussianRandom } from "utils/probability/gaussianrandom";
 import intervalProbabilty from "utils/probability/intervalprobability";
 import probabilityLookup from "utils/probability/probabilitylookup";
+import ChartCollector from "workers/chartcollector";
 import applyIntensity from "./algorithms/applyintensity";
 import applyPan from "./algorithms/applypan";
-import addBuffer from "utils/addbuffer";
 
 /**
  * Construct a cloud of samples for a voice in a time cell, tracking the state of the cloud elements
@@ -36,7 +36,7 @@ import addBuffer from "utils/addbuffer";
  * @param {Voice} voice - the voice for which the cloud is being constructed
  * @param {number} cloudDuration - the length (seconds) of the time cell conatining the cloud
  * @param {CloudState} cloudState - the initial state of the cloud from the previous cloud
- * @param {Chart} chart - the graphic object that will contain the visible representation of each element in the cloud
+ * @param {ChartCollector} chart - the graphic object that will contain the visible representation of each element in the cloud
  * @param {VoiceHues} voiceHues - the map of hues setting for all voices
  * @param {number} cloudTime - the start time (seconds) of the cloud in the composition
  * @returns {Float32Array[], CloudState} - the cloud sample as a two channel Float32Array and the final state of the cloud
@@ -46,7 +46,7 @@ export default function buildCloud(props: {
   voice: Voice;
   cloudDuration: number;
   cloudState: CloudState;
-  chart: Chart;
+  chart: ChartCollector;
   voiceHues: VoiceHues;
   cloudTime: number;
 }): { cloudBuffer: Float32Array[]; cloudState: CloudState } {
@@ -69,8 +69,6 @@ export default function buildCloud(props: {
     panParameters,
     dynamicsRN: rN,
   } = { ...generator.values };
-
-  
 
   const newCloudState: CloudState = { ...cloudState };
   const cloudCount = Math.ceil(SAMPLERATE * cloudDuration);
@@ -103,8 +101,9 @@ export default function buildCloud(props: {
       : cloudState.offset;
   let pitch1: number =
     cloudState.offset < 0
-      ? Math.round(intervalProbabilty(hi - lo, rN) + lo)
+      ? intervalProbabilty(hi - lo, rN) + lo
       : cloudState.pitch;
+  if (!generator.values.microtones) pitch1 = Math.round(pitch1);
 
   let t2: number = 0;
   let pitch2: number = 0;
@@ -127,9 +126,8 @@ export default function buildCloud(props: {
       // get a speed and pitch2
       const speed: number = gaussianRandom(0, delta * RMSFACTOR, rN);
       // restrict the glissando to remain in the range of the voice
-      pitch2 = Math.round(
-        Math.min(hi, Math.max(lo, pitch1 + speed * interval)),
-      );
+      pitch2 = Math.min(hi, Math.max(lo, pitch1 + speed * interval));
+      if (!generator.values.microtones) pitch2 = Math.round(pitch2);
       debug.info(
         `buildCloud: glissando for voice ${voice.name}, pitch1=${pitch1}, pitch2=${pitch2}, speed=${speed}, interval=${interval}, t1=${t1}, t2=${t2}`,
       );
@@ -155,7 +153,9 @@ export default function buildCloud(props: {
 
     // put the element sample in the cloud sample,
     addBuffer(cloudBuffer, [eSample, eSample], Math.trunc(t1 * SAMPLERATE));
-    debug.info(`buildCloud: cloud element added to cloud @ time=${t1}, sample=${Math.trunc(t1 * SAMPLERATE)}`)
+    debug.info(
+      `buildCloud: cloud element added to cloud @ time=${t1}, sample=${Math.trunc(t1 * SAMPLERATE)}`,
+    );
 
     // add the source to the chart
 
@@ -205,7 +205,8 @@ export default function buildCloud(props: {
       pitch1 =
         voice.timbre == TIMBRE.Glissando
           ? pitch2
-          : Math.round(intervalProbabilty(hi - lo, rN)) + lo;
+          : intervalProbabilty(hi - lo, rN) + lo;
+      if (!generator.values.microtones) pitch1 = Math.round(pitch1);
 
       // get a new interval
       do {

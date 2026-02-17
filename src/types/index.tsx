@@ -342,6 +342,7 @@ export type StochasticValues = {
   lambda: number; // the average number of events (clouds) per time cell
   compositionRN: RandomNumber;
   delta: number; // sounds / second
+  microtones: boolean; // whether or not the composition uses microtones
   dynamicsRN: RandomNumber;
   voices: Voices; // the voices that make up the ensemble
   intensityOption: IntensityOption; // none, composition, voice, cloud
@@ -558,11 +559,11 @@ export enum TIMEINTERVALEDGE {
 // #endregion
 
 // #region play
-export enum PLAYMODE {
-  play = "play",
-  solo = "solo",
-  idle = "idle",
-}
+// export enum PLAYMODE {
+//   play = "play",
+//   solo = "solo",
+//   idle = "idle",
+// }
 
 export type GainEnvelope = {
   t: number;
@@ -689,7 +690,7 @@ export type TimeMidiLine = {
   to: TimeMidiPoint;
 };
 
-export type SourceData = {
+export type PlayData = {
   audioBuffer: Float32Array[];
   audio: Blob; // in memory audio 
   image: HTMLImageElement;
