@@ -11,6 +11,7 @@ import Stochastic from "classes/generators/stochastic";
 import { getPresetNote } from "playfunctions/presetProcessing/getpresetnote";
 import {
   CloudState,
+  CloudStates,
   INTENSITYOPTION,
   PANOPTION,
   RMSFACTOR,

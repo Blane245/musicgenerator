@@ -600,7 +600,7 @@ export default function Play(params: PlayProps): JSX.Element {
             top: "40px",
             left: (windowWidth - 500).toString() + "px",
             backgroundColor: "white",
-            zIndex:2001,
+            zIndex:3000,
           }}
         >
           <div className="modal-header">Voice Legend</div>

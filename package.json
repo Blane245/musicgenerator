@@ -3,7 +3,7 @@
   "private": true,
   "version": "6.0.0",
   "type": "module",
-  "homepage": "https://lanedb.hopto.org/cmg4/",
+  "homepage": "https://blane-latitude-7290/cmg6/",
   "author": {
     "name": "Bob Lane",
     "url": "https://github.com/Blane245"
@@ -14,7 +14,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build --base=/cmg4 --mode=production",
+    "build": "tsc -b && vite build --base=/cmg6 --mode=production",
     "lint": "eslint .",
     "preview": "vite preview",
     "generate-icons": "node run-icon-export.js",

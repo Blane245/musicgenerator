@@ -518,7 +518,7 @@ button:focus-visible {
 .generator-content {
   top: 0;
   left: 0;
-  z-index: 1000;
+  z-index: 3000;
   position: absolute;
   background-color: #fefefe;
   margin: auto;
@@ -692,7 +692,7 @@ button:focus-visible {
   left: 0;
   background-color: lightblue;
   overflow: hidden;
-  z-index: 2000;
+  z-index: 3000;
   .play-header {
     grid-area: header;
     display: grid;
